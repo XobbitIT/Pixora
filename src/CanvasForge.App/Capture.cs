@@ -60,6 +60,7 @@ internal sealed partial class MainWindow
 
         )
             controls.Children.Add(AsyncButton(kind.ToUpperInvariant(), () => Capture(kind + "_track", kind.ToUpperInvariant() + " — " + T("лише доріжка повзунка", "slider track only"))));
+        controls.Children.Add(AsyncButton(T("Захопти Size anchors 1/3/10/20", "Capture Size anchors 1/3/10/20"), CaptureSizeAnchors));
         controls.Children.Add(AsyncButton(T("Перевірити Rust controls", "Test Rust controls"), TestControls));
         controls.Children.Add(AsyncButton(T("Калібрувати пензель 1/3/10/20", "Calibrate brush 1/3/10/20"), CalibrateBrush));
     }
@@ -124,6 +125,39 @@ internal sealed partial class MainWindow
             cal.SetPoint(key, new(rect.Value.Left, rect.Value.Top));
             settings.SetCalibration(cal);
             Dirty();
+        }
+        finally
+        {
+            Show();
+            Activate();
+            UpdateReady();
+        }
+    }
+
+    private async Task CaptureSizeAnchors()
+    {
+        if (!settings.Calibration.Rect("size_track").Valid)
+            throw new InvalidOperationException(T("Спершу захопи доріжку повзунка SIZE.", "Capture the SIZE slider track first."));
+        try
+        {
+            foreach (var size in new[] { 1, 3, 10, 20 })
+            {
+                if (MessageBox.Show(T(
+                    $"У Rust встанови Size = {size}, потім натисни OK і познач центр повзунка Size. Скасувати — пропустити решту розмірів.",
+                    $"In Rust set Size = {size}, then press OK and mark the center of the Size slider thumb. Cancel to skip the remaining sizes."),
+                    "Size anchors", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+                    break;
+                var (screen, shot) = await CaptureShot();
+                var rect = Select(shot, screen, $"SIZE {size} — " + T("центр повзунка", "slider thumb center"), true);
+                if (rect is null)
+                    break;
+                var cal = settings.Calibration;
+                cal.SetPoint("size_anchor_" + size, new(rect.Value.Left, rect.Value.Top));
+                settings.SetCalibration(cal);
+                Dirty();
+            }
+
+            Save();
         }
         finally
         {

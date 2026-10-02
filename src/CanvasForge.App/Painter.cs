@@ -339,36 +339,57 @@ internal sealed class Painter
         }
     }
 
-    private readonly record struct SliderTarget(ScreenPoint Point, ScreenRect Track, double Fraction);
+    private readonly record struct SliderTarget(ScreenPoint Point, ScreenRect Track, double Fraction, bool Anchored);
+
+    // Sizes for which the user may capture an exact thumb position. An anchor is
+    // ground truth for that value, so it takes priority over the universal
+    // ControlCurve interpolation (whose hardcoded fraction mapping may not match
+    // the current Rust slider exactly).
+    private static string? SizeAnchorKey(double value)
+    {
+        foreach (var s in new[] { 1, 3, 10, 20 })
+            if (Math.Abs(value - s) < .01)
+                return "size_anchor_" + s;
+        return null;
+    }
 
     private SliderTarget? ResolveSliderTarget(string kind, double value)
     {
         var cal = settings.PaintCalibration();
-        var point = ControlCurve.Point(cal, kind, value);
-        if (point is null)
-            return null;
-
         var box = cal.Rect(kind + "_track");
         var fraction = Math.Clamp(ControlCurve.Fraction(kind, value), 0, 1);
 
-        // IMPORTANT: the captured min/max anchors are the source of truth.
-        // Older builds re-detected a "green run" inside the screenshot and
-        // replaced the click geometry with it. On the current Rust UI the
-        // green fill/label is not the real interactive slider range, so Size 1
-        // could jump to ~2.27 and every subsequent stroke became too wide.
-        // Keep the captured anchors for clicking; the rectangle is diagnostics
-        // / verification only.
+        ScreenPoint? point = null;
+        var anchored = false;
+        if (kind == "size" && SizeAnchorKey(value) is { } anchorKey)
+        {
+            point = cal.Point(anchorKey);
+            anchored = point is not null;
+        }
+
+        point ??= ControlCurve.Point(cal, kind, value);
+        if (point is null)
+            return null;
+
+        // IMPORTANT: the captured min/max anchors (or a per-size manual anchor)
+        // are the source of truth. Older builds re-detected a "green run" inside
+        // the screenshot and replaced the click geometry with it. On the current
+        // Rust UI the green fill/label is not the real interactive slider range,
+        // so Size 1 could jump to ~2.27 and every subsequent stroke became too
+        // wide. Keep the captured anchors for clicking; the rectangle is
+        // diagnostics / verification only.
         Log("control_target", new
         {
             kind,
             value,
             fraction,
             point,
+            anchored,
             min = cal.Point(kind + "_min"),
             max = cal.Point(kind + "_max"),
             box
         });
-        return new(point.Value, box, fraction);
+        return new(point.Value, box, fraction, anchored);
     }
 
     private bool SliderMatches(string kind, double value)
@@ -413,7 +434,8 @@ internal sealed class Painter
 
         var explicitVerify = settings.Bool("verify_controls");
         var sizeKey = (long)Math.Round(value * 10000);
-        var verifySizeOnce = kind == "size" && value > 1.01 && !verifiedSizeValues.Contains(sizeKey);
+        var anchored = target.Value.Anchored;
+        var verifySizeOnce = kind == "size" && (value > 1.01 || anchored) && !verifiedSizeValues.Contains(sizeKey);
         if ((explicitVerify || verifySizeOnce) && box.Valid)
         {
             var desired = target.Value.Fraction;
@@ -442,6 +464,16 @@ internal sealed class Painter
             {
                 Log("slider_unverified", new { kind, value, desired, reason = "green band not found" });
                 if (verifySizeOnce) verifiedSizeValues.Add(sizeKey);
+                return;
+            }
+
+            // The click used a user-captured anchor for this exact size, which is
+            // ground truth; the green-band fraction is only a rough guide here, so
+            // warn instead of failing the transfer on a mismatch.
+            if (anchored)
+            {
+                Log("slider_anchor_mismatch", new { kind, value, desired, actual });
+                verifiedSizeValues.Add(sizeKey);
                 return;
             }
 
