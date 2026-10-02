@@ -701,7 +701,175 @@ Test("Calibration stores and reads the Rust session baseline", () =>
     Assert(cal.SessionClient == new ScreenPoint(123, 456));
     Assert(cal.SessionDpi == 144);
     cal.SetSession(new ScreenPoint(0, 0), 0);
-    Assert(cal.SessionClient is null, "origin 0,0 means unset");
+    Assert(cal.SessionClient == new ScreenPoint(0, 0), "zero is a valid client origin");
     Assert(cal.SessionDpi == 96, "invalid dpi normalizes to 96");
+});
+
+Settings SessionFixture()
+{
+    var s = Config(ColorMode.RustPalette);
+    var c = s.Calibration;
+    c.SetRect("canvas", new(100, 200, 300, 350));
+    c.SetRect("palette", new(400, 200, 440, 360));
+    c.SetRect("size_track", new(400, 500, 620, 510));
+    c.SetPoint("size_min", new(400, 505));
+    c.SetPoint("size_anchor_3", new(415, 505));
+    c.SetPoint("hex_input", new(460, 370));
+    c.SetSession(new(10, 20), 96, new(1280, 720));
+    s.SetCalibration(c);
+    var hex = new Calibration(new JsonObject());
+    foreach (var key in new[] { "size_track", "interval_track", "opacity_track", "brush_shapes" })
+        hex.SetRect(key, new(700, 500, 900, 510));
+    hex.SetPoint("size_anchor_3", new(715, 505));
+    s.Data["hex_controls"] = hex.Data.DeepClone();
+    s.SetPalette([new(new(243, 198, 183), new(410, 210), "main"), new(new(21, 26, 34), new(430, 330), "quick")]);
+    s.Set("brush_calibration_points", new double[][] { [1, 3, 1], [10, 21, 13] });
+    s.Set("brush_calibration_context", AdaptiveBrush.Context(s));
+    return s;
+}
+
+Test("Missing or malformed baseline coordinates are never treated as an origin", () =>
+{
+    var c = new Calibration(new JsonObject { ["session_client_x"] = 0 });
+    Assert(c.SessionClient is null);
+    c.Data["session_client_y"] = "broken";
+    Assert(c.SessionClient is null);
+    c.Data["session_client_y"] = -20;
+    Assert(c.SessionClient == new ScreenPoint(0, -20));
+});
+Test("Session alignment translates every coordinate family and only once", () =>
+{
+    var s = SessionFixture();
+    var samples = s.Data["brush_calibration_points"]!.ToJsonString();
+    var colors = s.Data["rust_palette"]!.ToJsonString();
+    var moved = CalibrationSession.Align(s, new(-10, -20), 96, new(1280, 720));
+    Assert(!moved.IsIdentity);
+    Assert(s.Calibration.Rect("canvas") == new ScreenRect(80, 160, 280, 310));
+    Assert(s.Calibration.Rect("palette") == new ScreenRect(380, 160, 420, 320));
+    Assert(s.Calibration.Point("size_min") == new ScreenPoint(380, 465));
+    Assert(s.Calibration.Point("size_anchor_3") == new ScreenPoint(395, 465));
+    Assert(s.Calibration.Point("hex_input") == new ScreenPoint(440, 330));
+    var hex = new Calibration((JsonObject)s.Data["hex_controls"]!);
+    Assert(hex.Rect("size_track") == new ScreenRect(680, 460, 880, 470));
+    Assert(hex.Point("size_anchor_3") == new ScreenPoint(695, 465));
+    Assert(s.Palette()[0].ClickPoint == new ScreenPoint(390, 170));
+    Assert(s.Palette()[1].ClickPoint == new ScreenPoint(410, 290));
+    Assert(s.Calibration.SessionClient == new ScreenPoint(-10, -20));
+    Assert(s.Calibration.SessionSize == new ScreenSize(1280, 720));
+    Assert(s.Data["brush_calibration_points"]!.ToJsonString() == samples);
+    Assert(s.Data["rust_palette"]!.ToJsonString() == colors);
+    var once = s.Data.ToJsonString();
+    Assert(CalibrationSession.Align(s, new(-10, -20), 96, new(1280, 720)).IsIdentity);
+    Assert(s.Data.ToJsonString() == once, "same frame translated twice");
+});
+Test("Zero-origin sessions still translate after Rust moves", () =>
+{
+    var s = SessionFixture();
+    var c = s.Calibration; c.SetSession(new(0, 0), 96); s.SetCalibration(c);
+    CalibrationSession.Align(s, new(50, -30), 96);
+    Assert(s.Calibration.Rect("canvas") == new ScreenRect(150, 170, 350, 320));
+});
+Test("Partial recapture preserves alignment of the other captured regions", () =>
+{
+    var s = SessionFixture();
+    CalibrationSession.Align(s, new(110, 70), 96, new(1280, 720));
+    var c = s.Calibration;
+    c.SetRect("canvas", new(205, 255, 405, 405));
+    s.SetCalibration(c);
+    Assert(s.Calibration.Rect("palette") == new ScreenRect(500, 250, 540, 410));
+    Assert(s.Palette()[0].ClickPoint == new ScreenPoint(510, 260));
+    CalibrationSession.Align(s, new(120, 80), 96, new(1280, 720));
+    Assert(s.Calibration.Rect("canvas") == new ScreenRect(215, 265, 415, 415));
+    Assert(s.Palette()[0].ClickPoint == new ScreenPoint(520, 270));
+});
+Test("DPI change rejects the entire session without mutating coordinates", () =>
+{
+    var s = SessionFixture();
+    var before = s.Data.ToJsonString();
+    try { CalibrationSession.Align(s, new(100, 200), 144, new(1280, 720)); throw new Exception("DPI change accepted"); }
+    catch (InvalidOperationException e) { Assert(e.Message == CalibrationSession.DpiChangedMessage); }
+    Assert(s.Data.ToJsonString() == before);
+});
+Test("Window resize rejects the entire session without mutating coordinates", () =>
+{
+    var s = SessionFixture();
+    var before = s.Data.ToJsonString();
+    try { CalibrationSession.Align(s, new(100, 200), 96, new(1920, 1080)); throw new Exception("Resize accepted"); }
+    catch (InvalidOperationException e) { Assert(e.Message == CalibrationSession.SizeChangedMessage); }
+    Assert(s.Data.ToJsonString() == before);
+});
+Test("Legacy sessions acquire dimensions on their first alignment", () =>
+{
+    var s = SessionFixture();
+    s.Calibration.Data.Remove("session_client_width");
+    s.Calibration.Data.Remove("session_client_height");
+    CalibrationSession.Align(s, new(10, 20), 96, new(1280, 720));
+    Assert(s.Calibration.SessionSize == new ScreenSize(1280, 720));
+});
+Test("Reset removes every captured geometry but keeps painting preferences", () =>
+{
+    var s = SessionFixture();
+    s.Set("language", "English"); s.Set("speed_profile", "Safe");
+    CalibrationSession.Reset(s);
+    foreach (var key in new[] { "calibration", "hex_controls", "rust_palette", "palette_click_points", "palette_sources", "brush_calibration_points", "brush_calibration_context" })
+        Assert(!s.Data.ContainsKey(key), "stale capture survived: " + key);
+    Assert(s.Text("language") == "English" && s.Text("speed_profile") == "Safe");
+    CalibrationSession.Align(s, new(20, 40), 144, new(1920, 1080));
+    Assert(s.Calibration.SessionDpi == 144 && !s.Calibration.Rect("canvas").Valid);
+});
+Test("Adaptive calibration remains valid after same-DPI translation", () =>
+{
+    var s = SessionFixture(); s.Set("adaptive_brush", true);
+    AdaptiveBrush.Validate(s);
+    var context = AdaptiveBrush.Context(s);
+    CalibrationSession.Align(s, new(-200, 80), 96, new(1280, 720));
+    Assert(AdaptiveBrush.Context(s) == context);
+    AdaptiveBrush.Validate(s);
+    var c = s.Calibration; var r = c.Rect("size_track");
+    c.SetRect("size_track", r with { Right = r.Right + 10 }); s.SetCalibration(c);
+    try { AdaptiveBrush.Validate(s); throw new Exception("Changed track dimensions accepted"); }
+    catch (InvalidOperationException) { }
+});
+Test("Matching legacy adaptive calibration upgrades before translation", () =>
+{
+    var s = SessionFixture(); s.Set("adaptive_brush", true);
+    var r = s.Calibration.Rect("canvas");
+    s.Set("brush_calibration_context", $"v1:{r.Width}:{r.Height}:{s.Text("color_mode")}:{s.Int("brush_shape_slot", 3)}:{s.Text("brush_shape")}:" + s.PaintCalibration().Rect("size_track"));
+    CalibrationSession.Align(s, new(110, 220), 96, new(1280, 720));
+    Assert(s.Text("brush_calibration_context").StartsWith("v2:"));
+    AdaptiveBrush.Validate(s);
+});
+Test("Stale legacy adaptive calibration is never upgraded", () =>
+{
+    var s = SessionFixture(); s.Set("adaptive_brush", true);
+    s.Set("brush_calibration_context", "v1:stale");
+    CalibrationSession.Align(s, new(110, 220), 96, new(1280, 720));
+    Assert(s.Text("brush_calibration_context") == "v1:stale");
+    try { AdaptiveBrush.Validate(s); throw new Exception("Stale legacy calibration accepted"); }
+    catch (InvalidOperationException) { }
+});
+Test("Interface-only settings preserve the RESUME identity", () =>
+{
+    var s = SessionFixture(); var image = Fixture(); var palette = s.Palette().ToArray();
+    var hash = PlanIdentity.Compute(image, s, palette);
+    s.Set("language", "English");
+    Assert(hash == PlanIdentity.Compute(image, s, palette));
+    foreach (var key in new[] { "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize" })
+    {
+        s.Set(key, !s.Bool(key));
+        Assert(hash == PlanIdentity.Compute(image, s, palette), "interface setting invalidated identity: " + key);
+    }
+});
+Test("Painting settings and captured coordinates still invalidate RESUME", () =>
+{
+    var s = SessionFixture(); var image = Fixture(); var palette = s.Palette().ToArray();
+    var hash = PlanIdentity.Compute(image, s, palette);
+    foreach (var (key, value) in new[] { ("cell_px", 2), ("brush_shape_slot", 4) })
+    {
+        var changed = s.Clone(); changed.Set(key, value);
+        Assert(hash != PlanIdentity.Compute(image, changed, palette));
+    }
+    var moved = s.Clone(); CalibrationSession.Align(moved, new(20, 30), 96, new(1280, 720));
+    Assert(hash != PlanIdentity.Compute(image, moved, moved.Palette().ToArray()));
 });
 Console.WriteLine($"ALL {passed} TESTS PASSED");

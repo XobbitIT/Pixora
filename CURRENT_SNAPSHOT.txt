@@ -1,4 +1,8 @@
-Pixora current source snapshot
-Git commit baseline: 2a04dd31ae6151d435ac0deb2b9a705dbb3c9493
-Includes: SpeedPatch + Pixora rebrand + CanvasFix + SliderCoordinateFix
-Source only; no compiled binaries included.
+Pixora 1.0.14-beta.1 — source for in-game testing
+Based on main: 76b6bf497f150653c806d0de984b9f7a9558bbd2 (1.0.13)
+Includes: consistent capture rebasing, zero-origin support, adaptive calibration migration,
+strict RustClient targeting, per-window DPI/size checks, pause control recovery,
+UI-independent RESUME identity, and Core regression tests in Windows CI.
+Changes: CHANGES_1.0.14_UA.md
+In-game test checklist: TESTING_1.0.14_UA.md
+Portable binaries are produced by the Windows GitHub Actions workflow.

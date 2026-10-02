@@ -8,7 +8,19 @@ public static class AdaptiveBrush
     public static string Context(Settings s)
     {
         var r = s.Calibration.Rect("canvas");
-        return $"v1:{r.Width}:{r.Height}:{s.Text("color_mode")}:{s.Int("brush_shape_slot", 3)}:{s.Text("brush_shape")}:" + s.PaintCalibration().Rect("size_track").ToString();
+        var track = s.PaintCalibration().Rect("size_track");
+        return $"v2:{r.Width}:{r.Height}:{s.Text("color_mode")}:{s.Int("brush_shape_slot", 3)}:{s.Text("brush_shape")}:{track.Width}:{track.Height}";
+    }
+
+    public static void UpgradeCalibrationContext(Settings s)
+    {
+        if (!s.Text("brush_calibration_context").StartsWith("v1:", StringComparison.Ordinal)) return;
+        if (s.Mode == ColorMode.HexDirect && !s.HexControlsReady) return;
+        var r = s.Calibration.Rect("canvas");
+        var legacy = $"v1:{r.Width}:{r.Height}:{s.Text("color_mode")}:{s.Int("brush_shape_slot", 3)}:{s.Text("brush_shape")}:" + s.PaintCalibration().Rect("size_track");
+        // Upgrade only a matching legacy calibration; stale measurements stay stale.
+        if (s.Text("brush_calibration_context") == legacy)
+            s.Set("brush_calibration_context", Context(s));
     }
 
     public static void Validate(Settings s)

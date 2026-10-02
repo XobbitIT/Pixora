@@ -1,4 +1,6 @@
 {
+  "Масштаб DPI вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.": "Rust window DPI changed. Capture the Canvas, palette and sliders again.",
+  "Розмір вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.": "Rust window size changed. Capture the Canvas, palette and sliders again.",
   "Speed Engine: {p0}. Профіль застосовано до наступного START.": "Speed Engine: {p0}. Profile applied for the next START.",
   "Помилка інтерфейсу: {p0}\nДеталі записані в runtime_error.log та журналі сесії.": "Interface error: {p0}\nDetails were saved to runtime_error.log and the session log.",
   "РОЗДІЛИ": "SECTIONS",

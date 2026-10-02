@@ -13,6 +13,7 @@ public readonly record struct Rgb(byte R, byte G, byte B)
 }
 
 public readonly record struct ScreenPoint(int X, int Y);
+public readonly record struct ScreenSize(int Width, int Height);
 public readonly record struct ScreenRect(int Left, int Top, int Right, int Bottom)
 {
     public int Width => Right - Left;
@@ -253,6 +254,7 @@ public sealed class Settings
         if (s.Text("color_mode") != "HEX Direct")
             s.Set("color_mode", "Rust Palette");
         s.Validate();
+        AdaptiveBrush.UpgradeCalibrationContext(s);
         return s;
     }
 
@@ -296,13 +298,21 @@ public sealed class Calibration(JsonObject data)
     // coordinates from this baseline to the window's current position, so a
     // moved / re-launched Rust window no longer shifts the picture.
     public ScreenPoint? SessionClient
-        => Get("session_client_x") == 0 && Get("session_client_y") == 0 ? null : new(Get("session_client_x"), Get("session_client_y"));
+        => int.TryParse(Data["session_client_x"]?.ToString(), out var x)
+            && int.TryParse(Data["session_client_y"]?.ToString(), out var y) ? new(x, y) : null;
     public int SessionDpi => CoordinateRebase.NormalizeDpi(Get("session_dpi"));
-    public void SetSession(ScreenPoint clientOrigin, int dpi)
+    public ScreenSize? SessionSize => Get("session_client_width") > 0 && Get("session_client_height") > 0
+        ? new(Get("session_client_width"), Get("session_client_height")) : null;
+    public void SetSession(ScreenPoint clientOrigin, int dpi, ScreenSize? size = null)
     {
         Set("session_client_x", clientOrigin.X);
         Set("session_client_y", clientOrigin.Y);
         Set("session_dpi", CoordinateRebase.NormalizeDpi(dpi));
+        if (size is { } dimensions)
+        {
+            Set("session_client_width", dimensions.Width);
+            Set("session_client_height", dimensions.Height);
+        }
     }
 
     public List<ScreenPoint> GridCenters(string k, int cols, int rows)
@@ -315,6 +325,47 @@ public sealed class Calibration(JsonObject data)
             for (var x = 0; x < cols; x++)
                 result.Add(new((int)Math.Round(r.Left + (x + .5) * r.Width / cols), (int)Math.Round(r.Top + (y + .5) * r.Height / rows)));
         return result;
+    }
+}
+
+public static class CalibrationSession
+{
+    public const string DpiChangedMessage = "Масштаб DPI вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.";
+    public const string SizeChangedMessage = "Розмір вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.";
+
+    // Align every stored coordinate before capturing another region. Updating just
+    // the baseline would silently leave the other regions in the previous frame.
+    public static CoordinateRebase Align(Settings settings, ScreenPoint origin, int dpi, ScreenSize? size = null)
+    {
+        var cal = settings.Calibration;
+        dpi = CoordinateRebase.NormalizeDpi(dpi);
+        var transform = default(CoordinateRebase);
+        if (cal.SessionClient is { } baseline)
+        {
+            if (cal.SessionDpi != dpi)
+                throw new InvalidOperationException(DpiChangedMessage);
+            if (cal.SessionSize is { } previous && size is { } current && previous != current)
+                throw new InvalidOperationException(SizeChangedMessage);
+            AdaptiveBrush.UpgradeCalibrationContext(settings);
+            transform = new(baseline.X, baseline.Y, cal.SessionDpi, origin.X, origin.Y, dpi);
+            transform.ApplyTo(cal.Data);
+            if (settings.Data["palette_click_points"] is JsonArray palette)
+                transform.ApplyTo(palette);
+            if (settings.Data["hex_controls"] is JsonObject hex)
+                transform.ApplyTo(hex);
+        }
+        cal.SetSession(origin, dpi, size);
+        settings.SetCalibration(cal);
+        return transform;
+    }
+
+    // A DPI change does not prove that Rust's game UI scales by the same factor.
+    // A new capture starts fresh rather than mixing incompatible geometries.
+    public static void Reset(Settings settings)
+    {
+        settings.Data.Remove("calibration");
+        foreach (var key in new[] { "hex_controls", "rust_palette", "palette_click_points", "palette_sources", "brush_calibration_points", "brush_calibration_context" })
+            settings.Data.Remove(key);
     }
 }
 
@@ -409,7 +460,10 @@ public static class PlanIdentity
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
-        hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + settings.Data.ToJsonString() + JsonSerializer.Serialize(palette)));
+        var paintSettings = (JsonObject)settings.Data.DeepClone();
+        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize" })
+            paintSettings.Remove(key);
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + paintSettings.ToJsonString() + JsonSerializer.Serialize(palette)));
         return Convert.ToHexString(hash.GetHashAndReset());
     }
 }

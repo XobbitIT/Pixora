@@ -11,6 +11,8 @@ internal sealed class Painter
     private readonly Settings settings;
     private readonly IntPtr window;
     private readonly ScreenRect windowRect;
+    private readonly uint windowProcessId;
+    private readonly int windowDpi;
     private readonly CoordinateRebase rebase;
     private readonly CancellationToken token;
     private readonly Action<PaintProgress> report;
@@ -36,8 +38,11 @@ internal sealed class Painter
         report = callback;
         checkpointPath = checkpoint;
         logPath = log;
-        Native.GetWindowRect(target, out var r);
+        if (!Native.IsRust(target) || !Native.GetWindowRect(target, out var r))
+            throw new InvalidOperationException("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.");
         windowRect = r.ToScreen();
+        windowProcessId = Native.ProcessIdOf(target);
+        windowDpi = Native.DpiOf(target);
         rebase = SessionRebase();
     }
 
@@ -53,16 +58,9 @@ internal sealed class Painter
         if (cal.SessionClient is not { } baseline)
             return default;
         var now = Native.ClientOrigin(window);
-        var result = new CoordinateRebase(baseline.X, baseline.Y, cal.SessionDpi, now.X, now.Y, Native.DpiOf(window));
-        if (result.IsIdentity)
-            return result;
-        result.ApplyTo(cal.Data);
-        settings.SetCalibration(cal);
-        if (settings.Data["palette_click_points"] is JsonArray palette)
-            result.ApplyTo(palette);
-        if (settings.Data["hex_controls"] is JsonObject hex)
-            result.ApplyTo(hex);
-        Log("session_rebase", new { baseline, baseDpi = cal.SessionDpi, now, nowDpi = result.NowDpi, scale = result.Scale });
+        var result = CalibrationSession.Align(settings, now, windowDpi, Native.ClientSize(window));
+        if (!result.IsIdentity)
+            Log("session_rebase", new { baseline, baseDpi = cal.SessionDpi, now, nowDpi = result.NowDpi, scale = result.Scale });
         return result;
     }
 
@@ -98,6 +96,10 @@ internal sealed class Painter
         if (Environment.TickCount64 < nextSafety)
             return;
         nextSafety = Environment.TickCount64 + 75;
+        if (Native.ProcessIdOf(window) != windowProcessId || !Native.IsRust(window))
+            throw new InvalidOperationException("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.");
+        if (Native.DpiOf(window) != windowDpi)
+            throw new InvalidOperationException(CalibrationSession.DpiChangedMessage);
         if (!Native.GetWindowRect(window, out var rect) || rect.ToScreen() != windowRect)
             throw new InvalidOperationException("Вікно Rust змінило розмір або положення. Повтори захоплення.");
     }
@@ -109,6 +111,7 @@ internal sealed class Painter
         if (!Paused)
             return false;
         Native.Release();
+        verifiedSizeValues.Clear();
         var start = clock.Elapsed.TotalSeconds;
         report(new(0, 0, 0, 0, "Пауза — повернись у Rust і натисни F6."));
         while (Paused)
@@ -435,7 +438,7 @@ internal sealed class Painter
         if (actual is null)
         {
             Log("slider_check_unverified", new { kind, value, desired = target.Value.Fraction, reason = "green band not found" });
-            return true;
+            return false; // Unknown after a pause must trigger reapplication.
         }
         var ok = Math.Abs(actual.Value - target.Value.Fraction) <= settings.Number("control_verify_tolerance", .12);
         Log("slider_check", new { kind, value, desired = target.Value.Fraction, actual, ok });
