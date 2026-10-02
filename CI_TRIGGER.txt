@@ -1,0 +1,1 @@
+Trigger Windows x64 build for Pixora 1.0.12.
