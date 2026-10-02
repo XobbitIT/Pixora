@@ -95,6 +95,7 @@ internal sealed partial class MainWindow
             cal.SetRect(key, rect.Value);
             PostCapture(cal, key);
             settings.SetCalibration(cal);
+            StampSession();
             if (key is "palette" or "quick")
                 RefreshPalette(shot, screen);
             if (key == "canvas")
@@ -124,6 +125,7 @@ internal sealed partial class MainWindow
             var cal = settings.Calibration;
             cal.SetPoint(key, new(rect.Value.Left, rect.Value.Top));
             settings.SetCalibration(cal);
+            StampSession();
             Dirty();
         }
         finally
@@ -132,6 +134,20 @@ internal sealed partial class MainWindow
             Activate();
             UpdateReady();
         }
+    }
+
+    // Records where Rust's client area is right now, so painting can rebase the
+    // captured absolute coordinates if the window later moves or DPI changes.
+    private void StampSession()
+    {
+        var hwnd = Native.FindRust();
+        if (!Native.IsRust(hwnd))
+            hwnd = Native.FindRustAt(settings.Calibration.Rect("canvas").Center);
+        if (!Native.IsRust(hwnd))
+            return;
+        var cal = settings.Calibration;
+        cal.SetSession(Native.ClientOrigin(hwnd), Native.DpiOf(hwnd));
+        settings.SetCalibration(cal);
     }
 
     private async Task CaptureSizeAnchors()
@@ -154,6 +170,7 @@ internal sealed partial class MainWindow
                 var cal = settings.Calibration;
                 cal.SetPoint("size_anchor_" + size, new(rect.Value.Left, rect.Value.Top));
                 settings.SetCalibration(cal);
+                StampSession();
                 Dirty();
             }
 
@@ -225,6 +242,7 @@ internal sealed partial class MainWindow
                 PostCapture(cal, key);
             }
             settings.Data["hex_controls"] = cal.Data.DeepClone();
+            StampSession();
             Dirty();
             Save();
         }
@@ -263,6 +281,8 @@ internal sealed partial class MainWindow
                 Save();
             }
 
+            StampSession();
+            Save();
             Dirty();
         }
         finally

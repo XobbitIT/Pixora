@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using CanvasForge.Core;
@@ -86,6 +87,12 @@ internal static class Native
     internal static extern bool SetForegroundWindow(IntPtr window);
     [DllImport("user32.dll")]
     internal static extern bool GetWindowRect(IntPtr window, out Rect rect);
+    [DllImport("user32.dll")]
+    private static extern bool ClientToScreen(IntPtr window, ref Point point);
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
+    [DllImport("gdi32.dll")]
+    private static extern int GetDeviceCaps(IntPtr dc, int index);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int GetWindowText(IntPtr window, StringBuilder text, int length);
     [DllImport("user32.dll")]
@@ -161,7 +168,75 @@ internal static class Native
         return s.ToString();
     }
 
-    public static bool IsRust(IntPtr window) => window != IntPtr.Zero && Title(window).Contains("Rust", StringComparison.OrdinalIgnoreCase) && !Title(window).Contains("Pixora", StringComparison.OrdinalIgnoreCase) && !Title(window).Contains("CanvasForge", StringComparison.OrdinalIgnoreCase);
+    public static uint ProcessIdOf(IntPtr window)
+    {
+        GetWindowThreadProcessId(window, out var pid);
+        return pid;
+    }
+
+    // Process-name match is the robust signal; the window title can be localized
+    // or transiently empty. Falls back silently when the process is not readable
+    // (e.g. Rust running elevated), letting the title check decide.
+    public static bool IsRustProcess(IntPtr window)
+    {
+        if (window == IntPtr.Zero) return false;
+        try
+        {
+            var pid = ProcessIdOf(window);
+            if (pid == 0) return false;
+            using var process = Process.GetProcessById((int)pid);
+            return process.ProcessName.Equals("RustClient", StringComparison.OrdinalIgnoreCase);
+        }
+        catch (ArgumentException) { return false; }
+        catch (InvalidOperationException) { return false; }
+        catch (Win32Exception) { return false; }
+    }
+
+    public static bool IsRust(IntPtr window)
+    {
+        if (window == IntPtr.Zero) return false;
+        var title = Title(window);
+        if (title.Contains("Pixora", StringComparison.OrdinalIgnoreCase) || title.Contains("CanvasForge", StringComparison.OrdinalIgnoreCase))
+            return false;
+        return IsRustProcess(window) || title.Contains("Rust", StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Finds the single visible Rust window without relying on captured screen
+    // coordinates (which go stale if the window moved since calibration).
+    public static IntPtr FindRust()
+    {
+        IntPtr found = IntPtr.Zero;
+        var count = 0;
+        EnumWindows((window, _) =>
+        {
+            if (IsWindowVisible(window) && IsRust(window)) { found = window; count++; }
+            return true;
+        }, IntPtr.Zero);
+        return count == 1 ? found : IntPtr.Zero;
+    }
+
+    // Screen coordinate of the window's client (0,0) and its device DPI. Used to
+    // rebase captured calibration coordinates onto the window's current position.
+    public static ScreenPoint ClientOrigin(IntPtr window)
+    {
+        var p = new Point { X = 0, Y = 0 };
+        ClientToScreen(window, ref p);
+        return new(p.X, p.Y);
+    }
+
+    public static int DpiOf(IntPtr window)
+    {
+        if (window == IntPtr.Zero) return 96;
+        var dc = GetDC(window);
+        if (dc == IntPtr.Zero) return 96;
+        try
+        {
+            var dpi = GetDeviceCaps(dc, 90); // LOGPIXELSY
+            return dpi > 0 ? dpi : 96;
+        }
+        finally { ReleaseDC(window, dc); }
+    }
+
     private static void Send(params Input[] inputs)
     {
         if (SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>()) != inputs.Length)

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using CanvasForge.Core;
 
 namespace CanvasForge.App;
@@ -10,6 +11,7 @@ internal sealed class Painter
     private readonly Settings settings;
     private readonly IntPtr window;
     private readonly ScreenRect windowRect;
+    private readonly CoordinateRebase rebase;
     private readonly CancellationToken token;
     private readonly Action<PaintProgress> report;
     private readonly string checkpointPath;
@@ -36,6 +38,39 @@ internal sealed class Painter
         logPath = log;
         Native.GetWindowRect(target, out var r);
         windowRect = r.ToScreen();
+        rebase = SessionRebase();
+    }
+
+    // Rebases the captured absolute coordinates from the Rust client origin that
+    // was recorded at calibration time onto the window's current position/DPI.
+    // Strokes and controls read from settings.Calibration, so shifting those
+    // keys fixes them; the palette click points baked into the plan are mapped
+    // separately via MapPoint. When the window has not moved (or no baseline was
+    // captured) this is the identity transform and nothing changes.
+    private CoordinateRebase SessionRebase()
+    {
+        var cal = settings.Calibration;
+        if (cal.SessionClient is not { } baseline)
+            return default;
+        var now = Native.ClientOrigin(window);
+        var result = new CoordinateRebase(baseline.X, baseline.Y, cal.SessionDpi, now.X, now.Y, Native.DpiOf(window));
+        if (result.IsIdentity)
+            return result;
+        result.ApplyTo(cal.Data);
+        settings.SetCalibration(cal);
+        if (settings.Data["palette_click_points"] is JsonArray palette)
+            result.ApplyTo(palette);
+        if (settings.Data["hex_controls"] is JsonObject hex)
+            result.ApplyTo(hex);
+        Log("session_rebase", new { baseline, baseDpi = cal.SessionDpi, now, nowDpi = result.NowDpi, scale = result.Scale });
+        return result;
+    }
+
+    private ScreenPoint MapPoint(ScreenPoint p)
+    {
+        if (rebase.IsIdentity) return p;
+        var (x, y) = rebase.Map(p.X, p.Y);
+        return new(x, y);
     }
 
     private void Log(string action, object? details = null)
@@ -666,7 +701,7 @@ internal sealed class Painter
                             }
                         }
                         else
-                            Click(entry.ClickPoint ?? throw new InvalidOperationException("Колір не має координат палітри."));
+                            Click(MapPoint(entry.ClickPoint ?? throw new InvalidOperationException("Колір не має координат палітри.")));
                         Delay(ColorDelay());
                         break;
                     }
@@ -697,7 +732,7 @@ internal sealed class Painter
                                     lastHex = entry.Color.Hex;
                                 }
                                 else
-                                    Click(entry.ClickPoint!.Value);
+                                    Click(MapPoint(entry.ClickPoint!.Value));
                                 needsReprime = false;
                             }
 

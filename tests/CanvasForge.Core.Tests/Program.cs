@@ -660,4 +660,48 @@ Test("Adaptive brush rejects missing or stale calibration and translucent painti
     cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg)); AdaptiveBrush.Validate(cfg);
     cal.SetRect("canvas",new(10,10,520,510)); cfg.SetCalibration(cal); Reject();
 });
+Test("CoordinateRebase is identity when the window has not moved", () =>
+{
+    var data = new JsonObject { ["canvas_left"] = 100, ["canvas_top"] = 200, ["canvas_right"] = 300, ["canvas_bottom"] = 400, ["session_client_x"] = 50, ["session_client_y"] = 60 };
+    var rebase = new CoordinateRebase(50, 60, 96, 50, 60, 96);
+    Assert(rebase.IsIdentity, "expected identity");
+    Assert(rebase.ApplyTo(data) == 0, "identity must not touch anything");
+    Assert((int)data["canvas_left"]! == 100 && (int)data["session_client_x"]! == 50);
+});
+Test("CoordinateRebase translates flat keys and palette pairs, skipping session keys", () =>
+{
+    var data = new JsonObject { ["canvas_left"] = 100, ["canvas_top"] = 200, ["size_min_x"] = 500, ["size_min_y"] = 600, ["session_client_x"] = 10, ["session_client_y"] = 20, ["session_dpi"] = 96 };
+    var pairs = new JsonArray { new JsonArray { 100, 200 }, new JsonArray { 300, 400 } };
+    var rebase = new CoordinateRebase(10, 20, 96, 110, 220, 96); // +100 x, +200 y
+    Assert(!rebase.IsIdentity);
+    Assert(rebase.ApplyTo(data) == 4, "only the four coordinate keys change");
+    Assert((int)data["canvas_left"]! == 200, "left shifted by +100");
+    Assert((int)data["canvas_top"]! == 400, "top shifted by +200");
+    Assert((int)data["size_min_x"]! == 600 && (int)data["size_min_y"]! == 800);
+    Assert((int)data["session_client_x"]! == 10 && (int)data["session_client_y"]! == 20, "baseline preserved");
+    Assert(rebase.ApplyTo(pairs) == 2);
+    Assert((int)pairs[0]![0]! == 200 && (int)pairs[0]![1]! == 400);
+    Assert((int)pairs[1]![0]! == 400 && (int)pairs[1]![1]! == 600);
+});
+Test("CoordinateRebase scales around the client origin on DPI change", () =>
+{
+    var data = new JsonObject { ["canvas_left"] = 200, ["canvas_top"] = 300 };
+    // baseline origin (100,100) at 96 DPI, now (100,100) at 192 DPI => 2x scale around origin
+    var rebase = new CoordinateRebase(100, 100, 96, 100, 100, 192);
+    Assert(Math.Abs(rebase.Scale - 2) < 1e-9);
+    rebase.ApplyTo(data);
+    Assert((int)data["canvas_left"]! == 300, "100 + (200-100)*2");
+    Assert((int)data["canvas_top"]! == 500, "100 + (300-100)*2");
+});
+Test("Calibration stores and reads the Rust session baseline", () =>
+{
+    var cal = new Calibration(new JsonObject());
+    Assert(cal.SessionClient is null, "no baseline before capture");
+    cal.SetSession(new ScreenPoint(123, 456), 144);
+    Assert(cal.SessionClient == new ScreenPoint(123, 456));
+    Assert(cal.SessionDpi == 144);
+    cal.SetSession(new ScreenPoint(0, 0), 0);
+    Assert(cal.SessionClient is null, "origin 0,0 means unset");
+    Assert(cal.SessionDpi == 96, "invalid dpi normalizes to 96");
+});
 Console.WriteLine($"ALL {passed} TESTS PASSED");

@@ -915,9 +915,11 @@ internal sealed partial class MainWindow : Window
                 throw new InvalidOperationException(T("RESUME потребує Opacity 1, щоб не накладати прозорі штрихи повторно.", "RESUME requires opacity 1 to avoid repeated translucent strokes."));
         }
 
-        var window = Native.FindRustAt(cal.Rect("canvas").Center);
+        var window = Native.FindRust();
         if (!Native.IsRust(window))
-            throw new InvalidOperationException(T("За координатами Canvas не знайдено вікно Rust.", "Rust window was not found at Canvas coordinates."));
+            window = Native.FindRustAt(cal.Rect("canvas").Center);
+        if (!Native.IsRust(window))
+            throw new InvalidOperationException(T("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.", "Rust window was not found. Make sure the game is open, then capture again."));
         var cancellation = paintCancel = new();
         var snapshot = settings.Clone();
         var activePlan = plan;

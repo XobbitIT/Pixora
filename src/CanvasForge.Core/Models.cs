@@ -291,6 +291,20 @@ public sealed class Calibration(JsonObject data)
     public ScreenPoint? HexPoint => Rect("hex").Valid ? Rect("hex").Center : Point("hex_field");
     public bool HexReady => HexPoint.HasValue && Get("hex_verified") != 0;
 
+    // Rust client-area origin (screen coords) and DPI recorded when the user
+    // captured the calibration. Painting rebases the stored absolute
+    // coordinates from this baseline to the window's current position, so a
+    // moved / re-launched Rust window no longer shifts the picture.
+    public ScreenPoint? SessionClient
+        => Get("session_client_x") == 0 && Get("session_client_y") == 0 ? null : new(Get("session_client_x"), Get("session_client_y"));
+    public int SessionDpi => CoordinateRebase.NormalizeDpi(Get("session_dpi"));
+    public void SetSession(ScreenPoint clientOrigin, int dpi)
+    {
+        Set("session_client_x", clientOrigin.X);
+        Set("session_client_y", clientOrigin.Y);
+        Set("session_dpi", CoordinateRebase.NormalizeDpi(dpi));
+    }
+
     public List<ScreenPoint> GridCenters(string k, int cols, int rows)
     {
         var r = Rect(k);
@@ -308,6 +322,68 @@ public sealed record SpeedProfile(string Name, int Pitch, double BrushSize, int 
 {
     public static readonly SpeedProfile[] All = [new("Safe", 1, 1, 1, .0008, .004, .004), new("Rapid", 1, 1, 4, .00035, .0015, .0015), new("Turbo", 2, 2, 8, .0002, .001, .001), new("Max Speed", 3, 3, 16, .0001, .0005, .001)];
     public static SpeedProfile Get(string name) => All.FirstOrDefault(x => x.Name == name) ?? All[1];
+}
+
+// Maps absolute screen coordinates captured against one Rust window position
+// onto the window's current position (and DPI). Pure and side-effect free so it
+// can be unit-tested; callers decide which JSON nodes to feed it.
+public readonly record struct CoordinateRebase(int BaseX, int BaseY, int BaseDpi, int NowX, int NowY, int NowDpi)
+{
+    public static int NormalizeDpi(int dpi) => dpi <= 0 ? 96 : dpi;
+    public double Scale => (double)NormalizeDpi(NowDpi) / NormalizeDpi(BaseDpi);
+    public bool IsIdentity => BaseX == NowX && BaseY == NowY && NormalizeDpi(BaseDpi) == NormalizeDpi(NowDpi);
+    public (int X, int Y) Map(int x, int y)
+        => ((int)Math.Round(NowX + (x - BaseX) * Scale), (int)Math.Round(NowY + (y - BaseY) * Scale));
+
+    private static bool IsXKey(string k) => k.EndsWith("_x", StringComparison.Ordinal) || k.EndsWith("_left", StringComparison.Ordinal) || k.EndsWith("_right", StringComparison.Ordinal);
+    private static bool IsYKey(string k) => k.EndsWith("_y", StringComparison.Ordinal) || k.EndsWith("_top", StringComparison.Ordinal) || k.EndsWith("_bottom", StringComparison.Ordinal);
+
+    // Tolerant number read: JSON nodes may be JsonElement-backed (parsed from
+    // disk) or CLR-backed (built in memory), and either may hold an int/double.
+    private static bool TryNumber(JsonNode? node, out double value)
+    {
+        value = 0;
+        if (node is not JsonValue v) return false;
+        if (v.TryGetValue<double>(out var d)) { value = d; return true; }
+        if (v.TryGetValue<int>(out var i)) { value = i; return true; }
+        return double.TryParse(v.ToString(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out value);
+    }
+
+    // Shifts every flat coordinate key in a calibration-style object. Keys under
+    // the "session_" prefix describe the baseline itself and are left untouched.
+    public int ApplyTo(JsonObject data)
+    {
+        if (IsIdentity) return 0;
+        var changed = 0;
+        foreach (var key in data.Select(p => p.Key).ToArray())
+        {
+            if (key.StartsWith("session_", StringComparison.Ordinal)) continue;
+            var isX = IsXKey(key);
+            var isY = !isX && IsYKey(key);
+            if (!isX && !isY) continue;
+            if (!TryNumber(data[key], out var old)) continue;
+            var mapped = isX ? Map((int)Math.Round(old), BaseY).X : Map(BaseX, (int)Math.Round(old)).Y;
+            data[key] = mapped;
+            changed++;
+        }
+        return changed;
+    }
+
+    // Shifts an array of [x, y] pairs (e.g. palette_click_points) in place.
+    public int ApplyTo(JsonArray pairs)
+    {
+        if (IsIdentity) return 0;
+        var changed = 0;
+        for (var i = 0; i < pairs.Count; i++)
+        {
+            if (pairs[i] is not JsonArray p || p.Count != 2) continue;
+            if (!TryNumber(p[0], out var x) || !TryNumber(p[1], out var y)) continue;
+            var (nx, ny) = Map((int)Math.Round(x), (int)Math.Round(y));
+            pairs[i] = new JsonArray { nx, ny };
+            changed++;
+        }
+        return changed;
+    }
 }
 
 public sealed class PaintPlan
