@@ -133,12 +133,117 @@ public static class ImageProcessing
         return r > l && b > t ? Crop(im, Math.Max(0, l - 2), Math.Max(0, t - 2), Math.Min(im.Width, r + 2), Math.Min(im.Height, b + 2)) : im;
     }
 
+    // "Fill Canvas with subject" must also work for opaque JPG/PNG images.
+    // Detect only border-connected pixels similar to the corner background,
+    // crop to the remaining subject, but keep the original pixels/background intact.
+    public static PixelImage CropOpaqueSubject(PixelImage im, CancellationToken token)
+    {
+        var w = im.Width;
+        var h = im.Height;
+        if (w < 4 || h < 4)
+            return CropSubject(im);
+
+        if (Enumerable.Range(0, w * h).Any(i => im.Alpha(i) <= 10))
+            return CropSubject(im);
+
+        var patch = Math.Max(1, Math.Min(w, h) / 20);
+        var corners = new List<Rgb>();
+        foreach (var (xx, yy) in new[]
+        {
+            (0, 0),
+            (w - patch, 0),
+            (0, h - patch),
+            (w - patch, h - patch)
+        })
+        {
+            var rr = new List<byte>();
+            var gg = new List<byte>();
+            var bb = new List<byte>();
+            for (var y = yy; y < yy + patch; y++)
+                for (var x = xx; x < xx + patch; x++)
+                {
+                    var color = im.Color(y * w + x);
+                    rr.Add(color.R);
+                    gg.Add(color.G);
+                    bb.Add(color.B);
+                }
+
+            rr.Sort();
+            gg.Sort();
+            bb.Sort();
+            corners.Add(new(rr[rr.Count / 2], gg[gg.Count / 2], bb[bb.Count / 2]));
+        }
+
+        var background = new bool[w * h];
+        var queue = new Queue<int>();
+        void Add(int i)
+        {
+            if (background[i])
+                return;
+            var color = im.Color(i);
+            if (corners.Any(s => Math.Max(Math.Abs(color.R - s.R), Math.Max(Math.Abs(color.G - s.G), Math.Abs(color.B - s.B))) <= 26))
+            {
+                background[i] = true;
+                queue.Enqueue(i);
+            }
+        }
+
+        for (var x = 0; x < w; x++)
+        {
+            Add(x);
+            Add((h - 1) * w + x);
+        }
+        for (var y = 0; y < h; y++)
+        {
+            Add(y * w);
+            Add(y * w + w - 1);
+        }
+
+        while (queue.Count > 0)
+        {
+            token.ThrowIfCancellationRequested();
+            var i = queue.Dequeue();
+            var x = i % w;
+            var y = i / w;
+            if (x > 0) Add(i - 1);
+            if (x + 1 < w) Add(i + 1);
+            if (y > 0) Add(i - w);
+            if (y + 1 < h) Add(i + w);
+        }
+
+        var removed = background.Count(x => x);
+        if (removed == 0 || removed >= w * h * .97)
+            return im;
+
+        var l = w;
+        var t = h;
+        var r = 0;
+        var b = 0;
+        for (var y = 0; y < h; y++)
+            for (var x = 0; x < w; x++)
+            {
+                var i = y * w + x;
+                if (!background[i] && im.Alpha(i) > 10)
+                {
+                    l = Math.Min(l, x);
+                    t = Math.Min(t, y);
+                    r = Math.Max(r, x + 1);
+                    b = Math.Max(b, y + 1);
+                }
+            }
+
+        return r > l && b > t
+            ? Crop(im, Math.Max(0, l - 2), Math.Max(0, t - 2), Math.Min(w, r + 2), Math.Min(h, b + 2))
+            : im;
+    }
+
     // Premultiplied Lanczos resampling prevents dark fringes around transparent art.
     public static PixelImage Prepare(PixelImage source, int width, int height, Settings settings, CancellationToken token)
     {
-        var im = settings.Bool("remove_bg") ? RemoveBackground(source, token) : source;
+        var removeBackground = settings.Bool("remove_bg");
+        var im = removeBackground ? RemoveBackground(source, token) : source;
         if (settings.Bool("fill_subject"))
-            im = CropSubject(im);
+            im = removeBackground ? CropSubject(im) : CropOpaqueSubject(im, token);
         var mode = settings.Text("fit_mode", "fit square");
         if (mode == "smart")
             mode = settings.Bool("fill_subject") ? "crop" : "fit whole";
