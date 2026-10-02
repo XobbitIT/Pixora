@@ -258,6 +258,7 @@ public sealed class Settings
 
     public void Save(string path)
     {
+        Data["build_version"] = BuildInfo.Full;
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
         var temp = path + ".tmp";
         File.WriteAllText(temp, Data.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));

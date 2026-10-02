@@ -78,11 +78,11 @@ internal sealed partial class MainWindow : Window
         }
         catch (Exception e)
         {
-            File.AppendAllText(LogPath, e + Environment.NewLine);
+            File.AppendAllText(LogPath, DateTimeOffset.Now + " [" + BuildInfo.Full + "] " + e + Environment.NewLine);
             MessageBox.Show(T("Не вдалося прочитати налаштування: ") + T(e.Message), "Pixora");
         }
 
-        Title = "Pixora • 1.0.12 Speed Patch";
+        Title = $"Pixora • {BuildInfo.Full}";
         Width = 1280;
         Height = 800;
         MinWidth = 900;
@@ -250,7 +250,7 @@ internal sealed partial class MainWindow : Window
 
     private void Error(Exception e)
     {
-        File.AppendAllText(LogPath, DateTimeOffset.Now + " " + e + Environment.NewLine);
+        File.AppendAllText(LogPath, DateTimeOffset.Now + " [" + BuildInfo.Full + "] " + e + Environment.NewLine);
         SetStatus(e.Message);
         MessageBox.Show(T(e.Message), "Pixora", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
@@ -315,7 +315,7 @@ internal sealed partial class MainWindow : Window
             VerticalAlignment = VerticalAlignment.Center
         };
         titles.Children.Add(Text("Pixora", 22));
-        titles.Children.Add(Text("C# 1.0.12 • .NET 8 • Speed Patch", 10, Muted));
+        titles.Children.Add(Text($"C# {BuildInfo.Full} • .NET 8", 10, Muted));
         DockPanel.SetDock(titles, Dock.Left);
         top.Children.Add(titles);
         var language = new ComboBox

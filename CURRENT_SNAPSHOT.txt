@@ -1,0 +1,4 @@
+Pixora current source snapshot
+Git commit baseline: 2a04dd31ae6151d435ac0deb2b9a705dbb3c9493
+Includes: SpeedPatch + Pixora rebrand + CanvasFix + SliderCoordinateFix
+Source only; no compiled binaries included.

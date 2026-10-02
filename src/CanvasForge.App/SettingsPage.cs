@@ -108,7 +108,7 @@ internal sealed partial class MainWindow
         AddCheck(preview, "transfer_simulator", T("Прев’ю на матеріалі Canvas", "Preview on Canvas material"));
         AddCheck(preview, "smooth_preview", T("Згладжувати прев’ю", "Smooth preview"));
         AddCheck(preview, "auto_insert_preview", T("Показувати вставку після захоплення Canvas", "Show insertion after capturing Canvas"));
-        page.Children.Add(Button(T("Про програму", "About"), () => MessageBox.Show("Pixora 1.0.12 Speed Patch\n.NET 8 / WPF\nRust Palette + Quick Colors / HEX Direct\nF6 — PAUSE • ESC — STOP\n" + T("Ця версія потребує перевірки в Rust на Windows.", "This version needs Windows / Rust verification."), "Pixora")));
+        page.Children.Add(Button(T("Про програму", "About"), () => MessageBox.Show($"Pixora {BuildInfo.Full}\n.NET 8 / WPF\nRust Palette + Quick Colors / HEX Direct\nF6 — PAUSE • ESC — STOP\n" + T("Ця версія потребує перевірки в Rust на Windows.", "This version needs Windows / Rust verification."), "Pixora")));
     }
 
     private void ApplyProfile()

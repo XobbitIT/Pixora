@@ -373,6 +373,23 @@ Test("Nonfinite timing, enormous delays and malformed HEX caps reject cleanly", 
     }
 });
 
+Test("Fill Canvas crops an opaque border background without removing it", () =>
+{
+    var im = new PixelImage(100, 80);
+    for (var y = 0; y < im.Height; y++)
+        for (var x = 0; x < im.Width; x++)
+            im.Set(y * im.Width + x, Rgb.White);
+    for (var y = 20; y < 60; y++)
+        for (var x = 30; x < 70; x++)
+            im.Set(y * im.Width + x, new Rgb(10, 10, 10));
+
+    var cropped = ImageProcessing.CropOpaqueSubject(im, CancellationToken.None);
+    Assert(cropped.Width < im.Width && cropped.Height < im.Height, "Opaque background was not cropped");
+    Assert(cropped.Width >= 40 && cropped.Height >= 40, "Subject was clipped");
+    Assert(cropped.Color((cropped.Height / 2) * cropped.Width + cropped.Width / 2) == new Rgb(10, 10, 10), "Subject center changed");
+    Assert(cropped.Alpha(0) == 255, "Crop unexpectedly removed the preserved background");
+});
+
 Test("Tiny, thin and fully transparent images survive background and crop processing", () =>
 {
     foreach (var (w, h) in new[] { (1, 1), (1, 31), (31, 1), (2, 2), (4, 4), (8, 16) })

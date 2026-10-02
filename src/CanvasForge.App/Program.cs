@@ -18,7 +18,7 @@ internal static class Program
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                File.AppendAllText(path, DateTimeOffset.Now + "\n" + e.Exception + "\n");
+                File.AppendAllText(path, DateTimeOffset.Now + " [" + BuildInfo.Full + "]\n" + e.Exception + "\n");
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
