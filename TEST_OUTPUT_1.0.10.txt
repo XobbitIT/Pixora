@@ -1,0 +1,37 @@
+warning CS1701: Assuming assembly reference 'System.Runtime, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by 'SkiaSharp' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+PASS HEX Direct uses source RGB independently of Rust palette
+PASS Rust Palette includes Quick Colors and never generates HEX
+PASS Preview and stroke groups reproduce the actual plan
+PASS Transparency remains unpainted, including background optimization
+PASS Fit square retains complete composition and transparent margins
+PASS Physical precision coverage has no gaps and no extra pixels
+PASS Collinear merging preserves exact raster pixels
+PASS Source, coordinates, mode and click points invalidate RESUME identity
+PASS Python JSON imports coordinates and preserves unknown settings
+PASS Size curve retains the RC8.4 low-range calibration
+PASS Slider maximum correctly distinguishes Opacity 1 from Size 1
+PASS Explicit HEX color caps are respected with dithering
+PASS HEX Direct can actually paint more than 64 colors
+PASS Opaque background fill and foreground reproduce every cell
+PASS Cancellation interrupts planning
+PASS Small-region cleanup does not fill transparent cells
+PASS Stress: 120 random plans preserve indices, alpha, coordinates and finite ETA
+PASS Stress: 50 repeated settings saves reload exact palette and identity
+PASS Cancellation during 1024-pixel planning completes within 5 seconds
+PASS Huge image and 8-million-cell planning limit reject before allocation
+PASS Overflowing palette grids reject without entering huge loops
+PASS Nonfinite timing, enormous delays and malformed HEX caps reject cleanly
+PASS Tiny, thin and fully transparent images survive background and crop processing
+PASS Large noisy image completes quantization, dithering and all speed estimates
+PASS HEX readback skips valid but rotated values and accepts later exact match
+PASS HEX readback rejects null, partial, duplicate prefix and non-HEX text
+PASS HEX source retains RGB channels and leading zeroes for every test color
+PASS HEX retries honor zero through five rather than always using six
+PASS HEX diagnostics distinguish copy marker, no text, malformed and wrong color
+PASS Clipboard contention retries and permanent failure prevents subsequent paste
+PASS HEX controls remain separate and missing HEX calibration never uses palette coordinates
+PASS English translations cover capture, progress and dynamic errors
+PASS Input delay defaults, bounds, and ETA agree
+PASS Experimental timing uses 1 ms while Stable preserves legacy timings
+PASS Experimental timing keeps planned pixels and changes the ETA
+ALL 35 TESTS PASSED

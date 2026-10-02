@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><EnableWindowsTargeting>true</EnableWindowsTargeting><ApplicationIcon>app.ico</ApplicationIcon><ApplicationManifest>app.manifest</ApplicationManifest><AssemblyName>Pixora</AssemblyName><Version>1.0.12</Version><FileVersion>1.0.12.0</FileVersion><AssemblyVersion>1.0.12.0</AssemblyVersion><Product>Pixora</Product><Title>Pixora</Title><Description>Precision raster painting assistant</Description></PropertyGroup>
+<ItemGroup><ProjectReference Include="../CanvasForge.Core/CanvasForge.Core.csproj"/><PackageReference Include="SkiaSharp" Version="2.88.9"/><EmbeddedResource Include="translations.json" LogicalName="CanvasForge.Translations"/></ItemGroup>
+</Project>

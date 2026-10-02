@@ -1,0 +1,62 @@
+Pixora C# 1.0.12 Speed Patch
+База: 1.0.11 Source
+
+Основні зміни
+1. High-resolution timer
+   - timeBeginPeriod(1) активується на час Run().
+   - timeEndPeriod(1) гарантовано викликається у finally.
+
+2. Experimental input
+   - Click: 2 ms pre + 12 ms hold + 4 ms post (~18 ms).
+   - Move + mouse-down для Experimental надсилаються одним SendInput.
+   - PressKey / ChordKey / TypeHex мають коротші Experimental-затримки.
+   - Stable лишається на консервативних legacy-затримках.
+
+3. Slider
+   - Experimental: MoveAndDown + 20 ms hold + 30 ms post.
+   - DetectSlider wait: 16 ms Experimental / 50 ms Stable.
+   - Size > 1 верифікується один раз для кожного значення за сесію,
+     якщо verify_controls=false. При verify_controls=true перевірка лишається завжди.
+   - activeAdaptiveSize більше не скидається без потреби.
+
+4. Adaptive brush planner
+   - Стару оцінку 1.5 с на кожну зміну Size прибрано.
+   - Cost() використовує StrokeTiming.SliderChangeEstimate():
+     ~69 ms Experimental / ~363 ms Stable для першої перевіреної зміни.
+   - Це прямо виправляє ситуацію, коли planner відкидав wide strokes як занадто дорогі.
+
+5. Resume / F6 reprime
+   - Після паузи не виконується повний ApplyControls() навмання.
+   - Size / Interval / Opacity спочатку перевіряються через DetectSlider.
+   - Повзунок перевстановлюється лише якщо реально відхилився.
+   - Колір після reprime вибирається повторно.
+
+6. HEX Direct
+   - Experimental apply-delay стискається до 60–80 ms.
+   - Color swatch перевіряється дешево кожного разу.
+   - Повний clipboard HEX readback: кожні N кольорів (default 8),
+     а також завжди без swatch / після mismatch / forceVerify.
+   - Прибрано зайвий фінальний Enter після успішної перевірки.
+
+7. Rust Palette
+   - В Experimental + Rapid/Turbo/Max Speed color_delay обмежується 30 ms.
+
+8. ETA
+   - Planner використовує нові оцінки Click / Slider / HEX / color delay.
+
+Новий setting
+- hex_readback_every = 8 (1..64)
+
+Що обов'язково перевірити у Rust
+- Experimental: hold 12 ms не губить кліки.
+- Adaptive plan: session log adaptive_plan має wide > 0 на великих однотонних ділянках.
+- Size 3/10/20 реально перемикається та не дрейфує після 10+ кольорів.
+- F6: перший штрих після resume має правильний Size і колір.
+- HEX Direct: кожен 8-й колір має fullReadback=true у log action=hex.
+
+
+BRANDING
+- Product name changed to Pixora.
+- Windows executable is now Pixora.exe.
+- Existing CanvasForge config/resume files are migrated automatically on first launch.
+- Internal CanvasForge.* namespaces remain unchanged for source compatibility.
