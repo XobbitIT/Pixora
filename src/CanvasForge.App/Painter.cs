@@ -376,7 +376,12 @@ internal sealed class Painter
         var target = ResolveSliderTarget(kind, value);
         if (target is null || !target.Value.Track.Valid) return false;
         var actual = DetectSlider(Native.Screenshot(target.Value.Track));
-        var ok = Math.Abs(actual - target.Value.Fraction) <= settings.Number("control_verify_tolerance", .12);
+        if (actual is null)
+        {
+            Log("slider_check_unverified", new { kind, value, desired = target.Value.Fraction, reason = "green band not found" });
+            return true;
+        }
+        var ok = Math.Abs(actual.Value - target.Value.Fraction) <= settings.Number("control_verify_tolerance", .12);
         Log("slider_check", new { kind, value, desired = target.Value.Fraction, actual, ok });
         return ok;
     }
@@ -413,12 +418,15 @@ internal sealed class Painter
         {
             var desired = target.Value.Fraction;
             var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 0, 5);
+            double? actual = null;
             for (var attempt = 0; attempt <= retries; attempt++)
             {
                 Delay(experimental ? .016 : .05);
-                var actual = DetectSlider(Native.Screenshot(box));
+                actual = DetectSlider(Native.Screenshot(box));
                 Log("slider", new { kind, value, desired, actual, attempt, verifySizeOnce });
-                if (Math.Abs(actual - desired) <= settings.Number("control_verify_tolerance", .12))
+                if (actual is null)
+                    continue; // band not visible yet; re-check without disturbing the slider
+                if (Math.Abs(actual.Value - desired) <= settings.Number("control_verify_tolerance", .12))
                 {
                     if (verifySizeOnce) verifiedSizeValues.Add(sizeKey);
                     return;
@@ -427,15 +435,29 @@ internal sealed class Painter
                     Click(point, settings.Bool("double_click_controls", true));
             }
 
-            // A mismatched Size is unsafe even when general control verification
-            // is disabled: continuing would paint with the wrong physical radius
-            // and make the picture appear shifted/out of coordinates.
+            // The green band could not be located at all. The click already used
+            // the calibrated min/max anchors (the source of truth), so warn and
+            // continue instead of failing the whole transfer.
+            if (actual is null)
+            {
+                Log("slider_unverified", new { kind, value, desired, reason = "green band not found" });
+                if (verifySizeOnce) verifiedSizeValues.Add(sizeKey);
+                return;
+            }
+
+            // A confirmed mismatched Size is unsafe even when general control
+            // verification is disabled: continuing would paint with the wrong
+            // physical radius and make the picture appear shifted/out of place.
             if (explicitVerify || verifySizeOnce)
                 throw new InvalidOperationException($"Не підтверджено {kind}. Перевір захоплення min/max повзунка.");
         }
     }
 
-    internal static double DetectSlider(PixelImage image)
+    // Advisory only: returns the filled fraction of the green track, or null
+    // when no clear band is visible in the region. Callers must treat null as
+    // "cannot verify visually" and fall back to the calibrated anchors rather
+    // than as a mismatch.
+    internal static double? DetectSlider(PixelImage image)
     {
         var values = new double[image.Width];
         for (var x = 0; x < image.Width; x++)
@@ -456,7 +478,7 @@ internal sealed class Painter
         var lo = sorted[(int)(sorted.Length * .2)];
         var hi = sorted[Math.Min(sorted.Length - 1, (int)(sorted.Length * .8))];
         if (hi - lo < 5)
-            return values.Average() > 90 ? 1 : 0;
+            return null;
         var threshold = (lo + hi) / 2;
         var last = 0;
         for (var x = 0; x < values.Length; x++)
