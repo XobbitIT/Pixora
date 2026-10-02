@@ -344,46 +344,29 @@ internal sealed class Painter
     {
         var cal = settings.PaintCalibration();
         var point = ControlCurve.Point(cal, kind, value);
-        if (point is null) return null;
+        if (point is null)
+            return null;
+
         var box = cal.Rect(kind + "_track");
         var fraction = Math.Clamp(ControlCurve.Fraction(kind, value), 0, 1);
-        if (box.Valid)
+
+        // IMPORTANT: the captured min/max anchors are the source of truth.
+        // Older builds re-detected a "green run" inside the screenshot and
+        // replaced the click geometry with it. On the current Rust UI the
+        // green fill/label is not the real interactive slider range, so Size 1
+        // could jump to ~2.27 and every subsequent stroke became too wide.
+        // Keep the captured anchors for clicking; the rectangle is diagnostics
+        // / verification only.
+        Log("control_target", new
         {
-            // Captured rectangles can include the label to the left. The slider
-            // itself is a continuous green band; derive its clickable bounds.
-            var shot = Native.Screenshot(box);
-            var bestStart = -1; var bestEnd = -1; var bestY = 0;
-            for (var y = 2; y < shot.Height - 2; y++)
-            {
-                var start = -1; var lastGreen = -1;
-                for (var x = 0; x <= shot.Width + 60; x++)
-                {
-                    var green = false;
-                    if (x < shot.Width)
-                    {
-                        var c = shot.Color(y * shot.Width + x);
-                        green = c.G > c.R * 1.10 && c.G > c.B * 1.20 && c.G > 35;
-                    }
-                    if (green)
-                    {
-                        if (start < 0) start = x;
-                        lastGreen = x;
-                    }
-                    // Bridge the numeric label printed over the green bar.
-                    if (!green && start >= 0 && x - lastGreen > 60)
-                    {
-                        if (lastGreen + 1 - start > bestEnd - bestStart)
-                        { bestStart = start; bestEnd = lastGreen + 1; bestY = y; }
-                        start = -1;
-                    }
-                }
-            }
-            if (bestStart < 0 || bestEnd - bestStart < shot.Width * .30)
-                throw new InvalidOperationException($"Не знайдено повзунок {kind}. Повтори захоплення його зеленої смуги.");
-            box = new(box.Left + bestStart, box.Top + bestY, box.Left + bestEnd, box.Top + bestY + 1);
-            point = new(box.Left + 1 + (int)Math.Round((box.Width - 3) * fraction), box.Top);
-            Log("control_target", new { kind, value, fraction, point, box });
-        }
+            kind,
+            value,
+            fraction,
+            point,
+            min = cal.Point(kind + "_min"),
+            max = cal.Point(kind + "_max"),
+            box
+        });
         return new(point.Value, box, fraction);
     }
 
@@ -443,8 +426,11 @@ internal sealed class Painter
                     Click(point, settings.Bool("double_click_controls", true));
             }
 
-            if (explicitVerify)
-                throw new InvalidOperationException($"Не підтверджено {kind}. Перевір калібрування.");
+            // A mismatched Size is unsafe even when general control verification
+            // is disabled: continuing would paint with the wrong physical radius
+            // and make the picture appear shifted/out of coordinates.
+            if (explicitVerify || verifySizeOnce)
+                throw new InvalidOperationException($"Не підтверджено {kind}. Перевір захоплення min/max повзунка.");
         }
     }
 
