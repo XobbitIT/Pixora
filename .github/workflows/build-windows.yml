@@ -1,0 +1,31 @@
+name: Build Pixora Windows
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore src/CanvasForge.App/CanvasForge.App.csproj
+
+      - name: Publish win-x64 self-contained
+        run: dotnet publish src/CanvasForge.App/CanvasForge.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -o publish/windows-x64
+
+      - name: Upload Pixora portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pixora_1.0.12_Windows_x64
+          path: publish/windows-x64/**
+          if-no-files-found: error
