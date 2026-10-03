@@ -43,7 +43,7 @@ internal sealed partial class MainWindow
 
         )
             extra.Children.Add(AsyncButton(T(title), () => Capture(key, T(title))));
-        manual.Children.Add(Card("Точне калібрування controls", out var controls));
+        manual.Children.Add(Card("Повзунки: автоматичні межі", out var controls));
         foreach (var(key, title)in new[]
         {
             ("hard_brush", "Круглий"),
@@ -60,7 +60,7 @@ internal sealed partial class MainWindow
         }
 
         )
-            controls.Children.Add(AsyncButton(kind.ToUpperInvariant(), () => Capture(kind + "_track", kind.ToUpperInvariant() + " — " + T("вся зелена смуга з числовим полем", "full green bar including numeric field"))));
+            controls.Children.Add(AsyncButton(kind.ToUpperInvariant(), () => Capture(kind + "_track", kind.ToUpperInvariant() + " — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))));
         controls.Children.Add(AsyncButton(T("Захопти Size anchors 1/3/10/20", "Capture Size anchors 1/3/10/20"), CaptureSizeAnchors));
         controls.Children.Add(AsyncButton(T("Перевірити Rust controls", "Test Rust controls"), TestControls));
         controls.Children.Add(AsyncButton(T("Калібрувати пензель 1/3/10/20", "Calibrate brush 1/3/10/20"), CalibrateBrush));
@@ -106,9 +106,9 @@ internal sealed partial class MainWindow
         CalibrationSession.Align(settings, captureOrigin, captureDpi, captureSize);
     }
 
-    private ScreenRect? Select(PixelImage shot, ScreenRect screen, string title, bool point = false, bool live = false)
+    private ScreenRect? Select(PixelImage shot, ScreenRect screen, string title, bool point = false, bool live = false, bool slider = false)
     {
-        var selector = new CaptureWindow(shot, screen, T(title), point, live ? plan?.Preview : null, English);
+        var selector = new CaptureWindow(shot, screen, T(title), point, live ? plan?.Preview : null, English, slider);
         return selector.ShowDialog() == true ? selector.Selected : null;
     }
 
@@ -117,12 +117,13 @@ internal sealed partial class MainWindow
         try
         {
             var(screen, shot) = await CaptureShot();
-            var rect = Select(shot, screen, title, false, key == "canvas");
+            var rect = Select(shot, screen, title, false, key == "canvas", key.EndsWith("_track"));
             if (rect is null)
                 return;
             PrepareCaptureFrame();
             var paintControl = key.EndsWith("_track") && settings.Mode == ColorMode.HexDirect;
-            var cal = paintControl ? settings.PaintCalibration() : settings.Calibration;
+            var cal = new Calibration((System.Text.Json.Nodes.JsonObject)(paintControl
+                ? settings.PaintCalibration() : settings.Calibration).Data.DeepClone());
             cal.SetRect(key, rect.Value);
             PostCapture(cal, key, shot, screen);
             if (paintControl) settings.SetPaintCalibration(cal);
@@ -238,11 +239,13 @@ internal sealed partial class MainWindow
             var kind = key[..^6];
             var r = cal.Rect(key);
             var hint = new ScreenRect(r.Left - screen.Left, r.Top - screen.Top, r.Right - screen.Left, r.Bottom - screen.Top);
-            var read = RustSlider.Read(shot, hint) ?? throw new InvalidOperationException(
-                $"Не вдалося прочитати повзунок {kind}. Захопи всю зелену смугу разом із числовим полем.");
+            var read = RustSlider.Capture(shot, hint);
             var track = read.Track;
             r = new(track.Left + screen.Left, track.Top + screen.Top, track.Right + screen.Left, track.Bottom + screen.Top);
             cal.SetRect(key, r);
+            var field = read.ValueField;
+            cal.SetRect(kind + "_value_field", new(field.Left + screen.Left, field.Top + screen.Top,
+                field.Right + screen.Left, field.Bottom + screen.Top));
             cal.SetPoint(kind + "_min", new(r.Left, r.Center.Y));
             cal.SetPoint(kind + "_max", new(r.Right - 1, r.Center.Y));
             if (kind == "size")
@@ -260,11 +263,14 @@ internal sealed partial class MainWindow
         {
             var (screen, shot) = await CaptureShot();
             Calibration? cal = null;
-            var steps = new[] { ("brush_shapes", "HEX — 7 brush shapes"), ("size_track", "HEX SIZE — full green bar + numeric field"), ("interval_track", "HEX INTERVAL — full green bar + numeric field"), ("opacity_track", "HEX OPACITY — full green bar + numeric field") };
+            var steps = new[] { ("brush_shapes", "HEX — 7 brush shapes"),
+                ("size_track", "HEX SIZE — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("interval_track", "HEX INTERVAL — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("opacity_track", "HEX OPACITY — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")) };
             for (var i = 0; i < steps.Length; i++)
             {
                 var (key, title) = steps[i];
-                var rect = Select(shot, screen, $"{i + 1}/{steps.Length} {title}");
+                var rect = Select(shot, screen, $"{i + 1}/{steps.Length} {title}", slider: key.EndsWith("_track"));
                 if (rect is null) return;
                 if (cal is null)
                 {
@@ -292,21 +298,21 @@ internal sealed partial class MainWindow
                 ("palette", "PALETTE 4×16"),
                 ("quick", "QUICK COLORS 1×10"),
                 ("brush_shapes", T("7 форм пензля", "7 brush shapes")),
-                ("size_track", "SIZE — full green bar + numeric field"),
-                ("interval_track", "INTERVAL — full green bar + numeric field"),
-                ("opacity_track", "OPACITY — full green bar + numeric field")
+                ("size_track", "SIZE — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("interval_track", "INTERVAL — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("opacity_track", "OPACITY — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))
             };
             Calibration? cal = null;
             for (var i = 0; i < steps.Length; i++)
             {
                 var(key, title) = steps[i];
-                var r = Select(shot, screen, $"{i + 1}/{steps.Length} {title}", false, key == "canvas");
+                var r = Select(shot, screen, $"{i + 1}/{steps.Length} {title}", false, key == "canvas", key.EndsWith("_track"));
                 if (r is null)
                     break;
                 if (cal is null)
                 {
                     PrepareCaptureFrame();
-                    cal = settings.Calibration;
+                    cal = new Calibration((System.Text.Json.Nodes.JsonObject)settings.Calibration.Data.DeepClone());
                 }
                 cal.SetRect(key, r.Value);
                 PostCapture(cal, key, shot, screen);

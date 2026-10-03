@@ -532,5 +532,10 @@
   "Команди виконано. Перевір результат у Rust.": "Commands completed. Check the result in Rust.",
   "Не вдалося прочитати повзунок {p0}. Захопи всю зелену смугу разом із числовим полем.": "Could not read the {p0} slider. Capture the complete green bar including its numeric field.",
   "Ручна точка Size поза поточним повзунком. Повтори калібрування Size anchors.": "The manual Size anchor is outside the current track. Capture Size anchors again.",
-  "Rust не підтвердив колір палітри {p0}. Перевір зразок активного кольору.": "Rust did not confirm palette color {p0}. Check the active color swatch."
+  "Rust не підтвердив колір палітри {p0}. Перевір зразок активного кольору.": "Rust did not confirm palette color {p0}. Check the active color swatch.",
+  "Не знайдено повзунок. Обведи всю зелену смугу та числове поле справа із запасом.": "No slider found. Select the complete green bar and number on the right with extra space.",
+  "У рамці кілька повзунків. Обведи один повзунок із запасом.": "Several sliders are selected. Select one slider with extra space.",
+  "Не знайдено числове поле повзунка. Повтори захоплення із запасом.": "Slider numeric field not found. Capture it again with extra space.",
+  "Повзунки: автоматичні межі": "Sliders: automatic boundaries",
+  "повзунок із числом, обведи із запасом": "slider and number, select with extra space"
 }

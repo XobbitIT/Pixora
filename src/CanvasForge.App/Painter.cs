@@ -319,7 +319,12 @@ internal sealed class Painter
         var read = RustSlider.Read(Native.Screenshot(bounds), local);
         if (read is not { } observation) return null;
         var r = observation.Track;
-        return observation with { Track = new(r.Left + bounds.Left, r.Top + bounds.Top, r.Right + bounds.Left, r.Bottom + bounds.Top) };
+        var field = observation.ValueField;
+        return observation with
+        {
+            Track = new(r.Left + bounds.Left, r.Top + bounds.Top, r.Right + bounds.Left, r.Bottom + bounds.Top),
+            ValueField = new(field.Left + bounds.Left, field.Top + bounds.Top, field.Right + bounds.Left, field.Bottom + bounds.Top)
+        };
     }
 
     private bool SliderMatches(string kind, double value)
@@ -355,29 +360,49 @@ internal sealed class Painter
             if (point.X < geometry.Track.Left || point.X >= geometry.Track.Right
                 || point.Y < geometry.Track.Top || point.Y >= geometry.Track.Bottom)
                 throw new InvalidOperationException("Ручна точка Size поза поточним повзунком. Повтори калібрування Size anchors.");
-            Log("control_target", new { kind, value, fraction, point, track = geometry.Track });
-            var pressX = fraction <= 0 ? geometry.Track.Left + 4 : fraction >= 1 ? geometry.Track.Right - 4 : point.X;
-            Native.SetCursorPos(pressX, point.Y);
-            Delay(.04);
-            Native.Mouse(false);
-            try
+            // Rust did not follow the old endpoint drag: it kept the +4px press
+            // position. Click the detected target directly, then use the editable
+            // number on retry; both strategies must pass a fresh screenshot check.
+            var strategy = attempt > 0 ? "numeric_field" : "track";
+            Log("control_target", new { kind, value, fraction, point, track = geometry.Track, strategy });
+            if (attempt > 0)
+                SetSliderNumber(geometry.ValueField, value);
+            else
             {
-                Delay(.08);
-                if (fraction <= 0 || fraction >= 1)
-                {
-                    Native.SetCursorPos(fraction <= 0 ? geometry.Track.Left - 8 : geometry.Track.Right + 8, point.Y);
-                    Delay(.08); // Drag to the clamped endpoint while this slider owns the mouse.
-                }
+                Native.SetCursorPos(point.X, point.Y);
+                Delay(.04);
+                Native.Mouse(false);
+                try { Delay(.08); }
+                finally { Native.Mouse(true); }
             }
-            finally { Native.Mouse(true); }
             Native.SetCursorPos(geometry.Track.Left - 12, point.Y);
             Delay(.12 + attempt * .05);
             var after = ReadSlider(kind);
             var ok = after is { } result && result.Matches(fraction);
-            Log("slider", new { kind, value, desired = fraction, actual = after?.Fraction, attempt, verified = ok });
+            Log("slider", new { kind, value, desired = fraction, actual = after?.Fraction, attempt, strategy, verified = ok });
             if (ok) return;
         }
         throw new InvalidOperationException($"Не підтверджено {kind}. Перевір захоплення min/max повзунка.");
+    }
+
+    private void SetSliderNumber(ScreenRect field, double value)
+    {
+        if (!field.Valid) throw new InvalidOperationException("Не знайдено числове поле повзунка. Повтори захоплення із запасом.");
+        var previous = ReadClipboard();
+        try
+        {
+            Click(field.Center);
+            ChordKey(0x11, 0x41);
+            WriteClipboard(value.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture));
+            ChordKey(0x11, 0x56);
+            PressKey(0x0D);
+            Delay(.20);
+        }
+        finally
+        {
+            if (previous is not null)
+                try { Native.ClipboardWrite(previous); } catch { }
+        }
     }
 
     private void ApplyPalette(PaletteEntry entry)

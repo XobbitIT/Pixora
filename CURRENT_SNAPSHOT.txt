@@ -1,9 +1,8 @@
-Pixora 1.0.14-beta.2 — source for in-game testing
-Based on main: 76b6bf497f150653c806d0de984b9f7a9558bbd2 (1.0.13)
-Includes beta.1 coordinate/DPI/RESUME fixes and beta.2 alpha-aware PNG processing,
-numeric-field-free slider detection, verified controls after pause, guarded input,
-reliable HEX selection/readback, and independent optional palette color verification.
-Validation: 62 Core regression tests including real Rust slider crops.
+Pixora 1.0.14-beta.3 — source for in-game testing
+Includes beta.1 coordinate/DPI/RESUME fixes, beta.2 alpha-aware PNG and guarded input,
+and beta.3 automatic slider boundaries inside loose selections with green preview,
+independent numeric field capture and verified numeric fallback for slider values.
+Validation: 70 Core regression tests and WPF Release build.
 Changes: CHANGES_1.0.14_UA.md
 In-game test checklist: TESTING_1.0.14_UA.md
 Portable binaries are produced by the Windows GitHub Actions workflow.

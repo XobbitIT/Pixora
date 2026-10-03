@@ -943,4 +943,92 @@ Test("Manual HEX Size anchors stay independent of palette calibration", () =>
     Assert(cfg.PaintCalibration().Point("size_anchor_3")==new ScreenPoint(722,505));
     Assert(cfg.Calibration.Data.ToJsonString()==regular);
 });
+
+(PixelImage Image, ScreenRect Hint) SliderFixture(string name)
+{
+    using var stream = new System.IO.Compression.GZipStream(File.OpenRead(Path.Combine(AppContext.BaseDirectory,"Fixtures",name+".rgba.gz")),System.IO.Compression.CompressionMode.Decompress);
+    using var reader = new BinaryReader(stream);
+    var w=reader.ReadInt32(); var h=reader.ReadInt32();
+    var hint=new ScreenRect(reader.ReadInt32(),reader.ReadInt32(),reader.ReadInt32(),reader.ReadInt32());
+    return (new PixelImage(w,h,reader.ReadBytes(w*h*4)),hint);
+}
+Test("Automatic capture finds a real slider away from the selection centre", () =>
+{
+    var (image,_) = SliderFixture("beta2-controls");
+    var read = RustSlider.Capture(image,new(0,0,image.Width,170));
+    Assert(read.Track == new ScreenRect(188,119,438,159));
+    Assert(read.ValueField == new ScreenRect(438,119,518,159));
+    Assert(read.Fraction == 0);
+});
+Test("Automatic capture tolerates asymmetric padding and labels", () =>
+{
+    var (image,_) = SliderFixture("beta2-controls");
+    var random=new Random(1736);
+    for(var i=0;i<32;i++)
+    {
+        var read=RustSlider.Capture(image,new(random.Next(0,120),random.Next(0,100),random.Next(520,531),random.Next(161,175)));
+        Assert(read.Track == new ScreenRect(188,119,438,159), "Padding changed track: "+read.Track);
+        Assert(read.ValueField == new ScreenRect(438,119,518,159), "Padding changed field: "+read.ValueField);
+    }
+});
+Test("Partial neighbouring sliders do not replace the selected complete slider", () =>
+{
+    var (image,_) = SliderFixture("beta2-controls");
+    var interval=RustSlider.Capture(image,new(0,152,image.Width,224));
+    Assert(interval.Track == new ScreenRect(188,175,438,215));
+    Assert(Math.Abs(interval.Fraction-.016)<.001);
+    Assert(!interval.Matches(ControlCurve.Fraction("interval",.01)));
+    var opacity=RustSlider.Capture(image,new(0,213,image.Width,307));
+    Assert(opacity.Track == new ScreenRect(188,231,438,271));
+    Assert(opacity.Matches(1));
+});
+Test("Automatic capture rejects multiple complete sliders without guessing", () =>
+{
+    var (image,hint)=SliderFixture("beta2-controls");
+    Assert(RustSlider.Find(image,hint).Count==3);
+    try { RustSlider.Capture(image,hint); throw new Exception("Ambiguous capture accepted"); }
+    catch(InvalidOperationException e) { Assert(e.Message.Contains("кілька повзунків")); }
+});
+Test("Automatic capture requires complete track and numeric field", () =>
+{
+    var (image,_)=SliderFixture("beta2-controls");
+    foreach(var rect in new[] { new ScreenRect(0,0,438,170),new ScreenRect(200,0,image.Width,170),new ScreenRect(0,125,image.Width,170) })
+        Assert(RustSlider.Find(image,rect).Count==0,"Clipped slider accepted");
+    Assert(RustSlider.Find(image,new(-10,0,image.Width,170)).Count==0);
+    try { RustSlider.Capture(image,new(0,0,438,170)); throw new Exception("Missing numeric field accepted"); }
+    catch(InvalidOperationException e) { Assert(e.Message.Contains("Не знайдено повзунок")); }
+});
+Test("Automatic capture supports scaled empty, partial and full slider fills", () =>
+{
+    foreach(var scale in new[]{1,2,3}) foreach(var fraction in new[]{0d,.5,1})
+    {
+        var image=new PixelImage(360*scale,100*scale);
+        var track=new ScreenRect(20*scale,35*scale,270*scale,65*scale);
+        var field=new ScreenRect(track.Right,track.Top,350*scale,track.Bottom);
+        for(var y=track.Top;y<track.Bottom;y++) for(var x=track.Left;x<field.Right;x++)
+            image.Set(y*image.Width+x,x>=track.Right?new(58,65,34):x<track.Left+track.Width*fraction?new(120,143,80):new(79,88,53));
+        // An unrelated flat green rectangle has no numeric field.
+        for(var y=5*scale;y<20*scale;y++) for(var x=60*scale;x<320*scale;x++)image.Set(y*image.Width+x,new(79,88,53));
+        var read=RustSlider.Capture(image,new(0,0,image.Width,image.Height));
+        Assert(read.Track==track);Assert(read.ValueField==field);Assert(read.Matches(fraction));
+    }
+});
+Test("Legacy runtime track hints automatically recover the numeric field", () =>
+{
+    var (image,_)=SliderFixture("beta2-controls");
+    var read=RustSlider.Read(image,new(188,175,438,215)) ?? throw new Exception("Legacy track unreadable");
+    Assert(read.ValueField==new ScreenRect(438,175,518,215));
+    Assert(read.Point(0)==new ScreenPoint(188,195));
+    Assert(read.Point(1)==new ScreenPoint(437,195));
+});
+Test("Automatically captured numeric fields follow palette and HEX session rebasing", () =>
+{
+    var s=SessionFixture();
+    var cal=s.Calibration;cal.SetRect("interval_value_field",new(620,500,680,540));s.SetCalibration(cal);
+    var hex=new Calibration((JsonObject)s.Data["hex_controls"]!);hex.SetRect("opacity_value_field",new(900,500,960,540));s.Data["hex_controls"]=hex.Data;
+    CalibrationSession.Align(s,new(20,40),96,new(1280,720));
+    Assert(s.Calibration.Rect("interval_value_field")==new ScreenRect(630,520,690,560));
+    Assert(new Calibration((JsonObject)s.Data["hex_controls"]!).Rect("opacity_value_field")==new ScreenRect(910,520,970,560));
+});
+
 Console.WriteLine($"ALL {passed} TESTS PASSED");

@@ -2,6 +2,7 @@ namespace CanvasForge.Core;
 
 public readonly record struct SliderObservation(ScreenRect Track, double Fraction)
 {
+    public ScreenRect ValueField { get; init; }
     // Subpixel rasterisation error, rather than a 12% tolerance
     // that silently accepts a different brush size or opacity.
     public bool Matches(double desired) => Math.Abs(Fraction - desired) <= .75 / Math.Max(1, Track.Width);
@@ -11,30 +12,78 @@ public readonly record struct SliderObservation(ScreenRect Track, double Fractio
 
 public static class RustSlider
 {
+    public static SliderObservation Capture(PixelImage image, ScreenRect selection)
+    {
+        var found = Find(image, selection);
+        if (found.Count == 0)
+            throw new InvalidOperationException("Не знайдено повзунок. Обведи всю зелену смугу та числове поле справа із запасом.");
+        if (found.Count > 1)
+            throw new InvalidOperationException("У рамці кілька повзунків. Обведи один повзунок із запасом.");
+        return found[0];
+    }
+
+    // Scan the whole selection: its centre may be a label or blank padding.
+    // Require complete bars inside the selection, and ignore clipped neighbours.
+    public static IReadOnlyList<SliderObservation> Find(PixelImage image, ScreenRect selection)
+    {
+        if (!selection.Valid || selection.Left < 0 || selection.Top < 0
+            || selection.Right > image.Width || selection.Bottom > image.Height) return [];
+        var found = new List<SliderObservation>();
+        for (var y = selection.Top + 2; y < selection.Bottom - 2; y += 2)
+        {
+            var x = selection.Left;
+            while (x < selection.Right)
+            {
+                if (!Green(image.Color(y * image.Width + x))) { x++; continue; }
+                var left = x;
+                while (x < selection.Right && Green(image.Color(y * image.Width + x))) x++;
+                if (x - left < 80) continue;
+                if (found.Any(old => y >= old.Track.Top && y < old.Track.Bottom
+                    && Math.Abs(left - old.Track.Left) <= 3)) continue;
+                var seed = (left + x) / 2;
+                var read = ReadRow(image, selection, y, seed);
+                if (read is not { } observation) continue;
+                // Read a consistent central row after locating the bar. The
+                // user's padding must not change sampling at compressed edges.
+                var centred = ReadRow(image, selection, observation.Track.Center.Y, seed);
+                if (centred is { } stable) observation = stable;
+                if (found.Any(old => Math.Abs(old.Track.Left - observation.Track.Left) <= 3
+                    && Math.Abs(old.Track.Top - observation.Track.Top) <= 3)) continue;
+                found.Add(observation);
+            }
+        }
+        return found.OrderBy(x => x.Track.Top).ThenBy(x => x.Track.Left).ToArray();
+    }
+
     // Rust places an editable numeric field after the interactive track. Read
     // its darker background separately; green digits must never count as fill.
     // The hint is relative to image, and may be a legacy partial capture.
     public static SliderObservation? Read(PixelImage image, ScreenRect hint)
     {
-        if (!hint.Valid || hint.Center.Y < 2 || hint.Center.Y >= image.Height - 2) return null;
-        var cy = hint.Center.Y;
+        if (!hint.Valid) return null;
+        // Runtime/legacy hints may contain only the interactive track.
+        var area = new ScreenRect(Math.Max(0, hint.Left - 48), Math.Max(0, hint.Top - 12),
+            Math.Min(image.Width, hint.Right + 120), Math.Min(image.Height, hint.Bottom + 12));
+        var found = Find(image, area);
+        return found.Count == 1 ? found[0] : null;
+    }
+
+    private static SliderObservation? ReadRow(PixelImage image, ScreenRect area, int cy, int seed)
+    {
         var columns = new Rgb[image.Width];
-        for (var x = 0; x < image.Width; x++)
+        for (var x = area.Left; x < area.Right; x++)
             columns[x] = Median(Enumerable.Range(cy - 2, 5).Select(y => image.Color(y * image.Width + x)));
-        var seed = -1;
-        for (var x = Math.Min(image.Width - 1, hint.Center.X); x >= Math.Max(0, hint.Left); x--)
-            if (Green(columns[x])) { seed = x; break; }
-        if (seed < 0) return null;
+        if (!Green(columns[seed])) return null;
         var left = seed;
-        while (left > 0 && Green(columns[left - 1])) left--;
+        while (left > area.Left && Green(columns[left - 1])) left--;
         var right = seed + 1;
-        while (right < image.Width && Green(columns[right])) right++;
+        while (right < area.Right && Green(columns[right])) right++;
         var top = cy;
         while (top > 0 && Green(image.Color((top - 1) * image.Width + seed))) top--;
         var bottom = cy + 1;
         while (bottom < image.Height && Green(image.Color(bottom * image.Width + seed))) bottom++;
         // A clipped capture cannot establish endpoints safely.
-        if (left == 0 || right == image.Width || top == 0 || bottom == image.Height
+        if (left <= area.Left || right >= area.Right || top <= area.Top || bottom >= area.Bottom
             || right - left < 80 || bottom - top < 8 || bottom - top > 96) return null;
         var band = Math.Max(3, (bottom - top) / 5);
         var rows = Enumerable.Range(top + 2, band - 2)
@@ -61,7 +110,8 @@ public static class RustSlider
         }
         // A second bright run is not a valid left-to-right slider fill.
         if (colors.Skip(filled + 3).Take(end - left - filled - 3).Any(c => c.G > field.G * 1.45)) return null;
-        return new(new(left, top, end, bottom), filled / (double)(end - left));
+        return new(new(left, top, end, bottom), filled / (double)(end - left))
+            { ValueField = new(end, top, right, bottom) };
     }
 
     private static bool Green(Rgb c) => c.R >= 25 && c.G >= 35 && c.G - c.R >= 5 && c.G - c.B >= 10;

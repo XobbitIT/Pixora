@@ -1,1 +1,3 @@
 Slider-only crops from the user-provided 2026-10-03 Rust test recording. No usernames, game world, or desktop content are included. Each gzip contains six little-endian int32 values (width, height, hint left/top/right/bottom) followed by RGBA bytes. These fixtures reproduce numeric-field false positives, empty/full fill, legacy partial captures, and post-pause mismatches.
+
+`beta2-controls` is a controls-only crop from the 17:36 recording, decoded with BT.601 to agree with the native palette samples. It includes labels, brush icons, three complete sliders, and surrounding padding. Used to exercise asymmetric selections, clipped neighbours, ambiguous captures, numeric fields, and the recorded Interval 0.03 mismatch.
