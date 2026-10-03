@@ -25,6 +25,7 @@ internal sealed class Painter
     private long nextSafety;
     private double pausedSeconds;
     private volatile bool paused;
+    private readonly Dictionary<string,double> verifiedControls = new();
     public bool Paused { get => paused; set => paused = value; }
 
     public Painter(Settings s, IntPtr target, string checkpoint, string log, Action<PaintProgress> callback, CancellationToken cancel)
@@ -108,6 +109,7 @@ internal sealed class Painter
         if (!Paused)
             return false;
         Native.Release();
+        verifiedControls.Clear();
         var start = clock.Elapsed.TotalSeconds;
         report(new(0, 0, 0, 0, "Пауза — повернись у Rust і натисни F6."));
         while (Paused)
@@ -140,6 +142,7 @@ internal sealed class Painter
             if (Paused)
             {
                 Native.Release();
+                verifiedControls.Clear();
                 throw new InputInterrupted();
             }
 
@@ -161,28 +164,28 @@ internal sealed class Painter
         {
             WaitReady();
             Native.SetCursorPos(p.X, p.Y);
-            Delay(Math.Max(.04, settings.Number("click_delay", .02)));
+            Delay(StrokeTiming.ClickSettle(settings));
             Native.Mouse(false);
-            try { Delay(Math.Max(.08, settings.Number("mouse_up_delay_ms", 8) / 1000)); }
+            try { Delay(StrokeTiming.ClickHold(settings)); }
             finally { Native.Mouse(true); }
-            Delay(twice ? Math.Max(.08, settings.Number("reclick_delay_ms", 35) / 1000) : .08);
+            Delay(StrokeTiming.ClickRelease(settings,twice));
         }
     }
 
     private void PressKey(int key)
     {
         Native.Key(key);
-        try { Delay(.05); }
+        try { Delay(StrokeTiming.KeyHold(settings)); }
         finally { Native.Key(key, true); }
-        Delay(.05);
+        Delay(StrokeTiming.KeyRelease(settings));
     }
 
     private void ChordKey(int modifier, int key)
     {
         Native.Key(modifier);
-        try { Delay(.05); PressKey(key); }
+        try { Delay(StrokeTiming.ModifierSettle(settings)); PressKey(key); }
         finally { Native.Key(modifier, true); }
-        Delay(.06);
+        Delay(StrokeTiming.ModifierRelease(settings));
     }
 
 
@@ -219,7 +222,7 @@ internal sealed class Painter
             ChordKey(0x11, 0x41);
             WriteClipboard(HexReadback.Marker);
             ChordKey(0x11, 0x43);
-            Delay(.15 + attempt * .05);
+            Delay(StrokeTiming.CopyDelay(settings) + attempt * .05);
             var raw = ReadClipboard();
             var value = HexReadback.Normalize(raw);
             Log("hex_readback", new { strategy = "select_all", attempt, status = readback.Status(raw), raw, value });
@@ -240,15 +243,14 @@ internal sealed class Painter
             {
                 WaitReady();
                 Click(point);
-                Delay(.05);
+                Delay(StrokeTiming.Fast(settings)?StrokeTiming.Frame(settings):.05);
                 ChordKey(0x11, 0x41);
                 var payload = settings.Bool("hex_include_hash", false) ? "#" + target : target;
                 WriteClipboard(payload);
                 ChordKey(0x11, 0x56);
-                Delay(.18);
+                Delay(StrokeTiming.HexPaste(settings));
                 PressKey(0x0D);
-                var configuredDelay = settings.Number("hex_apply_delay_ms", 180) / 1000;
-                Delay(Math.Max(.25, configuredDelay) + attempt * .10);
+                Delay(StrokeTiming.HexCommit(settings) + attempt * .10);
 
                 var verify = forceVerify || settings.Bool("hex_verify", true);
                 var swatch = settings.Calibration.Rect("swatch");
@@ -334,7 +336,7 @@ internal sealed class Painter
         // Overwrite the pasted payload before Ctrl+C. A missed copy must fail.
         WriteClipboard(ControlNumber.Marker);
         ChordKey(0x11, 0x43);
-        Delay(.15);
+        Delay(StrokeTiming.CopyDelay(settings));
         var raw = ReadClipboard();
         var number = ControlNumber.Parse(kind, raw);
         PressKey(0x0D);
@@ -346,11 +348,12 @@ internal sealed class Painter
     {
         var number = ReadControlNumber(kind, geometry.ValueField);
         Native.SetCursorPos(geometry.Track.Left - 12, geometry.Track.Center.Y);
-        Delay(.15);
+        Delay(StrokeTiming.CursorPark(settings));
         var after = ReadSlider(kind);
         var ok = ControlNumber.Matches(number, value) && after is { } result
             && result.Matches(ControlCurve.Fraction(kind, value));
         Log("slider_check", new { kind, value, number, actual = after?.Fraction, ok, strategy = "numeric_field" });
+        if(ok)verifiedControls[kind]=value;else verifiedControls.Remove(kind);
         return ok;
     }
 
@@ -365,6 +368,12 @@ internal sealed class Painter
     {
         WaitReady();
         var payload = ControlNumber.Format(kind, value);
+        if(StrokeTiming.Fast(settings)&&verifiedControls.TryGetValue(kind,out var known)&&known==value
+            &&ReadSlider(kind) is { } current&&current.Matches(ControlCurve.Fraction(kind,value)))
+        {
+            Log("control_unchanged",new{kind,value,verifiedEarlier=true});return;
+        }
+        verifiedControls.Remove(kind);
         var previous = ReadClipboard();
         try
         {
@@ -379,7 +388,7 @@ internal sealed class Painter
                 WriteClipboard(payload);
                 ChordKey(0x11, 0x56);
                 PressKey(0x0D);
-                Delay(.25 + attempt * .10);
+                Delay(StrokeTiming.ControlCommit(settings) + attempt * .10);
                 var ok = VerifyControlNumber(kind, value, geometry);
                 Log("slider", new { kind, value, attempt, strategy = "numeric_field", verified = ok });
                 if (ok) return;
@@ -508,7 +517,7 @@ internal sealed class Painter
 
     public void Run(PaintPlan plan, ResumeCheckpoint? resume = null)
     {
-        var groups = AdaptiveBrush.Build(plan, settings);
+        var groups = TransferSchedule.Build(plan, settings);
         var order = groups.Keys.OrderByDescending(i => plan.Counts.GetValueOrDefault(i)).ToList();
         if (plan.BackgroundColor is int bg)
         {
@@ -529,6 +538,7 @@ internal sealed class Painter
                 throw new InvalidDataException("Прогрес RESUME не відповідає плану. Виконай новий START.");
         }
         var speed = SpeedProfile.Get(settings.Text("speed_profile", "Rapid"));
+        double nextReport=0;
         clock.Start();
         if (resume is null)
             Save(new(plan.Identity, 0, 0, 0));
@@ -554,7 +564,7 @@ internal sealed class Painter
             if (Native.GetForegroundWindow() != window)
                 throw new InvalidOperationException("Поверни фокус у Rust і повтори START.");
             WaitReady();
-            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, strokes = total, canvas = settings.Calibration.Rect("canvas") });
+            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), moveSpan = TransferSchedule.MoveSpan(settings), frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
             for (;;)
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
@@ -624,7 +634,8 @@ internal sealed class Painter
                                     Log("adaptive_size", new { group, line, size, wide = op.Size > 0 });
                                 }
                             }
-                            Draw(op.Line, speed, line % 2 == 1);
+                            if(TransferSchedule.Fast(settings))DrawBatch(op,speed);
+                            else Draw(op.Segments[0], speed, line % 2 == 1);
                             break;
                         }
                         catch (InputInterrupted)
@@ -643,8 +654,9 @@ internal sealed class Painter
                         };
                     if (done % 50 == 0 || line + 1 == lines.Count)
                         Save(state);
-                    if (done % 12 == 0 || done == total)
+                    if (clock.Elapsed.TotalSeconds>=nextReport || done == total)
                     {
+                        nextReport=clock.Elapsed.TotalSeconds+.25;
                         var elapsed = clock.Elapsed.TotalSeconds - pausedSeconds;
                         report(new(done, total, elapsed, done > 0 ? elapsed * (total - done) / done : 0, $"#{entry.Color.Hex}"));
                     }
@@ -656,7 +668,7 @@ internal sealed class Painter
             if (File.Exists(checkpointPath))
                 File.Delete(checkpointPath);
             report(new(total, total, clock.Elapsed.TotalSeconds - pausedSeconds, 0, "Команди виконано. Перевір результат у Rust."));
-            Log("complete", new { done, total, resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
+            Log("complete", new { done, total, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
         }
         finally
         {
@@ -722,6 +734,36 @@ internal sealed class Painter
                 Native.Key(0x10, true);
         }
 
+        Delay(StrokeTiming.Release(settings));
+    }
+
+    private void DrawBatch(PaintBatch batch,SpeedProfile speed)
+    {
+        var first=batch.Segments[0];
+        Native.SetCursorPos(first.X1,first.Y1);
+        Delay(StrokeTiming.Settle(settings,speed));
+        Native.Mouse(false);
+        var heldFrom=Stopwatch.GetTimestamp();
+        try
+        {
+            Delay(StrokeTiming.Frame(settings));
+            foreach(var line in batch.Segments)
+            {
+                int length=TransferSchedule.Length(line);
+                int steps=Math.Max(1,(int)Math.Ceiling(length/(double)TransferSchedule.MoveSpan(settings)));
+                for(int step=1;step<=steps;step++)
+                {
+                    double fraction=step/(double)steps;
+                    Native.SetCursorPos((int)Math.Round(line.X1+(line.X2-line.X1)*fraction),
+                        (int)Math.Round(line.Y1+(line.Y2-line.Y1)*fraction));
+                    // Each end/bend remains visible for at least one game tick.
+                    Delay(StrokeTiming.Frame(settings));
+                }
+            }
+            var held=(Stopwatch.GetTimestamp()-heldFrom)/(double)Stopwatch.Frequency;
+            if(held<.04)Delay(.04-held);
+        }
+        finally{Native.Mouse(true);}
         Delay(StrokeTiming.Release(settings));
     }
 }

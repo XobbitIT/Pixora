@@ -431,20 +431,22 @@ public static class Coverage
         if (speedName is not null)
             copy.Set("speed_profile", speedName);
         var speed = SpeedProfile.Get(copy.Text("speed_profile"));
-        var groups = AdaptiveBrush.Build(plan, copy);
-        double seconds = copy.Int("start_delay", 5);
-        foreach (var lines in groups.Values)
+        var groups = TransferSchedule.Build(plan, copy);
+        double seconds = copy.Int("start_delay", 5)+3*StrokeTiming.SliderChangeEstimate(copy)+StrokeTiming.ClickEstimate(copy);
+        if(!StrokeTiming.Fast(copy) || copy.Bool("use_fixed_opacity",true)&&copy.Number("paint_opacity_value",1)!=1)
+            seconds+=StrokeTiming.SliderChangeEstimate(copy); // Final restore to Opacity 1.
+        double previousSize=speed.BrushSize;
+        var order=groups.Keys.OrderByDescending(i=>plan.Counts.GetValueOrDefault(i)).ToList();
+        if(plan.BackgroundColor is int bg){order.Remove(bg);order.Insert(0,bg);}
+        foreach (var color in order)
         {
-            seconds += copy.Mode == ColorMode.HexDirect ? StrokeTiming.HexChangeEstimate(copy) : StrokeTiming.ColorDelay(copy) + StrokeTiming.ClickEstimate(copy);
-            double previousSize = 0;
-            foreach (var op in lines)
+            seconds += copy.Mode == ColorMode.HexDirect ? StrokeTiming.HexChangeEstimate(copy)+StrokeTiming.ColorDelay(copy) : StrokeTiming.ColorDelay(copy) + StrokeTiming.ClickEstimate(copy);
+            foreach (var op in groups[color])
             {
-                if (op.Size != previousSize) seconds += StrokeTiming.SliderChangeEstimate(copy);
-                previousSize = op.Size;
-                var l = op.Line;
-                var length = Math.Max(Math.Abs(l.X2 - l.X1), Math.Abs(l.Y2 - l.Y1));
-                var shift = copy.Bool("line_mode") && copy.Text("coverage_mode") == "Fast" && length >= copy.Int("min_line_width", 4) * copy.Int("cell_px", 3);
-                seconds += StrokeTiming.Estimate(copy, speed, length, shift);
+                double size=op.Size>0?op.Size:speed.BrushSize;
+                if(copy.Bool("adaptive_brush")&&size!=previousSize)seconds+=StrokeTiming.SliderChangeEstimate(copy);
+                previousSize=size;
+                seconds += TransferSchedule.EstimateBatch(copy,speed,op);
             }
         }
 

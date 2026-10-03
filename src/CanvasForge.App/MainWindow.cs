@@ -504,8 +504,10 @@ internal sealed partial class MainWindow : Window
         adaptiveSummary = Text("", 11, Muted);
         q.Children.Add(adaptiveSummary);
         q.Children.Add(Button(T("◉ Налаштувати адаптивний режим", "◉ Set up adaptive mode"), () => ShowPage("adaptive")));
+        AddCheck(q,"fast_transfer",T("⚡ Максимальна швидкість перенесення", "⚡ Maximum transfer speed"),true);
+        q.Children.Add(Text(T("Об’єднує сумісні штрихи й прискорює перевірене введення чисел та HEX. Деталізація зберігається. Почни з тестового Canvas.", "Joins compatible strokes and speeds up verified numeric and HEX input. Detail is preserved. Start with a test Canvas."),11,Muted));
         AddCombo(q, "input_engine", T("Режим вводу", "Input timing"), new[] { "Stable", "Experimental 1 ms" });
-        q.Children.Add(Text(T("Experimental використовує захищені затримки. Кліки по палітрі й введення HEX мають однакові надійні паузи в обох режимах.", "Experimental uses guarded timing. Palette clicks and HEX input use the same reliable waits in both modes."), 11, Muted));
+        q.Children.Add(Text(T("Stable: від 20 мс за замовчуванням. Experimental: 16 мс. ESC — стоп, F6 — пауза.", "Stable: 20 ms by default. Experimental: 16 ms. ESC stops, F6 pauses."), 11, Muted));
         eta = Text(T("Орієнтовний час: —", "Estimated time: —"), 12, BrushOf("#D6B56B"));
         q.Children.Add(eta);
         right.Children.Add(Card("3. Старт", out var controls));
@@ -544,6 +546,7 @@ internal sealed partial class MainWindow : Window
         p.Children.Add(stats);
         AddCombo(p, "speed_profile", "Speed Engine", SpeedProfile.All.Select(x => x.Name).ToArray(), true);
         AddNumber(p, "cell_px", T("Деталізація (1 = максимум):"), true);
+        AddNumber(p,"fast_move_span_px",T("Швидкий рух, px за крок (32–512):", "Fast movement, px per step (32–512):"),true);
         var details = new UniformGridCompat(5);
         for (var d = 1; d <= 10; d++)
         {
@@ -767,8 +770,8 @@ internal sealed partial class MainWindow : Window
             {
                 var image = snapshot.Bool("transfer_simulator", true) && canvas is not null ? Images.MaterialPreview(canvas, active) : active.Preview;
                 var bitmap = Images.Bitmap(image);
-                var groups = AdaptiveBrush.Build(active, snapshot);
-                var text = $"{(active.Mode == ColorMode.HexDirect ? "HEX DIRECT" : "RUST PALETTE + QUICK")}\n{active.Width}×{active.Height} • {active.ColorCount} colors\n{active.StrokeCount:N0} strokes\n{groups.Values.Sum(x => x.Count):N0} actions\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{s.Name}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name))}"));
+                var groups = TransferSchedule.Build(active, snapshot);
+                var text = $"{(active.Mode == ColorMode.HexDirect ? "HEX DIRECT" : "RUST PALETTE + QUICK")}\n{active.Width}×{active.Height} • {active.ColorCount} colors\n{groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0} strokes\n{groups.Values.Sum(x => x.Count):N0} mouse drags\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{s.Name}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name))}"));
                 return (Bitmap: bitmap, Stats: text, Eta: Coverage.EstimateSeconds(active, snapshot));
             });
             if (closing || rid != renderGeneration || active != plan)

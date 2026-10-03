@@ -1164,4 +1164,130 @@ Test("A hollow component never claims solid coverage over its unchanged centre",
     Assert(measured.InnerDiameter==1 && measured.OuterDiameter==5);
 });
 
+
+PaintPlan SpeedPlan(int[] indices,int w,int h) => new() { Width=w,Height=h,Mode=ColorMode.HexDirect,
+    Indices=indices,Palette=[new(new(255,0,0),null,"hex"),new(new(0,255,0),null,"hex"),new(new(0,0,255),null,"hex")],
+    Preview=new(w,h),Strokes=Planner.Group(indices,w,h,true),Counts=indices.Where(x=>x>=0).GroupBy(x=>x).ToDictionary(x=>x.Key,x=>x.Count()),Identity="synthetic-speed" };
+HashSet<ScreenPoint> Centres(IEnumerable<ScreenLine> lines)
+{
+    var set=new HashSet<ScreenPoint>();
+    foreach(var l in lines)for(int k=0;k<=TransferSchedule.Length(l);k++)set.Add(new(l.X1+k*Math.Sign(l.X2-l.X1),l.Y1+k*Math.Sign(l.Y2-l.Y1)));
+    return set;
+}
+Test("Normal transfer preserves every stroke and its order",()=>
+{
+    var cfg=Config(ColorMode.HexDirect,80,60);var plan=SpeedPlan(Enumerable.Repeat(0,80*60).ToArray(),80,60);
+    var old=AdaptiveBrush.Build(plan,cfg);var batches=TransferSchedule.Build(plan,cfg);
+    foreach(var color in old.Keys)Assert(batches[color].All(x=>x.SourceStrokes==1)&&batches[color].Select(x=>x.Segments.Single()).SequenceEqual(old[color].Select(x=>x.Line)));
+});
+Test("Fast fine paths preserve exact coverage across colors, holes and scaled cells",()=>
+{
+    var random=new Random(641);
+    foreach(int pitch in new[]{1,2,3})for(int sample=0;sample<25;sample++)
+    {
+        int w=17,h=13;var indices=Enumerable.Range(0,w*h).Select(_=>random.Next(-1,3)).ToArray();
+        var cfg=Config(ColorMode.HexDirect,37,29);cfg.Set("speed_profile",pitch==1?"Rapid":pitch==2?"Turbo":"Max Speed");
+        cfg.Set("fast_transfer",true);var plan=SpeedPlan(indices,w,h);var old=AdaptiveBrush.Build(plan,cfg);var joined=TransferSchedule.Build(plan,cfg);
+        foreach(var color in old.Keys)
+        {
+            Assert(Centres(old[color].Select(x=>x.Line)).SetEquals(Centres(joined[color].SelectMany(x=>x.Segments))),"Fine coverage changed");
+            Assert(joined[color].Sum(x=>x.SourceStrokes)==old[color].Count);
+            foreach(var batch in joined[color])for(int i=1;i<batch.Segments.Count;i++)
+                Assert(batch.Segments[i-1].X2==batch.Segments[i].X1&&batch.Segments[i-1].Y2==batch.Segments[i].Y1,"Disconnected drag");
+        }
+    }
+});
+Test("Fine connections cannot cross an unpainted row",()=>
+{
+    var cfg=Config(ColorMode.HexDirect,80,3);cfg.Set("fast_transfer",true);
+    var indices=Enumerable.Range(0,240).Select(i=>i/80==1?-1:0).ToArray();var plan=SpeedPlan(indices,80,3);
+    Assert(TransferSchedule.Build(plan,cfg)[0].Count==2,"Joined through transparency");
+});
+Test("Batching is bounded and deterministic for RESUME",()=>
+{
+    var cfg=Config(ColorMode.HexDirect,100,100);cfg.Set("fast_transfer",true);
+    var plan=SpeedPlan(Enumerable.Repeat(0,10000).ToArray(),100,100);var a=TransferSchedule.Build(plan,cfg)[0];var b=TransferSchedule.Build(plan,cfg)[0];
+    Assert(a.Count==7&&a.Sum(x=>x.SourceStrokes)==100&&a.All(x=>x.SourceStrokes<=16));
+    Assert(a.Count==b.Count);for(int i=0;i<a.Count;i++)Assert(a[i].Size==b[i].Size&&a[i].SourceStrokes==b[i].SourceStrokes&&a[i].Segments.SequenceEqual(b[i].Segments));
+});
+Test("Translucent and patterned brushes keep independent strokes",()=>
+{
+    var cfg=Config(ColorMode.HexDirect,60,40);cfg.Set("fast_transfer",true);var plan=SpeedPlan(Enumerable.Repeat(0,2400).ToArray(),60,40);
+    cfg.Set("paint_opacity_value",.5);Assert(TransferSchedule.Build(plan,cfg)[0].All(x=>x.SourceStrokes==1));
+    cfg.Set("paint_opacity_value",1);cfg.Set("brush_shape_slot",1);Assert(TransferSchedule.Build(plan,cfg)[0].All(x=>x.SourceStrokes==1));
+    cfg.Set("brush_shape_slot",3);cfg.Set("line_mode",true);cfg.Set("coverage_mode","Fast");
+    Assert(!TransferSchedule.Fast(cfg)&&TransferSchedule.Build(plan,cfg)[0].All(x=>x.SourceStrokes==1));
+});
+Test("Wide connections respect the calibrated footprint and brush-size changes",()=>
+{
+    var cfg=Config(ColorMode.HexDirect,90,60);cfg.Set("fast_transfer",true);
+    // Synthetic tracks with a green obstacle on the otherwise red connector.
+    var indices=Enumerable.Repeat(0,90*60).ToArray();indices[24*90+70]=1;var plan=SpeedPlan(indices,90,60);
+    var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,90,60));cfg.SetCalibration(cal);
+    var ops=new Dictionary<int,List<BrushStroke>>{{0,[new(new(15,15,70,15),10,4,2),new(new(15,30,70,30),10,4,2),new(new(15,40,70,40),20,7,3)]}};
+    var joined=TransferSchedule.Build(plan,cfg,ops)[0];Assert(joined.Count==3,"Wide path crossed color or size boundary");
+    indices[24*90+70]=0;joined=TransferSchedule.Build(plan,cfg,ops)[0];Assert(joined.Count==2&&joined[0].SourceStrokes==2);
+    foreach(var l in joined[0].Segments)for(int k=0;k<=TransferSchedule.Length(l);k++)
+    {
+        int x=l.X1+k*Math.Sign(l.X2-l.X1),y=l.Y1+k*Math.Sign(l.Y2-l.Y1);
+        for(int yy=y-4;yy<=y+4;yy++)for(int xx=x-4;xx<=x+4;xx++)Assert(xx>=0&&yy>=0&&xx<90&&yy<60&&indices[yy*90+xx]==0);
+    }
+});
+Test("Adaptive fast schedule retains calibrated geometry including fine edges",()=>
+{
+    var cfg=Config(ColorMode.RustPalette,384,320);var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,384,320));cfg.SetCalibration(cal);
+    cfg.Set("adaptive_brush",true);cfg.Set("fast_transfer",true);cfg.Set("brush_calibration_points",new double[][]{[1,3,1],[3,5,3],[10,21,13],[20,35,23]});
+    cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg));var indices=Enumerable.Repeat(0,384*320).ToArray();
+    for(int y=140;y<160;y++)for(int x=180;x<200;x++)indices[y*384+x]=-1;
+    var plan=SpeedPlan(indices,384,320);var original=AdaptiveBrush.Build(plan,cfg);var joined=TransferSchedule.Build(plan,cfg,original);
+    Assert(joined[0].Count<original[0].Count);Assert(joined[0].Sum(x=>x.SourceStrokes)==original[0].Count);
+    foreach(var size in original[0].Select(x=>x.Size).Distinct())
+    {
+        var before=Centres(original[0].Where(x=>x.Size==size).Select(x=>x.Line));var after=Centres(joined[0].Where(x=>x.Size==size).SelectMany(x=>x.Segments));
+        Assert(before.IsSubsetOf(after));if(size==0)Assert(before.SetEquals(after));
+        int radius=original[0].Where(x=>x.Size==size).Max(x=>x.OuterRadius);
+        foreach(var p in after.Except(before))for(int yy=p.Y-radius;yy<=p.Y+radius;yy++)for(int xx=p.X-radius;xx<=p.X+radius;xx++)
+            Assert(xx>=0&&yy>=0&&xx<384&&yy<320&&indices[yy*384+xx]==0,"New wide path crosses a boundary");
+    }
+});
+Test("Fast timing keeps frame waits and verifies faster numeric input",()=>
+{
+    var cfg=Settings.Defaults();double numeric=StrokeTiming.SliderChangeEstimate(cfg),hex=StrokeTiming.HexChangeEstimate(cfg);
+    cfg.Set("fast_transfer",true);cfg.Set("input_engine","Experimental 1 ms");
+    Assert(StrokeTiming.SliderChangeEstimate(cfg)<numeric/2&&StrokeTiming.HexChangeEstimate(cfg)<hex/2);
+    Assert(StrokeTiming.ClickHold(cfg)>=2*StrokeTiming.Frame(cfg)&&StrokeTiming.KeyHold(cfg)>=2*StrokeTiming.Frame(cfg));
+    Assert(StrokeTiming.HexCommit(cfg)>=cfg.Number("hex_apply_delay_ms")/1000);
+    var dot=new PaintBatch(0,new[]{new ScreenLine(1,1,1,1)},1);
+    Assert(TransferSchedule.EstimateBatch(cfg,SpeedProfile.Get("Rapid"),dot)>=.04+StrokeTiming.Release(cfg));
+});
+Test("Fast settings invalidate old checkpoints but preserve adaptive calibration",()=>
+{
+    var cfg=SessionFixture();var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]),context=AdaptiveBrush.Context(cfg);
+    cfg.Set("fast_transfer",true);Assert(PlanIdentity.Compute(image,cfg,[])!=identity&&AdaptiveBrush.Context(cfg)==context);
+    identity=PlanIdentity.Compute(image,cfg,[]);cfg.Set("fast_move_span_px",128);Assert(PlanIdentity.Compute(image,cfg,[])!=identity);
+    Assert(AdaptiveBrush.CalibrationCurrent(cfg));var calibration=AdaptiveBrush.CalibrationSettings(cfg,10);
+    Assert(!calibration.Bool("fast_transfer")&&calibration.Text("input_engine")=="Stable");
+});
+Test("Fast motion span validation rejects unsupported values",()=>
+{
+    foreach(double value in new[]{0d,31,513,double.NaN})
+    {
+        var cfg=Settings.Defaults();if(double.IsFinite(value))cfg.Set("fast_move_span_px",value);else cfg.Set("fast_move_span_px","NaN");
+        try{cfg.Validate();throw new Exception("Invalid motion span accepted");}catch(InvalidDataException){}
+    }
+});
+Test("Synthetic transfer estimates improve without changing image detail",()=>
+{
+    foreach(string name in new[]{"solid","four-colors","detail-and-holes"})
+    {
+        const int w=128,h=128;var indices=new int[w*h];
+        for(int y=0;y<h;y++)for(int x=0;x<w;x++)indices[y*w+x]=name=="solid"?0:name=="four-colors"?(x<w/2?0:y<h/2?1:2):((x/8+y/8)%3==0?-1:(x/8+y/8)%3);
+        var cfg=Config(ColorMode.HexDirect,768,768);cfg.Set("cell_px",3);cfg.Set("adaptive_brush",false);
+        var plan=SpeedPlan(indices,w,h);double normal=Coverage.EstimateSeconds(plan,cfg);int drags=TransferSchedule.Build(plan,cfg).Values.Sum(x=>x.Count);
+        string detail=cfg.Data["cell_px"]!.ToJsonString();cfg.Set("fast_transfer",true);double fast=Coverage.EstimateSeconds(plan,cfg);
+        var schedule=TransferSchedule.Build(plan,cfg);Assert(fast<normal&&cfg.Data["cell_px"]!.ToJsonString()==detail);
+        Console.WriteLine($"SYNTHETIC ESTIMATE {name}: {normal:F2}s -> {fast:F2}s; drags {drags} -> {schedule.Values.Sum(x=>x.Count)} (not measured in Rust)");
+    }
+});
+
 Console.WriteLine($"ALL {passed} TESTS PASSED");

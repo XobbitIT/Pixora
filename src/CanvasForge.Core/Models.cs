@@ -155,6 +155,8 @@ public sealed class Settings
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
         if (Int("adaptive_max_size", 20) is not (10 or 20))
             throw new InvalidDataException("Adaptive maximum Size must be 10 or 20.");
+        if (Number("fast_move_span_px", 256) is < 32 or > 512 || !double.IsFinite(Number("fast_move_span_px",256)))
+            throw new InvalidDataException("Fast movement span must be 32–512 px.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
             throw new InvalidDataException("Canvas is too large.");
@@ -246,6 +248,8 @@ public sealed class Settings
             ["adaptive_threshold"] = 1.0,
             ["min_line_width"] = 4,
             ["adaptive_brush"] = false,
+            ["fast_transfer"] = false,
+            ["fast_move_span_px"] = 256,
             ["adaptive_max_size"] = 20
         }
 
@@ -484,18 +488,32 @@ public static class StrokeTiming
     public static double Settle(Settings settings, SpeedProfile speed) => Experimental(settings) ? .008 : Math.Max(.005, speed.StartDelay);
     public static double EndHold(Settings settings, SpeedProfile speed) => Math.Max(Frame(settings), speed.UpDelay);
     public static double Release(Settings settings) => Math.Max(Frame(settings), settings.Number("cycle_delay_ms") / 1000);
+    public static bool Fast(Settings s) => s.Bool("fast_transfer");
+    public static double ClickSettle(Settings s) => Fast(s) ? Frame(s) : Math.Max(.04,s.Number("click_delay",.02));
+    public static double ClickHold(Settings s) => Fast(s) ? 2*Frame(s) : Math.Max(.08,s.Number("mouse_up_delay_ms",8)/1000);
+    public static double ClickRelease(Settings s,bool twice=false) => Fast(s) ? Frame(s) : twice ? Math.Max(.08,s.Number("reclick_delay_ms",35)/1000) : .08;
+    public static double KeyHold(Settings s) => Fast(s) ? 2*Frame(s) : .05;
+    public static double KeyRelease(Settings s) => Fast(s) ? Frame(s) : .05;
+    public static double ModifierSettle(Settings s) => Fast(s) ? Frame(s) : .05;
+    public static double ModifierRelease(Settings s) => Fast(s) ? Frame(s) : .06;
+    public static double CopyDelay(Settings s) => Fast(s) ? 3*Frame(s) : .15;
+    public static double ControlCommit(Settings s) => Fast(s) ? 4*Frame(s) : .25;
+    public static double CursorPark(Settings s) => Fast(s) ? 2*Frame(s) : .15;
+    public static double HexPaste(Settings s) => Fast(s) ? 2*Frame(s) : .18;
+    public static double HexCommit(Settings s) => Math.Max(ControlCommit(s),s.Number("hex_apply_delay_ms",180)/1000);
+    private static double KeyEstimate(Settings s) => KeyHold(s)+KeyRelease(s);
+    private static double ChordEstimate(Settings s) => ModifierSettle(s)+KeyEstimate(s)+ModifierRelease(s);
 
     public static double ClickEstimate(Settings settings, bool twice = false)
     {
-        var one = Math.Max(.04, settings.Number("click_delay", .02)) + Math.Max(.08, settings.Number("mouse_up_delay_ms", 8) / 1000) + .08;
-        if (!twice) return one;
-        return 2 * (Math.Max(.04, settings.Number("click_delay", .02)) + Math.Max(.08, settings.Number("mouse_up_delay_ms", 8) / 1000) + Math.Max(.08, settings.Number("reclick_delay_ms", 35) / 1000));
+        return (twice?2:1)*(ClickSettle(settings)+ClickHold(settings)+ClickRelease(settings,twice));
     }
 
     public static double SliderChangeEstimate(Settings settings)
     {
         // Numeric edit, Enter, a fresh select/copy readback, and screenshot check.
-        return 1.5;
+        return 2*ClickEstimate(settings)+4*ChordEstimate(settings)+2*KeyEstimate(settings)
+            +ControlCommit(settings)+CopyDelay(settings)+CursorPark(settings);
     }
 
     public static double ColorDelay(Settings settings)
@@ -508,11 +526,17 @@ public static class StrokeTiming
     {
         // Includes guarded keyboard input and swatch-first verification with a
         // periodic full HEX readback. Retries can extend the actual duration.
-        return settings.Calibration.Rect("swatch").Valid ? 1.8 : 3.0;
+        var apply=ClickEstimate(settings)+(Fast(settings)?Frame(settings):.05)+2*ChordEstimate(settings)
+            +HexPaste(settings)+KeyEstimate(settings)+HexCommit(settings);
+        var read=ClickEstimate(settings)+2*ChordEstimate(settings)+CopyDelay(settings);
+        var swatch=settings.Calibration.Rect("swatch").Valid||settings.Calibration.Point("color_swatch") is not null;
+        return apply+read/(swatch?Math.Clamp(settings.Int("hex_readback_every",8),1,64):1);
     }
 
     public static double Estimate(Settings settings, SpeedProfile speed, int length, bool shift)
     {
+        if(TransferSchedule.Fast(settings)&&!shift)
+            return TransferSchedule.EstimateBatch(settings,speed,new(0,new[]{new ScreenLine(0,0,length,0)},1));
         var travel = shift ? settings.Number("stroke_speed", .028) * Math.Max(1, length) / 100
             : Math.Ceiling(length / (double)speed.Pitch) * speed.PointDelay;
         return Settle(settings, speed) + Math.Max(.04, Frame(settings) + travel + EndHold(settings, speed)) + Release(settings);

@@ -19,7 +19,10 @@ internal static class Program
         CheckWindow(destination, true, true, "Українська", "adaptive-stale", 900);
         CheckWindow(destination, true, false, "English", "adaptive-english", 1280);
         CheckWindow(destination, false, false, "Українська", "adaptive-legacy-enabled", 1280, true);
-        Console.WriteLine("ALL 5 WPF UI CHECKS PASSED");
+        CheckFastWindow(destination,"Українська",1280);
+        CheckFastWindow(destination,"Українська",900);
+        CheckFastWindow(destination,"English",1280);
+        Console.WriteLine("ALL 8 WPF UI CHECKS PASSED");
         // Windows are rendered without showing or invoking game/capture/input actions.
     }
 
@@ -70,6 +73,27 @@ internal static class Program
         using(var file=File.Create(Path.Combine(output,name+".png")))encoder.Save(file);
         window.ShowPage("capture");root.UpdateLayout();
         Assert(!Descendants(root).OfType<Button>().Any(x=>x.Content?.ToString()?.Contains("Size anchors")==true),"Manual anchors still required by UI");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckFastWindow(string output,string language,int width)
+    {
+        string name="fast-"+(language=="English"?"en":"ua")+"-"+width;
+        var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=Settings.Defaults();settings.Set("language",language);settings.Set("cell_px",3);settings.Set("speed_profile","Rapid");
+        settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
+        string config=Path.Combine(directory,"config-csharp.json");settings.Save(config);
+        var window=new MainWindow(directory);window.ShowPage("paint");var root=(FrameworkElement)window.Content;
+        root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
+        var checks=Descendants(root).OfType<CheckBox>().Where(x=>x.Content?.ToString()?.Contains(language=="English"?"Maximum transfer speed":"Максимальна швидкість перенесення")==true).ToArray();
+        Assert(checks.Length==1&&checks[0].IsChecked==false,"Fast transfer toggle missing or enabled silently");
+        checks[0].IsChecked=true;checks[0].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        var saved=Settings.Load(config);Assert(saved.Bool("fast_transfer"),"Fast setting was not persisted");
+        Assert(saved.Int("cell_px")==3&&saved.Text("speed_profile")=="Rapid","Fast toggle reduced image detail");
+        Assert(saved.Data["brush_calibration_points"]!.ToJsonString()==settings.Data["brush_calibration_points"]!.ToJsonString(),"Fast toggle discarded calibration");
+        window.SetEditing(false);Assert(!checks[0].IsEnabled,"Fast settings remained editable during painting");window.SetEditing(true);
+        root.UpdateLayout();var bitmap=new RenderTargetBitmap(width,780,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
+        var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using(var file=File.Create(Path.Combine(output,name+".png")))encoder.Save(file);
         Console.WriteLine("PASS "+name);
     }
 }

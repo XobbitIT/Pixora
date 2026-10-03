@@ -46,6 +46,7 @@ public static class AdaptiveBrush
         var s = source.Clone();
         Prepare(s);
         s.Set("adaptive_brush", false); s.Set("input_engine", "Stable");
+        s.Set("fast_transfer", false);
         s.Set("coverage_mode", "Fast"); s.Set("force_precision_controls", false);
         s.Set("auto_brush_size", false); s.Set("brush_size_value", size); s.Set("interval_value", .01);
         return s;

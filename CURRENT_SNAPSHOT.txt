@@ -1,7 +1,8 @@
-Pixora 1.0.14-beta.5 — measured small-brush raster offset fix
-Includes beta.1–beta.4 changes. Native beta.4 logs confirm numeric Size/Interval/Opacity input.
-Brush measurement now locates a nearby dot within 4px of the commanded click,
-retains conservative click-relative bounds, and excludes hollow centres from solid coverage.
-Validation: 82 Core regressions including synthetic small-offset cases, 5 WPF UI checks.
-In-game calibration of all four Size values still needs retest.
+Pixora 1.0.14-beta.6 — opt-in maximum transfer speed
+Includes beta.1–beta.5 numeric controls, slider detection and separate adaptive page.
+User confirmed adaptive brush and HEX behavior before this speed change.
+Fast transfer batches compatible strokes without reducing detail or crossing color/alpha boundaries.
+Verified numeric/HEX input uses shorter frame-based waits; calibration keeps Stable timing.
+Validation: 93 Core tests, 8 WPF checks. Synthetic ETA gains are not measured Rust speed.
+In-game validation of fast motion interpolation and shortened keyboard waits remains pending.
 Changes: CHANGES_1.0.14_UA.md; test guide: TESTING_1.0.14_UA.md.
