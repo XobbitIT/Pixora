@@ -501,7 +501,7 @@ internal sealed partial class MainWindow : Window
         AddCheck(q, "adaptive_brush", T("Адаптивний пензель (експериментально)", "Adaptive brush (experimental)"), true);
         q.Children.Add(Text(T("Потрібне свіже калібрування пензля для цього Canvas. Великі ділянки — широким пензлем, краї — звичайним.", "Requires fresh brush calibration for this Canvas. Wide brushes fill interiors; the normal brush finishes edges."), 11, Muted));
         AddCombo(q, "input_engine", T("Режим вводу", "Input timing"), new[] { "Stable", "Experimental 1 ms" });
-        q.Children.Add(Text(T("Experimental: паузи штриха 1 мс. Rust може пропускати штрихи; при пропусках поверни Stable. Зміна діє з наступного START.", "Experimental: 1 ms stroke delays. Rust may miss strokes; return to Stable if this happens. Changes apply on the next START."), 11, Muted));
+        q.Children.Add(Text(T("Experimental використовує захищені затримки. Кліки по палітрі й введення HEX мають однакові надійні паузи в обох режимах.", "Experimental uses guarded timing. Palette clicks and HEX input use the same reliable waits in both modes."), 11, Muted));
         eta = Text(T("Орієнтовний час: —", "Estimated time: —"), 12, BrushOf("#D6B56B"));
         q.Children.Add(eta);
         right.Children.Add(Card("3. Старт", out var controls));
@@ -578,14 +578,14 @@ internal sealed partial class MainWindow : Window
         parent.Children.Add(Text(title, 11, Muted));
         var combo = new ComboBox
         {
-            ItemsSource = values,
-            SelectedItem = settings.Text(key, values[0]),
+            ItemsSource = values.Select(v => key == "input_engine" && v == "Experimental 1 ms" ? T("Experimental (захищений)", "Experimental (guarded)") : v).ToArray(),
+            SelectedIndex = Array.IndexOf(values, settings.Text(key, values[0])),
             Margin = new Thickness(0, 3, 0, 5)
         };
-        if (combo.SelectedItem is null)
+        if (combo.SelectedIndex < 0)
             combo.SelectedIndex = 0;
         parent.Children.Add(combo);
-        readers[key] = () => combo.SelectedItem?.ToString() ?? values[0];
+        readers[key] = () => values[Math.Max(0, combo.SelectedIndex)];
         combo.SelectionChanged += (_, _) =>
         {
             if (!buildingUi)
@@ -1042,3 +1042,4 @@ internal sealed partial class MainWindow : Window
         }
     }
 }
+

@@ -1,0 +1,1 @@
+Slider-only crops from the user-provided 2026-10-03 Rust test recording. No usernames, game world, or desktop content are included. Each gzip contains six little-endian int32 values (width, height, hint left/top/right/bottom) followed by RGBA bytes. These fixtures reproduce numeric-field false positives, empty/full fill, legacy partial captures, and post-pause mismatches.

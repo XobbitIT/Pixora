@@ -28,14 +28,14 @@ public static class AdaptiveBrush
         if (!s.Bool("adaptive_brush")) return;
         if (s.Text("coverage_mode", "Precision") != "Precision" || !s.Bool("force_precision_controls", true)
             || s.Bool("line_mode") || s.Bool("background_fill") || (s.Bool("use_fixed_opacity", true) && s.Number("paint_opacity_value", 1) < .999))
-            throw new InvalidOperationException("Adaptive brush requires Precision, precision controls, opacity 1, and Shift-line/background fill disabled.");
+            throw new InvalidOperationException("Адаптивний пензель потребує Precision, точних controls, Opacity 1 і вимкнених Shift-line та заповнення фону.");
         if (s.Int("brush_shape_slot", 3) is not (3 or 4))
-            throw new InvalidOperationException("Adaptive brush requires solid round (slot 3) or square (slot 4).");
+            throw new InvalidOperationException("Адаптивний пензель потребує суцільного круглого пензля (3) або квадратного (4).");
         if (s.Text("brush_calibration_context") != Context(s) || Samples(s).Length < 2)
-            throw new InvalidOperationException("Calibrate the brush for the current Canvas, color mode and brush shape before enabling adaptive painting.");
+            throw new InvalidOperationException("Спочатку калібруй пензель для поточного Canvas, режиму кольорів і форми пензля в розділі Захоплення Rust.");
         var r = s.Calibration.Rect("canvas");
         if (!r.Valid || (long)r.Width * r.Height > 16_000_000)
-            throw new InvalidOperationException("Adaptive brush supports Canvas areas up to 16 million pixels.");
+            throw new InvalidOperationException("Адаптивний пензель підтримує Canvas до 16 мільйонів пікселів.");
     }
 
     private static (double Size, int Outer, int Inner)[] Samples(Settings s)

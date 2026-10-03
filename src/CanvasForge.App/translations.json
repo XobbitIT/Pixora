@@ -524,5 +524,13 @@
   "Калібрувати пензель 1/3/10/20": "Calibrate brush 1/3/10/20",
   "Захопи Canvas від 240×240 px і повзунок Size.": "Capture a Canvas of at least 240×240 px and the Size slider.",
   "Вибери суцільний круглий пензель (3) або квадратний (4).": "Choose the solid round brush (3) or square brush (4).",
-  "Калібрування намалює 4 точки розмірами 1/3/10/20. Потрібні чистий Canvas і контрастний колір. Після тесту очисти Canvas. Продовжити?": "Calibration draws 4 dots at sizes 1/3/10/20. Use a clean Canvas and contrasting color. Clear Canvas afterwards. Continue?"
+  "Калібрування намалює 4 точки розмірами 1/3/10/20. Потрібні чистий Canvas і контрастний колір. Після тесту очисти Canvas. Продовжити?": "Calibration draws 4 dots at sizes 1/3/10/20. Use a clean Canvas and contrasting color. Clear Canvas afterwards. Continue?",
+  "Адаптивний пензель потребує Precision, точних controls, Opacity 1 і вимкнених Shift-line та заповнення фону.": "Adaptive brush requires Precision, precision controls, opacity 1, and Shift-line/background fill disabled.",
+  "Адаптивний пензель потребує суцільного круглого пензля (3) або квадратного (4).": "Adaptive brush requires solid round (slot 3) or square (slot 4).",
+  "Спочатку калібруй пензель для поточного Canvas, режиму кольорів і форми пензля в розділі Захоплення Rust.": "Calibrate the brush for the current Canvas, color mode and brush shape before enabling adaptive painting.",
+  "Адаптивний пензель підтримує Canvas до 16 мільйонів пікселів.": "Adaptive brush supports Canvas areas up to 16 million pixels.",
+  "Команди виконано. Перевір результат у Rust.": "Commands completed. Check the result in Rust.",
+  "Не вдалося прочитати повзунок {p0}. Захопи всю зелену смугу разом із числовим полем.": "Could not read the {p0} slider. Capture the complete green bar including its numeric field.",
+  "Ручна точка Size поза поточним повзунком. Повтори калібрування Size anchors.": "The manual Size anchor is outside the current track. Capture Size anchors again.",
+  "Rust не підтвердив колір палітри {p0}. Перевір зразок активного кольору.": "Rust did not confirm palette color {p0}. Check the active color swatch."
 }

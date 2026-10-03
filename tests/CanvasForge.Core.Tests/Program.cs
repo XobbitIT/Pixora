@@ -193,10 +193,10 @@ Test("Python JSON imports coordinates and preserves unknown settings", () =>
         File.Delete(path);
     }
 });
-Test("Size curve retains the RC8.4 low-range calibration", () =>
+Test("Size values use the interactive range without the numeric field", () =>
 {
-    Assert(Math.Abs(ControlCurve.Fraction("size", 2) - .0031) < 1e-8);
-    Assert(Math.Abs(ControlCurve.Fraction("size", 3) - .0062) < 1e-8);
+    Assert(Math.Abs(ControlCurve.Fraction("size", 2) - 1.0 / 99) < 1e-8);
+    Assert(Math.Abs(ControlCurve.Fraction("size", 3) - 2.0 / 99) < 1e-8);
     Assert(ControlCurve.Fraction("interval", .01) == 0);
     Assert(ControlCurve.Fraction("opacity", 1) == 1);
 });
@@ -530,7 +530,8 @@ Test("Input delay defaults, bounds, and ETA agree", () =>
     var oldTime = StrokeTiming.Estimate(cfg, speed, 100, false);
     cfg.Set("input_frame_delay_ms", 16);
     cfg.Validate();
-    Assert(Math.Abs(oldTime - StrokeTiming.Estimate(cfg, speed, 100, false) - .012) < 1e-9);
+    Assert(oldTime >= StrokeTiming.Estimate(cfg, speed, 100, false));
+    Assert(StrokeTiming.Estimate(cfg, speed, 0, false) >= .04 + StrokeTiming.Release(cfg));
     foreach (var invalid in new[] { "0", "15", "101", "NaN" })
     {
         cfg.Set("input_frame_delay_ms", invalid);
@@ -538,48 +539,39 @@ Test("Input delay defaults, bounds, and ETA agree", () =>
         catch (InvalidDataException) { }
     }
 });
-Test("Experimental timing uses 1 ms while Stable preserves legacy timings", () =>
+Test("Both engines preserve a game-frame release and short-stroke hold", () =>
 {
     var cfg = Settings.Defaults();
-    foreach (var speed in SpeedProfile.All)
+    foreach (var engine in new[] { "Stable", "Experimental 1 ms" })
     {
-        Assert(!StrokeTiming.Experimental(cfg));
-        Assert(StrokeTiming.Settle(cfg, speed) == Math.Max(.005, speed.StartDelay));
-        Assert(StrokeTiming.EndHold(cfg, speed) == Math.Max(.020, speed.UpDelay));
+        cfg.Set("input_engine", engine);
+        cfg.Validate();
+        foreach (var speed in SpeedProfile.All)
+        {
+            Assert(StrokeTiming.Frame(cfg) >= .016);
+            Assert(StrokeTiming.EndHold(cfg, speed) >= .016);
+            Assert(StrokeTiming.Release(cfg) >= .016);
+            Assert(StrokeTiming.Estimate(cfg, speed, 0, false) >= .04 + StrokeTiming.Release(cfg));
+        }
     }
-    cfg.Set("input_engine", "Experimental 1 ms");
-    cfg.Validate();
-    foreach (var speed in SpeedProfile.All)
-    {
-        Assert(StrokeTiming.Frame(cfg) == .001);
-        Assert(StrokeTiming.Settle(cfg, speed) == .001);
-        Assert(StrokeTiming.EndHold(cfg, speed) == .001);
-        Assert(StrokeTiming.Release(cfg) == .001);
-        Assert(Math.Abs(StrokeTiming.Estimate(cfg, speed, 0, false) - .004) < 1e-9);
-        var travel = Math.Ceiling(100.0 / speed.Pitch) * speed.PointDelay;
-        Assert(Math.Abs(StrokeTiming.Estimate(cfg, speed, 100, false) - (.004 + travel)) < 1e-9);
-        Assert(Math.Abs(StrokeTiming.Estimate(cfg, speed, 100, true) - (.004 + cfg.Number("stroke_speed", .028))) < 1e-9);
-    }
-    cfg.Set("cycle_delay_ms", 30);
-    Assert(StrokeTiming.Release(cfg) == .030);
-    cfg.Set("input_engine", "Stable");
-    Assert(StrokeTiming.Frame(cfg) == .020);
+    cfg.Set("cycle_delay_ms", 100);
+    Assert(StrokeTiming.Release(cfg) == .1);
     cfg.Set("input_engine", "unknown");
     try { cfg.Validate(); throw new Exception("Unknown engine accepted"); }
     catch (InvalidDataException) { }
 });
-Test("Speed patch control estimates follow Stable and Experimental paths", () =>
+Test("UI clicks, color changes and HEX never inherit fast stroke timing", () =>
 {
     var cfg = Settings.Defaults();
-    Assert(Math.Abs(StrokeTiming.ClickEstimate(cfg) - .100) < 1e-9);
-    Assert(Math.Abs(StrokeTiming.SliderChangeEstimate(cfg) - .363) < 1e-9);
-    Assert(Math.Abs(StrokeTiming.ColorDelay(cfg) - .100) < 1e-9);
-    Assert(Math.Abs(StrokeTiming.HexChangeEstimate(cfg) - 1.8) < 1e-9);
+    var click = StrokeTiming.ClickEstimate(cfg);
+    var slider = StrokeTiming.SliderChangeEstimate(cfg);
+    var color = StrokeTiming.ColorDelay(cfg);
+    var hex = StrokeTiming.HexChangeEstimate(cfg);
     cfg.Set("input_engine", "Experimental 1 ms");
-    Assert(Math.Abs(StrokeTiming.ClickEstimate(cfg) - .018) < 1e-9);
-    Assert(Math.Abs(StrokeTiming.SliderChangeEstimate(cfg) - .069) < 1e-9);
-    Assert(Math.Abs(StrokeTiming.ColorDelay(cfg) - .030) < 1e-9);
-    Assert(Math.Abs(StrokeTiming.HexChangeEstimate(cfg) - .65) < 1e-9);
+    Assert(StrokeTiming.ClickEstimate(cfg) == click && click >= .20);
+    Assert(StrokeTiming.SliderChangeEstimate(cfg) == slider);
+    Assert(StrokeTiming.ColorDelay(cfg) == color && color >= .1);
+    Assert(StrokeTiming.HexChangeEstimate(cfg) == hex);
     cfg.Set("hex_readback_every", 0);
     try { cfg.Validate(); throw new Exception("Invalid HEX readback interval accepted"); }
     catch (InvalidDataException) { }
@@ -871,5 +863,84 @@ Test("Painting settings and captured coordinates still invalidate RESUME", () =>
     }
     var moved = s.Clone(); CalibrationSession.Align(moved, new(20, 30), 96, new(1280, 720));
     Assert(hash != PlanIdentity.Compute(image, moved, moved.Palette().ToArray()));
+});
+Test("Transparent black edges retain black RGB through resampling and filters", () =>
+{
+    var source = new PixelImage(8, 8);
+    for (var y = 2; y < 6; y++) for (var x = 2; x < 6; x++) source.Set(y * 8 + x, new(0, 0, 0));
+    var cfg = Settings.Defaults();
+    cfg.Set("fill_subject", false); cfg.Set("fit_mode", "fit whole");
+    var prepared = ImageProcessing.Prepare(source, 31, 29, cfg, default);
+    Assert(Enumerable.Range(0, 31 * 29).Any(i => prepared.Alpha(i) is > 16 and < 255));
+    var filtered = ImageProcessing.Filter(prepared, cfg, default);
+    for (var i = 0; i < 31 * 29; i++)
+    {
+        Assert(filtered.Alpha(i) == prepared.Alpha(i));
+        if (filtered.Alpha(i) >= 16) Assert(filtered.Color(i) == new Rgb(0, 0, 0), "white or gray matte introduced");
+    }
+});
+Test("Four-color transparent PNG stays four colors with video quality settings", () =>
+{
+    var source = new PixelImage(64, 64);
+    var colors = new[] { new Rgb(255,51,51), new Rgb(51,255,51), new Rgb(51,51,255), new Rgb(0,0,0) };
+    for (var k = 0; k < 4; k++)
+        for (var y = 8 + k / 2 * 32; y < 24 + k / 2 * 32; y++)
+            for (var x = 8 + k % 2 * 32; x < 24 + k % 2 * 32; x++) source.Set(y * 64 + x, colors[k]);
+    foreach (var mode in new[] { ColorMode.RustPalette, ColorMode.HexDirect })
+    {
+        var cfg = Settings.Defaults(); cfg.Set("color_mode", mode == ColorMode.HexDirect ? "HEX Direct" : "Rust Palette");
+        cfg.Set("cell_px", 8); cfg.Set("fit_mode", "smart"); cfg.Set("fill_subject", true);
+        cfg.Set("hex_max_colors", "Auto"); cfg.Set("speed_profile", "Max Speed");
+        var cal = cfg.Calibration; cal.SetRect("canvas", new(465,150,1509,1191)); cfg.SetCalibration(cal);
+        cfg.SetPalette(colors.Append(Rgb.White).Select((c,i) => new PaletteEntry(c,new(i,1),"main")).ToArray());
+        var plan = Planner.Build(source,cfg);
+        var used = plan.Counts.Keys.Select(i=>plan.Palette[i].Color).ToHashSet();
+        Assert(used.SetEquals(colors), "transparent edges expanded the palette");
+        Assert(plan.Indices.Contains(-1));
+    }
+});
+Test("Transparent hidden RGB cannot contaminate the neighboring foreground", () =>
+{
+    var source = new PixelImage(7,7);
+    for (var i=0;i<49;i++) source.Set(i,new(255,255,255),0);
+    source.Set(24,new(12,34,56),180);
+    var cfg=Settings.Defaults(); cfg.Set("fill_subject",false); cfg.Set("fit_mode","fit whole");
+    var resized=ImageProcessing.Prepare(source,21,21,cfg,default);
+    var filtered=ImageProcessing.Filter(resized,cfg,default);
+    for (var i=0;i<441;i++) if (filtered.Alpha(i)>=16)
+        Assert(RustSlider.Delta(filtered.Color(i),new(12,34,56))<=1);
+});
+Test("Real Rust slider crops exclude numeric fields and expose recorded mismatches", () =>
+{
+    foreach (var (name,expected,desired,match) in new[] {
+        ("palette-size-min",0d,0d,true), ("palette-size",.024,2d/99,false),
+        ("palette-interval",.324,0d,false), ("palette-opacity",1d,1d,true),
+        ("hex-size",.032,2d/99,false), ("hex-opacity",.948,1d,false), ("pause-interval",.324,0d,false) })
+    {
+        using var stream = new System.IO.Compression.GZipStream(File.OpenRead(Path.Combine(AppContext.BaseDirectory,"Fixtures",name+".rgba.gz")),System.IO.Compression.CompressionMode.Decompress);
+        using var reader = new BinaryReader(stream);
+        var w=reader.ReadInt32();var h=reader.ReadInt32();
+        var hint=new ScreenRect(reader.ReadInt32(),reader.ReadInt32(),reader.ReadInt32(),reader.ReadInt32());
+        var image=new PixelImage(w,h,reader.ReadBytes(w*h*4));
+        var read=RustSlider.Read(image,hint) ?? throw new Exception("Unreadable fixture: "+name);
+        Assert(read.Track.Width==250, "numeric field included: "+name+" width="+read.Track.Width+" fraction="+read.Fraction);
+        Assert(Math.Abs(read.Fraction-expected)<.0041,name);
+        Assert(read.Matches(desired)==match,"mismatch accepted: "+name);
+    }
+});
+Test("Slider detector rejects clipped, blank and unrelated green content", () =>
+{
+    var image=new PixelImage(160,40);
+    Assert(RustSlider.Read(image,new(5,5,150,35)) is null);
+    for (var i=0;i<160*40;i++)image.Set(i,new(70,90,40));
+    Assert(RustSlider.Read(image,new(5,5,150,35)) is null);
+});
+Test("Manual HEX Size anchors stay independent of palette calibration", () =>
+{
+    var cfg=SessionFixture();cfg.Set("color_mode","HEX Direct");
+    var regular=cfg.Calibration.Data.ToJsonString();
+    var cal=cfg.PaintCalibration();cal.SetPoint("size_anchor_3",new(722,505));cfg.SetPaintCalibration(cal);
+    Assert(cfg.PaintCalibration().Point("size_anchor_3")==new ScreenPoint(722,505));
+    Assert(cfg.Calibration.Data.ToJsonString()==regular);
 });
 Console.WriteLine($"ALL {passed} TESTS PASSED");

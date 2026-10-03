@@ -455,7 +455,8 @@ public static class Coverage
 public static class ControlCurve
 {
     public static bool IsMaximum(string kind, double value) => kind == "size" ? value >= 99.999 : value >= .99999;
-    public static readonly (double Value, double Fraction)[] Size = [(1, 0), (2, .0031), (3, .0062), (3.85, 1.0 / 99), (5.43, 2.0 / 99), (100, 1)];
+    // Fractions refer to the interactive track, excluding the numeric field.
+    public static readonly (double Value, double Fraction)[] Size = [(1, 0), (100, 1)];
     public static double Fraction(string kind, double value)
     {
         if (kind != "size")

@@ -23,13 +23,14 @@ internal sealed partial class MainWindow
         hex.Children.Add(AsyncButton(T("1. Захопити HEX", "1. Capture HEX"), () => Capture("hex", "HEX — 6 digits")));
         hex.Children.Add(AsyncButton(T("2. Тест HEX (3 кольори)", "2. Test HEX (3 colors)"), TestHex));
         hex.Children.Add(AsyncButton(T("3. Пензель і повзунки HEX", "3. HEX brush and sliders"), CaptureHexControls));
-        hex.Children.Add(Text(T("Відкрий HEX-палітру в Rust і захопи форми пензля та три зелені смуги. Координати зберігаються окремо від звичайної палітри.", "Open the HEX palette in Rust and capture brush shapes and the three green slider tracks. These coordinates are stored separately."), 12, Muted));
+        hex.Children.Add(Text(T("Відкрий HEX-палітру Rust і захопи форми пензля та кожну зелену смугу разом із числовим полем справа. Робочі межі визначаються автоматично.", "Open the HEX palette in Rust and capture brush shapes and each complete green bar including its numeric field. Interactive boundaries are detected automatically."), 12, Muted));
         var manual = new StackPanel();
         page.Children.Add(new Expander { Header = T("⚙ Ручне калібрування", "⚙ Manual calibration"), Content = manual });
         manual.Children.Add(Card("Палітра і прев’ю", out var pal));
         pal.Children.Add(AsyncButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", "PALETTE 4×16")));
         pal.Children.Add(AsyncButton("Quick Colors", () => Capture("quick", "QUICK COLORS — 1×10")));
-        pal.Children.Add(AsyncButton(T("Поточний color swatch (опційно)", "Current color swatch (optional)"), () => Capture("swatch", "COLOR SWATCH")));
+        pal.Children.Add(AsyncButton(T("Поточний color swatch (опційно)", "Current color swatch (optional)"),
+            () => Capture(settings.Mode == ColorMode.HexDirect ? "swatch" : "palette_swatch", "COLOR SWATCH")));
         pal.Children.Add(Button(T("Показати вставку", "Show insertion"), ShowInsertion));
         manual.Children.Add(Card("Додаткові області", out var extra));
         foreach (var(key, title)in new[]
@@ -59,7 +60,7 @@ internal sealed partial class MainWindow
         }
 
         )
-            controls.Children.Add(AsyncButton(kind.ToUpperInvariant(), () => Capture(kind + "_track", kind.ToUpperInvariant() + " — " + T("лише доріжка повзунка", "slider track only"))));
+            controls.Children.Add(AsyncButton(kind.ToUpperInvariant(), () => Capture(kind + "_track", kind.ToUpperInvariant() + " — " + T("вся зелена смуга з числовим полем", "full green bar including numeric field"))));
         controls.Children.Add(AsyncButton(T("Захопти Size anchors 1/3/10/20", "Capture Size anchors 1/3/10/20"), CaptureSizeAnchors));
         controls.Children.Add(AsyncButton(T("Перевірити Rust controls", "Test Rust controls"), TestControls));
         controls.Children.Add(AsyncButton(T("Калібрувати пензель 1/3/10/20", "Calibrate brush 1/3/10/20"), CalibrateBrush));
@@ -120,10 +121,12 @@ internal sealed partial class MainWindow
             if (rect is null)
                 return;
             PrepareCaptureFrame();
-            var cal = settings.Calibration;
+            var paintControl = key.EndsWith("_track") && settings.Mode == ColorMode.HexDirect;
+            var cal = paintControl ? settings.PaintCalibration() : settings.Calibration;
             cal.SetRect(key, rect.Value);
-            PostCapture(cal, key);
-            settings.SetCalibration(cal);
+            PostCapture(cal, key, shot, screen);
+            if (paintControl) settings.SetPaintCalibration(cal);
+            else settings.SetCalibration(cal);
             if (key is "palette" or "quick")
                 RefreshPalette(shot, screen);
             if (key == "canvas")
@@ -166,7 +169,7 @@ internal sealed partial class MainWindow
 
     private async Task CaptureSizeAnchors()
     {
-        if (!settings.Calibration.Rect("size_track").Valid)
+        if (!settings.PaintCalibration().Rect("size_track").Valid)
             throw new InvalidOperationException(T("Спершу захопи доріжку повзунка SIZE.", "Capture the SIZE slider track first."));
         try
         {
@@ -182,9 +185,9 @@ internal sealed partial class MainWindow
                 if (rect is null)
                     break;
                 PrepareCaptureFrame();
-                var cal = settings.Calibration;
+                var cal = settings.PaintCalibration();
                 cal.SetPoint("size_anchor_" + size, new(rect.Value.Left, rect.Value.Top));
-                settings.SetCalibration(cal);
+                settings.SetPaintCalibration(cal);
                 Dirty();
             }
 
@@ -198,7 +201,7 @@ internal sealed partial class MainWindow
         }
     }
 
-    private static void PostCapture(Calibration cal, string key)
+    private static void PostCapture(Calibration cal, string key, PixelImage shot, ScreenRect screen)
     {
         if (key == "hex")
         {
@@ -234,9 +237,20 @@ internal sealed partial class MainWindow
         {
             var kind = key[..^6];
             var r = cal.Rect(key);
-            var inset = Math.Max(2, (int)Math.Round(r.Width * .012));
-            cal.SetPoint(kind + "_min", new(r.Left + inset, r.Center.Y));
-            cal.SetPoint(kind + "_max", new(Math.Max(r.Left + inset + 1, r.Right - inset), r.Center.Y));
+            var hint = new ScreenRect(r.Left - screen.Left, r.Top - screen.Top, r.Right - screen.Left, r.Bottom - screen.Top);
+            var read = RustSlider.Read(shot, hint) ?? throw new InvalidOperationException(
+                $"Не вдалося прочитати повзунок {kind}. Захопи всю зелену смугу разом із числовим полем.");
+            var track = read.Track;
+            r = new(track.Left + screen.Left, track.Top + screen.Top, track.Right + screen.Left, track.Bottom + screen.Top);
+            cal.SetRect(key, r);
+            cal.SetPoint(kind + "_min", new(r.Left, r.Center.Y));
+            cal.SetPoint(kind + "_max", new(r.Right - 1, r.Center.Y));
+            if (kind == "size")
+                foreach (var value in new[] { 1, 3, 10, 20 })
+                {
+                    cal.Data.Remove("size_anchor_" + value + "_x");
+                    cal.Data.Remove("size_anchor_" + value + "_y");
+                }
         }
     }
 
@@ -246,7 +260,7 @@ internal sealed partial class MainWindow
         {
             var (screen, shot) = await CaptureShot();
             Calibration? cal = null;
-            var steps = new[] { ("brush_shapes", "HEX — 7 brush shapes"), ("size_track", "HEX SIZE — green slider track"), ("interval_track", "HEX INTERVAL — green slider track"), ("opacity_track", "HEX OPACITY — green slider track") };
+            var steps = new[] { ("brush_shapes", "HEX — 7 brush shapes"), ("size_track", "HEX SIZE — full green bar + numeric field"), ("interval_track", "HEX INTERVAL — full green bar + numeric field"), ("opacity_track", "HEX OPACITY — full green bar + numeric field") };
             for (var i = 0; i < steps.Length; i++)
             {
                 var (key, title) = steps[i];
@@ -258,7 +272,7 @@ internal sealed partial class MainWindow
                     cal = new Calibration((System.Text.Json.Nodes.JsonObject)settings.Calibration.Data.DeepClone());
                 }
                 cal.SetRect(key, rect.Value);
-                PostCapture(cal, key);
+                PostCapture(cal, key, shot, screen);
             }
             settings.Data["hex_controls"] = cal!.Data.DeepClone();
             Dirty();
@@ -278,9 +292,9 @@ internal sealed partial class MainWindow
                 ("palette", "PALETTE 4×16"),
                 ("quick", "QUICK COLORS 1×10"),
                 ("brush_shapes", T("7 форм пензля", "7 brush shapes")),
-                ("size_track", "SIZE — slider track"),
-                ("interval_track", "INTERVAL — slider track"),
-                ("opacity_track", "OPACITY — slider track")
+                ("size_track", "SIZE — full green bar + numeric field"),
+                ("interval_track", "INTERVAL — full green bar + numeric field"),
+                ("opacity_track", "OPACITY — full green bar + numeric field")
             };
             Calibration? cal = null;
             for (var i = 0; i < steps.Length; i++)
@@ -295,7 +309,7 @@ internal sealed partial class MainWindow
                     cal = settings.Calibration;
                 }
                 cal.SetRect(key, r.Value);
-                PostCapture(cal, key);
+                PostCapture(cal, key, shot, screen);
                 settings.SetCalibration(cal);
                 if (key is "palette" or "quick")
                     RefreshPalette(shot, screen);

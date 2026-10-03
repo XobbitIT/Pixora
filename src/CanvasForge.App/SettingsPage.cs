@@ -70,7 +70,7 @@ internal sealed partial class MainWindow
             AddNumber(automation, key, T(title));
         AddNumber(automation, "input_frame_delay_ms", T("Затримка Stable (16–100 мс)", "Stable frame delay (16–100 ms)"));
         automation.Children.Add(Text(T("20 мс — поточний режим. 16 мс — швидше; якщо Rust пропускає штрихи, поверни 20–25 мс.", "20 ms is the current default. 16 ms is faster; if Rust misses strokes, return to 20–25 ms."), 11, Muted));
-        automation.Children.Add(Text(T("Experimental 1 ms прискорює також кліки, клавіші та controls; утримання кліку лишається 12 мс для надійності Rust. Stable зберігає консервативні затримки.", "Experimental 1 ms now also accelerates clicks, key input and controls; click hold remains 12 ms for Rust reliability. Stable keeps conservative timings."), 11, Muted));
+        automation.Children.Add(Text(T("Experimental: паузи штрихів щонайменше 16 мс, коротке натискання щонайменше 40 мс. Кліки й HEX не прискорюються.", "Experimental: stroke waits are at least 16 ms; short strokes hold for at least 40 ms. UI clicks and HEX input are not accelerated."), 11, Muted));
         AddCheck(automation, "double_click_controls", T("Подвійний клік controls", "Double-click controls"));
         advanced.Children.Add(Card("Rust controls", out var controls));
         AddCombo(controls, "brush_shape", T("Форма пензля", "Brush shape"), new[] { "Round", "Square" });
@@ -90,7 +90,7 @@ internal sealed partial class MainWindow
             AddNumber(controls, key, T(title));
         AddCheck(controls, "use_fixed_opacity", T("Фіксована прозорість", "Fixed opacity"));
         controls.Children.Add(Text(T("У Precision з точними controls розмір задає Speed Engine, Interval = 0.01. Ручний Size діє без точних controls та з вимкненим авторозміром. Номер форми має пріоритет над Round/Square, якщо захоплено ряд форм. Без фіксованої прозорості Opacity = 1.", "In Precision with precision controls, Speed Engine sets Size and Interval is 0.01. Manual Size applies with precision controls and automatic size disabled. The shape slot takes priority over Round/Square when the shape row is captured. Without fixed opacity, Opacity is 1."), 11, Muted));
-        AddCheck(controls, "verify_controls", T("Перевіряти Size / Interval / Opacity"));
+        controls.Children.Add(Text(T("Size / Interval / Opacity перевіряються після кожної зміни та після паузи.", "Size / Interval / Opacity are verified after every change and after a pause."), 11, Muted));
         advanced.Children.Add(Card("HEX Direct", out var hex));
         AddCheck(hex, "hex_verify", T("Перевіряти вибраний колір"));
         foreach (var(key, title)in new[]
@@ -139,3 +139,4 @@ internal sealed partial class MainWindow
     }
 
 }
+

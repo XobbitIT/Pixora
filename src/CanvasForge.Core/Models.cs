@@ -104,6 +104,11 @@ public sealed class Settings
     }
 
     public void SetCalibration(Calibration c) => Data["calibration"] = c.Data.DeepClone();
+    public void SetPaintCalibration(Calibration c)
+    {
+        if (Mode == ColorMode.HexDirect) Data["hex_controls"] = c.Data.DeepClone();
+        else SetCalibration(c);
+    }
     public List<PaletteEntry> Palette()
     {
         var colors = Data["rust_palette"] as JsonArray;
@@ -471,49 +476,42 @@ public static class PlanIdentity
 public static class StrokeTiming
 {
     public static bool Experimental(Settings settings) => settings.Text("input_engine", "Stable") == "Experimental 1 ms";
-    public static double Frame(Settings settings) => Experimental(settings) ? .001 : Math.Clamp(settings.Number("input_frame_delay_ms", 20), 16, 100) / 1000;
-    public static double Settle(Settings settings, SpeedProfile speed) => Experimental(settings) ? .001 : Math.Max(.005, speed.StartDelay);
-    public static double EndHold(Settings settings, SpeedProfile speed) => Experimental(settings) ? .001 : Math.Max(Frame(settings), speed.UpDelay);
+    public static double Frame(Settings settings) => Experimental(settings) ? .016 : Math.Clamp(settings.Number("input_frame_delay_ms", 20), 16, 100) / 1000;
+    public static double Settle(Settings settings, SpeedProfile speed) => Experimental(settings) ? .008 : Math.Max(.005, speed.StartDelay);
+    public static double EndHold(Settings settings, SpeedProfile speed) => Math.Max(Frame(settings), speed.UpDelay);
     public static double Release(Settings settings) => Math.Max(Frame(settings), settings.Number("cycle_delay_ms") / 1000);
 
     public static double ClickEstimate(Settings settings, bool twice = false)
     {
-        var one = Experimental(settings)
-            ? .002 + .012 + .004
-            : Math.Max(.005, settings.Number("click_delay", .02)) + Math.Max(.04, settings.Number("mouse_up_delay_ms", 8) / 1000) + .04;
+        var one = Math.Max(.04, settings.Number("click_delay", .02)) + Math.Max(.08, settings.Number("mouse_up_delay_ms", 8) / 1000) + .08;
         if (!twice) return one;
-        return Experimental(settings)
-            ? 2 * (.002 + .012) + 2 * .012
-            : 2 * (Math.Max(.005, settings.Number("click_delay", .02)) + Math.Max(.04, settings.Number("mouse_up_delay_ms", 8) / 1000) + Math.Max(.04, settings.Number("reclick_delay_ms", 35) / 1000));
+        return 2 * (Math.Max(.04, settings.Number("click_delay", .02)) + Math.Max(.08, settings.Number("mouse_up_delay_ms", 8) / 1000) + Math.Max(.08, settings.Number("reclick_delay_ms", 35) / 1000));
     }
 
     public static double SliderChangeEstimate(Settings settings)
     {
-        var sequence = settings.Number("sequence_delay_ms", 3) / 1000;
-        // Includes the first-session size verification delay. Later changes of the
-        // same calibrated size are normally cheaper because that readback is cached.
-        return Experimental(settings) ? .02 + .03 + sequence + .016 : .08 + .08 + .15 + sequence + .05;
+        // Conservative estimate includes an endpoint drag and screenshot readback.
+        return .04 + .08 + .08 + .12;
     }
 
     public static double ColorDelay(Settings settings)
     {
         var configured = settings.Number("color_delay", .1);
-        var speed = settings.Text("speed_profile", "Rapid");
-        return Experimental(settings) && (speed is "Rapid" or "Turbo" or "Max Speed") ? Math.Min(configured, .03) : configured;
+        return Math.Max(.10, configured);
     }
 
     public static double HexChangeEstimate(Settings settings)
     {
-        // Average cost after the speed patch: swatch-first verification with a
-        // periodic full HEX readback. This is deliberately conservative for ETA.
-        return Experimental(settings) ? .65 : 1.8;
+        // Includes guarded keyboard input and swatch-first verification with a
+        // periodic full HEX readback. Retries can extend the actual duration.
+        return settings.Calibration.Rect("swatch").Valid ? 1.8 : 3.0;
     }
 
     public static double Estimate(Settings settings, SpeedProfile speed, int length, bool shift)
     {
         var travel = shift ? settings.Number("stroke_speed", .028) * Math.Max(1, length) / 100
             : Math.Ceiling(length / (double)speed.Pitch) * speed.PointDelay;
-        return Settle(settings, speed) + Frame(settings) + travel + EndHold(settings, speed) + Release(settings);
+        return Settle(settings, speed) + Math.Max(.04, Frame(settings) + travel + EndHold(settings, speed)) + Release(settings);
     }
 }
 
