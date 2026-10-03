@@ -593,5 +593,6 @@
   "Тестова крапка виходить за область вимірювання. Захопи лише Canvas і повтори калібрування.": "The test dot extends outside the measurement area. Capture only Canvas and repeat calibration.",
   "Не підтверджено контрастний HEX-колір калібрування.": "Could not confirm the contrasting calibration HEX color.",
   "У палітрі немає контрастного кольору для цього Canvas.": "The palette has no contrasting color for this Canvas.",
-  "Спочатку калібруй пензель для поточного Canvas, режиму кольорів і форми пензля в розділі «Адаптивний режим».": "Calibrate the brush for the current Canvas, color mode, and brush shape on the Adaptive mode page first."
+  "Спочатку калібруй пензель для поточного Canvas, режиму кольорів і форми пензля в розділі «Адаптивний режим».": "Calibrate the brush for the current Canvas, color mode, and brush shape on the Adaptive mode page first.",
+  "Не видно тестової крапки біля точки кліку. Очисти Canvas і перевір, що вибрано пензель.": "No test dot is visible near the click. Clear Canvas and check that the brush is selected."
 }

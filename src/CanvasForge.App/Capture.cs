@@ -509,7 +509,7 @@ internal sealed partial class MainWindow
                         throw;
                     }
                     measured.Add([sizes[i], result.OuterDiameter, result.InnerDiameter]);
-                    File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = new { size = sizes[i], result.OuterDiameter, result.InnerDiameter, color = color.Hex } }) + Environment.NewLine);
+                    File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = new { size = sizes[i], result.OuterDiameter, result.InnerDiameter, result.SeedOffset, result.ChangedPixels, color = color.Hex } }) + Environment.NewLine);
                 }
                 return measured;
             });

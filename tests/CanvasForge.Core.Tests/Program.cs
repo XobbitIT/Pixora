@@ -1073,13 +1073,13 @@ Test("Brush measurement ignores disconnected scene noise and measures solid cove
     for (int y=20;y<=40;y++) for(int x=20;x<=40;x++) after.Set(y*61+x,new(240,240,240));
     after.Set(0,new(255,255,255)); after.Set(60*61+60,new(255,255,255));
     var measured = BrushMeasurement.Read(before,after,new(30,30));
-    Assert(measured == new BrushMeasurement(21,21));
+    Assert(measured.OuterDiameter == 21 && measured.InnerDiameter == 21 && measured.ChangedPixels == 441);
 });
 Test("Brush measurement rejects missing dots and clipped paint", () =>
 {
     var before=new PixelImage(41,41);var after=before.Clone();
     try { BrushMeasurement.Read(before,after,new(20,20)); throw new Exception("Missing dot accepted"); }
-    catch(InvalidOperationException e) { Assert(e.Message.Contains("центрі")); }
+    catch(InvalidOperationException e) { Assert(e.Message.Contains("точки кліку")); }
     for(int x=0;x<=20;x++)after.Set(20*41+x,new(255,255,255));
     try { BrushMeasurement.Read(before,after,new(20,20)); throw new Exception("Clipped dot accepted"); }
     catch(InvalidOperationException e) { Assert(e.Message.Contains("виходить")); }
@@ -1126,6 +1126,42 @@ Test("Adaptive calibration readiness detects stale geometry and incomplete HEX s
     Assert(AdaptiveBrush.CalibrationCurrent(cfg));
     cal.SetRect("canvas",new(0,0,401,400));cfg.SetCalibration(cal);Assert(!AdaptiveBrush.CalibrationCurrent(cfg));
     cfg.Set("color_mode","HEX Direct");Assert(!AdaptiveBrush.CalibrationCurrent(cfg));Assert(AdaptiveBrush.SetupProblem(cfg) is not null);
+});
+
+Test("Size 1 raster offset is accepted beside the unchanged click pixel", () =>
+{
+    const int w=41;var centre=new ScreenPoint(20,20);
+    var before=new PixelImage(w,w);var after=before.Clone();
+    foreach(var (x,y) in new[]{(19,21),(20,21),(19,22),(20,22)})after.Set(y*w+x,new(255,255,255));
+    Assert(before.Color(centre.Y*w+centre.X)==after.Color(centre.Y*w+centre.X));
+    var measured=BrushMeasurement.Read(before,after,centre);
+    Assert(measured.ChangedPixels==4 && measured.SeedOffset==new ScreenPoint(0,1));
+    Assert(measured.OuterDiameter==5 && measured.InnerDiameter==1);
+});
+Test("Small raster offsets retain conservative bounds around the actual click", () =>
+{
+    for(int dy=-4;dy<=4;dy++)for(int dx=-4;dx<=4;dx++)
+    {
+        var before=new PixelImage(31,31);var after=before.Clone();after.Set((15+dy)*31+15+dx,new(255,255,255));
+        var measured=BrushMeasurement.Read(before,after,new(15,15));
+        Assert(measured.SeedOffset==new ScreenPoint(dx,dy));
+        Assert(measured.OuterDiameter==2*Math.Max(Math.Abs(dx),Math.Abs(dy))+1);
+        Assert(measured.InnerDiameter==1 && measured.ChangedPixels==1);
+    }
+});
+Test("A changed pixel beyond the local seed search cannot satisfy calibration", () =>
+{
+    var before=new PixelImage(41,41);var after=before.Clone();after.Set(20*41+25,new(255,255,255));
+    try{BrushMeasurement.Read(before,after,new(20,20));throw new Exception("Distant scene noise accepted");}
+    catch(InvalidOperationException e){Assert(e.Message.Contains("точки кліку"));}
+});
+Test("A hollow component never claims solid coverage over its unchanged centre", () =>
+{
+    var before=new PixelImage(41,41);var after=before.Clone();
+    for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++)
+        if(dx!=0||dy!=0)after.Set((20+dy)*41+20+dx,new(255,255,255));
+    var measured=BrushMeasurement.Read(before,after,new(20,20));
+    Assert(measured.InnerDiameter==1 && measured.OuterDiameter==5);
 });
 
 Console.WriteLine($"ALL {passed} TESTS PASSED");

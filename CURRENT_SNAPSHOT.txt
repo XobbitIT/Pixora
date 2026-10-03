@@ -1,8 +1,7 @@
-Pixora 1.0.14-beta.4 — direct numeric controls and automatic adaptive setup
-Includes beta.1–beta.3 fixes; sliders now use exact numeric input, fresh copy readback,
-and visual verification. Manual Size anchors are ignored. Adaptive mode has its own
-page with one-click 1/3/10/20 measurement, brush shape and maximum Size options.
-Validation: 78 Core tests, 5 isolated WPF UI checks and WPF Release build.
-In-game acceptance of numeric entry and automatic calibration remains pending.
+Pixora 1.0.14-beta.5 — measured small-brush raster offset fix
+Includes beta.1–beta.4 changes. Native beta.4 logs confirm numeric Size/Interval/Opacity input.
+Brush measurement now locates a nearby dot within 4px of the commanded click,
+retains conservative click-relative bounds, and excludes hollow centres from solid coverage.
+Validation: 82 Core regressions including synthetic small-offset cases, 5 WPF UI checks.
+In-game calibration of all four Size values still needs retest.
 Changes: CHANGES_1.0.14_UA.md; test guide: TESTING_1.0.14_UA.md.
-Portable binaries: Windows GitHub Actions workflow.
