@@ -70,7 +70,7 @@ internal sealed partial class MainWindow
             AddNumber(automation, key, T(title));
         AddNumber(automation, "input_frame_delay_ms", T("Затримка Stable (16–100 мс)", "Stable frame delay (16–100 ms)"));
         automation.Children.Add(Text(T("20 мс — поточний режим. 16 мс — швидше; якщо Rust пропускає штрихи, поверни 20–25 мс.", "20 ms is the current default. 16 ms is faster; if Rust misses strokes, return to 20–25 ms."), 11, Muted));
-        automation.Children.Add(Text(T("Experimental: паузи штрихів щонайменше 16 мс, коротке натискання щонайменше 40 мс. Кліки й HEX не прискорюються.", "Experimental: stroke waits are at least 16 ms; short strokes hold for at least 40 ms. UI clicks and HEX input are not accelerated."), 11, Muted));
+        automation.Children.Add(Text(T("Experimental: паузи на кінцях штрихів щонайменше 16 мс, коротке натискання щонайменше 40 мс. Перемикач максимальної швидкості окремо скорочує паузи перевіреного вводу чисел і HEX.", "Experimental: stroke endpoint waits are at least 16 ms; short strokes hold for at least 40 ms. The maximum transfer speed toggle separately shortens verified numeric and HEX input waits."), 11, Muted));
         AddCheck(automation, "double_click_controls", T("Подвійний клік controls", "Double-click controls"));
         advanced.Children.Add(Card("Rust controls", out var controls));
         AddCombo(controls, "brush_shape", T("Форма пензля", "Brush shape"), new[] { "Round", "Square" });
@@ -103,7 +103,7 @@ internal sealed partial class MainWindow
 
         )
             AddNumber(hex, key, T(title));
-        hex.Children.Add(Text(T("У Stable мінімальна затримка HEX лишається 180 мс. В Experimental вона стискається до 60–80 мс; color swatch перевіряється кожного разу, а повний clipboard readback — періодично або після невдачі.", "Stable keeps a 180 ms minimum HEX delay. Experimental compresses it to 60–80 ms; the color swatch is checked every time while full clipboard readback is periodic or used after a mismatch."), 11, Muted));
+        hex.Children.Add(Text(T("Пауза застосування HEX враховує задану затримку в обох режимах вводу. Color swatch перевіряється кожного разу, а повний clipboard readback — періодично або після невдачі.", "HEX application waits respect the configured delay in both input engines. The color swatch is checked every time while full clipboard readback is periodic or used after a mismatch."), 11, Muted));
         advanced.Children.Add(Card("Прев’ю", out var preview));
         AddCheck(preview, "transfer_simulator", T("Прев’ю на матеріалі Canvas", "Preview on Canvas material"));
         AddCheck(preview, "smooth_preview", T("Згладжувати прев’ю", "Smooth preview"));

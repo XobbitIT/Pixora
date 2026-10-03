@@ -9,7 +9,6 @@ public static class TransferSchedule
     public const int MaximumStrokes = 16;
     public const int MaximumConnector = 32;
     public static bool Fast(Settings s) => s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
-    public static int MoveSpan(Settings s) => Math.Clamp(s.Int("fast_move_span_px", 256), 32, 512);
     public static int Length(ScreenLine l) => Math.Max(Math.Abs(l.X2-l.X1), Math.Abs(l.Y2-l.Y1));
     public static ScreenLine Reverse(ScreenLine l) => new(l.X2,l.Y2,l.X1,l.Y1);
 
@@ -98,7 +97,7 @@ public static class TransferSchedule
             bool shift=s.Bool("line_mode")&&s.Text("coverage_mode")=="Fast"&&length>=s.Int("min_line_width",4)*s.Int("cell_px",3);
             return StrokeTiming.Estimate(s,speed,length,shift);
         }
-        double travel=batch.Segments.Sum(l=>Math.Max(1,Math.Ceiling(Length(l)/(double)MoveSpan(s))))*StrokeTiming.Frame(s);
+        double travel=batch.Segments.Sum(l=>StrokeMotion.TravelSeconds(s,speed,Length(l))+StrokeTiming.EndHold(s,speed));
         return StrokeTiming.Settle(s,speed)+Math.Max(.04,StrokeTiming.Frame(s)+travel)+StrokeTiming.Release(s);
     }
 }

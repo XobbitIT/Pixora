@@ -1264,17 +1264,18 @@ Test("Fast settings invalidate old checkpoints but preserve adaptive calibration
 {
     var cfg=SessionFixture();var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]),context=AdaptiveBrush.Context(cfg);
     cfg.Set("fast_transfer",true);Assert(PlanIdentity.Compute(image,cfg,[])!=identity&&AdaptiveBrush.Context(cfg)==context);
-    identity=PlanIdentity.Compute(image,cfg,[]);cfg.Set("fast_move_span_px",128);Assert(PlanIdentity.Compute(image,cfg,[])!=identity);
+    identity=PlanIdentity.Compute(image,cfg,[]);cfg.Set("fast_path_batch_points",4);Assert(PlanIdentity.Compute(image,cfg,[])!=identity);
     Assert(AdaptiveBrush.CalibrationCurrent(cfg));var calibration=AdaptiveBrush.CalibrationSettings(cfg,10);
     Assert(!calibration.Bool("fast_transfer")&&calibration.Text("input_engine")=="Stable");
 });
-Test("Fast motion span validation rejects unsupported values",()=>
+Test("Fast motion packet validation rejects unsupported values",()=>
 {
-    foreach(double value in new[]{0d,31,513,double.NaN})
+    foreach(double value in new[]{0d,17,1.5,double.NaN})
     {
-        var cfg=Settings.Defaults();if(double.IsFinite(value))cfg.Set("fast_move_span_px",value);else cfg.Set("fast_move_span_px","NaN");
-        try{cfg.Validate();throw new Exception("Invalid motion span accepted");}catch(InvalidDataException){}
+        var cfg=Settings.Defaults();if(double.IsFinite(value))cfg.Set("fast_path_batch_points",value);else cfg.Set("fast_path_batch_points","NaN");
+        try{cfg.Validate();throw new Exception("Invalid motion packet accepted");}catch(InvalidDataException){}
     }
+    foreach(int value in new[]{1,8,16}){var cfg=Settings.Defaults();cfg.Set("fast_path_batch_points",value);cfg.Validate();}
 });
 Test("Synthetic transfer estimates improve without changing image detail",()=>
 {
@@ -1290,4 +1291,137 @@ Test("Synthetic transfer estimates improve without changing image detail",()=>
     }
 });
 
+Test("Actual fast input fills four synthetic blocks rather than their left edges",()=>
+{
+    const int w=96,h=96;var indices=Enumerable.Repeat(-1,w*h).ToArray();
+    for(int y=4;y<92;y++)for(int x=4;x<92;x++)
+        if((x<40||x>=56)&&(y<40||y>=56))indices[y*w+x]=(x>=56?1:0)+(y>=56?2:0);
+    var cfg=Config(ColorMode.HexDirect,576,576);cfg.Set("fast_transfer",true);cfg.Set("adaptive_brush",false);
+    var plan=SpeedPlan(indices,w,h);var source=AdaptiveBrush.Build(plan,cfg);var schedule=TransferSchedule.Build(plan,cfg,source);
+    foreach(var color in source.Keys)
+    {
+        var input=new RecordingStrokeInput();
+        foreach(var batch in schedule[color])StrokeMotion.Draw(batch,cfg,SpeedProfile.Get(cfg.Text("speed_profile")),input);
+        Assert(input.Painted.SetEquals(Centres(source[color].Select(x=>x.Line))),"Input omitted the interior of a block");
+        Assert(input.Downs==schedule[color].Count&&input.Ups==input.Downs&&!input.Held);
+    }
+});
+Test("Long horizontal and vertical drags send every physical pixel in either direction",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    foreach(var line in new[]{new ScreenLine(-30,7,1100,7),new ScreenLine(1100,7,-30,7),new ScreenLine(9,-20,9,1060),new ScreenLine(9,1060,9,-20)})
+    {
+        var input=new RecordingStrokeInput();StrokeMotion.Draw(new(0,new[]{line},1),cfg,SpeedProfile.Get("Max Speed"),input);
+        Assert(input.Painted.SetEquals(Centres(new[]{line})),"Long drag omitted an intermediate point");
+        Assert(input.Packets.All(x=>x.Length<=8));
+        for(int i=1;i<input.HeldMoves.Count;i++)Assert(Math.Abs(input.HeldMoves[i].X-input.HeldMoves[i-1].X)+Math.Abs(input.HeldMoves[i].Y-input.HeldMoves[i-1].Y)==1,"Held cursor jumped");
+    }
+});
+Test("Connected turns preserve endpoints with a single mouse press",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    ScreenLine[] lines=[new(10,10,80,10),new(80,10,80,11),new(80,11,10,11)];
+    var input=new RecordingStrokeInput();StrokeMotion.Draw(new(0,lines,2),cfg,SpeedProfile.Get("Rapid"),input);
+    Assert(input.Painted.SetEquals(Centres(lines))&&input.Downs==1&&input.Ups==1&&!input.Held);
+});
+Test("Packet settings alter delivery size without altering the painted path",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);ScreenLine line=new(1,2,1002,2);
+    var expected=Centres(new[]{line});
+    foreach(int size in new[]{1,4,8,16})
+    {
+        cfg.Set("fast_path_batch_points",size);var input=new RecordingStrokeInput();
+        StrokeMotion.Draw(new(0,new[]{line},1),cfg,SpeedProfile.Get("Max Speed"),input);
+        Assert(input.Painted.SetEquals(expected)&&input.Packets.All(x=>x.Length<=size));
+        Assert(input.WaitDurations.All(x=>x>=.001));
+    }
+});
+Test("Dots keep the minimum hold and game-frame release in both engines",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    foreach(string engine in new[]{"Stable","Experimental 1 ms"})
+    {
+        cfg.Set("input_engine",engine);var input=new RecordingStrokeInput();
+        StrokeMotion.Draw(new(0,new[]{new ScreenLine(3,4,3,4)},1),cfg,SpeedProfile.Get("Max Speed"),input);
+        Assert(input.Painted.SetEquals(new[]{new ScreenPoint(3,4)}));
+        Assert(input.UpAt-input.DownAt>=.04-1e-9&&input.Seconds-input.UpAt>=StrokeTiming.Frame(cfg)-1e-9);
+    }
+});
+Test("Motion and pause failures release the held mouse and propagate",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    foreach(bool failMove in new[]{true,false})
+    {
+        var input=new RecordingStrokeInput{FailHeldMove=failMove,FailHeldWait=!failMove};
+        try{StrokeMotion.Draw(new(0,new[]{new ScreenLine(1,2,300,2)},1),cfg,SpeedProfile.Get("Rapid"),input);throw new Exception("Input failure swallowed");}
+        catch(OperationCanceledException){}
+        Assert(input.Downs==1&&input.Ups==1&&!input.Held,"Mouse remained held after interruption");
+    }
+});
+Test("Invalid paths are rejected before any input is sent",()=>
+{
+    foreach(ScreenLine[] lines in new ScreenLine[][]{[],[new(0,0,1,1)],[new(0,0,4,0),new(8,0,12,0)]})
+    {
+        var input=new RecordingStrokeInput();
+        try{StrokeMotion.Draw(new(0,lines,1),Settings.Defaults(),SpeedProfile.Get("Rapid"),input);throw new Exception("Invalid batch accepted");}
+        catch(ArgumentException){}
+        Assert(input.Packets.Count==0&&input.Downs==0&&input.Ups==0);
+    }
+});
+Test("Fast ETA matches the delays used by the actual stroke executor",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    foreach(var speed in SpeedProfile.All)foreach(int packet in new[]{1,8,16})foreach(int length in new[]{0,1,7,8,9,257,1024})
+    {
+        cfg.Set("fast_path_batch_points",packet);
+        var batch=new PaintBatch(0,new[]{new ScreenLine(0,0,length,0),new ScreenLine(length,0,length,4)},2);
+        var input=new RecordingStrokeInput();StrokeMotion.Draw(batch,cfg,speed,input);
+        Assert(Math.Abs(input.Seconds-TransferSchedule.EstimateBatch(cfg,speed,batch))<1e-9,"ETA disagrees with execution");
+    }
+});
+Test("Legacy cursor-jump settings no longer affect identity or motion",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]);
+    foreach(int legacy in new[]{32,256,512})
+    {
+        cfg.Set("fast_move_span_px",legacy);cfg.Validate();Assert(PlanIdentity.Compute(image,cfg,[])==identity);
+        var input=new RecordingStrokeInput();ScreenLine line=new(0,0,512,0);
+        StrokeMotion.Draw(new(0,new[]{line},1),cfg,SpeedProfile.Get("Rapid"),input);
+        Assert(input.Painted.SetEquals(Centres(new[]{line}))&&input.Packets.All(x=>x.Length<=8));
+    }
+});
+
 Console.WriteLine($"ALL {passed} TESTS PASSED");
+
+sealed class RecordingStrokeInput : IStrokeInput
+{
+    public double Seconds { get; private set; }
+    public ScreenPoint Cursor { get; private set; }
+    public bool Held { get; private set; }
+    public int Downs { get; private set; }
+    public int Ups { get; private set; }
+    public double DownAt { get; private set; }
+    public double UpAt { get; private set; }
+    public bool FailHeldMove { get; init; }
+    public bool FailHeldWait { get; init; }
+    public HashSet<ScreenPoint> Painted { get; }=[];
+    public List<ScreenPoint> HeldMoves { get; }=[];
+    public List<ScreenPoint[]> Packets { get; }=[];
+    public List<double> WaitDurations { get; }=[];
+    public void Move(IReadOnlyList<ScreenPoint> points)
+    {
+        if(Held&&FailHeldMove)throw new OperationCanceledException("Synthetic input interruption");
+        Packets.Add(points.ToArray());
+        foreach(var point in points){Cursor=point;if(Held){Painted.Add(point);HeldMoves.Add(point);}}
+    }
+    public void Button(bool up)
+    {
+        if(up){Held=false;Ups++;UpAt=Seconds;}
+        else{Held=true;Downs++;DownAt=Seconds;Painted.Add(Cursor);HeldMoves.Add(Cursor);}
+    }
+    public void Wait(double seconds)
+    {
+        if(Held&&FailHeldWait)throw new OperationCanceledException("Synthetic pause");
+        WaitDurations.Add(seconds);Seconds+=seconds;
+    }
+}

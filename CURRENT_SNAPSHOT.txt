@@ -1,8 +1,8 @@
-Pixora 1.0.14-beta.6 — opt-in maximum transfer speed
-Includes beta.1–beta.5 numeric controls, slider detection and separate adaptive page.
-User confirmed adaptive brush and HEX behavior before this speed change.
-Fast transfer batches compatible strokes without reducing detail or crossing color/alpha boundaries.
-Verified numeric/HEX input uses shorter frame-based waits; calibration keeps Stable timing.
-Validation: 93 Core tests, 8 WPF checks. Synthetic ETA gains are not measured Rust speed.
-In-game validation of fast motion interpolation and shortened keyboard waits remains pending.
+Pixora 1.0.14-beta.7 — repair fast drag input after missing fills
+Includes beta.1–beta.6 numeric controls, slider detection and separate adaptive page.
+Fast strokes now send dense one-pixel SendInput paths in bounded packets (default 8).
+Compatible stroke batching and verified numeric/HEX waits remain; detail and calibration remain.
+Legacy fast_move_span_px is ignored. Old checkpoints require a fresh START.
+Validation: 102 Core tests, 8 WPF checks; ETA agrees with executor waits.
+In-game fill and speed validation remains pending. Historical beta.6 ETA is superseded.
 Changes: CHANGES_1.0.14_UA.md; test guide: TESTING_1.0.14_UA.md.

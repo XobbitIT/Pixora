@@ -155,8 +155,9 @@ public sealed class Settings
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
         if (Int("adaptive_max_size", 20) is not (10 or 20))
             throw new InvalidDataException("Adaptive maximum Size must be 10 or 20.");
-        if (Number("fast_move_span_px", 256) is < 32 or > 512 || !double.IsFinite(Number("fast_move_span_px",256)))
-            throw new InvalidDataException("Fast movement span must be 32–512 px.");
+        var motionPacket=Number("fast_path_batch_points",8);
+        if(!double.IsFinite(motionPacket)||motionPacket is <1 or >16||motionPacket!=Math.Truncate(motionPacket))
+            throw new InvalidDataException("Fast movement packet must be an integer from 1 to 16.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
             throw new InvalidDataException("Canvas is too large.");
@@ -249,7 +250,7 @@ public sealed class Settings
             ["min_line_width"] = 4,
             ["adaptive_brush"] = false,
             ["fast_transfer"] = false,
-            ["fast_move_span_px"] = 256,
+            ["fast_path_batch_points"] = 8,
             ["adaptive_max_size"] = 20
         }
 
@@ -473,8 +474,9 @@ public static class PlanIdentity
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
-        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize" })
+        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "fast_move_span_px" })
             paintSettings.Remove(key);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + paintSettings.ToJsonString() + JsonSerializer.Serialize(palette)));
         return Convert.ToHexString(hash.GetHashAndReset());

@@ -87,6 +87,11 @@ internal static class Program
         root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
         var checks=Descendants(root).OfType<CheckBox>().Where(x=>x.Content?.ToString()?.Contains(language=="English"?"Maximum transfer speed":"Максимальна швидкість перенесення")==true).ToArray();
         Assert(checks.Length==1&&checks[0].IsChecked==false,"Fast transfer toggle missing or enabled silently");
+        foreach(var expander in Descendants(root).OfType<Expander>().ToArray())expander.IsExpanded=true;
+        root.UpdateLayout();
+        string ui=string.Join("\n",Descendants(root).OfType<TextBlock>().Select(x=>x.Text));
+        Assert(ui.Contains(language=="English"?"Fast movement packet (1–16)":"Пакет швидкого руху (1–16)"),"Motion packet setting missing");
+        Assert(!ui.Contains("px per step")&&!ui.Contains("px за крок"),"Legacy cursor-jump setting is still shown");
         checks[0].IsChecked=true;checks[0].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         var saved=Settings.Load(config);Assert(saved.Bool("fast_transfer"),"Fast setting was not persisted");
         Assert(saved.Int("cell_px")==3&&saved.Text("speed_profile")=="Rapid","Fast toggle reduced image detail");

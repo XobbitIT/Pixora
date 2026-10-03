@@ -26,6 +26,7 @@ internal sealed class Painter
     private double pausedSeconds;
     private volatile bool paused;
     private readonly Dictionary<string,double> verifiedControls = new();
+    private readonly IStrokeInput motionInput;
     public bool Paused { get => paused; set => paused = value; }
 
     public Painter(Settings s, IntPtr target, string checkpoint, string log, Action<PaintProgress> callback, CancellationToken cancel)
@@ -42,6 +43,7 @@ internal sealed class Painter
         windowProcessId = Native.ProcessIdOf(target);
         windowDpi = Native.DpiOf(target);
         rebase = SessionRebase();
+        motionInput = new GuardedStrokeInput(this);
     }
 
     // Rebases the captured absolute coordinates from the Rust client origin that
@@ -564,7 +566,7 @@ internal sealed class Painter
             if (Native.GetForegroundWindow() != window)
                 throw new InvalidOperationException("Поверни фокус у Rust і повтори START.");
             WaitReady();
-            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), moveSpan = TransferSchedule.MoveSpan(settings), frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
+            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), motionTransport = TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
             for (;;)
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
@@ -738,32 +740,18 @@ internal sealed class Painter
     }
 
     private void DrawBatch(PaintBatch batch,SpeedProfile speed)
+        => StrokeMotion.Draw(batch,settings,speed,motionInput);
+
+    private sealed class GuardedStrokeInput(Painter owner) : IStrokeInput
     {
-        var first=batch.Segments[0];
-        Native.SetCursorPos(first.X1,first.Y1);
-        Delay(StrokeTiming.Settle(settings,speed));
-        Native.Mouse(false);
-        var heldFrom=Stopwatch.GetTimestamp();
-        try
+        public double Seconds => owner.clock.Elapsed.TotalSeconds;
+        public void Move(IReadOnlyList<ScreenPoint> points)
         {
-            Delay(StrokeTiming.Frame(settings));
-            foreach(var line in batch.Segments)
-            {
-                int length=TransferSchedule.Length(line);
-                int steps=Math.Max(1,(int)Math.Ceiling(length/(double)TransferSchedule.MoveSpan(settings)));
-                for(int step=1;step<=steps;step++)
-                {
-                    double fraction=step/(double)steps;
-                    Native.SetCursorPos((int)Math.Round(line.X1+(line.X2-line.X1)*fraction),
-                        (int)Math.Round(line.Y1+(line.Y2-line.Y1)*fraction));
-                    // Each end/bend remains visible for at least one game tick.
-                    Delay(StrokeTiming.Frame(settings));
-                }
-            }
-            var held=(Stopwatch.GetTimestamp()-heldFrom)/(double)Stopwatch.Frequency;
-            if(held<.04)Delay(.04-held);
+            owner.Check();
+            if(owner.Paused)throw new InputInterrupted();
+            Native.MovePath(points);
         }
-        finally{Native.Mouse(true);}
-        Delay(StrokeTiming.Release(settings));
+        public void Button(bool up) => Native.Mouse(up);
+        public void Wait(double seconds) => owner.Delay(seconds);
     }
 }

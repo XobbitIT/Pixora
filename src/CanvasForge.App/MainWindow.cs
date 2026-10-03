@@ -546,7 +546,8 @@ internal sealed partial class MainWindow : Window
         p.Children.Add(stats);
         AddCombo(p, "speed_profile", "Speed Engine", SpeedProfile.All.Select(x => x.Name).ToArray(), true);
         AddNumber(p, "cell_px", T("Деталізація (1 = максимум):"), true);
-        AddNumber(p,"fast_move_span_px",T("Швидкий рух, px за крок (32–512):", "Fast movement, px per step (32–512):"),true);
+        AddNumber(p,"fast_path_batch_points",T("Пакет швидкого руху (1–16):", "Fast movement packet (1–16):"),true);
+        p.Children.Add(Text(T("8 — стандарт. Якщо є пропуски, спробуй 4 або 1 та Stable 20 мс.", "8 is the default. If strokes are missed, try 4 or 1 and Stable 20 ms."),11,Muted));
         var details = new UniformGridCompat(5);
         for (var d = 1; d <= 10; d++)
         {
