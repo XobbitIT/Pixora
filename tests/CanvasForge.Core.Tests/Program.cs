@@ -1031,4 +1031,101 @@ Test("Automatically captured numeric fields follow palette and HEX session rebas
     Assert(new Calibration((JsonObject)s.Data["hex_controls"]!).Rect("opacity_value_field")==new ScreenRect(910,520,970,560));
 });
 
+Test("Numeric controls reject stale clipboard payloads and wrong exact values", () =>
+{
+    Assert(ControlNumber.Parse("size", ControlNumber.Marker) is null);
+    Assert(ControlNumber.Parse("size", "20") == 20);
+    Assert(!ControlNumber.Matches(ControlNumber.Parse("size", "19"), 20));
+    Assert(!ControlNumber.Matches(null, 20));
+    Assert(ControlNumber.Matches(ControlNumber.Parse("interval", "0.01"), .01));
+    Assert(!ControlNumber.Matches(ControlNumber.Parse("interval", "0.02"), .01));
+});
+Test("Numeric controls support decimal comma without accepting malformed text", () =>
+{
+    Assert(ControlNumber.Parse("opacity", " 0,5 ") == .5);
+    Assert(ControlNumber.Format("interval", .01) == "0.01");
+    foreach (var invalid in new[] { "NaN", "Infinity", "1e0", "0.0.1", "0,0.1", "Opacity 1", "-1", "1%", "" })
+        Assert(ControlNumber.Parse("opacity", invalid) is null, invalid);
+    Assert(ControlNumber.Parse("size", "0") is null);
+    Assert(ControlNumber.Parse("interval", "0.001") is null);
+    Assert(ControlNumber.Parse("opacity", "1.1") is null);
+    Assert(ControlNumber.Parse("unknown", "1") is null);
+});
+Test("Calibration uses four independent exact settings without mutating the user", () =>
+{
+    var cfg = Settings.Defaults(); cfg.Set("adaptive_brush", true); cfg.Set("paint_opacity_value", .3);
+    cfg.Set("line_mode", true); cfg.Set("background_fill", true); cfg.Set("speed_profile", "Max Speed");
+    var before = cfg.Data.ToJsonString();
+    var recipes = new[] { 1d, 3, 10, 20 }.Select(x => AdaptiveBrush.CalibrationSettings(cfg, x)).ToArray();
+    Assert(recipes.Select(x => x.Number("brush_size_value")).SequenceEqual(new[] { 1d, 3, 10, 20 }));
+    foreach (var recipe in recipes)
+    {
+        Assert(!recipe.Bool("adaptive_brush") && !recipe.Bool("auto_brush_size") && !recipe.Bool("force_precision_controls"));
+        Assert(!recipe.Bool("line_mode") && !recipe.Bool("background_fill"));
+        Assert(recipe.Number("interval_value") == .01 && recipe.Number("paint_opacity_value") == 1);
+        Assert(recipe.Text("input_engine") == "Stable");
+    }
+    Assert(cfg.Data.ToJsonString() == before);
+});
+Test("Brush measurement ignores disconnected scene noise and measures solid coverage", () =>
+{
+    var before = new PixelImage(61,61); var after = before.Clone();
+    for (int y=20;y<=40;y++) for(int x=20;x<=40;x++) after.Set(y*61+x,new(240,240,240));
+    after.Set(0,new(255,255,255)); after.Set(60*61+60,new(255,255,255));
+    var measured = BrushMeasurement.Read(before,after,new(30,30));
+    Assert(measured == new BrushMeasurement(21,21));
+});
+Test("Brush measurement rejects missing dots and clipped paint", () =>
+{
+    var before=new PixelImage(41,41);var after=before.Clone();
+    try { BrushMeasurement.Read(before,after,new(20,20)); throw new Exception("Missing dot accepted"); }
+    catch(InvalidOperationException e) { Assert(e.Message.Contains("центрі")); }
+    for(int x=0;x<=20;x++)after.Set(20*41+x,new(255,255,255));
+    try { BrushMeasurement.Read(before,after,new(20,20)); throw new Exception("Clipped dot accepted"); }
+    catch(InvalidOperationException e) { Assert(e.Message.Contains("виходить")); }
+});
+Test("Round brush measurement keeps outer diameter and conservative inner coverage", () =>
+{
+    var before=new PixelImage(61,61);var after=before.Clone();
+    for(int y=0;y<61;y++)for(int x=0;x<61;x++)
+        if((x-30)*(x-30)+(y-30)*(y-30)<=100)after.Set(y*61+x,new(230,200,170));
+    var result=BrushMeasurement.Read(before,after,new(30,30));
+    Assert(result.OuterDiameter==21 && result.InnerDiameter==15);
+});
+Test("Adaptive maximum brush Size limits wide strokes and still preserves baseline centers", () =>
+{
+    var cfg=Settings.Defaults();var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,384,320));cfg.SetCalibration(cal);
+    cfg.Set("speed_profile","Safe");cfg.Set("adaptive_brush",true);cfg.Set("adaptive_max_size",10);
+    cfg.Set("brush_calibration_points",new double[][] { [1,3,1],[3,5,3],[10,21,13],[20,35,23] });
+    cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg));
+    var indices=Enumerable.Repeat(0,384*320).ToArray();
+    var plan=new PaintPlan { Width=384,Height=320,Mode=ColorMode.RustPalette,Indices=indices,Palette=[],Preview=new(384,320),
+        Strokes=Planner.Group(indices,384,320,true),Counts=new(){{0,indices.Length}},Identity="cap-test" };
+    var wide=AdaptiveBrush.Build(plan,cfg)[0];Assert(wide.Any(x=>x.Size==10));Assert(wide.All(x=>x.Size<=10));
+    var covered=new bool[indices.Length];
+    foreach(var op in wide)
+    {
+        var line=op.Line;int n=Math.Max(Math.Abs(line.X2-line.X1),Math.Abs(line.Y2-line.Y1));
+        for(int k=0;k<=n;k++)
+        {
+            int x=line.X1+k*Math.Sign(line.X2-line.X1),y=line.Y1+k*Math.Sign(line.Y2-line.Y1);
+            for(int yy=y-op.FillRadius;yy<=y+op.FillRadius;yy++) for(int xx=x-op.FillRadius;xx<=x+op.FillRadius;xx++)covered[yy*384+xx]=true;
+        }
+    }
+    foreach(var line in Coverage.Build(plan,cfg)[0])
+    {
+        int n=Math.Max(Math.Abs(line.X2-line.X1),Math.Abs(line.Y2-line.Y1));
+        for(int k=0;k<=n;k++)Assert(covered[(line.Y1+k*Math.Sign(line.Y2-line.Y1))*384+line.X1+k*Math.Sign(line.X2-line.X1)]);
+    }
+});
+Test("Adaptive calibration readiness detects stale geometry and incomplete HEX setup", () =>
+{
+    var cfg=Settings.Defaults();Assert(!AdaptiveBrush.CalibrationCurrent(cfg));Assert(AdaptiveBrush.SetupProblem(cfg) is not null);
+    var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,400,400));cal.SetRect("size_track",new(500,10,750,50));cfg.SetCalibration(cal);
+    cfg.Set("brush_calibration_points",new double[][] { [1,3,1],[10,21,13] });cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg));
+    Assert(AdaptiveBrush.CalibrationCurrent(cfg));
+    cal.SetRect("canvas",new(0,0,401,400));cfg.SetCalibration(cal);Assert(!AdaptiveBrush.CalibrationCurrent(cfg));
+    cfg.Set("color_mode","HEX Direct");Assert(!AdaptiveBrush.CalibrationCurrent(cfg));Assert(AdaptiveBrush.SetupProblem(cfg) is not null);
+});
+
 Console.WriteLine($"ALL {passed} TESTS PASSED");

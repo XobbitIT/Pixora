@@ -327,82 +327,92 @@ internal sealed class Painter
         };
     }
 
+    private double? ReadControlNumber(string kind, ScreenRect field)
+    {
+        Click(field.Center);
+        ChordKey(0x11, 0x41);
+        // Overwrite the pasted payload before Ctrl+C. A missed copy must fail.
+        WriteClipboard(ControlNumber.Marker);
+        ChordKey(0x11, 0x43);
+        Delay(.15);
+        var raw = ReadClipboard();
+        var number = ControlNumber.Parse(kind, raw);
+        PressKey(0x0D);
+        Log("control_readback", new { kind, raw, number, fresh = raw != ControlNumber.Marker });
+        return number;
+    }
+
+    private bool VerifyControlNumber(string kind, double value, SliderObservation geometry)
+    {
+        var number = ReadControlNumber(kind, geometry.ValueField);
+        Native.SetCursorPos(geometry.Track.Left - 12, geometry.Track.Center.Y);
+        Delay(.15);
+        var after = ReadSlider(kind);
+        var ok = ControlNumber.Matches(number, value) && after is { } result
+            && result.Matches(ControlCurve.Fraction(kind, value));
+        Log("slider_check", new { kind, value, number, actual = after?.Fraction, ok, strategy = "numeric_field" });
+        return ok;
+    }
+
     private bool SliderMatches(string kind, double value)
     {
-        var read = ReadSlider(kind);
-        var desired = ControlCurve.Fraction(kind, value);
-        var ok = read is { } observation && observation.Matches(desired);
-        Log("slider_check", new { kind, value, desired, actual = read?.Fraction, ok });
-        return ok;
+        var previous = ReadClipboard();
+        try { return ReadSlider(kind) is { } geometry && VerifyControlNumber(kind, value, geometry); }
+        finally { RestoreClipboard(previous); }
     }
 
     private void Slider(string kind, double value)
     {
         WaitReady();
-        var fraction = ControlCurve.Fraction(kind, value);
-        var before = ReadSlider(kind) ?? throw new InvalidOperationException(
-            $"Не вдалося прочитати повзунок {kind}. Захопи всю зелену смугу разом із числовим полем.");
-        if (before.Matches(fraction))
-        {
-            Log("slider", new { kind, value, desired = fraction, actual = before.Fraction, verified = true, changed = false });
-            return;
-        }
-        var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 2, 5);
-        for (var attempt = 0; attempt <= retries; attempt++)
-        {
-            var geometry = ReadSlider(kind) ?? throw new InvalidOperationException(
-                $"Не вдалося прочитати повзунок {kind}. Захопи всю зелену смугу разом із числовим полем.");
-            var point = geometry.Point(fraction);
-            if (kind == "size")
-                foreach (var anchor in new[] { 1, 3, 10, 20 })
-                    if (Math.Abs(value - anchor) < .01 && settings.PaintCalibration().Point("size_anchor_" + anchor) is { } manual)
-                        point = manual;
-            if (point.X < geometry.Track.Left || point.X >= geometry.Track.Right
-                || point.Y < geometry.Track.Top || point.Y >= geometry.Track.Bottom)
-                throw new InvalidOperationException("Ручна точка Size поза поточним повзунком. Повтори калібрування Size anchors.");
-            // Rust did not follow the old endpoint drag: it kept the +4px press
-            // position. Click the detected target directly, then use the editable
-            // number on retry; both strategies must pass a fresh screenshot check.
-            var strategy = attempt > 0 ? "numeric_field" : "track";
-            Log("control_target", new { kind, value, fraction, point, track = geometry.Track, strategy });
-            if (attempt > 0)
-                SetSliderNumber(geometry.ValueField, value);
-            else
-            {
-                Native.SetCursorPos(point.X, point.Y);
-                Delay(.04);
-                Native.Mouse(false);
-                try { Delay(.08); }
-                finally { Native.Mouse(true); }
-            }
-            Native.SetCursorPos(geometry.Track.Left - 12, point.Y);
-            Delay(.12 + attempt * .05);
-            var after = ReadSlider(kind);
-            var ok = after is { } result && result.Matches(fraction);
-            Log("slider", new { kind, value, desired = fraction, actual = after?.Fraction, attempt, strategy, verified = ok });
-            if (ok) return;
-        }
-        throw new InvalidOperationException($"Не підтверджено {kind}. Перевір захоплення min/max повзунка.");
-    }
-
-    private void SetSliderNumber(ScreenRect field, double value)
-    {
-        if (!field.Valid) throw new InvalidOperationException("Не знайдено числове поле повзунка. Повтори захоплення із запасом.");
+        var payload = ControlNumber.Format(kind, value);
         var previous = ReadClipboard();
         try
         {
-            Click(field.Center);
-            ChordKey(0x11, 0x41);
-            WriteClipboard(value.ToString("0.########", System.Globalization.CultureInfo.InvariantCulture));
-            ChordKey(0x11, 0x56);
-            PressKey(0x0D);
-            Delay(.20);
+            var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 2, 5);
+            for (var attempt = 0; attempt <= retries; attempt++)
+            {
+                var geometry = ReadSlider(kind) ?? throw new InvalidOperationException(
+                    $"Не вдалося прочитати {kind}. Захопи повзунок із числом справа.");
+                Log("control_target", new { kind, value, point = geometry.ValueField.Center, field = geometry.ValueField, strategy = "numeric_field", attempt });
+                Click(geometry.ValueField.Center);
+                ChordKey(0x11, 0x41);
+                WriteClipboard(payload);
+                ChordKey(0x11, 0x56);
+                PressKey(0x0D);
+                Delay(.25 + attempt * .10);
+                var ok = VerifyControlNumber(kind, value, geometry);
+                Log("slider", new { kind, value, attempt, strategy = "numeric_field", verified = ok });
+                if (ok) return;
+            }
+            throw new InvalidOperationException($"Не підтверджено число {kind}. Перевір числове поле справа й повтори тест controls.");
         }
-        finally
+        finally { RestoreClipboard(previous); }
+    }
+
+    private static void RestoreClipboard(string? previous)
+    {
+        if (previous is not null) try { Native.ClipboardWrite(previous); } catch { }
+    }
+
+    public Rgb SelectCalibrationColor(Rgb background)
+    {
+        var cal = settings.PaintCalibration();
+        Click(cal.Point("brush_tool") ?? throw new InvalidOperationException("Захопи інструмент пензля через налаштування Rust."));
+        ApplyBrushShape();
+        if (settings.Mode == ColorMode.HexDirect)
         {
-            if (previous is not null)
-                try { Native.ClipboardWrite(previous); } catch { }
+            var color = RustSlider.Delta(background, new(0, 0, 0)) > RustSlider.Delta(background, new(255, 255, 255))
+                ? new Rgb(0, 0, 0) : new Rgb(255, 255, 255);
+            if (!ApplyHex(color, true)) throw new InvalidOperationException("Не підтверджено контрастний HEX-колір калібрування.");
+            return color;
         }
+        var entry = settings.Palette().Where(x => x.ClickPoint.HasValue)
+            .OrderByDescending(x => RustSlider.Delta(x.Color, background)).FirstOrDefault()
+            ?? throw new InvalidOperationException("Захопи палітру Rust.");
+        if (RustSlider.Delta(entry.Color, background) < 40)
+            throw new InvalidOperationException("У палітрі немає контрастного кольору для цього Canvas.");
+        ApplyPalette(entry);
+        return entry.Color;
     }
 
     private void ApplyPalette(PaletteEntry entry)

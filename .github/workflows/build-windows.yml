@@ -25,6 +25,9 @@ jobs:
       - name: Core regression tests
         run: dotnet run --project tests/CanvasForge.Core.Tests/CanvasForge.Core.Tests.csproj -c Release
 
+      - name: WPF adaptive UI checks
+        run: dotnet run --project tests/CanvasForge.App.Tests/CanvasForge.App.Tests.csproj -c Release -p:BuildInParallel=false -- ui-verification
+
       - name: Read build version
         shell: pwsh
         run: |

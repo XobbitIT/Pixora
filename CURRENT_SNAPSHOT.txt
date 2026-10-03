@@ -1,8 +1,8 @@
-Pixora 1.0.14-beta.3 — source for in-game testing
-Includes beta.1 coordinate/DPI/RESUME fixes, beta.2 alpha-aware PNG and guarded input,
-and beta.3 automatic slider boundaries inside loose selections with green preview,
-independent numeric field capture and verified numeric fallback for slider values.
-Validation: 70 Core regression tests and WPF Release build.
-Changes: CHANGES_1.0.14_UA.md
-In-game test checklist: TESTING_1.0.14_UA.md
-Portable binaries are produced by the Windows GitHub Actions workflow.
+Pixora 1.0.14-beta.4 — direct numeric controls and automatic adaptive setup
+Includes beta.1–beta.3 fixes; sliders now use exact numeric input, fresh copy readback,
+and visual verification. Manual Size anchors are ignored. Adaptive mode has its own
+page with one-click 1/3/10/20 measurement, brush shape and maximum Size options.
+Validation: 78 Core tests, 5 isolated WPF UI checks and WPF Release build.
+In-game acceptance of numeric entry and automatic calibration remains pending.
+Changes: CHANGES_1.0.14_UA.md; test guide: TESTING_1.0.14_UA.md.
+Portable binaries: Windows GitHub Actions workflow.

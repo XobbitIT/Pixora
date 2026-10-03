@@ -153,6 +153,8 @@ public sealed class Settings
         var hexLimit = Text("hex_max_colors", "128");
         if (hexLimit != "Auto" && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 256))
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
+        if (Int("adaptive_max_size", 20) is not (10 or 20))
+            throw new InvalidDataException("Adaptive maximum Size must be 10 or 20.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
             throw new InvalidDataException("Canvas is too large.");
@@ -242,7 +244,9 @@ public sealed class Settings
             ["control_verify_retries"] = 2,
             ["control_verify_tolerance"] = 0.12,
             ["adaptive_threshold"] = 1.0,
-            ["min_line_width"] = 4
+            ["min_line_width"] = 4,
+            ["adaptive_brush"] = false,
+            ["adaptive_max_size"] = 20
         }
 
         )
@@ -490,8 +494,8 @@ public static class StrokeTiming
 
     public static double SliderChangeEstimate(Settings settings)
     {
-        // Conservative estimate includes an endpoint drag and screenshot readback.
-        return .04 + .08 + .08 + .12;
+        // Numeric edit, Enter, a fresh select/copy readback, and screenshot check.
+        return 1.5;
     }
 
     public static double ColorDelay(Settings settings)

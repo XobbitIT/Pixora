@@ -48,10 +48,11 @@ internal sealed partial class MainWindow : Window
 
     private string T(string uk, string? en = null) => English ? en ?? Translations.Get(uk) : uk;
     private static Brush BrushOf(string s) => (Brush)new BrushConverter().ConvertFromString(s)!;
-    public MainWindow()
+    public MainWindow(string? dataFolder = null)
     {
+        if (dataFolder is not null) folder = Path.GetFullPath(dataFolder);
         Directory.CreateDirectory(folder);
-        MigrateLegacyData();
+        if (dataFolder is null) MigrateLegacyData();
         settings = Settings.Defaults();
         try
         {
@@ -346,7 +347,7 @@ internal sealed partial class MainWindow : Window
         badge.HorizontalAlignment = HorizontalAlignment.Right;
         top.Children.Add(badge);
         var shell = new Grid();
-        shell.ColumnDefinitions.Add(new() { Width = new GridLength(148) });
+        shell.ColumnDefinitions.Add(new() { Width = new GridLength(190) });
         shell.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
         Grid.SetRow(shell, 1);
         root.Children.Add(shell);
@@ -368,6 +369,7 @@ internal sealed partial class MainWindow : Window
         {
             ("paint", "▣  " + T("Малювання")),
             ("capture", "⌗  " + T("Захоплення Rust")),
+            ("adaptive", "◉  " + T("Адаптивний режим", "Adaptive mode")),
             ("settings", "⚙  " + T("Налаштування"))
         }
 
@@ -378,6 +380,7 @@ internal sealed partial class MainWindow : Window
         shell.Children.Add(host);
         BuildPaint();
         BuildCapture();
+        BuildAdaptive();
         BuildSettings();
         foreach (var p in pages.Values)
             host.Children.Add(p);
@@ -401,7 +404,7 @@ internal sealed partial class MainWindow : Window
             originalImage.Source = Images.Bitmap(source);
     }
 
-    private void ShowPage(string page)
+    internal void ShowPage(string page)
     {
         currentPage = page;
         foreach (var p in pages)
@@ -498,8 +501,9 @@ internal sealed partial class MainWindow : Window
         )
             presets.Add(Button(label, () => Preset(cell, speed)));
         q.Children.Add(presets.Panel);
-        AddCheck(q, "adaptive_brush", T("Адаптивний пензель (експериментально)", "Adaptive brush (experimental)"), true);
-        q.Children.Add(Text(T("Потрібне свіже калібрування пензля для цього Canvas. Великі ділянки — широким пензлем, краї — звичайним.", "Requires fresh brush calibration for this Canvas. Wide brushes fill interiors; the normal brush finishes edges."), 11, Muted));
+        adaptiveSummary = Text("", 11, Muted);
+        q.Children.Add(adaptiveSummary);
+        q.Children.Add(Button(T("◉ Налаштувати адаптивний режим", "◉ Set up adaptive mode"), () => ShowPage("adaptive")));
         AddCombo(q, "input_engine", T("Режим вводу", "Input timing"), new[] { "Stable", "Experimental 1 ms" });
         q.Children.Add(Text(T("Experimental використовує захищені затримки. Кліки по палітрі й введення HEX мають однакові надійні паузи в обох режимах.", "Experimental uses guarded timing. Palette clicks and HEX input use the same reliable waits in both modes."), 11, Muted));
         eta = Text(T("Орієнтовний час: —", "Estimated time: —"), 12, BrushOf("#D6B56B"));
@@ -726,6 +730,12 @@ internal sealed partial class MainWindow : Window
         var text = !canvas ? T("Потрібно захопити Canvas.", "Capture Canvas first.") : !color ? (settings.Mode == ColorMode.HexDirect ? T("Захопи й перевір поле HEX.", "Capture and verify HEX field.") : T("Захопи палітру Rust.", "Capture the Rust palette.")) : T("Готово до малювання.", "Ready to paint.");
         if (canvas && settings.Mode == ColorMode.HexDirect && cal.HexReady && !settings.HexControlsReady)
             text = T("Захопи пензель і повзунки HEX (крок 3).", "Capture HEX brush and sliders (step 3).");
+        RefreshAdaptiveStatus();
+        if (settings.Bool("adaptive_brush"))
+        {
+            try { AdaptiveBrush.Validate(settings); }
+            catch (InvalidOperationException) { text = T("Потрібне калібрування в розділі «Адаптивний режим».", "Calibrate the brush on the Adaptive mode page."); canvas = false; }
+        }
         ready.Text = text;
         badge.Text = canvas && color ? T("● ГОТОВО", "● READY") : T("● ПОТРІБНА КАЛІБРОВКА", "● CALIBRATION REQUIRED");
         badge.Foreground = canvas && color ? BrushOf("#57C785") : BrushOf("#E9A477");
@@ -890,7 +900,8 @@ internal sealed partial class MainWindow : Window
             return;
         ReadSettings();
         Save();
-        AdaptiveBrush.Validate(settings);
+        try { AdaptiveBrush.Validate(settings); }
+        catch (InvalidOperationException) { ShowPage("adaptive"); throw; }
         if (plan is null || plan.Identity != PlanIdentity.Compute(source, settings, plan.Palette))
             await BuildPlan();
         if (plan is null)
@@ -967,7 +978,7 @@ internal sealed partial class MainWindow : Window
         }
     }
 
-    private void SetEditing(bool enabled)
+    internal void SetEditing(bool enabled)
     {
         foreach (var p in pages)
             if (p.Key != "paint")
@@ -982,6 +993,7 @@ internal sealed partial class MainWindow : Window
         resumeButton.IsEnabled = enabled && File.Exists(ResumePath);
         pauseButton.IsEnabled = !enabled;
         stopButton.IsEnabled = !enabled;
+        if (enabled) RefreshAdaptiveStatus();
     }
 
     private void SetPaintButtons(DependencyObject parent, bool enabled)
