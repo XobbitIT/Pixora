@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -22,7 +23,11 @@ internal static class Program
         CheckFastWindow(destination,"Українська",1280);
         CheckFastWindow(destination,"Українська",900);
         CheckFastWindow(destination,"English",1280);
-        Console.WriteLine("ALL 8 WPF UI CHECKS PASSED");
+        CheckSpeedWindow(destination,"Українська",1280,false);
+        CheckSpeedWindow(destination,"English",900,false);
+        CheckSpeedWindow(destination,"Українська",900,true);
+        CheckPreflight(destination);
+        Console.WriteLine("ALL 12 WPF UI CHECKS PASSED");
         // Windows are rendered without showing or invoking game/capture/input actions.
     }
 
@@ -99,6 +104,66 @@ internal static class Program
         window.SetEditing(false);Assert(!checks[0].IsEnabled,"Fast settings remained editable during painting");window.SetEditing(true);
         root.UpdateLayout();var bitmap=new RenderTargetBitmap(width,780,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
         var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using(var file=File.Create(Path.Combine(output,name+".png")))encoder.Save(file);
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static T Field<T>(MainWindow window,string name) => (T)typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+    private static void SetField(MainWindow window,string name,object value) => typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(window,value);
+    private static void Invoke(MainWindow window,string name) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null);
+    private static Settings ReadySettings(string language)
+    {
+        var settings=Settings.Defaults();settings.Set("language",language);
+        var cal=settings.Calibration;cal.SetRect("canvas",new(10,10,1010,1010));cal.SetSession(new(0,0),96,new(1440,1080));
+        cal.SetPoint("brush_tool",new(1050,80));cal.SetRect("brush_shapes",new(1050,100,1400,140));
+        foreach(var (kind,y) in new[]{("size",200),("interval",250),("opacity",300)})
+        {cal.SetRect(kind+"_track",new(1050,y,1300,y+40));cal.SetRect(kind+"_value_field",new(1300,y,1380,y+40));}
+        cal.SetRect("palette",new(1050,350,1400,990));settings.SetCalibration(cal);
+        settings.SetPalette(new[]{new PaletteEntry(new(0,0,0),new(1100,400),"main")});
+        settings.Set("brush_calibration_points",new double[][]{[1,3,1],[3,5,3],[10,21,13],[20,35,23]});
+        settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));
+        settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Shift,false,8,12,1,40,3,1)]));
+        return settings;
+    }
+    private static void Render(MainWindow window,string path,int width)
+    {
+        var root=(FrameworkElement)window.Content;root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
+        var bitmap=new RenderTargetBitmap(width,780,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
+        var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using var file=File.Create(path);encoder.Save(file);
+    }
+    private static void CheckSpeedWindow(string output,string language,int width,bool stale)
+    {
+        string name="speed-"+(language=="English"?"en":"ua")+"-"+width+(stale?"-stale":"");
+        var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var settings=ReadySettings(language);
+        if(stale){settings.Set("brush_shape_slot",4);settings.Set("brush_shape","Square");settings.Set("calibrated_strokes",true);}
+        settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
+        Render(window,Path.Combine(output,name+".png"),width);
+        Assert(Field<TabControl>(window,"brushTabs").SelectedIndex==1,"Speed setup link did not select the speed tab");
+        Assert(Field<Button>(window,"probeButton").IsEnabled==!stale,"Probe did not require current brush calibration");
+        Assert(Field<CheckBox>(window,"auditEnabled").IsEnabled==!stale,"Audit did not require current calibration");
+        var toggle=Field<CheckBox>(window,"calibratedMotion");
+        Assert(toggle.IsEnabled,"Verified route cannot be selected or stale route cannot be disabled");
+        window.SetEditing(false);Assert(!Field<Button>(window,"probeButton").IsEnabled,"Probe still enabled during an operation");
+        window.SetEditing(true);Assert(!Field<Button>(window,"startButton").IsEnabled,"Returning from a probe enabled START without an image");
+        Assert(Field<Button>(window,"probeButton").IsEnabled==!stale,"Returning from an operation bypassed probe readiness");
+        var text=Field<TextBlock>(window,"speedStatus").Text;
+        Assert(stale?text.Contains("застарів"):text.Contains(language=="English"?"Verified routes":"підтверджені"),"Speed profile state missing");
+        Console.WriteLine("PASS "+name);
+    }
+    private static void CheckPreflight(string output)
+    {
+        string name="preflight";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var settings=ReadySettings("Українська");
+        settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        SetField(window,"source",new PixelImage(16,16));Invoke(window,"UpdateReady");
+        Assert(Field<Button>(window,"startButton").IsEnabled,"Fully captured input was not ready");
+        var live=Field<Settings>(window,"settings");var cal=live.Calibration;cal.SetRect("opacity_value_field",default);live.SetCalibration(cal);Invoke(window,"UpdateReady");
+        Assert(!Field<Button>(window,"startButton").IsEnabled,"START ignored a missing numeric field");
+        cal.SetRect("opacity_value_field",new(1300,300,1380,340));live.SetCalibration(cal);Invoke(window,"UpdateReady");
+        Render(window,Path.Combine(output,name+".png"),900);
+        var detail=Descendants((FrameworkElement)window.Content).OfType<TextBox>().Single(x=>x.ToolTip?.ToString()=="Деталізація, px");
+        detail.Text="not a number";Assert(!Field<Button>(window,"startButton").IsEnabled,"Invalid numeric input did not block START");
+        Assert(Descendants((FrameworkElement)window.Content).OfType<TextBlock>().Any(x=>x.Text.StartsWith("Перевір значення:")&&x.Visibility==Visibility.Visible),"Inline numeric error missing");
+        detail.Text="3";Assert(Field<Button>(window,"startButton").IsEnabled,"Corrected input did not restore readiness");
+        window.SetEditing(false);window.SetEditing(true);Assert(Field<Button>(window,"startButton").IsEnabled,"Valid readiness was lost after an operation");
         Console.WriteLine("PASS "+name);
     }
 }

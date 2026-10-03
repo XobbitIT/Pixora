@@ -332,6 +332,8 @@ public static class Planner
 
 public static class Coverage
 {
+    public static bool ShiftLine(Settings s,double size,ScreenLine line)
+        => SpeedCalibration.Resolve(s,size,line)?.Method==StrokeMethod.Shift;
     public static int[] Partition(int start, int end, int cells) => Enumerable.Range(0, cells + 1).Select(i => (int)Math.Round(start + (double)(end - start) * i / cells)).ToArray();
     public static List<ScreenLine> Expand(IEnumerable<Stroke> strokes, ScreenRect canvas, int w, int h, int pitch)
     {

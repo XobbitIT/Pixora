@@ -1,13 +1,15 @@
 # Pixora
 
-Automated raster painting assistant for Rust. Development build **1.0.14-beta.7** for Windows 10/11 x64.
+Raster painting assistant for Rust. Development build **1.0.14-beta.8**, Windows 10/11 x64.
 
 - [Українська інструкція](README_UA.md)
-- [Зміни цієї версії](CHANGES_1.0.14_UA.md)
-- [Сценарії перевірки у Rust](TESTING_1.0.14_UA.md)
+- [Release changes](CHANGES_1.0.14_UA.md)
+- [Rust testing guide](TESTING_1.0.14_UA.md)
 
-The Windows workflow runs the Core regression suite before publishing a self-contained portable build. Download its `Pixora_1.0.14-beta.7_Windows_x64` artifact, extract the entire archive, and run `Pixora.exe`.
+The Windows workflow runs 120 Core tests and 12 WPF checks before publishing a self-contained portable build. Download `Pixora_1.0.14-beta.8_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
 
-Size, Interval, and Opacity use direct numeric entry with fresh clipboard readback and a screenshot check. The Adaptive mode page separates preparation, one-click automatic 1/3/10/20 brush calibration, and painting settings. Manual Size anchors are no longer required. The Windows workflow also checks the WPF page layout using isolated settings without controlling Rust.
+Size, Interval and Opacity use verified numeric entry. Brush and speed separates calibration, brush settings, Speed Probe and coverage audit. Speed Probe compares paced SendInput movement and Shift lines on separate clean areas with three repeated trials and a validated timing margin. A current per-Size/axis profile selects verified routes in Precision and adaptive painting; untested cases retain normal input. Long Shift strokes are split at tested spans.
 
-Beta.7 repairs the fast movement path after beta.6 missed fills: it sends every intermediate pixel through SendInput in bounded packets instead of relocating the cursor. Compatible stroke batching and verified numeric/HEX input remain. Start a fresh test on a clean Canvas; older checkpoints are incompatible. Validation: 102 Core tests and 8 WPF checks. The final Rust result still needs an in-game retest.
+Coverage audit and conservative repair are opt-in. Uncertain colors stop the transfer; only confirmed gaps inside a safe calibrated footprint are repaired. Audit needs a fresh START, Opacity 1 and current calibration. Diagnostics stay local. The dark/orange UI includes workflow readiness, clearer presets, inline numeric errors, consolidated controls and a new P icon.
+
+Core algorithms and the UI are tested without controlling Rust. Actual Shift acceptance, coverage, repair and speed need an in-game test. No universal perfect-result or speedup guarantee is claimed. Earlier checkpoints require a fresh START.

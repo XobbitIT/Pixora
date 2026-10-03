@@ -158,6 +158,8 @@ public sealed class Settings
         var motionPacket=Number("fast_path_batch_points",8);
         if(!double.IsFinite(motionPacket)||motionPacket is <1 or >16||motionPacket!=Math.Truncate(motionPacket))
             throw new InvalidDataException("Fast movement packet must be an integer from 1 to 16.");
+        if(Number("probe_size",3) is not (1 or 3 or 10 or 20))throw new InvalidDataException("Probe Size must be 1, 3, 10 or 20.");
+        if(Number("audit_repair_passes",1) is not (1 or 2))throw new InvalidDataException("Repair passes must be 1 or 2.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
             throw new InvalidDataException("Canvas is too large.");
@@ -251,6 +253,11 @@ public sealed class Settings
             ["adaptive_brush"] = false,
             ["fast_transfer"] = false,
             ["fast_path_batch_points"] = 8,
+            ["calibrated_strokes"] = false,
+            ["coverage_audit"] = false,
+            ["audit_repair"] = false,
+            ["audit_repair_passes"] = 1,
+            ["probe_size"] = 3,
             ["adaptive_max_size"] = 20
         }
 
@@ -475,6 +482,7 @@ public static class PlanIdentity
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
         foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "fast_move_span_px" })
             paintSettings.Remove(key);

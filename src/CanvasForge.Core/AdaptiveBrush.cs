@@ -67,7 +67,7 @@ public static class AdaptiveBrush
     {
         if (!s.Bool("adaptive_brush")) return;
         if (s.Text("coverage_mode", "Precision") != "Precision" || !s.Bool("force_precision_controls", true)
-            || s.Bool("line_mode") || s.Bool("background_fill") || (s.Bool("use_fixed_opacity", true) && s.Number("paint_opacity_value", 1) < .999))
+            || s.Bool("line_mode")&&!SpeedCalibration.Use(s) || s.Bool("background_fill") || (s.Bool("use_fixed_opacity", true) && s.Number("paint_opacity_value", 1) < .999))
             throw new InvalidOperationException("Адаптивний пензель потребує Precision, точних controls, Opacity 1 і вимкнених Shift-line та заповнення фону.");
         if (s.Int("brush_shape_slot", 3) is not (3 or 4))
             throw new InvalidOperationException("Адаптивний пензель потребує суцільного круглого пензля (3) або квадратного (4).");
@@ -152,7 +152,7 @@ public static class AdaptiveBrush
             {
                 if (op.Size != previous) cost += StrokeTiming.SliderChangeEstimate(s); // measured control-change estimate
                 previous = op.Size;
-                cost += StrokeTiming.Estimate(s, speed, Math.Max(Math.Abs(op.Line.X2 - op.Line.X1), Math.Abs(op.Line.Y2 - op.Line.Y1)), false);
+                cost += TransferSchedule.EstimateBatch(s,speed,new(op.Size,new[]{op.Line},1));
             }
             return cost;
         }

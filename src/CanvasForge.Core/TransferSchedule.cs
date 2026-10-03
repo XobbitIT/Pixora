@@ -8,7 +8,7 @@ public static class TransferSchedule
 {
     public const int MaximumStrokes = 16;
     public const int MaximumConnector = 32;
-    public static bool Fast(Settings s) => s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
+    public static bool Fast(Settings s) => s.Bool("fast_transfer") && !SpeedCalibration.Use(s) && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
     public static int Length(ScreenLine l) => Math.Max(Math.Abs(l.X2-l.X1), Math.Abs(l.Y2-l.Y1));
     public static ScreenLine Reverse(ScreenLine l) => new(l.X2,l.Y2,l.X1,l.Y1);
 
@@ -91,6 +91,9 @@ public static class TransferSchedule
 
     public static double EstimateBatch(Settings s,SpeedProfile speed,PaintBatch batch)
     {
+        double size=batch.Size>0?batch.Size:speed.BrushSize;
+        if(batch.Segments.Count==1&&SpeedCalibration.Resolve(s,size,batch.Segments[0]) is { } sample)
+            return CalibratedMotion.Estimate(batch.Segments[0],sample);
         if(!Fast(s))
         {
             int length=Length(batch.Segments[0]);

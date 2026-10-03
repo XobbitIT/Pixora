@@ -16,8 +16,8 @@ internal sealed partial class MainWindow
         hero.Children.Add(AsyncButton(T("Лише змінити Canvas", "Change Canvas only"), () => Capture("canvas", "CANVAS")));
         page.Children.Add(Card("Canvas / Палітра", out var info));
         captureStatus = Text("—", 11, Muted);
-        captureStatus.FontFamily = new("Consolas");
         info.Children.Add(captureStatus);
+        page.Children.Add(Card("Числові поля Size / Interval / Opacity", out var controls));
         page.Children.Add(Card("HEX Direct", out var hex));
         hex.Children.Add(Text(T("Захопи поле з шістьма HEX-цифрами, потім виконай тест. Символ # вводити не потрібно.", "Capture the field with six HEX digits, then run the test. Do not include #."), 12, Muted));
         hex.Children.Add(AsyncButton(T("1. Захопити HEX", "1. Capture HEX"), () => Capture("hex", "HEX — 6 digits")));
@@ -25,7 +25,7 @@ internal sealed partial class MainWindow
         hex.Children.Add(AsyncButton(T("3. Пензель і повзунки HEX", "3. HEX brush and sliders"), CaptureHexControls));
         hex.Children.Add(Text(T("Відкрий HEX-палітру Rust і захопи форми пензля та кожну зелену смугу разом із числовим полем справа. Робочі межі визначаються автоматично.", "Open the HEX palette in Rust and capture brush shapes and each complete green bar including its numeric field. Interactive boundaries are detected automatically."), 12, Muted));
         var manual = new StackPanel();
-        page.Children.Add(new Expander { Header = T("⚙ Ручне калібрування", "⚙ Manual calibration"), Content = manual });
+        page.Children.Add(new Expander { Header = T("Ручне калібрування", "Manual calibration"), Content = manual });
         manual.Children.Add(Card("Палітра і прев’ю", out var pal));
         pal.Children.Add(AsyncButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", "PALETTE 4×16")));
         pal.Children.Add(AsyncButton("Quick Colors", () => Capture("quick", "QUICK COLORS — 1×10")));
@@ -43,7 +43,6 @@ internal sealed partial class MainWindow
 
         )
             extra.Children.Add(AsyncButton(T(title), () => Capture(key, T(title))));
-        page.Children.Insert(3, Card("Числові поля Size / Interval / Opacity", out var controls));
         foreach (var(key, title)in new[]
         {
             ("hard_brush", "Круглий"),
@@ -63,7 +62,7 @@ internal sealed partial class MainWindow
             controls.Children.Add(AsyncButton(kind.ToUpperInvariant(), () => Capture(kind + "_track", kind.ToUpperInvariant() + " — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))));
         controls.Children.Add(Text(T("Числа вводяться напряму. Ручні Size anchors більше не потрібні.", "Values are entered directly. Manual Size anchors are no longer needed."), 11, Muted));
         controls.Children.Add(AsyncButton(T("Перевірити Rust controls", "Test Rust controls"), TestControls));
-        controls.Children.Add(Button(T("◉ Адаптивний режим і калібрування", "◉ Adaptive mode and calibration"), () => ShowPage("adaptive")));
+        controls.Children.Add(Button(T("Калібрування пензля", "Brush calibration"), () => ShowPage("adaptive")));
     }
 
     private IntPtr captureWindow;

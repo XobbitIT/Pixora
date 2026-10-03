@@ -6,7 +6,7 @@ using CanvasForge.Core;
 namespace CanvasForge.App;
 internal sealed record PaintProgress(int Done, int Total, double Elapsed, double Eta, string Status);
 internal sealed record ResumeCheckpoint(string Identity, int Group, int Line, int Done);
-internal sealed class Painter
+internal sealed partial class Painter
 {
     private readonly Settings settings;
     private readonly IntPtr window;
@@ -26,7 +26,7 @@ internal sealed class Painter
     private double pausedSeconds;
     private volatile bool paused;
     private readonly Dictionary<string,double> verifiedControls = new();
-    private readonly IStrokeInput motionInput;
+    private readonly ICalibratedStrokeInput motionInput;
     public bool Paused { get => paused; set => paused = value; }
 
     public Painter(Settings s, IntPtr target, string checkpoint, string log, Action<PaintProgress> callback, CancellationToken cancel)
@@ -519,6 +519,11 @@ internal sealed class Painter
 
     public void Run(PaintPlan plan, ResumeCheckpoint? resume = null)
     {
+        settings.Validate();
+        if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)
+            throw new InvalidOperationException(auditProblem);
+        if(settings.Bool("coverage_audit")&&resume is not null)
+            throw new InvalidOperationException("Аудит потребує початкового кадру Canvas. Виконай новий START; RESUME доступний без аудиту.");
         var groups = TransferSchedule.Build(plan, settings);
         var order = groups.Keys.OrderByDescending(i => plan.Counts.GetValueOrDefault(i)).ToList();
         if (plan.BackgroundColor is int bg)
@@ -566,7 +571,7 @@ internal sealed class Painter
             if (Native.GetForegroundWindow() != window)
                 throw new InvalidOperationException("Поверни фокус у Rust і повтори START.");
             WaitReady();
-            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), motionTransport = TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
+            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), calibratedMotion=SpeedCalibration.Use(settings), coverageAudit=settings.Bool("coverage_audit"), motionTransport = SpeedCalibration.Use(settings)?"SendInput probe verified":TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, probeRevision=SpeedCalibration.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
             for (;;)
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
@@ -602,6 +607,10 @@ internal sealed class Painter
                     }
 
                 Log("color_group", new { group, mode = plan.Mode.ToString(), color = entry.Color.Hex, point = entry.ClickPoint, strokes = groups[color].Count });
+                PixelImage? auditBefore=null;
+                if(settings.Bool("coverage_audit"))
+                    for(;;)try{auditBefore=StableShot(settings.Calibration.Rect("canvas"));break;}
+                        catch(InputInterrupted){WaitReady();}
                 var lines = groups[color];
                 for (var line = group == (resume?.Group ?? -1) ? resume!.Line : 0; line < lines.Count; line++)
                 {
@@ -648,7 +657,7 @@ internal sealed class Painter
 
                     done++;
                     var state = new ResumeCheckpoint(plan.Identity, group, line + 1, done);
-                    if (line + 1 == lines.Count)
+                    if (line + 1 == lines.Count&&!settings.Bool("coverage_audit"))
                         state = state with
                         {
                             Group = group + 1,
@@ -663,14 +672,20 @@ internal sealed class Painter
                         report(new(done, total, elapsed, done > 0 ? elapsed * (total - done) / done : 0, $"#{entry.Color.Hex}"));
                     }
                 }
+                if(auditBefore is not null)
+                {
+                    for(;;)try{AuditGroup(plan,color,group,auditBefore);break;}
+                        catch(InputInterrupted){WaitReady();ReprimeControls(activeAdaptiveSize);}
+                    Save(new(plan.Identity,group+1,0,done));
+                }
             }
 
             if (Native.GetForegroundWindow() == window)
                 Slider("opacity", 1);
             if (File.Exists(checkpointPath))
                 File.Delete(checkpointPath);
-            report(new(total, total, clock.Elapsed.TotalSeconds - pausedSeconds, 0, "Команди виконано. Перевір результат у Rust."));
-            Log("complete", new { done, total, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
+            report(new(total, total, clock.Elapsed.TotalSeconds - pausedSeconds, 0, settings.Bool("coverage_audit")?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди виконано. Перевір результат у Rust."));
+            Log("complete", new { done, total, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), calibratedMotion=SpeedCalibration.Use(settings),coverageVerified=settings.Bool("coverage_audit"),resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
         }
         finally
         {
@@ -689,6 +704,14 @@ internal sealed class Painter
 
     private void Draw(ScreenLine line, SpeedProfile speed, bool reverse)
     {
+        double size=activeAdaptiveSize??DesiredControls().Size;
+        if(SpeedCalibration.Resolve(settings,size,line) is { } sample)
+        {
+            // Probe validates left-to-right / top-to-bottom. Preserve that direction.
+            var tested=line.X2<line.X1||line.Y2<line.Y1?TransferSchedule.Reverse(line):line;
+            CalibratedMotion.Draw(tested,sample,motionInput);
+            return;
+        }
         var a = new ScreenPoint(reverse ? line.X2 : line.X1, reverse ? line.Y2 : line.Y1);
         var b = new ScreenPoint(reverse ? line.X1 : line.X2, reverse ? line.Y1 : line.Y2);
         var length = Math.Max(Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y));
@@ -742,7 +765,7 @@ internal sealed class Painter
     private void DrawBatch(PaintBatch batch,SpeedProfile speed)
         => StrokeMotion.Draw(batch,settings,speed,motionInput);
 
-    private sealed class GuardedStrokeInput(Painter owner) : IStrokeInput
+    private sealed class GuardedStrokeInput(Painter owner) : ICalibratedStrokeInput
     {
         public double Seconds => owner.clock.Elapsed.TotalSeconds;
         public void Move(IReadOnlyList<ScreenPoint> points)
@@ -752,6 +775,7 @@ internal sealed class Painter
             Native.MovePath(points);
         }
         public void Button(bool up) => Native.Mouse(up);
+        public void Shift(bool up) => Native.Key(0x10,up);
         public void Wait(double seconds) => owner.Delay(seconds);
     }
 }

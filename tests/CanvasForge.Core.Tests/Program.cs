@@ -1391,19 +1391,172 @@ Test("Legacy cursor-jump settings no longer affect identity or motion",()=>
     }
 });
 
+Settings ProbeConfig()
+{
+    var cfg=SessionFixture();cfg.Set("calibrated_strokes",true);
+    var samples=new List<SpeedSample>{new(1,StrokeMethod.Paced,false,12,17,1,32,3,1),new(1,StrokeMethod.Shift,false,8,12,1,32,3,1),new(1,StrokeMethod.Paced,true,20,27,1,32,3,1)};
+    cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,samples));return cfg;
+}
+Test("Probe accepts repeated full coverage and rejects unvalidated profiles",()=>
+{
+    var cfg=ProbeConfig();Assert(SpeedCalibration.Use(cfg));
+    foreach(var invalid in new[]{new SpeedSample(1,StrokeMethod.Shift,false,8,8,1,32,3,1),new(1,StrokeMethod.Shift,false,8,12,1,32,2,1),new(1,StrokeMethod.Shift,false,8,12,1,32,3,.99),new(1,StrokeMethod.Paced,false,8,12,64,32,3,1)})
+    {cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,[invalid]));Assert(!SpeedCalibration.Current(cfg));}
+});
+Test("Probe context rejects changed samples geometry DPI and color mode",()=>
+{
+    var cfg=ProbeConfig();string context=SpeedCalibration.Context(cfg);
+    cfg.Set("language","English");Assert(SpeedCalibration.Context(cfg)==context);
+    foreach(string key in new[]{"color_mode","brush_shape","brush_shape_slot"})
+    {var changed=cfg.Clone();changed.Set(key,key=="brush_shape_slot"?"4":key=="color_mode"?"HEX Direct":"Square");Assert(!SpeedCalibration.Current(changed));}
+    var cal=cfg.Calibration;cal.SetSession(new(0,0),144,new(1280,720));cfg.SetCalibration(cal);Assert(!SpeedCalibration.Current(cfg));
+});
+Test("Probe routes are independent of Precision adaptive and legacy Shift flag",()=>
+{
+    var cfg=ProbeConfig();cfg.Set("adaptive_brush",true);cfg.Set("line_mode",true);AdaptiveBrush.Validate(cfg);
+    Assert(Coverage.ShiftLine(cfg,1,new(0,0,32,0)));Assert(!Coverage.ShiftLine(cfg,3,new(0,0,32,0)));
+    Assert(!Coverage.ShiftLine(cfg,1,new(0,0,0,32)));Assert(!Coverage.ShiftLine(cfg,1,new(0,0,1,0)));
+    cfg.Set("paint_opacity_value",.5);Assert(!SpeedCalibration.Use(cfg));
+});
+Test("Long calibrated Shift lines split at measured lengths and release between pieces",()=>
+{
+    var cfg=ProbeConfig();var line=new ScreenLine(0,0,100,0);var sample=SpeedCalibration.Resolve(cfg,1,line)!;
+    var input=new RecordingStrokeInput();CalibratedMotion.Draw(line,sample,input);
+    Assert(input.Downs==4&&input.Ups==4&&input.ShiftDowns==4&&input.ShiftUps==4&&!input.Held&&!input.ShiftHeld);
+    Assert(input.Packets.All(x=>x.Length==1));
+    Assert(Math.Abs(input.Seconds-CalibratedMotion.Estimate(line,sample))<1e-9);
+});
+Test("Paced probe emits individually timed endpoints in both directions",()=>
+{
+    foreach(var line in new[]{new ScreenLine(50,20,0,20),new ScreenLine(10,60,10,0)})
+    {
+        var sample=new SpeedSample(1,StrokeMethod.Paced,line.X1==line.X2,20,27,3,32,3,1);var input=new RecordingStrokeInput();
+        CalibratedMotion.Draw(line,sample,input);Assert(input.Cursor==new ScreenPoint(line.X2,line.Y2));
+        Assert(input.Packets.All(x=>x.Length==1)&&input.WaitDurations.All(x=>x>=.027));
+        Assert(Math.Abs(input.Seconds-CalibratedMotion.Estimate(line,sample))<1e-9);
+    }
+});
+Test("Calibrated motion interruptions release both Shift and mouse",()=>
+{
+    foreach(var method in new[]{StrokeMethod.Paced,StrokeMethod.Shift})
+    {
+        var input=new RecordingStrokeInput{FailHeldMove=true};
+        try{CalibratedMotion.Draw(new(0,0,80,0),new(1,method,false,8,12,1,32,3,1),input);throw new Exception("Failure swallowed");}catch(OperationCanceledException){}
+        Assert(!input.Held&&!input.ShiftHeld&&input.Ups==1);if(method==StrokeMethod.Shift)Assert(input.ShiftUps==1);
+    }
+});
+Test("Probe tiles cannot overlap and insufficient clean area is rejected",()=>
+{
+    var tiles=SpeedCalibration.Tiles(new(20,30,1020,1030),24);Assert(tiles.Count==62);
+    foreach(var t in tiles)Assert(t.Area.Left>=20&&t.Area.Top>=30&&t.Area.Right<=1020&&t.Area.Bottom<=1030);
+    for(int i=0;i<tiles.Count;i++)for(int j=i+1;j<tiles.Count;j++)Assert(tiles[i].Area.Right<=tiles[j].Area.Left||tiles[j].Area.Right<=tiles[i].Area.Left||tiles[i].Area.Bottom<=tiles[j].Area.Top||tiles[j].Area.Bottom<=tiles[i].Area.Top);
+    try{SpeedCalibration.Tiles(new(0,0,240,240),24);throw new Exception("Small area accepted");}catch(InvalidOperationException){}
+});
+Test("Coverage audit distinguishes filled pixels gaps and uncertain colors",()=>
+{
+    var before=new PixelImage(40,30);var after=before.Clone();var mask=new bool[1200];
+    for(int y=5;y<25;y++)for(int x=5;x<35;x++){int i=y*40+x;mask[i]=true;after.Set(i,new(255,20,20));}
+    for(int x=10;x<20;x++)after.Set(15*40+x,before.Color(15*40+x));after.Set(16*40+10,new(20,255,20));
+    var result=CoverageAudit.Read(before,after,mask,new(new(255,20,20),12));
+    Assert(result.Expected==600&&result.Missing==10&&result.Unknown==1&&result.Covered==589&&!result.Passed);
+});
+Test("Coverage audit never certifies indistinguishable background or missing reference",()=>
+{
+    var before=new PixelImage(20,20);var mask=Enumerable.Repeat(true,400).ToArray();
+    Assert(CoverageAudit.Read(before,before.Clone(),mask).Unknown==400);
+    Assert(CoverageAudit.Read(before,before.Clone(),mask,new(new(4,4,4),12)).Unknown==400);
+});
+Test("Coverage reference is learned from stable consistent paint and rejects mixed colors",()=>
+{
+    var before=new PixelImage(20,20);var after=before.Clone();var mask=Enumerable.Repeat(true,400).ToArray();
+    for(int i=0;i<400;i++)after.Set(i,new(220,40,30));
+    Assert(CoverageAudit.Read(before,after,mask).Passed);
+    for(int i=0;i<200;i++)after.Set(i,new(30,220,40));Assert(CoverageAudit.Learn(before,after,mask) is null);
+});
+Test("Scene changes outside the expected region make audit uncertain",()=>
+{
+    var before=new PixelImage(40,40);var after=before.Clone();var mask=new bool[1600];
+    for(int i=0;i<200;i++){mask[i]=true;after.Set(i,new(255,0,0));}
+    for(int i=300;i<500;i++)after.Set(i,new(0,255,0));
+    var result=CoverageAudit.Read(before,after,mask,new(new(255,0,0),12));Assert(!result.Passed&&result.Unknown==200&&result.Missing==0);
+    Assert(!CoverageAudit.Stable(before,after));
+});
+Test("Probe reference detects broken longitudinal lines",()=>
+{
+    var before=new PixelImage(64,64);var after=before.Clone();
+    for(int x=10;x<=53;x++)after.Set(32*64+x,new(255,0,0));
+    var mask=CoverageAudit.ProbeMask(before,after,new(10,32,53,32),4);Assert(mask.Count(x=>x)==44);
+    after.Set(32*64+30,before.Color(32*64+30));
+    try{CoverageAudit.ProbeMask(before,after,new(10,32,53,32),4);throw new Exception("Broken reference accepted");}catch(InvalidOperationException){}
+});
+Test("Repair strokes preserve the entire calibrated footprint inside the expected color",()=>
+{
+    var canvas=new ScreenRect(100,200,160,260);var expected=new bool[3600];var gaps=new bool[3600];
+    for(int y=5;y<55;y++)for(int x=5;x<55;x++)expected[y*60+x]=true;
+    for(int y=0;y<60;y++)for(int x=0;x<60;x++)gaps[y*60+x]=true;
+    var repairs=CoverageAudit.Repair(gaps,expected,canvas,4);Assert(repairs.Count==42);
+    foreach(var point in Centres(repairs))for(int dy=-4;dy<=4;dy++)for(int dx=-4;dx<=4;dx++)Assert(expected[(point.Y-200+dy)*60+point.X-100+dx]);
+    Assert(CoverageAudit.Repair(new bool[3600],expected,canvas,4).Count==0);
+});
+Test("Expected audit mask scales cells exactly and preserves transparent holes",()=>
+{
+    var plan=SpeedPlan(new[]{0,-1,1,0},2,2);var mask=CoverageAudit.Expected(plan,new(0,0,20,20),0);
+    Assert(mask.Count(x=>x)==200);Assert(mask[0]&&!mask[19]&&!mask[19*20]&&mask[399]);
+});
+Test("Audit and repair validation rejects unsupported settings",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("coverage_audit",true);
+    cfg.Validate();Assert(CoverageAudit.SetupProblem(cfg) is not null,"Audit without calibration accepted");
+    cfg.Set("coverage_audit",false);cfg.Set("audit_repair_passes",3);
+    try{cfg.Validate();throw new Exception("Unbounded repair accepted");}catch(InvalidDataException){}
+});
+
+Test("Malformed or null probe samples are rejected without enabling input",()=>
+{
+    var cfg=ProbeConfig();cfg.Data["speed_probe_profile"]!["Samples"]!.AsArray().Add((System.Text.Json.Nodes.JsonNode?)null);
+    Assert(!SpeedCalibration.Current(cfg));
+    cfg.Set("speed_probe_profile","broken profile");Assert(!SpeedCalibration.Current(cfg));
+    cfg=ProbeConfig();cfg.Set("brush_calibration_points",new double[][]{[1,3,4],[3,5,3],[10,21,13]});
+    try{SpeedCalibration.Footprint(cfg,1);throw new Exception("Invalid footprint accepted");}catch(InvalidOperationException){}
+});
+Test("Calibrated input validates before sending and releases Shift during key settling failure",()=>
+{
+    foreach(var sample in new[]{new SpeedSample(1,(StrokeMethod)99,false,8,12,1,32,3,1),new(1,StrokeMethod.Paced,false,8,0,1,32,3,1),new(1,StrokeMethod.Paced,false,8,12,0,32,3,1)})
+    {
+        var input=new RecordingStrokeInput();
+        try{CalibratedMotion.Draw(new(0,0,32,0),sample,input);throw new Exception("Invalid input accepted");}catch(ArgumentException){}
+        Assert(input.Downs==0&&input.ShiftDowns==0&&input.Packets.Count==0);
+    }
+    var failure=new RecordingStrokeInput{FailShiftWait=true};
+    try{CalibratedMotion.Draw(new(0,0,32,0),new(1,StrokeMethod.Shift,false,8,12,1,32,3,1),failure);throw new Exception("Failure swallowed");}catch(OperationCanceledException){}
+    Assert(!failure.Held&&!failure.ShiftHeld&&failure.ShiftUps==1&&failure.Downs==0);
+});
+Test("Stale audit setup remains editable while execution readiness fails",()=>
+{
+    var cfg=ProbeConfig();cfg.Set("coverage_audit",true);Assert(CoverageAudit.SetupProblem(cfg) is null);cfg.Validate();
+    cfg.Set("brush_shape_slot",4);cfg.Set("brush_shape","Square");cfg.Validate();
+    Assert(CoverageAudit.SetupProblem(cfg) is not null);
+    cfg.Set("coverage_audit",false);cfg.Validate();
+});
+
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 
-sealed class RecordingStrokeInput : IStrokeInput
+sealed class RecordingStrokeInput : ICalibratedStrokeInput
 {
     public double Seconds { get; private set; }
     public ScreenPoint Cursor { get; private set; }
     public bool Held { get; private set; }
+    public bool ShiftHeld { get; private set; }
+    public int ShiftDowns { get; private set; }
+    public int ShiftUps { get; private set; }
+    public void Shift(bool up){ShiftHeld=!up;if(up)ShiftUps++;else ShiftDowns++;}
     public int Downs { get; private set; }
     public int Ups { get; private set; }
     public double DownAt { get; private set; }
     public double UpAt { get; private set; }
     public bool FailHeldMove { get; init; }
     public bool FailHeldWait { get; init; }
+    public bool FailShiftWait { get; init; }
     public HashSet<ScreenPoint> Painted { get; }=[];
     public List<ScreenPoint> HeldMoves { get; }=[];
     public List<ScreenPoint[]> Packets { get; }=[];
@@ -1422,6 +1575,7 @@ sealed class RecordingStrokeInput : IStrokeInput
     public void Wait(double seconds)
     {
         if(Held&&FailHeldWait)throw new OperationCanceledException("Synthetic pause");
+        if(ShiftHeld&&!Held&&FailShiftWait)throw new OperationCanceledException("Synthetic key pause");
         WaitDurations.Add(seconds);Seconds+=seconds;
     }
 }
