@@ -1,4 +1,8 @@
-Pixora current source snapshot
-Git commit baseline: 2a04dd31ae6151d435ac0deb2b9a705dbb3c9493
-Includes: SpeedPatch + Pixora rebrand + CanvasFix + SliderCoordinateFix
-Source only; no compiled binaries included.
+Pixora 1.0.14-beta.8 — empirical Speed Probe, conservative coverage audit and refreshed UI
+Includes beta.1–beta.7 numeric controls, calibration and dense SendInput fallback.
+Probe: paced vs Shift, per Size/axis, repeated trials plus validated margin.
+Verified Precision/adaptive routing; bounded Shift spans; stale contexts rejected.
+Optional per-color audit and bounded Size 1 repair; uncertain pixels stop transfer.
+New P brand, compiled theme, workflow readiness and consolidated controls.
+Validation: 120 Core tests, 12 WPF checks. Rust verification remains pending.
+Changes: CHANGES_1.0.14_UA.md; test guide: TESTING_1.0.14_UA.md.

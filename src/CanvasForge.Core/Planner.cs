@@ -332,6 +332,8 @@ public static class Planner
 
 public static class Coverage
 {
+    public static bool ShiftLine(Settings s,double size,ScreenLine line)
+        => SpeedCalibration.Resolve(s,size,line)?.Method==StrokeMethod.Shift;
     public static int[] Partition(int start, int end, int cells) => Enumerable.Range(0, cells + 1).Select(i => (int)Math.Round(start + (double)(end - start) * i / cells)).ToArray();
     public static List<ScreenLine> Expand(IEnumerable<Stroke> strokes, ScreenRect canvas, int w, int h, int pitch)
     {
@@ -431,20 +433,22 @@ public static class Coverage
         if (speedName is not null)
             copy.Set("speed_profile", speedName);
         var speed = SpeedProfile.Get(copy.Text("speed_profile"));
-        var groups = AdaptiveBrush.Build(plan, copy);
-        double seconds = copy.Int("start_delay", 5);
-        foreach (var lines in groups.Values)
+        var groups = TransferSchedule.Build(plan, copy);
+        double seconds = copy.Int("start_delay", 5)+3*StrokeTiming.SliderChangeEstimate(copy)+StrokeTiming.ClickEstimate(copy);
+        if(!StrokeTiming.Fast(copy) || copy.Bool("use_fixed_opacity",true)&&copy.Number("paint_opacity_value",1)!=1)
+            seconds+=StrokeTiming.SliderChangeEstimate(copy); // Final restore to Opacity 1.
+        double previousSize=speed.BrushSize;
+        var order=groups.Keys.OrderByDescending(i=>plan.Counts.GetValueOrDefault(i)).ToList();
+        if(plan.BackgroundColor is int bg){order.Remove(bg);order.Insert(0,bg);}
+        foreach (var color in order)
         {
-            seconds += copy.Mode == ColorMode.HexDirect ? StrokeTiming.HexChangeEstimate(copy) : StrokeTiming.ColorDelay(copy) + StrokeTiming.ClickEstimate(copy);
-            double previousSize = 0;
-            foreach (var op in lines)
+            seconds += copy.Mode == ColorMode.HexDirect ? StrokeTiming.HexChangeEstimate(copy)+StrokeTiming.ColorDelay(copy) : StrokeTiming.ColorDelay(copy) + StrokeTiming.ClickEstimate(copy);
+            foreach (var op in groups[color])
             {
-                if (op.Size != previousSize) seconds += StrokeTiming.SliderChangeEstimate(copy);
-                previousSize = op.Size;
-                var l = op.Line;
-                var length = Math.Max(Math.Abs(l.X2 - l.X1), Math.Abs(l.Y2 - l.Y1));
-                var shift = copy.Bool("line_mode") && copy.Text("coverage_mode") == "Fast" && length >= copy.Int("min_line_width", 4) * copy.Int("cell_px", 3);
-                seconds += StrokeTiming.Estimate(copy, speed, length, shift);
+                double size=op.Size>0?op.Size:speed.BrushSize;
+                if(copy.Bool("adaptive_brush")&&size!=previousSize)seconds+=StrokeTiming.SliderChangeEstimate(copy);
+                previousSize=size;
+                seconds += TransferSchedule.EstimateBatch(copy,speed,op);
             }
         }
 
@@ -455,7 +459,8 @@ public static class Coverage
 public static class ControlCurve
 {
     public static bool IsMaximum(string kind, double value) => kind == "size" ? value >= 99.999 : value >= .99999;
-    public static readonly (double Value, double Fraction)[] Size = [(1, 0), (2, .0031), (3, .0062), (3.85, 1.0 / 99), (5.43, 2.0 / 99), (100, 1)];
+    // Fractions refer to the interactive track, excluding the numeric field.
+    public static readonly (double Value, double Fraction)[] Size = [(1, 0), (100, 1)];
     public static double Fraction(string kind, double value)
     {
         if (kind != "size")

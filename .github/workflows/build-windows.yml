@@ -22,12 +22,24 @@ jobs:
       - name: Restore
         run: dotnet restore src/CanvasForge.App/CanvasForge.App.csproj
 
+      - name: Core regression tests
+        run: dotnet run --project tests/CanvasForge.Core.Tests/CanvasForge.Core.Tests.csproj -c Release
+
+      - name: WPF adaptive UI checks
+        run: dotnet run --project tests/CanvasForge.App.Tests/CanvasForge.App.Tests.csproj -c Release -p:BuildInParallel=false -- ui-verification
+
+      - name: Read build version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
+          "PIXORA_VERSION=$version" >> $env:GITHUB_ENV
+
       - name: Publish win-x64 self-contained
         run: dotnet publish src/CanvasForge.App/CanvasForge.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -o publish/windows-x64
 
       - name: Upload Pixora portable
         uses: actions/upload-artifact@v4
         with:
-          name: Pixora_1.0.12_Windows_x64
+          name: Pixora_${{ env.PIXORA_VERSION }}_Windows_x64
           path: publish/windows-x64/**
           if-no-files-found: error

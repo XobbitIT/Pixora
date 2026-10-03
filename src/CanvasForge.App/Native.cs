@@ -90,9 +90,11 @@ internal static class Native
     [DllImport("user32.dll")]
     private static extern bool ClientToScreen(IntPtr window, ref Point point);
     [DllImport("user32.dll")]
+    private static extern bool GetClientRect(IntPtr window, out Rect rect);
+    [DllImport("user32.dll")]
     private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
-    [DllImport("gdi32.dll")]
-    private static extern int GetDeviceCaps(IntPtr dc, int index);
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr window);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern int GetWindowText(IntPtr window, StringBuilder text, int length);
     [DllImport("user32.dll")]
@@ -174,9 +176,8 @@ internal static class Native
         return pid;
     }
 
-    // Process-name match is the robust signal; the window title can be localized
-    // or transiently empty. Falls back silently when the process is not readable
-    // (e.g. Rust running elevated), letting the title check decide.
+    // Bind only to the game process. Browser/Steam titles mentioning Rust must
+    // never qualify as input targets, even if the actual game is not running.
     public static bool IsRustProcess(IntPtr window)
     {
         if (window == IntPtr.Zero) return false;
@@ -194,11 +195,7 @@ internal static class Native
 
     public static bool IsRust(IntPtr window)
     {
-        if (window == IntPtr.Zero) return false;
-        var title = Title(window);
-        if (title.Contains("Pixora", StringComparison.OrdinalIgnoreCase) || title.Contains("CanvasForge", StringComparison.OrdinalIgnoreCase))
-            return false;
-        return IsRustProcess(window) || title.Contains("Rust", StringComparison.OrdinalIgnoreCase);
+        return IsRustProcess(window);
     }
 
     // Finds the single visible Rust window without relying on captured screen
@@ -220,21 +217,24 @@ internal static class Native
     public static ScreenPoint ClientOrigin(IntPtr window)
     {
         var p = new Point { X = 0, Y = 0 };
-        ClientToScreen(window, ref p);
+        if (!ClientToScreen(window, ref p))
+            throw new Win32Exception("Cannot locate the Rust client area.");
         return new(p.X, p.Y);
+    }
+
+    public static ScreenSize ClientSize(IntPtr window)
+    {
+        if (!GetClientRect(window, out var rect))
+            throw new Win32Exception("Cannot read the Rust client size.");
+        return new(rect.R - rect.L, rect.B - rect.T);
     }
 
     public static int DpiOf(IntPtr window)
     {
-        if (window == IntPtr.Zero) return 96;
-        var dc = GetDC(window);
-        if (dc == IntPtr.Zero) return 96;
-        try
-        {
-            var dpi = GetDeviceCaps(dc, 90); // LOGPIXELSY
-            return dpi > 0 ? dpi : 96;
-        }
-        finally { ReleaseDC(window, dc); }
+        var dpi = GetDpiForWindow(window);
+        if (dpi == 0)
+            throw new Win32Exception("Cannot read the Rust window DPI.");
+        return checked((int)dpi);
     }
 
     private static void Send(params Input[] inputs)

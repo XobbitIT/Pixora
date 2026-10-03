@@ -300,7 +300,10 @@ public static class ImageProcessing
                 var alpha = ww == 0 ? 0 : Math.Clamp(aa / ww, 0, 1);
                 var divisor = Math.Abs(aa) < 1e-9 ? 1 : aa;
                 static byte Byte(double v) => (byte)Math.Clamp((int)Math.Round(v), 0, 255);
-                result.Set(y * width + x, new(Byte(rs / divisor * alpha + 255 * (1 - alpha)), Byte(gs / divisor * alpha + 255 * (1 - alpha)), Byte(bs / divisor * alpha + 255 * (1 - alpha))), Byte(alpha * 255));
+                // Keep straight RGB and alpha separate. A white matte here is
+                // irreversible once the planner turns accepted cells opaque.
+                result.Set(y * width + x, alpha <= 0 ? new(0, 0, 0)
+                    : new(Byte(rs / divisor), Byte(gs / divisor), Byte(bs / divisor)), Byte(alpha * 255));
             }
         });
         return result;
@@ -319,12 +322,16 @@ public static class ImageProcessing
                 for (var x = 0; x < src.Width; x++)
                     for (var ch = 0; ch < 3; ch++)
                     {
+                        if (src.Alpha(y * src.Width + x) == 0) continue;
                         var n = 0;
                         for (var dy = -1; dy <= 1; dy++)
                             for (var dx = -1; dx <= 1; dx++)
-                                vals[n++] = src.Rgba[(Math.Clamp(y + dy, 0, src.Height - 1) * src.Width + Math.Clamp(x + dx, 0, src.Width - 1)) * 4 + ch];
-                        Array.Sort(vals);
-                        dest.Rgba[(y * src.Width + x) * 4 + ch] = vals[4];
+                            {
+                                var index = Math.Clamp(y + dy, 0, src.Height - 1) * src.Width + Math.Clamp(x + dx, 0, src.Width - 1);
+                                if (src.Alpha(index) > 0) vals[n++] = src.Rgba[index * 4 + ch];
+                            }
+                        Array.Sort(vals, 0, n);
+                        dest.Rgba[(y * src.Width + x) * 4 + ch] = vals[n / 2];
                     }
             });
             im = dest;
@@ -337,7 +344,7 @@ public static class ImageProcessing
         {
             var blurred = Gaussian(im, .85, token);
             for (var i = 0; i < im.Rgba.Length; i++)
-                if (i % 4 != 3)
+                if (i % 4 != 3 && im.Alpha(i / 4) > 0)
                 {
                     var delta = im.Rgba[i] - blurred.Rgba[i];
                     if (Math.Abs(delta) > 3)
@@ -366,15 +373,19 @@ public static class ImageProcessing
                 for (var x = 0; x < im.Width; x++)
                     for (var ch = 0; ch < 3; ch++)
                     {
-                        double v = 0;
+                        if (input.Alpha(y * im.Width + x) == 0) continue;
+                        double v = 0, total = 0;
                         for (var k = -r; k <= r; k++)
                         {
                             var xx = pass == 0 ? Math.Clamp(x + k, 0, im.Width - 1) : x;
                             var yy = pass == 1 ? Math.Clamp(y + k, 0, im.Height - 1) : y;
-                            v += input.Rgba[(yy * im.Width + xx) * 4 + ch] * weights[k + r];
+                            var index = yy * im.Width + xx;
+                            var weight = weights[k + r] * input.Alpha(index) / 255.0;
+                            v += input.Rgba[index * 4 + ch] * weight;
+                            total += weight;
                         }
 
-                        output.Rgba[(y * im.Width + x) * 4 + ch] = (byte)Math.Clamp((int)Math.Round(v), 0, 255);
+                        output.Rgba[(y * im.Width + x) * 4 + ch] = (byte)Math.Clamp((int)Math.Round(v / Math.Max(1e-12, total)), 0, 255);
                     }
             });
         }

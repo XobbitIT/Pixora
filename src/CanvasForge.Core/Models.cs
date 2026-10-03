@@ -13,6 +13,7 @@ public readonly record struct Rgb(byte R, byte G, byte B)
 }
 
 public readonly record struct ScreenPoint(int X, int Y);
+public readonly record struct ScreenSize(int Width, int Height);
 public readonly record struct ScreenRect(int Left, int Top, int Right, int Bottom)
 {
     public int Width => Right - Left;
@@ -103,6 +104,11 @@ public sealed class Settings
     }
 
     public void SetCalibration(Calibration c) => Data["calibration"] = c.Data.DeepClone();
+    public void SetPaintCalibration(Calibration c)
+    {
+        if (Mode == ColorMode.HexDirect) Data["hex_controls"] = c.Data.DeepClone();
+        else SetCalibration(c);
+    }
     public List<PaletteEntry> Palette()
     {
         var colors = Data["rust_palette"] as JsonArray;
@@ -147,6 +153,13 @@ public sealed class Settings
         var hexLimit = Text("hex_max_colors", "128");
         if (hexLimit != "Auto" && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 256))
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
+        if (Int("adaptive_max_size", 20) is not (10 or 20))
+            throw new InvalidDataException("Adaptive maximum Size must be 10 or 20.");
+        var motionPacket=Number("fast_path_batch_points",8);
+        if(!double.IsFinite(motionPacket)||motionPacket is <1 or >16||motionPacket!=Math.Truncate(motionPacket))
+            throw new InvalidDataException("Fast movement packet must be an integer from 1 to 16.");
+        if(Number("probe_size",3) is not (1 or 3 or 10 or 20))throw new InvalidDataException("Probe Size must be 1, 3, 10 or 20.");
+        if(Number("audit_repair_passes",1) is not (1 or 2))throw new InvalidDataException("Repair passes must be 1 or 2.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
             throw new InvalidDataException("Canvas is too large.");
@@ -236,7 +249,16 @@ public sealed class Settings
             ["control_verify_retries"] = 2,
             ["control_verify_tolerance"] = 0.12,
             ["adaptive_threshold"] = 1.0,
-            ["min_line_width"] = 4
+            ["min_line_width"] = 4,
+            ["adaptive_brush"] = false,
+            ["fast_transfer"] = false,
+            ["fast_path_batch_points"] = 8,
+            ["calibrated_strokes"] = false,
+            ["coverage_audit"] = false,
+            ["audit_repair"] = false,
+            ["audit_repair_passes"] = 1,
+            ["probe_size"] = 3,
+            ["adaptive_max_size"] = 20
         }
 
         )
@@ -253,6 +275,7 @@ public sealed class Settings
         if (s.Text("color_mode") != "HEX Direct")
             s.Set("color_mode", "Rust Palette");
         s.Validate();
+        AdaptiveBrush.UpgradeCalibrationContext(s);
         return s;
     }
 
@@ -296,13 +319,21 @@ public sealed class Calibration(JsonObject data)
     // coordinates from this baseline to the window's current position, so a
     // moved / re-launched Rust window no longer shifts the picture.
     public ScreenPoint? SessionClient
-        => Get("session_client_x") == 0 && Get("session_client_y") == 0 ? null : new(Get("session_client_x"), Get("session_client_y"));
+        => int.TryParse(Data["session_client_x"]?.ToString(), out var x)
+            && int.TryParse(Data["session_client_y"]?.ToString(), out var y) ? new(x, y) : null;
     public int SessionDpi => CoordinateRebase.NormalizeDpi(Get("session_dpi"));
-    public void SetSession(ScreenPoint clientOrigin, int dpi)
+    public ScreenSize? SessionSize => Get("session_client_width") > 0 && Get("session_client_height") > 0
+        ? new(Get("session_client_width"), Get("session_client_height")) : null;
+    public void SetSession(ScreenPoint clientOrigin, int dpi, ScreenSize? size = null)
     {
         Set("session_client_x", clientOrigin.X);
         Set("session_client_y", clientOrigin.Y);
         Set("session_dpi", CoordinateRebase.NormalizeDpi(dpi));
+        if (size is { } dimensions)
+        {
+            Set("session_client_width", dimensions.Width);
+            Set("session_client_height", dimensions.Height);
+        }
     }
 
     public List<ScreenPoint> GridCenters(string k, int cols, int rows)
@@ -315,6 +346,47 @@ public sealed class Calibration(JsonObject data)
             for (var x = 0; x < cols; x++)
                 result.Add(new((int)Math.Round(r.Left + (x + .5) * r.Width / cols), (int)Math.Round(r.Top + (y + .5) * r.Height / rows)));
         return result;
+    }
+}
+
+public static class CalibrationSession
+{
+    public const string DpiChangedMessage = "Масштаб DPI вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.";
+    public const string SizeChangedMessage = "Розмір вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.";
+
+    // Align every stored coordinate before capturing another region. Updating just
+    // the baseline would silently leave the other regions in the previous frame.
+    public static CoordinateRebase Align(Settings settings, ScreenPoint origin, int dpi, ScreenSize? size = null)
+    {
+        var cal = settings.Calibration;
+        dpi = CoordinateRebase.NormalizeDpi(dpi);
+        var transform = default(CoordinateRebase);
+        if (cal.SessionClient is { } baseline)
+        {
+            if (cal.SessionDpi != dpi)
+                throw new InvalidOperationException(DpiChangedMessage);
+            if (cal.SessionSize is { } previous && size is { } current && previous != current)
+                throw new InvalidOperationException(SizeChangedMessage);
+            AdaptiveBrush.UpgradeCalibrationContext(settings);
+            transform = new(baseline.X, baseline.Y, cal.SessionDpi, origin.X, origin.Y, dpi);
+            transform.ApplyTo(cal.Data);
+            if (settings.Data["palette_click_points"] is JsonArray palette)
+                transform.ApplyTo(palette);
+            if (settings.Data["hex_controls"] is JsonObject hex)
+                transform.ApplyTo(hex);
+        }
+        cal.SetSession(origin, dpi, size);
+        settings.SetCalibration(cal);
+        return transform;
+    }
+
+    // A DPI change does not prove that Rust's game UI scales by the same factor.
+    // A new capture starts fresh rather than mixing incompatible geometries.
+    public static void Reset(Settings settings)
+    {
+        settings.Data.Remove("calibration");
+        foreach (var key in new[] { "hex_controls", "rust_palette", "palette_click_points", "palette_sources", "brush_calibration_points", "brush_calibration_context" })
+            settings.Data.Remove(key);
     }
 }
 
@@ -409,7 +481,12 @@ public static class PlanIdentity
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
-        hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + settings.Data.ToJsonString() + JsonSerializer.Serialize(palette)));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
+        var paintSettings = (JsonObject)settings.Data.DeepClone();
+        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "fast_move_span_px" })
+            paintSettings.Remove(key);
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + paintSettings.ToJsonString() + JsonSerializer.Serialize(palette)));
         return Convert.ToHexString(hash.GetHashAndReset());
     }
 }
@@ -417,49 +494,62 @@ public static class PlanIdentity
 public static class StrokeTiming
 {
     public static bool Experimental(Settings settings) => settings.Text("input_engine", "Stable") == "Experimental 1 ms";
-    public static double Frame(Settings settings) => Experimental(settings) ? .001 : Math.Clamp(settings.Number("input_frame_delay_ms", 20), 16, 100) / 1000;
-    public static double Settle(Settings settings, SpeedProfile speed) => Experimental(settings) ? .001 : Math.Max(.005, speed.StartDelay);
-    public static double EndHold(Settings settings, SpeedProfile speed) => Experimental(settings) ? .001 : Math.Max(Frame(settings), speed.UpDelay);
+    public static double Frame(Settings settings) => Experimental(settings) ? .016 : Math.Clamp(settings.Number("input_frame_delay_ms", 20), 16, 100) / 1000;
+    public static double Settle(Settings settings, SpeedProfile speed) => Experimental(settings) ? .008 : Math.Max(.005, speed.StartDelay);
+    public static double EndHold(Settings settings, SpeedProfile speed) => Math.Max(Frame(settings), speed.UpDelay);
     public static double Release(Settings settings) => Math.Max(Frame(settings), settings.Number("cycle_delay_ms") / 1000);
+    public static bool Fast(Settings s) => s.Bool("fast_transfer");
+    public static double ClickSettle(Settings s) => Fast(s) ? Frame(s) : Math.Max(.04,s.Number("click_delay",.02));
+    public static double ClickHold(Settings s) => Fast(s) ? 2*Frame(s) : Math.Max(.08,s.Number("mouse_up_delay_ms",8)/1000);
+    public static double ClickRelease(Settings s,bool twice=false) => Fast(s) ? Frame(s) : twice ? Math.Max(.08,s.Number("reclick_delay_ms",35)/1000) : .08;
+    public static double KeyHold(Settings s) => Fast(s) ? 2*Frame(s) : .05;
+    public static double KeyRelease(Settings s) => Fast(s) ? Frame(s) : .05;
+    public static double ModifierSettle(Settings s) => Fast(s) ? Frame(s) : .05;
+    public static double ModifierRelease(Settings s) => Fast(s) ? Frame(s) : .06;
+    public static double CopyDelay(Settings s) => Fast(s) ? 3*Frame(s) : .15;
+    public static double ControlCommit(Settings s) => Fast(s) ? 4*Frame(s) : .25;
+    public static double CursorPark(Settings s) => Fast(s) ? 2*Frame(s) : .15;
+    public static double HexPaste(Settings s) => Fast(s) ? 2*Frame(s) : .18;
+    public static double HexCommit(Settings s) => Math.Max(ControlCommit(s),s.Number("hex_apply_delay_ms",180)/1000);
+    private static double KeyEstimate(Settings s) => KeyHold(s)+KeyRelease(s);
+    private static double ChordEstimate(Settings s) => ModifierSettle(s)+KeyEstimate(s)+ModifierRelease(s);
 
     public static double ClickEstimate(Settings settings, bool twice = false)
     {
-        var one = Experimental(settings)
-            ? .002 + .012 + .004
-            : Math.Max(.005, settings.Number("click_delay", .02)) + Math.Max(.04, settings.Number("mouse_up_delay_ms", 8) / 1000) + .04;
-        if (!twice) return one;
-        return Experimental(settings)
-            ? 2 * (.002 + .012) + 2 * .012
-            : 2 * (Math.Max(.005, settings.Number("click_delay", .02)) + Math.Max(.04, settings.Number("mouse_up_delay_ms", 8) / 1000) + Math.Max(.04, settings.Number("reclick_delay_ms", 35) / 1000));
+        return (twice?2:1)*(ClickSettle(settings)+ClickHold(settings)+ClickRelease(settings,twice));
     }
 
     public static double SliderChangeEstimate(Settings settings)
     {
-        var sequence = settings.Number("sequence_delay_ms", 3) / 1000;
-        // Includes the first-session size verification delay. Later changes of the
-        // same calibrated size are normally cheaper because that readback is cached.
-        return Experimental(settings) ? .02 + .03 + sequence + .016 : .08 + .08 + .15 + sequence + .05;
+        // Numeric edit, Enter, a fresh select/copy readback, and screenshot check.
+        return 2*ClickEstimate(settings)+4*ChordEstimate(settings)+2*KeyEstimate(settings)
+            +ControlCommit(settings)+CopyDelay(settings)+CursorPark(settings);
     }
 
     public static double ColorDelay(Settings settings)
     {
         var configured = settings.Number("color_delay", .1);
-        var speed = settings.Text("speed_profile", "Rapid");
-        return Experimental(settings) && (speed is "Rapid" or "Turbo" or "Max Speed") ? Math.Min(configured, .03) : configured;
+        return Math.Max(.10, configured);
     }
 
     public static double HexChangeEstimate(Settings settings)
     {
-        // Average cost after the speed patch: swatch-first verification with a
-        // periodic full HEX readback. This is deliberately conservative for ETA.
-        return Experimental(settings) ? .65 : 1.8;
+        // Includes guarded keyboard input and swatch-first verification with a
+        // periodic full HEX readback. Retries can extend the actual duration.
+        var apply=ClickEstimate(settings)+(Fast(settings)?Frame(settings):.05)+2*ChordEstimate(settings)
+            +HexPaste(settings)+KeyEstimate(settings)+HexCommit(settings);
+        var read=ClickEstimate(settings)+2*ChordEstimate(settings)+CopyDelay(settings);
+        var swatch=settings.Calibration.Rect("swatch").Valid||settings.Calibration.Point("color_swatch") is not null;
+        return apply+read/(swatch?Math.Clamp(settings.Int("hex_readback_every",8),1,64):1);
     }
 
     public static double Estimate(Settings settings, SpeedProfile speed, int length, bool shift)
     {
+        if(TransferSchedule.Fast(settings)&&!shift)
+            return TransferSchedule.EstimateBatch(settings,speed,new(0,new[]{new ScreenLine(0,0,length,0)},1));
         var travel = shift ? settings.Number("stroke_speed", .028) * Math.Max(1, length) / 100
             : Math.Ceiling(length / (double)speed.Pitch) * speed.PointDelay;
-        return Settle(settings, speed) + Frame(settings) + travel + EndHold(settings, speed) + Release(settings);
+        return Settle(settings, speed) + Math.Max(.04, Frame(settings) + travel + EndHold(settings, speed)) + Release(settings);
     }
 }
 
