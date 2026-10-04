@@ -1,3 +1,5 @@
+using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 
 namespace CanvasForge.App;
@@ -9,7 +11,17 @@ internal sealed partial class MainWindow
     private CoverageState coverageState;
     private bool coverageHasGaps;
     private StatusChip coverageChip = new();
+    private Button coverageAction = new(), workflowCoverageAction = new();
     private TextBlock coverageExplanation = new();
+
+    private Button CreateCoverageAction(StatusChip chip)
+    {
+        var button = new Button { Content = chip, Style = (Style)FindResource("StatusChipAction"), HorizontalAlignment = chip.HorizontalAlignment };
+        ToolTipService.SetShowOnDisabled(button, true);
+        AutomationProperties.SetName(button, T("Покриття: відкрити діагностику", "Coverage: open diagnostics"));
+        button.Click += (_, _) => Guard(ShowAuditDiagnostics);
+        return button;
+    }
 
     private void ResetCoverageState()
     {
@@ -37,6 +49,13 @@ internal sealed partial class MainWindow
             CoverageState.Unchecked => (T("Без аудиту", "Not audited"), Muted),
             _ => settings.Bool("coverage_audit") ? (T("Очікує", "Pending"), Warning) : (T("Вимкнено", "Disabled"), Muted)
         };
+        if (chip.Compact) text = coverageState switch
+        {
+            CoverageState.NeedsReview => T("Увага", "Review"),
+            CoverageState.Checking => T("Триває", "Checking"),
+            CoverageState.Unchecked => T("Без аудиту", "Unaudited"),
+            _ => text
+        };
         chip.Set(text, tone);
     }
 
@@ -55,7 +74,17 @@ internal sealed partial class MainWindow
                 ? T("Очікує нового START. Speed Probe перевіряє швидкість вводу; покриття малюнка перевіряється окремо.", "Waiting for a fresh START. Speed Probe checks input timing; painting coverage is audited separately.")
                 : T("Увімкни аудит нижче, щоб перевіряти покриття після кожного кольору. Speed Probe не підтверджує покриття малюнка.", "Enable auditing below to check coverage after each color. Speed Probe does not verify painting coverage.")
         };
-        coverageChip.ToolTip = coverageExplanation.Text;
-        if (workflowChips.TryGetValue("coverage", out var workflow)) workflow.ToolTip = coverageExplanation.Text;
+        bool available = HasAuditSnapshots();
+        string hint = available
+            ? T("Відкрити діагностику останнього START. Доступно також клавішами Enter або Пробіл.", "Open diagnostics from the last START. Enter or Space also opens them.")
+            : auditNotice is not null
+                ? T("Збережені знімки недоступні. Для нової діагностики потрібен новий START.", "Saved snapshots are unavailable. Run a fresh START for new diagnostics.")
+                : T("Діагностика з’явиться, якщо аудит виявить проблему.", "Diagnostics become available if the audit finds a problem.");
+        foreach (var action in new[] { coverageAction, workflowCoverageAction })
+        {
+            action.IsEnabled = available; action.ToolTip = coverageExplanation.Text + "\n\n" + hint;
+        }
+        coverageChip.ToolTip = coverageAction.ToolTip;
+        if (workflowChips.TryGetValue("coverage", out var workflow)) workflow.ToolTip = workflowCoverageAction.ToolTip;
     }
 }

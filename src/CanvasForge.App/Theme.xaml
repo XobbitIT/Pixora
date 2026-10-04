@@ -2,6 +2,20 @@
   <SolidColorBrush x:Key="ThemeAccent" Color="#FF7A18"/>
   <SolidColorBrush x:Key="ThemeInput" Color="#282C36"/>
   <SolidColorBrush x:Key="ThemeBorder" Color="#3B4252"/>
+  <Style x:Key="StatusChipAction" TargetType="Button">
+    <Setter Property="Cursor" Value="Hand"/><Setter Property="Margin" Value="0"/>
+    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+      <Border x:Name="Focus" CornerRadius="14" BorderThickness="1" BorderBrush="Transparent" Background="Transparent">
+        <ContentPresenter/>
+      </Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Focus" Property="BorderBrush" Value="{StaticResource ThemeAccent}"/></Trigger>
+        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Focus" Property="BorderBrush" Value="{StaticResource ThemeAccent}"/></Trigger>
+        <Trigger Property="IsPressed" Value="True"><Setter TargetName="Focus" Property="Opacity" Value="0.78"/></Trigger>
+        <Trigger Property="IsEnabled" Value="False"><Setter Property="Cursor" Value="Arrow"/><Setter TargetName="Focus" Property="BorderBrush" Value="Transparent"/></Trigger>
+      </ControlTemplate.Triggers>
+    </ControlTemplate></Setter.Value></Setter>
+  </Style>
   <Style TargetType="Button">
     <Setter Property="Background" Value="{StaticResource ThemeInput}"/><Setter Property="Foreground" Value="#F3F4F7"/>
     <Setter Property="BorderBrush" Value="{StaticResource ThemeBorder}"/><Setter Property="BorderThickness" Value="1"/>

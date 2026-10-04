@@ -21,6 +21,8 @@ internal sealed class AuditFailureException(int group, AuditResult result, strin
 internal sealed partial class MainWindow
 {
     private AuditFailureException? auditNotice;
+    private bool auditBannerDismissed;
+    private readonly Action<Window> presentAuditDiagnostics;
     private Border auditBanner = new();
     private TextBlock auditHeadline = new(), auditSummary = new();
     private Button auditDiagnosticButton = new(), auditDismissButton = new();
@@ -36,7 +38,7 @@ internal sealed partial class MainWindow
         var actions = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         auditDiagnosticButton = Button(T("Показати пропуски", "Show gaps"), ShowAuditDiagnostics);
         auditDiagnosticButton.ToolTip = T("Порівняти Canvas до та після малювання й переглянути пропуски.", "Compare Canvas before and after painting and inspect confirmed gaps.");
-        auditDismissButton = Button(T("Закрити", "Dismiss"), () => { auditNotice = null; RefreshAuditBanner(); });
+        auditDismissButton = Button(T("Закрити", "Dismiss"), () => { auditBannerDismissed = true; RefreshAuditBanner(); });
         auditDismissButton.Margin = new Thickness(8, 4, 0, 4);
         actions.Children.Add(auditDiagnosticButton); actions.Children.Add(auditDismissButton);
         Grid.SetColumn(actions, 1); body.Children.Add(actions);
@@ -54,7 +56,7 @@ internal sealed partial class MainWindow
 
     private void RefreshAuditBanner()
     {
-        auditBanner.Visibility = auditNotice is null ? Visibility.Collapsed : Visibility.Visible;
+        auditBanner.Visibility = auditNotice is null || auditBannerDismissed ? Visibility.Collapsed : Visibility.Visible;
         if (auditNotice is null) return;
         var tone = auditNotice.Missing > 0 ? Danger : Warning;
         var color = ((SolidColorBrush)tone).Color;
@@ -70,7 +72,16 @@ internal sealed partial class MainWindow
     private void ShowAuditDiagnostics()
     {
         if (auditNotice is null) return;
-        var dialog = CreateAuditDiagnosticWindow(); dialog.Owner = this; dialog.Show();
+        presentAuditDiagnostics(CreateAuditDiagnosticWindow());
+    }
+
+    private bool HasAuditSnapshots() => auditNotice is not null && new[] { "gaps", "after", "before" }
+        .Any(kind => File.Exists(Path.Combine(auditNotice.DirectoryPath, $"group-{auditNotice.Group}-{kind}.png")));
+
+    private void ClearAuditDiagnostics()
+    {
+        auditNotice = null; auditBannerDismissed = false;
+        RefreshAuditBanner(); RefreshCoverageStatus();
     }
 
     private Window CreateAuditDiagnosticWindow()

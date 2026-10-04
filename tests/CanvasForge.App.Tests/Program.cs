@@ -40,7 +40,9 @@ internal static class Program
         CheckSettingsEnglish(destination);
         CheckCoverageStates(destination,"Українська");
         CheckCoverageStates(destination,"English");
-        Console.WriteLine("ALL 25 WPF UI CHECKS PASSED");
+        CheckPolish(destination,"Українська",900,620);
+        CheckPolish(destination,"English",2000,780);
+        Console.WriteLine("ALL 27 WPF UI CHECKS PASSED");
         // Windows are rendered without showing or invoking game/capture/input actions.
     }
 
@@ -241,7 +243,8 @@ internal static class Program
         string name="audit-banner-"+(language=="English"?"en":"ua")+"-"+width;
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
         var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
+        Window? presented=null;
+        var window=new MainWindow(directory, dialog=>presented=dialog);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
         var before=new PixelImage(64,64);var after=before.Clone();var overlay=after.Clone();
         before.Set(0,new(30,30,30));after.Set(0,new(0,220,0));overlay.Set(0,new(255,40,70));
         foreach(var (kind,snapshot) in new[]{("before",before),("after",after),("gaps",overlay)})Images.Save(snapshot,Path.Combine(diagnostics,$"group-0-{kind}.png"));
@@ -281,6 +284,32 @@ internal static class Program
         Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Audit banner cannot be dismissed");
         Assert(File.ReadAllText(Path.Combine(directory,"config-csharp.json"))==originalConfig,"Viewing or dismissing diagnostics changed painting settings");
         Assert(File.Exists(Path.Combine(diagnostics,"group-0-gaps.png")),"Dismissing the banner deleted audit evidence");
+        Invoke(window,"BuildUi");
+        Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Rebuilding UI reopened a dismissed banner");
+        foreach(string key in new[]{"workflowCoverageAction","coverageAction"})
+        {
+            var action=Field<Button>(window,key);Assert(action.IsEnabled,"Dismissed audit diagnostics cannot be reopened from "+key);
+            presented=null;action.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+            Assert(presented is not null&&Descendants((FrameworkElement)presented.Content).OfType<Image>().Single().Source is not null,"Coverage chip did not reopen the retained snapshots");
+            Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Opening diagnostics restored the dismissed banner");
+        }
+        // The chip is a real button with a keyboard focus indicator and an Invoke peer.
+        var sidebarAction=Field<Button>(window,"workflowCoverageAction");
+        var peer=new System.Windows.Automation.Peers.ButtonAutomationPeer(sidebarAction);
+        Assert(peer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke) is System.Windows.Automation.Provider.IInvokeProvider,"Coverage chip is not keyboard/automation accessible");
+        Assert(!string.IsNullOrEmpty(System.Windows.Automation.AutomationProperties.GetName(sidebarAction)),"Coverage action has no accessible name");
+        presented=null;((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke)).Invoke();
+        window.Dispatcher.Invoke(()=>{},System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        Assert(presented is not null,"Accessible Invoke did not open diagnostics");
+        Assert(File.ReadAllText(Path.Combine(directory,"config-csharp.json"))==originalConfig,"Reopening diagnostics changed painting settings");
+        foreach(string kind in new[]{"gaps","after"})File.Delete(Path.Combine(diagnostics,$"group-0-{kind}.png"));
+        Invoke(window,"RefreshCoverageStatus");
+        Assert(!Field<Button>(window,"coverageAction").IsEnabled&&!Field<Button>(window,"workflowCoverageAction").IsEnabled,"Coverage action remained available with no snapshots");
+        Assert(Field<Button>(window,"coverageAction").ToolTip.ToString()!.Contains(language=="English"?"unavailable":"недоступні"),"Missing snapshots have no explanation");
+        typeof(MainWindow).GetMethod("Error",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,[failure]);
+        Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Visible,"A new audit error failed to restore its banner");
+        Invoke(window,"ClearAuditDiagnostics");
+        Assert(Field<AuditFailureException?>(window,"auditNotice") is null&&!Field<Button>(window,"coverageAction").IsEnabled&&Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Fresh START retained stale audit diagnostics");
         Console.WriteLine("PASS "+name);
     }
 
@@ -406,8 +435,49 @@ internal static class Program
         Assert(Label()==Expected("Потребує уваги","Needs review"),"Dismissing an audit failure falsely cleared its status");
         var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
         var coverage=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,["coverage"])!;
-        Assert(((TextBlock)coverage.Child).Text==Label(),"Coverage sidebar chip differs from the audit page");
+        Assert(((TextBlock)coverage.Child).Text==Expected("Увага","Review")&&((SolidColorBrush)coverage.BorderBrush).Color==((SolidColorBrush)Chip().BorderBrush).Color,"Compact coverage sidebar disagrees with the audit page");
         Render(window,Path.Combine(output,name+"-failure.png"),900);
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckPolish(string output,string language,int width,int height)
+    {
+        bool english=language=="English";string name="polish-"+(english?"en":"ua");var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        Render(window,Path.Combine(output,name+"-empty.png"),width,height);
+        var surface=Field<PreviewPanel>(window,"previewSurface");
+        var hints=Descendants(surface).OfType<TextBlock>().Where(x=>x.Text.Contains(english?"will appear here":"Тут буде")).ToArray();
+        Assert(hints.Length==2&&hints.All(x=>x.Visibility==Visibility.Visible),"Empty preview has no localized placeholders");
+        var sample=Images.Bitmap(new PixelImage(64,64));
+        Field<Image>(window,"originalImage").Source=sample;Field<Image>(window,"previewImage").Source=sample;
+        Render(window,Path.Combine(output,name+"-filled.png"),width,height);
+        Assert(hints.All(x=>x.Visibility==Visibility.Collapsed),"Preview hints obscure loaded images");
+        Field<Image>(window,"originalImage").Source=null;Field<Image>(window,"previewImage").Source=null;
+        Render(window,Path.Combine(output,name+"-reset.png"),width,height);
+        Assert(hints.All(x=>x.Visibility==Visibility.Visible),"Preview hints did not return after clearing images");
+        var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+        double totalHeight=0;
+        foreach(string key in new[]{"image","rust","brush","speed","coverage"})
+        {
+            var chip=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,[key])!;
+            var row=key=="coverage"?(Grid)((Button)chip.Parent).Parent:(Grid)chip.Parent;
+            var label=row.Children.OfType<TextBlock>().Single();
+            var point=chip.TransformToAncestor(row).Transform(new Point());
+            Assert(point.X>=label.ActualWidth+6&&point.X+chip.ActualWidth<=row.ActualWidth+.1,"Compact workflow row overlaps or clips its chip: "+key);
+            Assert(row.ActualHeight<=30,"Compact workflow row is still too tall");totalHeight+=row.ActualHeight+row.Margin.Top+row.Margin.Bottom;
+        }
+        Assert(totalHeight<155,"Preparation checklist still crowds the sidebar");
+        window.ShowPage("settings");Render(window,Path.Combine(output,name+"-settings.png"),width,height);
+        var page=Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"];
+        foreach(var button in Descendants(page).OfType<Button>().Where(x=>x.Content?.ToString() is "Застосувати профіль" or "Про програму" or "Apply profile" or "About"))
+            Assert(button.HorizontalAlignment==HorizontalAlignment.Left&&button.ActualWidth<260,"Settings action is still stretched");
+        foreach(var expander in Descendants(page).OfType<Expander>().ToArray())expander.IsExpanded=true;
+        ((FrameworkElement)window.Content).UpdateLayout();
+        foreach(var box in Descendants(page).OfType<TextBox>())
+        {
+            var label=((Grid)box.Parent).Children.OfType<TextBlock>().Single();
+            Assert(label.ToolTip?.ToString()==label.Text,"Numeric label has no full-text tooltip");
+        }
         Console.WriteLine("PASS "+name);
     }
 }

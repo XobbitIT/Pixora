@@ -12,7 +12,8 @@ internal sealed partial class MainWindow
         page.Children.Add(Text(T("Налаштування", "Settings"), 24));
         page.Children.Add(Card(T("Основні налаштування", "General settings"), out var basic));
         AddCombo(basic, "profile", T("Профіль якості", "Quality profile"), new[] { "Anime / Line Art", "Photo", "Fast", "Pixel Art", "Custom" });
-        basic.Children.Add(Button(T("Застосувати профіль", "Apply profile"), ApplyProfile));
+        var applyProfile = Button(T("Застосувати профіль", "Apply profile"), ApplyProfile);
+        applyProfile.HorizontalAlignment = HorizontalAlignment.Left; basic.Children.Add(applyProfile);
         basic.Children.Add(Text(T("Профіль застосовується кнопкою: змінює деталізацію, розмиття, очищення та інші параметри обробки. Пресети на сторінці «Малювання» змінюють деталізацію та профіль руху. Ручні зміни мають пріоритет до наступного застосування профілю.", "Apply profile changes detail, blur, cleanup and other image processing settings. Painting presets change detail and movement profile. Manual edits remain in effect until you apply a profile again."), 11, Muted));
         basic.Children.Add(Text(T("Режим кольорів, ліміт кольорів, деталізація та Speed Engine — на сторінці «Малювання».", "Color mode, color limit, detail, and Speed Engine are on the Painting page."), 11, Muted));
         var advanced = new StackPanel();
@@ -101,7 +102,8 @@ internal sealed partial class MainWindow
         AddCheck(preview, "transfer_simulator", T("Прев’ю на матеріалі Canvas", "Preview on Canvas material"));
         AddCheck(preview, "smooth_preview", T("Згладжувати прев’ю", "Smooth preview"));
         AddCheck(preview, "auto_insert_preview", T("Показувати вставку після захоплення Canvas", "Show insertion after capturing Canvas"));
-        page.Children.Add(Button(T("Про програму", "About"), () => MessageBox.Show($"Pixora {BuildInfo.Full}\n.NET 8 / WPF\nRust Palette + Quick Colors / HEX Direct\nF6 — PAUSE • ESC — STOP\n" + T("Ця версія потребує перевірки в Rust на Windows.", "This version needs Windows / Rust verification."), "Pixora")));
+        var about = Button(T("Про програму", "About"), () => MessageBox.Show($"Pixora {BuildInfo.Full}\n.NET 8 / WPF\nRust Palette + Quick Colors / HEX Direct\nF6 — PAUSE • ESC — STOP\n" + T("Ця версія потребує перевірки в Rust на Windows.", "This version needs Windows / Rust verification."), "Pixora"));
+        about.HorizontalAlignment = HorizontalAlignment.Left; page.Children.Add(about);
     }
 
     private void ApplyProfile()

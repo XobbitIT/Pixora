@@ -1,8 +1,6 @@
-Pixora 1.0.14-beta.11 — aligned numeric fields, fitted previews and coverage status
-Numeric columns: 160 px label / 12 px gap / 85 px field.
-Preview cards fit image aspect ratios; horizontal/vertical comparison uses whole images.
-Settings UI includes explicit Ukrainian and English captions.
-Separate session coverage state in sidebar and audit section, independent from Speed Probe.
-Audited completion verifies coverage; edits invalidate status, dismissal preserves failures.
-Painting timing and coverage algorithms retained. Raster offset not compensated.
-Validation: 123 Core tests, 25 WPF checks. In-game validation pending.
+Pixora 1.0.14-beta.12 — retained audit diagnostics and compact workflow UI
+Coverage chips reopen snapshots after banner dismissal; keyboard/accessibility supported.
+Fresh START clears prior diagnostics; missing files disable the action with a tooltip.
+Compact preparation rows; localized empty previews; caption-sized Settings buttons.
+Numeric labels expose full captions in tooltips.
+Validation: 123 Core tests, 27 WPF checks. In-game validation pending.

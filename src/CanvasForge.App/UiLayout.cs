@@ -19,14 +19,17 @@ internal sealed partial class MainWindow
     private sealed class StatusChip : Border
     {
         private readonly TextBlock label = new() { FontSize = 12, FontWeight = FontWeights.SemiBold };
-        public StatusChip()
+        public bool Compact { get; }
+        public StatusChip(bool compact = false)
         {
+            Compact = compact;
             Child = label;
             CornerRadius = new CornerRadius(12);
             BorderThickness = new Thickness(1);
             Padding = new Thickness(9, 3, 9, 3);
             HorizontalAlignment = HorizontalAlignment.Left;
             Margin = new Thickness(0, 4, 0, 7);
+            if (compact) { label.FontSize = 11; Padding = new Thickness(6, 2, 6, 2); Margin = new Thickness(0); HorizontalAlignment = HorizontalAlignment.Right; }
         }
         public void Set(string text, Brush color)
         {
@@ -43,10 +46,16 @@ internal sealed partial class MainWindow
         workflowChips.Clear();
         foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")), ("speed", "Speed Probe"), ("coverage", T("Покриття", "Coverage")) })
         {
-            parent.Children.Add(Text(title, 11, Muted));
-            var chip = new StatusChip();
+            var row = new Grid { Margin = new Thickness(0, 3, 0, 3) };
+            row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            row.ColumnDefinitions.Add(new() { Width = new GridLength(8) });
+            row.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
+            var label = Text(title + ":", 11, Muted); label.VerticalAlignment = VerticalAlignment.Center; row.Children.Add(label);
+            var chip = new StatusChip(true);
             workflowChips[key] = chip;
-            parent.Children.Add(chip);
+            FrameworkElement status = chip;
+            if (key == "coverage") { workflowCoverageAction = CreateCoverageAction(chip); status = workflowCoverageAction; }
+            Grid.SetColumn(status, 2); row.Children.Add(status); parent.Children.Add(row);
         }
     }
 

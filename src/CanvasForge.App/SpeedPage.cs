@@ -41,7 +41,7 @@ internal sealed partial class MainWindow
             results.Children.Add(Text($"Size {row.Size} · {(row.Vertical?T("вертикаль","vertical"):T("горизонталь","horizontal"))} · {row.Method} · {row.SafeMs:0} ms · {row.MaxLength} px",12));
         probe.Children.Add(Text(T("Тест залишає пробні штрихи. Після нього очисти Canvas. ESC скасовує. Повтори для потрібних Size; зміна форми або захоплення потребує нового тесту.","The test leaves sample strokes. Clear Canvas afterwards. ESC cancels. Repeat for the Sizes you use; changed capture or shape requires a new test."),12,Muted));
         page.Children.Add(Card(T("2. Перевірка покриття","2. Coverage verification"),out var audit));
-        coverageChip=new StatusChip();audit.Children.Add(coverageChip);
+        coverageChip=new StatusChip();coverageAction=CreateCoverageAction(coverageChip);audit.Children.Add(coverageAction);
         coverageExplanation=Text("",12,Muted);audit.Children.Add(coverageExplanation);
         auditEnabled=AddCheck(audit,"coverage_audit",T("Перевіряти після кожного кольору","Audit after each color"),true);
         AddCheck(audit,"audit_repair",T("Дофарбовувати підтверджені пропуски","Repair confirmed gaps"));

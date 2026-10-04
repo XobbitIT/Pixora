@@ -55,8 +55,9 @@ internal sealed partial class MainWindow : Window
 
     private string T(string uk, string? en = null) => English ? en ?? Translations.Get(uk) : uk;
     private static Brush BrushOf(string s) => (Brush)new BrushConverter().ConvertFromString(s)!;
-    public MainWindow(string? dataFolder = null)
+    public MainWindow(string? dataFolder = null, Action<Window>? diagnosticPresenter = null)
     {
+        presentAuditDiagnostics = diagnosticPresenter ?? (dialog => { dialog.Owner = this; dialog.Show(); });
         if (dataFolder is not null) folder = Path.GetFullPath(dataFolder);
         Directory.CreateDirectory(folder);
         if (dataFolder is null) MigrateLegacyData();
@@ -192,8 +193,8 @@ internal sealed partial class MainWindow : Window
         File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="error",details=new{version=BuildInfo.Version,page=currentPage,type=e.GetType().Name,message=e.Message}})+Environment.NewLine);
         if (e is AuditFailureException audit)
         {
-            auditNotice = audit; coverageState=CoverageState.NeedsReview;coverageHasGaps=audit.Missing>0;RefreshCoverageStatus();RefreshAuditBanner();
-            SetStatus(T("Перевір діагностику в банері аудиту.", "Review the diagnostics in the audit banner."));
+            auditNotice = audit; auditBannerDismissed = false; coverageState=CoverageState.NeedsReview;coverageHasGaps=audit.Missing>0;RefreshCoverageStatus();RefreshAuditBanner();
+            SetStatus(T("Відкрий діагностику через чіп «Покриття» або банер аудиту.", "Open diagnostics through the Coverage chip or the audit banner."));
             return;
         }
         if(coverageState==CoverageState.Checking){coverageState=CoverageState.Interrupted;RefreshCoverageStatus();}
@@ -473,7 +474,7 @@ internal sealed partial class MainWindow : Window
         row.ColumnDefinitions.Add(new() { Width = new GridLength(160) });
         row.ColumnDefinitions.Add(new() { Width = new GridLength(12) });
         row.ColumnDefinitions.Add(new() { Width = new GridLength(85) });
-        var label=Text(title,11,Muted);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
+        var label=Text(title,11,Muted);label.ToolTip=T(title);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
         var box = new TextBox
         {
             Text = settings.Number(key).ToString(CultureInfo.InvariantCulture),
@@ -827,7 +828,7 @@ internal sealed partial class MainWindow : Window
             window = Native.FindRustAt(cal.Rect("canvas").Center);
         if (!Native.IsRust(window))
             throw new InvalidOperationException(T("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.", "Rust window was not found. Make sure the game is open, then capture again."));
-        auditNotice=null;RefreshAuditBanner();
+        ClearAuditDiagnostics();
         var cancellation = paintCancel = new();
         var snapshot = settings.Clone();
         var activePlan = plan;

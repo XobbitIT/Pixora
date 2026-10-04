@@ -66,14 +66,21 @@ internal sealed partial class MainWindow
         originalImage = new() { Stretch = System.Windows.Media.Stretch.Uniform };
         previewImage = new() { Stretch = System.Windows.Media.Stretch.Uniform };
         previewSurface = new PreviewPanel(originalImage, previewImage); preview.Children.Add(previewSurface);
-        Border Frame(string title, Image image)
+        Border Frame(string title, string emptyText, Image image)
         {
             var body = new Grid(); body.RowDefinitions.Add(new() { Height = new GridLength(PreviewPanel.Header) }); body.RowDefinitions.Add(new());
             body.Children.Add(Text(title, 14)); Grid.SetRow(image, 1); body.Children.Add(image);
+            var placeholder = Text(emptyText, 13, Muted);
+            placeholder.HorizontalAlignment = HorizontalAlignment.Center; placeholder.VerticalAlignment = VerticalAlignment.Center;
+            placeholder.TextAlignment = TextAlignment.Center; placeholder.Margin = new Thickness(12); placeholder.Opacity = .65; placeholder.IsHitTestVisible = false;
+            var style = new Style(typeof(TextBlock)); style.Setters.Add(new Setter(VisibilityProperty, Visibility.Collapsed));
+            var empty = new DataTrigger { Binding = new System.Windows.Data.Binding(nameof(Image.Source)) { Source = image }, Value = null };
+            empty.Setters.Add(new Setter(VisibilityProperty, Visibility.Visible)); style.Triggers.Add(empty); placeholder.Style = style;
+            Grid.SetRow(placeholder, 1); body.Children.Add(placeholder);
             return new Border { Child = body, Background = Panel, BorderBrush = BorderColor, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(9), Padding = new Thickness(6) };
         }
-        previewSurface.Children.Add(Frame(T("Оригінал", "Original"), originalImage));
-        previewSurface.Children.Add(Frame(T("Результат", "Result"), previewImage));
+        previewSurface.Children.Add(Frame(T("Оригінал", "Original"), T("Тут буде оригінал", "Your original image will appear here"), originalImage));
+        previewSurface.Children.Add(Frame(T("Результат", "Result"), T("Тут буде результат", "Your result will appear here"), previewImage));
         var footer = new DockPanel { Margin = new Thickness(0, 8, 0, 0) }; Grid.SetRow(footer, 1); preview.Children.Add(footer);
         void Layout()
         {
