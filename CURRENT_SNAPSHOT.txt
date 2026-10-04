@@ -1,8 +1,9 @@
-Pixora 1.0.14-beta.9 — adjustable Experimental paint timing
-Experimental endpoint delay 8–16 ms, default 12; Stable 16–100 ms.
-Dense intermediate SendInput coordinates and 40 ms minimum hold retained.
-Numeric and HEX verification keep independent minimum 16 ms control timing.
-Motion group timing and explicit no-safe-footprint repair diagnostics.
-Includes empirical Speed Probe, conservative audit and beta.8 UI refresh.
-Validation: 123 Core tests, 13 WPF checks. In-game validation pending.
+Pixora 1.0.14-beta.10 — readable forms and actionable audit diagnostics
+Form width 880 px; numeric row width 360 px / field 85 px.
+Separate Brush and Speed Probe sidebar pages, semantic workflow/status chips.
+Dismissible audit banner and embedded before/after/gaps viewer, local diagnostics.
+Manual detail highlights matching preset; custom detail and current movement are shown.
+Neutral disabled STOP, full-card result preview and side-by-side comparison.
+Painting timing and coverage classification from beta.9 retained.
+Validation: 123 Core tests, 19 WPF checks. In-game validation pending.
 Raster offset at color edges is not automatically compensated.

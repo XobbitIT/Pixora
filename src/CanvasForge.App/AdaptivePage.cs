@@ -11,18 +11,12 @@ internal sealed partial class MainWindow
     private CheckBox adaptiveEnabled = new();
     private Button adaptiveCalibrate = new();
     private string adaptiveFailure = "";
-    private TabControl brushTabs = new();
-    private void ShowSpeedSetup(){ShowPage("adaptive");brushTabs.SelectedIndex=1;}
+    private void ShowSpeedSetup()=>ShowPage("speed");
 
     private void BuildAdaptive()
     {
-        var page = new StackPanel();
-        var wrapper=new StackPanel();pages["adaptive"] = Scroll(wrapper);
-        wrapper.Children.Add(Text(T("Пензель і швидкість", "Brush and speed"), 24));
-        var speedPage=new StackPanel();
-        brushTabs=new TabControl{Margin=new Thickness(0,12,0,0)};
-        brushTabs.Items.Add(new TabItem{Header=T("Пензель","Brush"),Content=page});
-        brushTabs.Items.Add(new TabItem{Header=T("Speed Probe і аудит","Speed Probe and audit"),Content=speedPage});wrapper.Children.Add(brushTabs);
+        var page = FormContent();pages["adaptive"] = Scroll(page);
+        page.Children.Add(Text(T("Пензель", "Brush"), 24));
         page.Children.Add(Card(T("1. Підготовка", "1. Preparation"), out var preparation));
         adaptivePreparation = Text("", 12); preparation.Children.Add(adaptivePreparation);
         preparation.Children.Add(Button(T("Захопити Canvas і керування Rust", "Capture Canvas and Rust controls"), () => ShowPage("capture")));
@@ -76,7 +70,7 @@ internal sealed partial class MainWindow
         AddNumber(values,"brush_size_value","Size");AddNumber(values,"interval_value","Interval");
         AddNumber(values,"paint_opacity_value","Opacity");AddCheck(values,"use_fixed_opacity",T("Фіксована прозорість","Fixed opacity"));
         values.Children.Add(Text(T("У Precision з точними параметрами Size задає профіль руху, Interval = 0.01. Ручний Size діє з вимкненими точними параметрами й авторозміром. Адаптивний режим задає Size кожного штриха.","In Precision with precision controls, the movement profile sets Size and Interval is 0.01. Manual Size applies with precision controls and automatic sizing disabled. Adaptive mode sets each stroke's Size."),12,Muted));
-        BuildSpeedSections(speedPage);
+        page.Children.Add(Button(T("Перейти до Speed Probe", "Go to Speed Probe"), ShowSpeedSetup));
     }
 
     private void RefreshAdaptiveStatus()

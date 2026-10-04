@@ -16,7 +16,7 @@
         <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource ThemeAccent}"/></Trigger>
         <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource ThemeAccent}"/><Setter TargetName="Frame" Property="BorderThickness" Value="2"/></Trigger>
         <Trigger Property="IsPressed" Value="True"><Setter TargetName="Frame" Property="Opacity" Value="0.78"/></Trigger>
-        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Frame" Property="Opacity" Value="0.4"/></Trigger>
+        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Frame" Property="Background" Value="#282C36"/><Setter TargetName="Frame" Property="BorderBrush" Value="#3B4252"/><Setter TargetName="Frame" Property="Opacity" Value="0.5"/><Setter Property="Foreground" Value="#BAC2D2"/></Trigger>
       </ControlTemplate.Triggers>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
@@ -42,7 +42,7 @@
       </Grid>
       <ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="#747E93"/></Trigger>
         <Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Frame" Property="BorderBrush" Value="{StaticResource ThemeAccent}"/></Trigger>
-        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Frame" Property="Opacity" Value="0.4"/></Trigger></ControlTemplate.Triggers>
+        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Frame" Property="Background" Value="#282C36"/><Setter TargetName="Frame" Property="BorderBrush" Value="#3B4252"/><Setter TargetName="Frame" Property="Opacity" Value="0.5"/><Setter Property="Foreground" Value="#BAC2D2"/></Trigger></ControlTemplate.Triggers>
     </ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style TargetType="ComboBoxItem"><Setter Property="Foreground" Value="#F3F4F7"/><Setter Property="Background" Value="#282C36"/><Setter Property="Padding" Value="10,8"/>

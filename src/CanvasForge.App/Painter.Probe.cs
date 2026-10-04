@@ -66,8 +66,9 @@ internal sealed partial class Painter
             result=CoverageAudit.Read(before,after,expected,result.Reference);
         }
         var overlay=after.Clone();
+        Images.Save(after,Path.Combine(directory,$"group-{group}-after.png"));
         for(int i=0;i<expected.Length;i++)if(result.MissingMask[i])overlay.Set(i,new(255,40,70));
         Images.Save(overlay,Path.Combine(directory,$"group-{group}-gaps.png"));
-        throw new InvalidOperationException($"Аудит не підтвердив заливку: {result.Missing} пропусків, {result.Unknown} невпевнених px. Діагностика: {directory}. Після перевірки потрібен новий START.");
+        throw new AuditFailureException(group,result,directory);
     }
 }

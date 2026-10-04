@@ -8,6 +8,20 @@ namespace CanvasForge.App;
 internal sealed partial class MainWindow
 {
     private TextBlock speedStatus=new();
+    private StatusChip speedChip=new();
+    private string speedFailure="";
+    private void BuildSpeedPage()
+    {
+        var page=FormContent();pages["speed"]=Scroll(page);
+        page.Children.Add(Text(T("Speed Probe і аудит","Speed Probe and audit"),24));
+        BuildSpeedSections(page);
+    }
+    private void SetSpeedChip(StatusChip chip)
+    {
+        if(speedFailure.Length>0)chip.Set(T("Помилка","Error"),Danger);
+        else if(SpeedCalibration.Current(settings))chip.Set(T("Перевірено","Verified"),Success);
+        else chip.Set(settings.Data["speed_probe_profile"] is null?T("Очікує","Pending"):T("Застаріло","Stale"),Warning);
+    }
     private Button probeButton=new();
     private CheckBox calibratedMotion=new();
     private CheckBox auditEnabled=new();
@@ -17,7 +31,8 @@ internal sealed partial class MainWindow
         probe.Children.Add(Text(T("На чистому Canvas порівнює звичайний рух і Shift-лінії. Кожну затримку перевіряє тричі та додає запас.","Compares paced movement and Shift lines on a clean Canvas. Tests each delay three times and validates a safety margin."),12));
         AddCombo(probe,"probe_size",T("Size для тесту","Probe Size"),new[]{"1","3","10","20"});
         probeButton=AsyncButton(T("Запустити Speed Probe","Run Speed Probe"),RunSpeedProbe,true);probe.Children.Add(probeButton);
-        speedStatus=Text("",12);probe.Children.Add(speedStatus);
+        speedChip=new StatusChip();probe.Children.Add(speedChip);
+        speedStatus=Text("",12,Muted);probe.Children.Add(speedStatus);
         calibratedMotion=new CheckBox{Content=T("Використовувати підтверджений маршрут","Use the verified movement route"),IsChecked=settings.Bool("calibrated_strokes")};
         readers["calibrated_strokes"]=()=>calibratedMotion.IsChecked==true;
         calibratedMotion.Click+=(_,_)=>Guard(()=>{ReadSettings();Dirty();RefreshSpeedStatus();});probe.Children.Add(calibratedMotion);
@@ -39,7 +54,8 @@ internal sealed partial class MainWindow
         var canvas=settings.Calibration.Rect("canvas");
         auditEnabled.IsEnabled=!Painting&&(settings.Bool("coverage_audit")||ready&&(long)canvas.Width*canvas.Height<=4_000_000&&settings.Number("paint_opacity_value",1)==1&&settings.Bool("use_fixed_opacity",true));
         auditEnabled.ToolTip=T("Потрібне поточне калібрування суцільного пензля, Opacity 1 та Canvas до 4 млн px.","Requires current solid brush calibration, Opacity 1 and Canvas up to 4 million pixels.");
-        speedStatus.Text=current?T("✓ Є підтверджені маршрути. Інші Size використовують звичайний ввід.","Verified routes are available. Other Sizes use normal input.")
+        SetSpeedChip(speedChip);
+        speedStatus.Text=speedFailure.Length>0?speedFailure:current?T("✓ Є підтверджені маршрути. Інші Size використовують звичайний ввід.","Verified routes are available. Other Sizes use normal input.")
             :settings.Data["speed_probe_profile"] is null?T("Швидкість ще не перевірена.","Speed has not been tested yet."):T("Результат тесту застарів — повтори Speed Probe.","Probe results are stale — run Speed Probe again.");
     }
     private async Task RunSpeedProbe()
@@ -55,7 +71,7 @@ internal sealed partial class MainWindow
         var worker=painter=new Painter(snapshot,target,ResumePath,LogPath,_=>{},cancel.Token);
         var restore=new Painter(settings,target,ResumePath,LogPath,_=>{},CancellationToken.None);
         var selected=new List<SpeedSample>();
-        SetEditing(false);Hide();
+        speedFailure="";SetEditing(false);Hide();
         try
         {
             paintTask=Task.Run(async ()=>
@@ -114,11 +130,14 @@ internal sealed partial class MainWindow
             await paintTask;
             var rows=(old?.Samples??[]).Where(x=>x.Size!=size).Concat(selected).ToList();
             settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,rows));
-            settings.Set("calibrated_strokes",rows.Count>0);Dirty();
+            settings.Set("calibrated_strokes",rows.Count>0);
+            if(selected.Count==0)speedFailure=T("Жоден маршрут для цього Size не пройшов перевірку. Очисти Canvas і повтори тест.","No route for this Size passed verification. Clear Canvas and repeat the test.");
+            Dirty();
             File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_complete",details=new{version=BuildInfo.Version,size,selected,profileContext=SpeedCalibration.Context(settings)}})+Environment.NewLine);
             SetStatus(selected.Count>0?T("Тест завершено. Підтверджені маршрути збережено; очисти Canvas перед START.","Test complete. Verified routes saved; clear Canvas before START."):T("Жоден маршрут не пройшов перевірку. Збережено звичайний ввід.","No route passed verification. Normal input remains active."));
         }
         catch(OperationCanceledException){SetStatus(T("Speed Probe скасовано. Очисти Canvas перед повтором.","Speed Probe cancelled. Clear Canvas before retrying."));}
+        catch(Exception e){speedFailure=e.Message;throw;}
         finally
         {
             Native.Release();

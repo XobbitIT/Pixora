@@ -30,10 +30,11 @@ internal sealed partial class MainWindow : Window
     private string currentPage = "paint";
     private readonly Dictionary<string,Button> navigation = new();
     private readonly Dictionary<string,string> numberErrors = new();
-    private TextBlock workflowStatus = new();
     private Grid host = new();
     private Grid contentArea = new();
     private Image originalImage = new(), previewImage = new();
+    private bool previewComparison = true;
+    private Button previewModeButton = new();
     private TextBlock status = new(), badge = new(), ready = new(), stats = new(), eta = new(), fileLabel = new(), progressLabel = new(), captureStatus = new();
     private ProgressBar progressBar = new();
     private TextBox experimentalDelay=new();
@@ -189,6 +190,16 @@ internal sealed partial class MainWindow : Window
     private void Error(Exception e)
     {
         File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="error",details=new{version=BuildInfo.Version,page=currentPage,type=e.GetType().Name,message=e.Message}})+Environment.NewLine);
+        if (e is AuditFailureException audit)
+        {
+            auditNotice = audit; RefreshAuditBanner();
+            SetStatus(T("Перевір діагностику в банері аудиту.", "Review the diagnostics in the audit banner."));
+            return;
+        }
+        if(currentPage=="speed")
+        {
+            speedFailure=e.Message;RefreshSpeedStatus();SetSpeedChip(workflowChips["speed"]);
+        }
         SetStatus(e.Message);
         MessageBox.Show(T(e.Message), "Pixora", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
@@ -221,13 +232,15 @@ internal sealed partial class MainWindow : Window
     {
         buildingUi = true;
         readers.Clear();
-        navigation.Clear();numberErrors.Clear();
+        navigation.Clear();numberErrors.Clear();detailPresets.Clear();
         pages.Clear();
         var root = new Grid
         {
-            Margin = new Thickness(18, 10, 18, 10)
+            Margin = new Thickness(18, 10, 18, 10),
+            Background = Bg
         };
         root.RowDefinitions.Add(new() { Height = new GridLength(62) });
+        root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         root.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
         root.RowDefinitions.Add(new() { Height = new GridLength(34) });
         var top = new DockPanel();
@@ -281,7 +294,8 @@ internal sealed partial class MainWindow : Window
         var shell = new Grid();
         shell.ColumnDefinitions.Add(new() { Width = new GridLength(190) });
         shell.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
-        Grid.SetRow(shell, 1);
+        BuildAuditBanner(root);
+        Grid.SetRow(shell, 2);
         root.Children.Add(shell);
         var side = new StackPanel
         {
@@ -292,7 +306,7 @@ internal sealed partial class MainWindow : Window
             Background = Panel,
             BorderBrush = BorderColor,
             BorderThickness = new Thickness(1),
-            Child = side,
+            Child = Scroll(side),
             Margin = new Thickness(0, 0, 10, 8)
         };
         shell.Children.Add(sidebar);
@@ -301,7 +315,8 @@ internal sealed partial class MainWindow : Window
         {
             ("paint", T("Малювання")),
             ("capture", T("Захоплення Rust")),
-            ("adaptive", T("Пензель і швидкість", "Brush and speed")),
+            ("adaptive", T("Пензель", "Brush")),
+            ("speed", "Speed Probe"),
             ("settings", T("Налаштування"))
         }
 
@@ -311,13 +326,14 @@ internal sealed partial class MainWindow : Window
             navigation[key]=nav;side.Children.Add(nav);
         }
         side.Children.Add(Text(T("ПІДГОТОВКА", "PREPARATION"),10,Muted));
-        workflowStatus=Text("",11,Muted);workflowStatus.Margin=new Thickness(0,10,0,0);side.Children.Add(workflowStatus);
+        BuildWorkflow(side);
         host = new();
         Grid.SetColumn(host, 1);
         shell.Children.Add(host);
         BuildPaint();
         BuildCapture();
         BuildAdaptive();
+        BuildSpeedPage();
         BuildSettings();
         foreach (var p in pages.Values)
             host.Children.Add(p);
@@ -329,7 +345,7 @@ internal sealed partial class MainWindow : Window
             BorderThickness = new Thickness(1),
             Padding = new Thickness(10, 5, 10, 5)
         };
-        Grid.SetRow(footer, 2);
+        Grid.SetRow(footer, 3);
         root.Children.Add(footer);
         status = Text(T("Завантаж картинку, захопи Canvas і натисни START.", "Load an image, capture Canvas, and press START."), 11, Muted);
         footer.Child = status;
@@ -359,14 +375,25 @@ internal sealed partial class MainWindow : Window
         header.Children.Add(Text(T("Малювання","Painting"),24));page.Children.Add(header);
         contentArea=new Grid();contentArea.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
         contentArea.ColumnDefinitions.Add(new(){Width=new GridLength(360)});Grid.SetRow(contentArea,1);page.Children.Add(contentArea);
-        var previewCard=new Border{Background=Panel,BorderBrush=BorderColor,BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(9),Margin=new Thickness(0,0,12,0),Padding=new Thickness(16)};
+        var previewCard=new Border{Background=Panel,BorderBrush=BorderColor,BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(9),Margin=new Thickness(0,0,12,0),Padding=new Thickness(10)};
         contentArea.Children.Add(previewCard);var previews=new Grid();previewCard.Child=previews;
         previews.RowDefinitions.Add(new(){Height=GridLength.Auto});previews.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});previews.RowDefinitions.Add(new(){Height=GridLength.Auto});
         previews.ColumnDefinitions.Add(new());previews.ColumnDefinitions.Add(new());
         previews.Children.Add(Text(T("Оригінал","Original"),14));var resultLabel=Text(T("Результат","Result"),14);Grid.SetColumn(resultLabel,1);previews.Children.Add(resultLabel);
-        originalImage=new(){Stretch=Stretch.Uniform,Margin=new Thickness(0,12,6,12)};previewImage=new(){Stretch=Stretch.Uniform,Margin=new Thickness(6,12,0,12)};
+        originalImage=new(){Stretch=Stretch.Uniform,Margin=new Thickness(0,6,4,6)};previewImage=new(){Stretch=Stretch.Uniform,Margin=new Thickness(4,6,0,6)};
         Grid.SetRow(originalImage,1);Grid.SetRow(previewImage,1);Grid.SetColumn(previewImage,1);previews.Children.Add(originalImage);previews.Children.Add(previewImage);
-        fileLabel=Text(T("Відкрий зображення, щоб побачити прев’ю.","Open an image to see the preview."),12,Muted);Grid.SetRow(fileLabel,2);Grid.SetColumnSpan(fileLabel,2);previews.Children.Add(fileLabel);
+        var previewFooter=new DockPanel();Grid.SetRow(previewFooter,2);Grid.SetColumnSpan(previewFooter,2);previews.Children.Add(previewFooter);
+        void LayoutPreviews()
+        {
+            originalImage.Visibility=previewComparison?Visibility.Visible:Visibility.Collapsed;
+            previews.Children[0].Visibility=originalImage.Visibility;
+            Grid.SetColumn(resultLabel,previewComparison?1:0);Grid.SetColumnSpan(resultLabel,previewComparison?1:2);
+            Grid.SetColumn(previewImage,previewComparison?1:0);Grid.SetColumnSpan(previewImage,previewComparison?1:2);
+            previewModeButton.Content=previewComparison?T("Збільшити результат","Enlarge result"):T("Порівняти","Compare");
+        }
+        previewModeButton=Button("",()=>{previewComparison=!previewComparison;LayoutPreviews();});previewModeButton.Padding=new Thickness(10,6,10,6);
+        DockPanel.SetDock(previewModeButton,Dock.Right);previewFooter.Children.Add(previewModeButton);
+        fileLabel=Text(T("Відкрий зображення, щоб побачити прев’ю.","Open an image to see the preview."),12,Muted);fileLabel.VerticalAlignment=VerticalAlignment.Center;previewFooter.Children.Add(fileLabel);LayoutPreviews();
         var right=new StackPanel();var scroll=Scroll(right);Grid.SetColumn(scroll,1);contentArea.Children.Add(scroll);
         right.Children.Add(Card(T("1. Підготовка","1. Preparation"),out var preparation));ready=Text("",13);preparation.Children.Add(ready);
         preparation.Children.Add(Button(T("Налаштувати Rust","Set up Rust"),()=>ShowPage("capture")));
@@ -378,9 +405,11 @@ internal sealed partial class MainWindow : Window
         foreach(var (label,cell,speed) in new[]{(T("Чітко · 1 px","Detail · 1 px"),1,"Rapid"),(T("Баланс · 3 px","Balanced · 3 px"),3,"Rapid"),(T("Швидко · 5 px","Fast · 5 px"),5,"Turbo"),(T("Чернетка · 8 px","Draft · 8 px"),8,"Max Speed")})
         {
             var preset=Button(label,()=>Preset(cell,speed));preset.ToolTip=T("Менше px — більше деталей. Пресет змінює деталізацію й профіль руху.","Fewer px preserves more detail. A preset changes detail and movement profile.");
-            if(settings.Int("cell_px")==cell&&settings.Text("speed_profile")==speed)preset.BorderBrush=Accent;presets.Add(preset);
+            detailPresets[cell]=preset;presets.Add(preset);
         }
-        quality.Children.Add(presets.Panel);AddNumber(quality,"cell_px",T("Деталізація, px","Detail, px"),true);
+        quality.Children.Add(presets.Panel);
+        detailInput=AddNumber(quality,"cell_px",T("Деталізація, px","Detail, px"),true);
+        detailState=Text("",12,Muted);quality.Children.Add(detailState);
         AddCheck(quality,"fast_transfer",T("Максимальна швидкість перенесення","Maximum transfer speed"),true);
         adaptiveSummary=Text("",12,Muted);quality.Children.Add(adaptiveSummary);
         quality.Children.Add(Button(T("Speed Probe і аудит","Speed Probe and audit"),ShowSpeedSetup));
@@ -455,11 +484,14 @@ internal sealed partial class MainWindow : Window
     {
         var row = new Grid
         {
-            Margin = new Thickness(0, 4, 0, 4)
+            Margin = new Thickness(0, 4, 0, 4),
+            MaxWidth = 360,
+            HorizontalAlignment = HorizontalAlignment.Left
         };
+        row.SetBinding(WidthProperty, new System.Windows.Data.Binding("ActualWidth") { Source = parent });
         row.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
         row.ColumnDefinitions.Add(new() { Width = new GridLength(85) });
-        row.Children.Add(Text(title, 11, Muted));
+        var label=Text(title,11,Muted);label.Margin=new Thickness(0,3,12,3);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
         var box = new TextBox
         {
             Text = settings.Number(key).ToString(CultureInfo.InvariantCulture),
@@ -474,7 +506,7 @@ internal sealed partial class MainWindow : Window
             bool valid=double.TryParse(box.Text,NumberStyles.Float,CultureInfo.InvariantCulture,out var value)&&double.IsFinite(value)&&value>=0;
             if(valid)valid=key switch
             {
-                "cell_px"=>value>=1&&value<=64&&value==Math.Truncate(value),
+                "cell_px"=>value>=1&&value<=32&&value==Math.Truncate(value),
                 "fast_path_batch_points"=>value>=1&&value<=16&&value==Math.Truncate(value),
                 "input_frame_delay_ms"=>value>=16&&value<=100,
                 "input_experimental_delay_ms"=>value>=8&&value<=16,
@@ -599,6 +631,7 @@ internal sealed partial class MainWindow : Window
         if(numberErrors.Count>0)missing=numberErrors.Values.First();
         if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)missing=T(auditProblem);
         if(settings.Bool("calibrated_strokes")&&!SpeedCalibration.Use(settings))missing=T("Повтори Speed Probe або вимкни підтверджений маршрут. Потрібні Precision та Opacity 1.","Repeat Speed Probe or disable the verified route. Precision and Opacity 1 are required.");
+        UpdateDetailPreset();
         RefreshAdaptiveStatus();
         if(settings.Bool("adaptive_brush"))try{AdaptiveBrush.Validate(settings);}catch(InvalidOperationException e){missing=T(e.Message);}
         bool available=missing is null;
@@ -609,7 +642,7 @@ internal sealed partial class MainWindow : Window
         resumeButton.ToolTip=settings.Bool("coverage_audit")?T("Аудит потребує нового START.","Audit requires a fresh START."):T("Продовжити збережений план","Continue the saved plan");
         pauseButton.IsEnabled=Painting;stopButton.IsEnabled=Painting;
         string State(bool value)=>value?T("готово","ready"):T("очікує","pending");
-        workflowStatus.Text=$"{T("Зображення","Image")}: {State(source is not null)}\n\nRust: {State(canvas&&color&&controls)}\n\n{T("Пензель","Brush")}: {State(AdaptiveBrush.CalibrationCurrent(settings))}\n\nSpeed Probe: {State(SpeedCalibration.Current(settings))}";
+        UpdateWorkflow(canvas,color,controls);
         captureStatus.Text=$"{T("Canvas","Canvas")}: {(canvas?$"{cal.Rect("canvas").Width} × {cal.Rect("canvas").Height} px":T("не захоплено","not captured"))}\n{T("Кольори","Colors")}: {(color?T("готові","ready"):T("потрібне налаштування","setup needed"))}\n{T("Пензель і числові поля","Brush and numeric fields")}: {State(controls)}";
     }
 
@@ -797,6 +830,7 @@ internal sealed partial class MainWindow : Window
             window = Native.FindRustAt(cal.Rect("canvas").Center);
         if (!Native.IsRust(window))
             throw new InvalidOperationException(T("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.", "Rust window was not found. Make sure the game is open, then capture again."));
+        auditNotice=null;RefreshAuditBanner();
         var cancellation = paintCancel = new();
         var snapshot = settings.Clone();
         var activePlan = plan;
@@ -920,4 +954,3 @@ internal sealed partial class MainWindow : Window
         }
     }
 }
-

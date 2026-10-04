@@ -7,7 +7,7 @@ internal sealed partial class MainWindow
 {
     private void BuildCapture()
     {
-        var page = new StackPanel();
+        var page = FormContent();
         pages["capture"] = Scroll(page);
         page.Children.Add(Text(T("Захоплення Rust"), 24));
         page.Children.Add(Card("Налаштування Rust", out var hero));

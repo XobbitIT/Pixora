@@ -28,7 +28,13 @@ internal static class Program
         CheckSpeedWindow(destination,"Українська",900,true);
         CheckPreflight(destination);
         CheckExperimentalWindow(destination);
-        Console.WriteLine("ALL 13 WPF UI CHECKS PASSED");
+        CheckFormLayout(destination,"Українська",2000);
+        CheckFormLayout(destination,"English",900);
+        CheckAuditNotice(destination,"Українська",900,false);
+        CheckAuditNotice(destination,"English",2000,true);
+        CheckDetailAndPreview(destination);
+        CheckSpeedChips(destination);
+        Console.WriteLine("ALL 19 WPF UI CHECKS PASSED");
         // Windows are rendered without showing or invoking game/capture/input actions.
     }
 
@@ -125,10 +131,10 @@ internal static class Program
         settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Shift,false,8,12,1,40,3,1)]));
         return settings;
     }
-    private static void Render(MainWindow window,string path,int width)
+    private static void Render(MainWindow window,string path,int width,int height=780)
     {
-        var root=(FrameworkElement)window.Content;root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
-        var bitmap=new RenderTargetBitmap(width,780,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
+        var root=(FrameworkElement)window.Content;root.Measure(new Size(width,height));root.Arrange(new Rect(0,0,width,height));root.UpdateLayout();
+        var bitmap=new RenderTargetBitmap(width,height,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
         var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using var file=File.Create(path);encoder.Save(file);
     }
     private static void CheckSpeedWindow(string output,string language,int width,bool stale)
@@ -138,7 +144,8 @@ internal static class Program
         if(stale){settings.Set("brush_shape_slot",4);settings.Set("brush_shape","Square");settings.Set("calibrated_strokes",true);}
         settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
         Render(window,Path.Combine(output,name+".png"),width);
-        Assert(Field<TabControl>(window,"brushTabs").SelectedIndex==1,"Speed setup link did not select the speed tab");
+        Assert(Field<Dictionary<string,FrameworkElement>>(window,"pages")["speed"].Visibility==Visibility.Visible,"Speed setup link did not open its sidebar page");
+        Assert(!Descendants((FrameworkElement)window.Content).OfType<TabControl>().Any(),"Nested navigation is still present");
         Assert(Field<Button>(window,"probeButton").IsEnabled==!stale,"Probe did not require current brush calibration");
         Assert(Field<CheckBox>(window,"auditEnabled").IsEnabled==!stale,"Audit did not require current calibration");
         var toggle=Field<CheckBox>(window,"calibratedMotion");
@@ -190,6 +197,131 @@ internal static class Program
         foreach(var scroll in Descendants((FrameworkElement)window.Content).OfType<ScrollViewer>().Where(x=>Descendants(x).Any(v=>ReferenceEquals(v,field))).ToArray())
             scroll.ScrollToVerticalOffset(Math.Max(0,scroll.VerticalOffset+field.TransformToAncestor(scroll).Transform(new Point()).Y-240));
         ((FrameworkElement)window.Content).UpdateLayout();Render(window,Path.Combine(output,name+".png"),900);
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckFormLayout(string output,string language,int width)
+    {
+        string name="forms-"+(language=="English"?"en":"ua")+"-"+width;
+        var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(window,"pages");
+        foreach(string key in new[]{"capture","settings","adaptive","speed"})
+        {
+            window.ShowPage(key);Render(window,Path.Combine(output,name+"-"+key+".png"),width);
+            var scroll=(ScrollViewer)pages[key];var content=(StackPanel)scroll.Content;
+            Assert(content.ActualWidth<=880.1&&content.ActualWidth>300,"Form width was not bounded: "+key);
+            foreach(var expander in Descendants(content).OfType<Expander>().ToArray())expander.IsExpanded=true;
+            ((FrameworkElement)window.Content).UpdateLayout();
+            foreach(var box in Descendants(content).OfType<TextBox>())
+            {
+                if(box.Parent is not Grid row)continue;
+                Assert(row.ActualWidth<=360.1,"Numeric label/field row stretched across the form");
+                Assert(box.ActualWidth>=84&&box.TransformToAncestor(row).Transform(new Point()).X<=276,"Numeric field is clipped or too far from its label");
+            }
+            if(key=="settings")
+            {
+                var box=Descendants(content).OfType<TextBox>().First();
+                scroll.ScrollToVerticalOffset(Math.Max(0,box.TransformToAncestor(scroll).Transform(new Point()).Y-200));
+                Render(window,Path.Combine(output,name+"-numeric.png"),width);
+            }
+        }
+        Assert(Field<Dictionary<string,Button>>(window,"navigation").Count==5,"Sidebar does not expose Speed Probe directly");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckAuditNotice(string output,string language,int width,bool uncertainOnly)
+    {
+        string name="audit-banner-"+(language=="English"?"en":"ua")+"-"+width;
+        var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
+        var before=new PixelImage(64,64);var after=before.Clone();var overlay=after.Clone();
+        before.Set(0,new(30,30,30));after.Set(0,new(0,220,0));overlay.Set(0,new(255,40,70));
+        foreach(var (kind,snapshot) in new[]{("before",before),("after",after),("gaps",overlay)})Images.Save(snapshot,Path.Combine(diagnostics,$"group-0-{kind}.png"));
+        var result=new AuditResult(4096,2937,uncertainOnly?0:336,uncertainOnly?1159:823,new bool[4096],null);
+        var failure=new AuditFailureException(0,result,diagnostics);
+        typeof(MainWindow).GetMethod("Error",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,[failure]);
+        Render(window,Path.Combine(output,name+".png"),width);
+        var banner=Field<Border>(window,"auditBanner");Assert(banner.Visibility==Visibility.Visible,"Audit outcome was not shown inline");
+        Assert(Field<TextBlock>(window,"auditSummary").Text.Contains((uncertainOnly?1159:336).ToString("N0",System.Globalization.CultureInfo.GetCultureInfo(language=="English"?"en-US":"uk-UA"))),"Audit counts were lost");
+        Assert(!Field<TextBlock>(window,"status").Text.Contains(directory),"Footer still shows the raw diagnostics path");
+        Assert(((SolidColorBrush)banner.BorderBrush).Color==(Color)ColorConverter.ConvertFromString(uncertainOnly?"#F2C46D":"#C85561"),"Audit severity is not reflected by its color");
+        if(width==900)
+        {
+            Render(window,Path.Combine(output,name+"-minimum-height.png"),width,620);
+            var action=Field<Button>(window,"auditDiagnosticButton");var point=action.TransformToAncestor((FrameworkElement)window.Content).Transform(new Point());
+            Assert(action.ActualWidth>80&&point.Y+action.ActualHeight<620,"Audit action is clipped at minimum window size");
+            Assert(Descendants((FrameworkElement)window.Content).OfType<ScrollViewer>().Any(x=>x.ScrollableHeight>0),"Minimum window size has no scrolling for overflowing content");
+        }
+        string originalConfig=File.ReadAllText(Path.Combine(directory,"config-csharp.json"));
+        Invoke(window,"BuildUi");Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Visible,"Rebuilding UI hid the unresolved audit");
+        var dialog=(Window)typeof(MainWindow).GetMethod("CreateAuditDiagnosticWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null)!;
+        var root=(FrameworkElement)dialog.Content;root.Measure(new Size(960,740));root.Arrange(new Rect(0,0,960,740));root.UpdateLayout();
+        var image=Descendants(root).OfType<Image>().Single();var selector=Descendants(root).OfType<ComboBox>().Single();
+        Rgb FirstPixel() {byte[] pixel=new byte[4];((BitmapSource)image.Source).CopyPixels(new Int32Rect(0,0,1,1),pixel,4,0);return new(pixel[2],pixel[1],pixel[0]);}
+        Assert(FirstPixel()==new Rgb(255,40,70),"Diagnostics did not load the red gaps overlay");
+        selector.SelectedIndex=1;Assert(FirstPixel()==new Rgb(0,220,0),"After snapshot could not be selected");
+        selector.SelectedIndex=2;Assert(FirstPixel()==new Rgb(30,30,30),"Before snapshot could not be selected");
+        File.Delete(Path.Combine(diagnostics,"group-0-before.png"));Assert(FirstPixel()==new Rgb(30,30,30),"Open diagnostics retained a file lock or lost its snapshot");
+        var bitmap=new RenderTargetBitmap(960,740,96,96,PixelFormats.Pbgra32);bitmap.Render(root);var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using(var file=File.Create(Path.Combine(output,name+"-viewer.png")))encoder.Save(file);
+        // Missing files produce an inline unavailable state rather than a modal failure.
+        var missing=(Window)typeof(MainWindow).GetMethod("CreateAuditDiagnosticWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null)!;
+        var missingRoot=(FrameworkElement)missing.Content;missingRoot.Measure(new Size(960,740));missingRoot.Arrange(new Rect(0,0,960,740));missingRoot.UpdateLayout();
+        Descendants(missingRoot).OfType<ComboBox>().Single().SelectedIndex=2;
+        Assert(Descendants(missingRoot).OfType<Image>().Single().Source is null,"Missing snapshot was not handled");
+        Assert(Descendants(missingRoot).OfType<TextBlock>().Any(x=>x.Visibility==Visibility.Visible&&x.Text.Contains(language=="English"?"Snapshot unavailable":"Знімок недоступний")),"Unavailable snapshot message missing");
+        Field<Button>(window,"auditDismissButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Audit banner cannot be dismissed");
+        Assert(File.ReadAllText(Path.Combine(directory,"config-csharp.json"))==originalConfig,"Viewing or dismissing diagnostics changed painting settings");
+        Assert(File.Exists(Path.Combine(diagnostics,"group-0-gaps.png")),"Dismissing the banner deleted audit evidence");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckDetailAndPreview(string output)
+    {
+        string name="detail-preview";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);Render(window,Path.Combine(output,name+".png"),1280);
+        var detail=Field<TextBox>(window,"detailInput");var buttons=Field<Dictionary<int,Button>>(window,"detailPresets");
+        Color Border(Button b)=>((SolidColorBrush)b.BorderBrush).Color;
+        Color accent=(Color)ColorConverter.ConvertFromString("#FF7A18");
+        detail.Text="5";Assert(Border(buttons[5])==accent&&Border(buttons[3])!=accent,"Manual detail did not synchronize the selected preset");
+        Assert(Field<TextBlock>(window,"detailState").Text.Contains("5 px"),"Current manual detail is not explained");
+        detail.Text="4";Assert(buttons.Values.All(x=>Border(x)!=accent)&&Field<TextBlock>(window,"detailState").Text.Contains("Власне"),"Custom detail looks like a standard preset");
+        buttons[8].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(Field<TextBox>(window,"detailInput").Text=="8"&&Field<Settings>(window,"settings").Text("speed_profile")=="Max Speed","Applying a preset did not update detail and movement together");
+        var source=new PixelImage(320,160);for(int i=0;i<320*160;i++)source.Set(i,new((byte)(i%320*255/320),80,140));
+        Field<Image>(window,"originalImage").Source=Images.Bitmap(source);Field<Image>(window,"previewImage").Source=Images.Bitmap(source);
+        Render(window,Path.Combine(output,name+"-compare.png"),2000);
+        var result=Field<Image>(window,"previewImage");double comparisonWidth=result.ActualWidth;
+        Field<Button>(window,"previewModeButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Render(window,Path.Combine(output,name+"-enlarged.png"),2000);
+        Assert(Field<Image>(window,"originalImage").Visibility==Visibility.Collapsed&&Grid.GetColumnSpan(result)==2&&result.ActualWidth>comparisonWidth*1.25,"Enlarged result did not use the preview card");
+        Field<Button>(window,"previewModeButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(Field<Image>(window,"originalImage").Visibility==Visibility.Visible&&Grid.GetColumnSpan(result)==1,"Side-by-side comparison cannot be restored");
+        var stop=Field<Button>(window,"stopButton");Assert(!stop.IsEnabled,"STOP should start disabled");stop.ApplyTemplate();
+        var frame=(Border)stop.Template.FindName("Frame",stop);Assert(((SolidColorBrush)frame.Background).Color==(Color)ColorConverter.ConvertFromString("#282C36"),"Disabled STOP still looks red and active");
+        stop.IsEnabled=true;Assert(((SolidColorBrush)frame.Background).Color==(Color)ColorConverter.ConvertFromString("#C85561"),"Enabled STOP lost its danger color");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckSpeedChips(string output)
+    {
+        string name="speed-chips";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");Render(window,Path.Combine(output,name+".png"),1280);
+        Border Chip()=>Field<Border>(window,"speedChip");
+        Color Tone()=>((SolidColorBrush)Chip().BorderBrush).Color;
+        string Label()=>((TextBlock)Chip().Child).Text;
+        Assert(Label()=="Перевірено"&&Tone()==(Color)ColorConverter.ConvertFromString("#62D69A"),"Verified speed does not have a green chip");
+        Field<Settings>(window,"settings").Data.Remove("speed_probe_profile");Invoke(window,"UpdateReady");
+        Assert(Label()=="Очікує"&&Tone()==(Color)ColorConverter.ConvertFromString("#F2C46D"),"Untested speed does not have a yellow chip");
+        SetField(window,"speedFailure","Тест не пройшов перевірку.");Invoke(window,"UpdateReady");
+        Assert(Label()=="Помилка"&&Tone()==(Color)ColorConverter.ConvertFromString("#C85561"),"Failed speed does not have a red chip");
+        var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+        var speed=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,["speed"])!;
+        Assert(((TextBlock)speed.Child).Text==Label()&&((SolidColorBrush)speed.BorderBrush).Color==Tone(),"Sidebar speed state disagrees with its page");
         Console.WriteLine("PASS "+name);
     }
 }

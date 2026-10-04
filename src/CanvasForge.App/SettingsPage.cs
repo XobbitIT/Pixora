@@ -7,13 +7,13 @@ internal sealed partial class MainWindow
 {
     private void BuildSettings()
     {
-        var page = new StackPanel();
+        var page = FormContent();
         pages["settings"] = Scroll(page);
         page.Children.Add(Text(T("Налаштування"), 24));
         page.Children.Add(Card("Основні налаштування", out var basic));
         AddCombo(basic, "profile", T("Профіль якості"), new[] { "Anime / Line Art", "Photo", "Fast", "Pixel Art", "Custom" });
         basic.Children.Add(Button(T("Застосувати профіль", "Apply profile"), ApplyProfile));
-        basic.Children.Add(Text(T("Профіль застосовується кнопкою: змінює деталізацію, розмиття, очищення та інші параметри обробки. «Рекомендовано» на головній сторінці змінює лише деталізацію та Speed Engine. Ручні зміни мають пріоритет до наступного застосування профілю.", "Apply profile changes detail, blur, cleanup and other image processing settings. Recommended on the Painting page changes only detail and Speed Engine. Manual edits remain in effect until you apply a profile again."), 11, Muted));
+        basic.Children.Add(Text(T("Профіль застосовується кнопкою: змінює деталізацію, розмиття, очищення та інші параметри обробки. Пресети на сторінці «Малювання» змінюють деталізацію та профіль руху. Ручні зміни мають пріоритет до наступного застосування профілю.", "Apply profile changes detail, blur, cleanup and other image processing settings. Painting presets change detail and movement profile. Manual edits remain in effect until you apply a profile again."), 11, Muted));
         basic.Children.Add(Text(T("Режим кольорів, ліміт кольорів, деталізація та Speed Engine — на сторінці «Малювання».", "Color mode, color limit, detail, and Speed Engine are on the Painting page."), 11, Muted));
         var advanced = new StackPanel();
         page.Children.Add(new Expander { Header = T("Обробка зображення й сумісність", "Image processing and compatibility"), Content = advanced });
