@@ -34,7 +34,13 @@ internal static class Program
         CheckAuditNotice(destination,"English",2000,true);
         CheckDetailAndPreview(destination);
         CheckSpeedChips(destination);
-        Console.WriteLine("ALL 19 WPF UI CHECKS PASSED");
+        CheckPreviewFit(destination,2000,320,160,240,320,"mixed");
+        CheckPreviewFit(destination,900,320,160,320,160,"wide");
+        CheckPreviewFit(destination,2000,200,320,200,320,"portrait");
+        CheckSettingsEnglish(destination);
+        CheckCoverageStates(destination,"Українська");
+        CheckCoverageStates(destination,"English");
+        Console.WriteLine("ALL 25 WPF UI CHECKS PASSED");
         // Windows are rendered without showing or invoking game/capture/input actions.
     }
 
@@ -116,7 +122,7 @@ internal static class Program
 
     private static T Field<T>(MainWindow window,string name) => (T)typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
     private static void SetField(MainWindow window,string name,object value) => typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(window,value);
-    private static void Invoke(MainWindow window,string name) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null);
+    private static void Invoke(MainWindow window,string name,params object[] args) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,args);
     private static Settings ReadySettings(string language)
     {
         var settings=Settings.Defaults();settings.Set("language",language);
@@ -216,8 +222,8 @@ internal static class Program
             foreach(var box in Descendants(content).OfType<TextBox>())
             {
                 if(box.Parent is not Grid row)continue;
-                Assert(row.ActualWidth<=360.1,"Numeric label/field row stretched across the form");
-                Assert(box.ActualWidth>=84&&box.TransformToAncestor(row).Transform(new Point()).X<=276,"Numeric field is clipped or too far from its label");
+                Assert(Math.Abs(row.ActualWidth-257)<.1,"Numeric row did not keep its fixed label/gap/field columns");
+                Assert(Math.Abs(box.ActualWidth-85)<.1&&Math.Abs(box.TransformToAncestor(row).Transform(new Point()).X-172)<.1,"Numeric fields are not aligned immediately after the fixed label column");
             }
             if(key=="settings")
             {
@@ -297,9 +303,9 @@ internal static class Program
         var result=Field<Image>(window,"previewImage");double comparisonWidth=result.ActualWidth;
         Field<Button>(window,"previewModeButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         Render(window,Path.Combine(output,name+"-enlarged.png"),2000);
-        Assert(Field<Image>(window,"originalImage").Visibility==Visibility.Collapsed&&Grid.GetColumnSpan(result)==2&&result.ActualWidth>comparisonWidth*1.25,"Enlarged result did not use the preview card");
+        Assert(Field<Image>(window,"originalImage").Visibility==Visibility.Collapsed&&!Field<PreviewPanel>(window,"previewSurface").Comparison&&result.ActualWidth>comparisonWidth*1.25,"Enlarged result did not use the preview card");
         Field<Button>(window,"previewModeButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
-        Assert(Field<Image>(window,"originalImage").Visibility==Visibility.Visible&&Grid.GetColumnSpan(result)==1,"Side-by-side comparison cannot be restored");
+        Assert(Field<Image>(window,"originalImage").Visibility==Visibility.Visible&&Field<PreviewPanel>(window,"previewSurface").Comparison,"Side-by-side comparison cannot be restored");
         var stop=Field<Button>(window,"stopButton");Assert(!stop.IsEnabled,"STOP should start disabled");stop.ApplyTemplate();
         var frame=(Border)stop.Template.FindName("Frame",stop);Assert(((SolidColorBrush)frame.Background).Color==(Color)ColorConverter.ConvertFromString("#282C36"),"Disabled STOP still looks red and active");
         stop.IsEnabled=true;Assert(((SolidColorBrush)frame.Background).Color==(Color)ColorConverter.ConvertFromString("#C85561"),"Enabled STOP lost its danger color");
@@ -322,6 +328,86 @@ internal static class Program
         var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
         var speed=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,["speed"])!;
         Assert(((TextBlock)speed.Child).Text==Label()&&((SolidColorBrush)speed.BorderBrush).Color==Tone(),"Sidebar speed state disagrees with its page");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckPreviewFit(string output,int width,int originalWidth,int originalHeight,int resultWidth,int resultHeight,string variant)
+    {
+        string name="preview-fit-"+variant+"-"+width;var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        PixelImage Sample(int w,int h)
+        {
+            var image=new PixelImage(w,h);for(int y=0;y<h;y++)for(int x=0;x<w;x++)image.Set(y*w+x,new((byte)(x*255/w),(byte)(y*255/h),90));
+            image.Set(0,new(255,0,0));image.Set(w*h-1,new(0,255,0));return image;
+        }
+        Field<Image>(window,"originalImage").Source=Images.Bitmap(Sample(originalWidth,originalHeight));
+        Field<Image>(window,"previewImage").Source=Images.Bitmap(Sample(resultWidth,resultHeight));
+        Field<TextBlock>(window,"fileLabel").Text="preview-test.png";
+        Render(window,Path.Combine(output,name+".png"),width);
+        var surface=Field<PreviewPanel>(window,"previewSurface");
+        Assert(surface.VerticalLayout==(variant=="wide"),"Comparison did not choose the layout with more usable image area");
+        foreach(var image in new[]{Field<Image>(window,"originalImage"),Field<Image>(window,"previewImage")})
+        {
+            var frame=(Border)((Grid)image.Parent).Parent;
+            Assert(image.Stretch==Stretch.Uniform&&Math.Abs(image.ActualWidth/image.ActualHeight-image.Source.Width/image.Source.Height)<.001,"Preview cropped or distorted the image");
+            Assert(Math.Abs(frame.ActualWidth-image.ActualWidth-PreviewPanel.Inset)<.1&&Math.Abs(frame.ActualHeight-image.ActualHeight-PreviewPanel.Inset-PreviewPanel.Header)<.1,"Preview still has large empty fields inside its card");
+            var point=frame.TransformToAncestor(surface).Transform(new Point());
+            Assert(point.X>=-.1&&point.Y>=-.1&&point.X+frame.ActualWidth<=surface.ActualWidth+.1&&point.Y+frame.ActualHeight<=surface.ActualHeight+.1,"Preview card overflowed the available space");
+        }
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckSettingsEnglish(string output)
+    {
+        string name="settings-explicit-en";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings("English");settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);window.ShowPage("settings");
+        Render(window,Path.Combine(output,name+".png"),1280);
+        var page=Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"];
+        foreach(var expander in Descendants(page).OfType<Expander>().ToArray())expander.IsExpanded=true;
+        ((FrameworkElement)window.Content).UpdateLayout();
+        string captions=string.Join("\n",Descendants(page).Select(x=>x switch {TextBlock b=>b.Text,Expander e=>e.Header as string,ContentControl c=>c.Content as string,_=>null}).Where(x=>x is not null));
+        Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"English settings still contain untranslated Ukrainian captions");
+        foreach(string title in new[]{"General settings","Image quality","Automation","Rust controls","HEX Direct","Preview"})Assert(captions.Contains(title),"English card title missing: "+title);
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckCoverageStates(string output,string language)
+    {
+        bool english=language=="English";string name="coverage-state-"+(english?"en":"ua");var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
+        Render(window,Path.Combine(output,name+".png"),1280);
+        Border Chip()=>Field<Border>(window,"coverageChip");string Label()=>((TextBlock)Chip().Child).Text;
+        string Expected(string ua,string en)=>english?en:ua;
+        Assert(Label()==Expected("Вимкнено","Disabled"),"A disabled audit was presented as verified or pending");
+        Assert(((TextBlock)Field<Border>(window,"speedChip").Child).Text==Expected("Перевірено","Verified"),"Fixture Speed Probe was not verified");
+        Field<Settings>(window,"settings").Set("coverage_audit",true);Invoke(window,"UpdateReady");
+        Assert(Label()==Expected("Очікує","Pending"),"Verified input timing falsely verified unpainted coverage");
+        Invoke(window,"BeginCoverageCheck",true);Assert(Label()==Expected("Перевіряється","Checking"),"Audit start was not reflected in its chip");
+        Invoke(window,"CompleteCoverageCheck",true);Assert(Label()==Expected("Перевірено","Verified"),"Successful audited completion was not shown");
+        Assert(((SolidColorBrush)Chip().BorderBrush).Color==(Color)ColorConverter.ConvertFromString("#62D69A"),"Verified coverage is not green");
+        Field<CheckBox>(window,"auditEnabled").IsChecked=true;
+        Invoke(window,"ReadSettings");Assert(Label()==Expected("Перевірено","Verified"),"Reading unchanged controls invalidated verified coverage");
+        window.ShowPage("settings");Render(window,Path.Combine(output,name+"-settings.png"),1280);
+        foreach(var expander in Descendants(Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"]).OfType<Expander>().ToArray())expander.IsExpanded=true;
+        ((FrameworkElement)window.Content).UpdateLayout();
+        var previewToggle=Descendants(Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"]).OfType<CheckBox>().Single(x=>x.Content?.ToString()==Expected("Згладжувати прев’ю","Smooth preview"));
+        previewToggle.IsChecked=previewToggle.IsChecked!=true;previewToggle.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(Label()==Expected("Перевірено","Verified"),"Preview-only edits invalidated the coverage result");
+        Invoke(window,"BuildUi");Assert(Label()==Expected("Перевірено","Verified"),"Rebuilding UI lost the audit result");
+        var detail=Field<TextBox>(window,"detailInput");detail.Text="5";
+        Assert(Label()==Expected("Очікує","Pending"),"Changing the pending painting retained an old verified result");
+        Invoke(window,"BeginCoverageCheck",true);SetField(window,"coverageState",CoverageState.Interrupted);Invoke(window,"RefreshCoverageStatus");
+        Assert(Label()==Expected("Перервано","Interrupted"),"Interrupted painting claimed verified coverage");
+        Invoke(window,"CompleteCoverageCheck",false);Assert(Label()==Expected("Без аудиту","Not audited"),"Unaudited completion claimed verified coverage");
+        var audit=new AuditFailureException(0,new AuditResult(100,90,10,0,new bool[100],null),directory);
+        typeof(MainWindow).GetMethod("Error",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,[audit]);
+        Assert(Label()==Expected("Потребує уваги","Needs review"),"Failed audit did not update the persistent chip");
+        Field<Button>(window,"auditDismissButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(Label()==Expected("Потребує уваги","Needs review"),"Dismissing an audit failure falsely cleared its status");
+        var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
+        var coverage=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,["coverage"])!;
+        Assert(((TextBlock)coverage.Child).Text==Label(),"Coverage sidebar chip differs from the audit page");
+        Render(window,Path.Combine(output,name+"-failure.png"),900);
         Console.WriteLine("PASS "+name);
     }
 }

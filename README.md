@@ -1,12 +1,12 @@
 # Pixora
 
-Raster painting assistant for Rust. Development build **1.0.14-beta.10**, Windows 10/11 x64.
+Raster painting assistant for Rust. Development build **1.0.14-beta.11**, Windows 10/11 x64.
 
 - [Українська інструкція](README_UA.md)
 - [Release changes](CHANGES_1.0.14_UA.md)
 - [Rust testing guide](TESTING_1.0.14_UA.md)
 
-The Windows workflow runs 123 Core tests and 19 WPF checks before publishing a self-contained portable build. Download `Pixora_1.0.14-beta.10_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
+The Windows workflow runs 123 Core tests and 25 WPF checks before publishing a self-contained portable build. Download `Pixora_1.0.14-beta.11_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
 
 Size, Interval and Opacity use verified numeric entry. Brush calibration and values have a dedicated page; Speed Probe and coverage audit have a separate sidebar entry. Speed Probe compares paced SendInput movement and Shift lines on separate clean areas with three repeated trials and a validated timing margin. A current per-Size/axis profile selects verified routes in Precision and adaptive painting; untested cases retain normal input. Long Shift strokes are split at tested spans.
 
@@ -16,4 +16,6 @@ Core algorithms and the UI are tested without controlling Rust. Actual Shift acc
 
 Experimental paint endpoint timing is now adjustable from 8–16 ms, default 12. Numeric/HEX controls keep a separate minimum 16 ms interval. See the testing guide before comparing speeds.
 
-Forms are capped at 880 px, numeric rows keep labels and fields together, and Speed Probe is accessible directly from the sidebar. Dismissible audit banners open an embedded before/after/gaps viewer. Status chips share semantic colors; presets follow manual detail changes, disabled STOP is neutral, and the result preview can use the full card.
+Forms are capped at 880 px, numeric rows use fixed 160/12/85 px label/gap/field columns, and Speed Probe is accessible directly from the sidebar. Dismissible audit banners open an embedded before/after/gaps viewer. Status chips share semantic colors; presets follow manual detail changes, disabled STOP is neutral, and the result preview can use the full card.
+
+Beta.11 preview cards fit each image aspect ratio and automatically choose horizontal or vertical comparison without cropping. Settings labels include explicit English text. A separate coverage chip tracks the current session; verified Speed Probe input alone never marks painting coverage as verified.

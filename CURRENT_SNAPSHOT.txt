@@ -1,9 +1,8 @@
-Pixora 1.0.14-beta.10 — readable forms and actionable audit diagnostics
-Form width 880 px; numeric row width 360 px / field 85 px.
-Separate Brush and Speed Probe sidebar pages, semantic workflow/status chips.
-Dismissible audit banner and embedded before/after/gaps viewer, local diagnostics.
-Manual detail highlights matching preset; custom detail and current movement are shown.
-Neutral disabled STOP, full-card result preview and side-by-side comparison.
-Painting timing and coverage classification from beta.9 retained.
-Validation: 123 Core tests, 19 WPF checks. In-game validation pending.
-Raster offset at color edges is not automatically compensated.
+Pixora 1.0.14-beta.11 — aligned numeric fields, fitted previews and coverage status
+Numeric columns: 160 px label / 12 px gap / 85 px field.
+Preview cards fit image aspect ratios; horizontal/vertical comparison uses whole images.
+Settings UI includes explicit Ukrainian and English captions.
+Separate session coverage state in sidebar and audit section, independent from Speed Probe.
+Audited completion verifies coverage; edits invalidate status, dismissal preserves failures.
+Painting timing and coverage algorithms retained. Raster offset not compensated.
+Validation: 123 Core tests, 25 WPF checks. In-game validation pending.

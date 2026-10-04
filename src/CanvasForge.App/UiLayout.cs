@@ -41,7 +41,7 @@ internal sealed partial class MainWindow
     private void BuildWorkflow(StackPanel parent)
     {
         workflowChips.Clear();
-        foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")), ("speed", "Speed Probe") })
+        foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")), ("speed", "Speed Probe"), ("coverage", T("Покриття", "Coverage")) })
         {
             parent.Children.Add(Text(title, 11, Muted));
             var chip = new StatusChip();
@@ -58,6 +58,7 @@ internal sealed partial class MainWindow
         if (adaptiveFailure.Length > 0) workflowChips["brush"].Set(T("Помилка", "Error"), Danger);
         else Ready("brush", AdaptiveBrush.CalibrationCurrent(settings));
         SetSpeedChip(workflowChips["speed"]);
+        RefreshCoverageStatus();
     }
 
     private void UpdateDetailPreset()

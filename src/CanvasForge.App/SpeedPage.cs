@@ -41,6 +41,8 @@ internal sealed partial class MainWindow
             results.Children.Add(Text($"Size {row.Size} · {(row.Vertical?T("вертикаль","vertical"):T("горизонталь","horizontal"))} · {row.Method} · {row.SafeMs:0} ms · {row.MaxLength} px",12));
         probe.Children.Add(Text(T("Тест залишає пробні штрихи. Після нього очисти Canvas. ESC скасовує. Повтори для потрібних Size; зміна форми або захоплення потребує нового тесту.","The test leaves sample strokes. Clear Canvas afterwards. ESC cancels. Repeat for the Sizes you use; changed capture or shape requires a new test."),12,Muted));
         page.Children.Add(Card(T("2. Перевірка покриття","2. Coverage verification"),out var audit));
+        coverageChip=new StatusChip();audit.Children.Add(coverageChip);
+        coverageExplanation=Text("",12,Muted);audit.Children.Add(coverageExplanation);
         auditEnabled=AddCheck(audit,"coverage_audit",T("Перевіряти після кожного кольору","Audit after each color"),true);
         AddCheck(audit,"audit_repair",T("Дофарбовувати підтверджені пропуски","Repair confirmed gaps"));
         AddCombo(audit,"audit_repair_passes",T("Максимум проходів дофарбування","Maximum repair passes"),new[]{"1","2"});
@@ -54,7 +56,7 @@ internal sealed partial class MainWindow
         var canvas=settings.Calibration.Rect("canvas");
         auditEnabled.IsEnabled=!Painting&&(settings.Bool("coverage_audit")||ready&&(long)canvas.Width*canvas.Height<=4_000_000&&settings.Number("paint_opacity_value",1)==1&&settings.Bool("use_fixed_opacity",true));
         auditEnabled.ToolTip=T("Потрібне поточне калібрування суцільного пензля, Opacity 1 та Canvas до 4 млн px.","Requires current solid brush calibration, Opacity 1 and Canvas up to 4 million pixels.");
-        SetSpeedChip(speedChip);
+        SetSpeedChip(speedChip);RefreshCoverageStatus();
         speedStatus.Text=speedFailure.Length>0?speedFailure:current?T("✓ Є підтверджені маршрути. Інші Size використовують звичайний ввід.","Verified routes are available. Other Sizes use normal input.")
             :settings.Data["speed_probe_profile"] is null?T("Швидкість ще не перевірена.","Speed has not been tested yet."):T("Результат тесту застарів — повтори Speed Probe.","Probe results are stale — run Speed Probe again.");
     }

@@ -192,10 +192,11 @@ internal sealed partial class MainWindow : Window
         File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="error",details=new{version=BuildInfo.Version,page=currentPage,type=e.GetType().Name,message=e.Message}})+Environment.NewLine);
         if (e is AuditFailureException audit)
         {
-            auditNotice = audit; RefreshAuditBanner();
+            auditNotice = audit; coverageState=CoverageState.NeedsReview;coverageHasGaps=audit.Missing>0;RefreshCoverageStatus();RefreshAuditBanner();
             SetStatus(T("Перевір діагностику в банері аудиту.", "Review the diagnostics in the audit banner."));
             return;
         }
+        if(coverageState==CoverageState.Checking){coverageState=CoverageState.Interrupted;RefreshCoverageStatus();}
         if(currentPage=="speed")
         {
             speedFailure=e.Message;RefreshSpeedStatus();SetSpeedChip(workflowChips["speed"]);
@@ -375,25 +376,7 @@ internal sealed partial class MainWindow : Window
         header.Children.Add(Text(T("Малювання","Painting"),24));page.Children.Add(header);
         contentArea=new Grid();contentArea.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
         contentArea.ColumnDefinitions.Add(new(){Width=new GridLength(360)});Grid.SetRow(contentArea,1);page.Children.Add(contentArea);
-        var previewCard=new Border{Background=Panel,BorderBrush=BorderColor,BorderThickness=new Thickness(1),CornerRadius=new CornerRadius(9),Margin=new Thickness(0,0,12,0),Padding=new Thickness(10)};
-        contentArea.Children.Add(previewCard);var previews=new Grid();previewCard.Child=previews;
-        previews.RowDefinitions.Add(new(){Height=GridLength.Auto});previews.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});previews.RowDefinitions.Add(new(){Height=GridLength.Auto});
-        previews.ColumnDefinitions.Add(new());previews.ColumnDefinitions.Add(new());
-        previews.Children.Add(Text(T("Оригінал","Original"),14));var resultLabel=Text(T("Результат","Result"),14);Grid.SetColumn(resultLabel,1);previews.Children.Add(resultLabel);
-        originalImage=new(){Stretch=Stretch.Uniform,Margin=new Thickness(0,6,4,6)};previewImage=new(){Stretch=Stretch.Uniform,Margin=new Thickness(4,6,0,6)};
-        Grid.SetRow(originalImage,1);Grid.SetRow(previewImage,1);Grid.SetColumn(previewImage,1);previews.Children.Add(originalImage);previews.Children.Add(previewImage);
-        var previewFooter=new DockPanel();Grid.SetRow(previewFooter,2);Grid.SetColumnSpan(previewFooter,2);previews.Children.Add(previewFooter);
-        void LayoutPreviews()
-        {
-            originalImage.Visibility=previewComparison?Visibility.Visible:Visibility.Collapsed;
-            previews.Children[0].Visibility=originalImage.Visibility;
-            Grid.SetColumn(resultLabel,previewComparison?1:0);Grid.SetColumnSpan(resultLabel,previewComparison?1:2);
-            Grid.SetColumn(previewImage,previewComparison?1:0);Grid.SetColumnSpan(previewImage,previewComparison?1:2);
-            previewModeButton.Content=previewComparison?T("Збільшити результат","Enlarge result"):T("Порівняти","Compare");
-        }
-        previewModeButton=Button("",()=>{previewComparison=!previewComparison;LayoutPreviews();});previewModeButton.Padding=new Thickness(10,6,10,6);
-        DockPanel.SetDock(previewModeButton,Dock.Right);previewFooter.Children.Add(previewModeButton);
-        fileLabel=Text(T("Відкрий зображення, щоб побачити прев’ю.","Open an image to see the preview."),12,Muted);fileLabel.VerticalAlignment=VerticalAlignment.Center;previewFooter.Children.Add(fileLabel);LayoutPreviews();
+        BuildPreviews(contentArea);
         var right=new StackPanel();var scroll=Scroll(right);Grid.SetColumn(scroll,1);contentArea.Children.Add(scroll);
         right.Children.Add(Card(T("1. Підготовка","1. Preparation"),out var preparation));ready=Text("",13);preparation.Children.Add(ready);
         preparation.Children.Add(Button(T("Налаштувати Rust","Set up Rust"),()=>ShowPage("capture")));
@@ -485,19 +468,18 @@ internal sealed partial class MainWindow : Window
         var row = new Grid
         {
             Margin = new Thickness(0, 4, 0, 4),
-            MaxWidth = 360,
             HorizontalAlignment = HorizontalAlignment.Left
         };
-        row.SetBinding(WidthProperty, new System.Windows.Data.Binding("ActualWidth") { Source = parent });
-        row.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
+        row.ColumnDefinitions.Add(new() { Width = new GridLength(160) });
+        row.ColumnDefinitions.Add(new() { Width = new GridLength(12) });
         row.ColumnDefinitions.Add(new() { Width = new GridLength(85) });
-        var label=Text(title,11,Muted);label.Margin=new Thickness(0,3,12,3);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
+        var label=Text(title,11,Muted);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
         var box = new TextBox
         {
             Text = settings.Number(key).ToString(CultureInfo.InvariantCulture),
             ToolTip = T(title)
         };
-        Grid.SetColumn(box, 1);
+        Grid.SetColumn(box, 2);
         row.Children.Add(box);
         parent.Children.Add(row);
         var error=Text("",12,Danger);error.Visibility=Visibility.Collapsed;parent.Children.Add(error);
@@ -519,7 +501,7 @@ internal sealed partial class MainWindow : Window
             else{numberErrors[key]=message;error.Text=message;error.Visibility=Visibility.Visible;box.BorderBrush=Danger;}
             return valid;
         }
-        box.TextChanged+=(_,_)=>{if(!buildingUi){Valid();UpdateReady();}};
+        box.TextChanged+=(_,_)=>{if(!buildingUi){Valid();if(box.Text!=settings.Number(key).ToString(CultureInfo.InvariantCulture))ResetCoverageState();UpdateReady();}};
         readers[key] = () => double.TryParse(box.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && double.IsFinite(v) ? v : throw new InvalidDataException(T(title) + ": " + box.Text);
         box.LostKeyboardFocus += (_, _) =>
         {
@@ -570,14 +552,29 @@ internal sealed partial class MainWindow : Window
     private void ReadSettings()
     {
         var snapshot=settings.Clone();
-        foreach(var reader in readers)snapshot.Data[reader.Key]=JsonSerializer.SerializeToNode(reader.Value());
-        snapshot.Validate();settings=snapshot;
+        bool changed=false;
+        foreach(var reader in readers)
+        {
+            var value=reader.Value();snapshot.Data[reader.Key]=JsonSerializer.SerializeToNode(value);
+            bool same=value switch
+            {
+                bool flag=>settings.Bool(reader.Key)==flag,
+                double number=>settings.Number(reader.Key)==number,
+                string text=>settings.Text(reader.Key)==text,
+                _=>false
+            };
+            if(!same&&reader.Key is not ("language" or "transfer_simulator" or "smooth_preview" or "auto_insert_preview"))changed=true;
+        }
+        snapshot.Validate();
+        settings=snapshot;
+        if(changed)ResetCoverageState();
     }
 
     private void Save() => settings.Save(ConfigPath);
     private void Dirty()
     {
         plan = null;
+        ResetCoverageState();
         generation++;
         planCancel?.Cancel();
         Save();
@@ -846,6 +843,7 @@ internal sealed partial class MainWindow : Window
 
             SetStatus(p.Status);
         }), cancellation.Token);
+        BeginCoverageCheck(snapshot.Bool("coverage_audit"));
         SetEditing(false);
         if (settings.Bool("minimize", true))
             WindowState = WindowState.Minimized;
@@ -856,10 +854,14 @@ internal sealed partial class MainWindow : Window
         try
         {
             await paintTask;
+            CompleteCoverageCheck(snapshot.Bool("coverage_audit"));
         }
         catch (OperationCanceledException)
         {
-            SetStatus(T("Зупинено. Прогрес збережено для RESUME.", "Stopped. Progress saved for RESUME."));
+            if(snapshot.Bool("coverage_audit")){coverageState=CoverageState.Interrupted;RefreshCoverageStatus();}
+            SetStatus(snapshot.Bool("coverage_audit")
+                ? T("Зупинено. Покриття не підтверджене; потрібен новий START.", "Stopped. Coverage is unverified; a fresh START is required.")
+                : T("Зупинено. Прогрес збережено для RESUME.", "Stopped. Progress saved for RESUME."));
         }
         catch (Exception e)
         {
