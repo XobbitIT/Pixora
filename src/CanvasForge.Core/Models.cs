@@ -141,7 +141,7 @@ public sealed class Settings
 
     public void Validate()
     {
-        foreach (var key in new[] { "input_frame_delay_ms", "cycle_delay_ms", "stroke_speed", "reclick_delay_ms", "control_verify_tolerance", "adaptive_threshold", "brush_size_value", "interval_value", "paint_opacity_value" })
+        foreach (var key in new[] { "input_frame_delay_ms", "input_experimental_delay_ms", "cycle_delay_ms", "stroke_speed", "reclick_delay_ms", "control_verify_tolerance", "adaptive_threshold", "brush_size_value", "interval_value", "paint_opacity_value" })
             if (!double.IsFinite(Number(key)) || Number(key) < 0)
                 throw new InvalidDataException($"Invalid setting: {key}");
         if (Number("preblur") > 10 || Number("start_delay") > 300 || Number("color_delay") > 60 || Number("click_delay") > 60)
@@ -150,6 +150,8 @@ public sealed class Settings
             throw new InvalidDataException("Unknown input engine.");
         if (Number("input_frame_delay_ms", 20) is < 16 or > 100)
             throw new InvalidDataException("Input frame delay must be 16–100 ms.");
+        if (Number("input_experimental_delay_ms",12) is <8 or >16)
+            throw new InvalidDataException("Experimental input delay must be 8–16 ms.");
         var hexLimit = Text("hex_max_colors", "128");
         if (hexLimit != "Auto" && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 256))
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
@@ -199,6 +201,7 @@ public sealed class Settings
             ["version"] = "1.0.0-csharp",
             ["language"] = "Українська",
             ["input_frame_delay_ms"] = 20,
+            ["input_experimental_delay_ms"] = 12,
             ["input_engine"] = "Stable",
             ["color_mode"] = "Rust Palette",
             ["cell_px"] = 3,
@@ -482,6 +485,7 @@ public static class PlanIdentity
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeTiming.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
         foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "fast_move_span_px" })
@@ -493,23 +497,26 @@ public static class PlanIdentity
 
 public static class StrokeTiming
 {
+    public const string Revision="adjustable-experimental-v1";
     public static bool Experimental(Settings settings) => settings.Text("input_engine", "Stable") == "Experimental 1 ms";
-    public static double Frame(Settings settings) => Experimental(settings) ? .016 : Math.Clamp(settings.Number("input_frame_delay_ms", 20), 16, 100) / 1000;
-    public static double Settle(Settings settings, SpeedProfile speed) => Experimental(settings) ? .008 : Math.Max(.005, speed.StartDelay);
+    public static double Frame(Settings settings) => Experimental(settings) ? Math.Clamp(settings.Number("input_experimental_delay_ms",12),8,16)/1000 : Math.Clamp(settings.Number("input_frame_delay_ms", 20), 16, 100) / 1000;
+    public static double Settle(Settings settings, SpeedProfile speed) => Experimental(settings) ? Frame(settings)/2 : Math.Max(.005, speed.StartDelay);
     public static double EndHold(Settings settings, SpeedProfile speed) => Math.Max(Frame(settings), speed.UpDelay);
     public static double Release(Settings settings) => Math.Max(Frame(settings), settings.Number("cycle_delay_ms") / 1000);
     public static bool Fast(Settings s) => s.Bool("fast_transfer");
-    public static double ClickSettle(Settings s) => Fast(s) ? Frame(s) : Math.Max(.04,s.Number("click_delay",.02));
-    public static double ClickHold(Settings s) => Fast(s) ? 2*Frame(s) : Math.Max(.08,s.Number("mouse_up_delay_ms",8)/1000);
-    public static double ClickRelease(Settings s,bool twice=false) => Fast(s) ? Frame(s) : twice ? Math.Max(.08,s.Number("reclick_delay_ms",35)/1000) : .08;
-    public static double KeyHold(Settings s) => Fast(s) ? 2*Frame(s) : .05;
-    public static double KeyRelease(Settings s) => Fast(s) ? Frame(s) : .05;
-    public static double ModifierSettle(Settings s) => Fast(s) ? Frame(s) : .05;
-    public static double ModifierRelease(Settings s) => Fast(s) ? Frame(s) : .06;
-    public static double CopyDelay(Settings s) => Fast(s) ? 3*Frame(s) : .15;
-    public static double ControlCommit(Settings s) => Fast(s) ? 4*Frame(s) : .25;
-    public static double CursorPark(Settings s) => Fast(s) ? 2*Frame(s) : .15;
-    public static double HexPaste(Settings s) => Fast(s) ? 2*Frame(s) : .18;
+    // Faster paint endpoints do not establish that text fields accept faster typing.
+    public static double ControlFrame(Settings s)=>Math.Max(.016,Frame(s));
+    public static double ClickSettle(Settings s) => Fast(s) ? ControlFrame(s) : Math.Max(.04,s.Number("click_delay",.02));
+    public static double ClickHold(Settings s) => Fast(s) ? 2*ControlFrame(s) : Math.Max(.08,s.Number("mouse_up_delay_ms",8)/1000);
+    public static double ClickRelease(Settings s,bool twice=false) => Fast(s) ? ControlFrame(s) : twice ? Math.Max(.08,s.Number("reclick_delay_ms",35)/1000) : .08;
+    public static double KeyHold(Settings s) => Fast(s) ? 2*ControlFrame(s) : .05;
+    public static double KeyRelease(Settings s) => Fast(s) ? ControlFrame(s) : .05;
+    public static double ModifierSettle(Settings s) => Fast(s) ? ControlFrame(s) : .05;
+    public static double ModifierRelease(Settings s) => Fast(s) ? ControlFrame(s) : .06;
+    public static double CopyDelay(Settings s) => Fast(s) ? 3*ControlFrame(s) : .15;
+    public static double ControlCommit(Settings s) => Fast(s) ? 4*ControlFrame(s) : .25;
+    public static double CursorPark(Settings s) => Fast(s) ? 2*ControlFrame(s) : .15;
+    public static double HexPaste(Settings s) => Fast(s) ? 2*ControlFrame(s) : .18;
     public static double HexCommit(Settings s) => Math.Max(ControlCommit(s),s.Number("hex_apply_delay_ms",180)/1000);
     private static double KeyEstimate(Settings s) => KeyHold(s)+KeyRelease(s);
     private static double ChordEstimate(Settings s) => ModifierSettle(s)+KeyEstimate(s)+ModifierRelease(s);
@@ -536,7 +543,7 @@ public static class StrokeTiming
     {
         // Includes guarded keyboard input and swatch-first verification with a
         // periodic full HEX readback. Retries can extend the actual duration.
-        var apply=ClickEstimate(settings)+(Fast(settings)?Frame(settings):.05)+2*ChordEstimate(settings)
+        var apply=ClickEstimate(settings)+(Fast(settings)?ControlFrame(settings):.05)+2*ChordEstimate(settings)
             +HexPaste(settings)+KeyEstimate(settings)+HexCommit(settings);
         var read=ClickEstimate(settings)+2*ChordEstimate(settings)+CopyDelay(settings);
         var swatch=settings.Calibration.Rect("swatch").Valid||settings.Calibration.Point("color_swatch") is not null;

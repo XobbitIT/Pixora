@@ -27,7 +27,8 @@ internal static class Program
         CheckSpeedWindow(destination,"English",900,false);
         CheckSpeedWindow(destination,"Українська",900,true);
         CheckPreflight(destination);
-        Console.WriteLine("ALL 12 WPF UI CHECKS PASSED");
+        CheckExperimentalWindow(destination);
+        Console.WriteLine("ALL 13 WPF UI CHECKS PASSED");
         // Windows are rendered without showing or invoking game/capture/input actions.
     }
 
@@ -164,6 +165,31 @@ internal static class Program
         Assert(Descendants((FrameworkElement)window.Content).OfType<TextBlock>().Any(x=>x.Text.StartsWith("Перевір значення:")&&x.Visibility==Visibility.Visible),"Inline numeric error missing");
         detail.Text="3";Assert(Field<Button>(window,"startButton").IsEnabled,"Corrected input did not restore readiness");
         window.SetEditing(false);window.SetEditing(true);Assert(Field<Button>(window,"startButton").IsEnabled,"Valid readiness was lost after an operation");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckExperimentalWindow(string output)
+    {
+        string name="experimental-input";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings("Українська");settings.Set("input_frame_delay_ms",16);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);SetField(window,"source",new PixelImage(16,16));Invoke(window,"UpdateReady");
+        var field=Field<TextBox>(window,"experimentalDelay");Assert(field.Text=="12"&&!field.IsEnabled,"Stable exposed inactive experimental timing");
+        Render(window,Path.Combine(output,name+".png"),900);
+        foreach(var expander in Descendants((FrameworkElement)window.Content).OfType<Expander>().ToArray())expander.IsExpanded=true;
+        ((FrameworkElement)window.Content).UpdateLayout();
+        var engine=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Items.Cast<object>().Any(v=>v.ToString()=="Experimental (8–16 ms)"));
+        engine.SelectedIndex=1;
+        Assert(field.IsEnabled&&StrokeTiming.Frame(Field<Settings>(window,"settings"))==.012,"Experimental did not use the visible 12 ms setting");
+        Assert(!Field<TextBox>(window,"stableDelay").IsEnabled,"Experimental kept its inactive Stable field editable");
+        field.Text="7";Assert(!Field<Button>(window,"startButton").IsEnabled,"Invalid experimental timing did not block START");
+        field.Text="8";Invoke(window,"ReadSettings");Invoke(window,"Save");
+        Assert(StrokeTiming.Frame(Settings.Load(Path.Combine(directory,"config-csharp.json")))==.008,"Experimental timing was not persisted");
+        window.SetEditing(false);Assert(!field.IsEnabled,"Timing remained editable during input");window.SetEditing(true);Assert(field.IsEnabled,"Experimental timing was not restored");
+        engine.SelectedIndex=0;Assert(!field.IsEnabled&&StrokeTiming.Frame(Field<Settings>(window,"settings"))==.016,"Experimental changes altered Stable timing");
+        engine.SelectedIndex=1;
+        foreach(var scroll in Descendants((FrameworkElement)window.Content).OfType<ScrollViewer>().Where(x=>Descendants(x).Any(v=>ReferenceEquals(v,field))).ToArray())
+            scroll.ScrollToVerticalOffset(Math.Max(0,scroll.VerticalOffset+field.TransformToAncestor(scroll).Transform(new Point()).Y-240));
+        ((FrameworkElement)window.Content).UpdateLayout();Render(window,Path.Combine(output,name+".png"),900);
         Console.WriteLine("PASS "+name);
     }
 }

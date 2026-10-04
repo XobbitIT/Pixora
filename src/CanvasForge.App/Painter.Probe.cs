@@ -50,7 +50,11 @@ internal sealed partial class Painter
             if(!settings.Bool("audit_repair")||pass>=settings.Int("audit_repair_passes",1)||result.Missing==0)break;
             var footprint=SpeedCalibration.Footprint(settings,1);
             var repairs=CoverageAudit.Repair(result.MissingMask,expected,canvas,footprint.Outer);
-            if(repairs.Count==0)break;
+            if(repairs.Count==0)
+            {
+                Log("coverage_repair_skipped",new{group,reason="no_safe_footprint",outerRadius=footprint.Outer,missingPixels=result.Missing,missingBounds=CoverageAudit.GapBounds(result.MissingMask,canvas)});
+                break;
+            }
             ApplyControls(1);
             if(plan.Mode==ColorMode.HexDirect)
             {if(!ApplyHex(plan.Palette[color].Color,true))throw new InvalidOperationException("HEX verification failed before repair.");}

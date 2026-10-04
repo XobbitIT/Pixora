@@ -245,7 +245,7 @@ internal sealed partial class Painter
             {
                 WaitReady();
                 Click(point);
-                Delay(StrokeTiming.Fast(settings)?StrokeTiming.Frame(settings):.05);
+                Delay(StrokeTiming.Fast(settings)?StrokeTiming.ControlFrame(settings):.05);
                 ChordKey(0x11, 0x41);
                 var payload = settings.Bool("hex_include_hash", false) ? "#" + target : target;
                 WriteClipboard(payload);
@@ -571,7 +571,7 @@ internal sealed partial class Painter
             if (Native.GetForegroundWindow() != window)
                 throw new InvalidOperationException("Поверни фокус у Rust і повтори START.");
             WaitReady();
-            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), calibratedMotion=SpeedCalibration.Use(settings), coverageAudit=settings.Bool("coverage_audit"), motionTransport = SpeedCalibration.Use(settings)?"SendInput probe verified":TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, probeRevision=SpeedCalibration.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
+            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), calibratedMotion=SpeedCalibration.Use(settings), coverageAudit=settings.Bool("coverage_audit"), motionTransport = SpeedCalibration.Use(settings)?"SendInput probe verified":TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, timingRevision=StrokeTiming.Revision, highResolutionTimer, probeRevision=SpeedCalibration.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, controlFrameMs=StrokeTiming.ControlFrame(settings)*1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
             for (;;)
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
@@ -612,6 +612,7 @@ internal sealed partial class Painter
                     for(;;)try{auditBefore=StableShot(settings.Calibration.Rect("canvas"));break;}
                         catch(InputInterrupted){WaitReady();}
                 var lines = groups[color];
+                double motionSeconds=0,plannedMotionSeconds=0;int motionBatches=0;
                 for (var line = group == (resume?.Group ?? -1) ? resume!.Line : 0; line < lines.Count; line++)
                 {
                     while (true)
@@ -645,8 +646,11 @@ internal sealed partial class Painter
                                     Log("adaptive_size", new { group, line, size, wide = op.Size > 0 });
                                 }
                             }
+                            long motionStart=Stopwatch.GetTimestamp();
                             if(TransferSchedule.Fast(settings))DrawBatch(op,speed);
                             else Draw(op.Segments[0], speed, line % 2 == 1);
+                            motionSeconds+=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;
+                            plannedMotionSeconds+=TransferSchedule.EstimateBatch(settings,speed,op);motionBatches++;
                             break;
                         }
                         catch (InputInterrupted)
@@ -672,6 +676,7 @@ internal sealed partial class Painter
                         report(new(done, total, elapsed, done > 0 ? elapsed * (total - done) / done : 0, $"#{entry.Color.Hex}"));
                     }
                 }
+                Log("motion_group",new{group,motionBatches,motionSeconds,plannedMotionSeconds,meanStrokeMs=motionBatches>0?motionSeconds*1000/motionBatches:0,plannedMeanStrokeMs=motionBatches>0?plannedMotionSeconds*1000/motionBatches:0});
                 if(auditBefore is not null)
                 {
                     for(;;)try{AuditGroup(plan,color,group,auditBefore);break;}

@@ -70,7 +70,7 @@ internal sealed partial class MainWindow
             AddNumber(automation, key, T(title));
         automation.Children.Add(Button(T("Налаштувати швидкість на сторінці малювання", "Set movement timing on the Painting page"),()=>ShowPage("paint")));
         automation.Children.Add(Text(T("20 мс — поточний режим. 16 мс — швидше; якщо Rust пропускає штрихи, поверни 20–25 мс.", "20 ms is the current default. 16 ms is faster; if Rust misses strokes, return to 20–25 ms."), 11, Muted));
-        automation.Children.Add(Text(T("Experimental: паузи на кінцях штрихів щонайменше 16 мс, коротке натискання щонайменше 40 мс. Перемикач максимальної швидкості окремо скорочує паузи перевіреного вводу чисел і HEX.", "Experimental: stroke endpoint waits are at least 16 ms; short strokes hold for at least 40 ms. The maximum transfer speed toggle separately shortens verified numeric and HEX input waits."), 11, Muted));
+        automation.Children.Add(Text(T("Experimental: кінці штрихів 8–16 мс, коротке натискання щонайменше 40 мс. Затримки числових полів і HEX мають окремий мінімум 16 мс та перевірку вводу.", "Experimental: stroke endpoints use 8–16 ms; short strokes hold for at least 40 ms. Numeric and HEX controls keep a separate minimum 16 ms interval and input verification."), 12, Muted));
         AddCheck(automation, "double_click_controls", T("Подвійний клік controls", "Double-click controls"));
         advanced.Children.Add(Card("Rust controls", out var controls));
         controls.Children.Add(Button(T("Форма й значення пензля", "Brush shape and values"),()=>ShowPage("adaptive")));

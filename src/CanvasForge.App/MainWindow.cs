@@ -36,6 +36,8 @@ internal sealed partial class MainWindow : Window
     private Image originalImage = new(), previewImage = new();
     private TextBlock status = new(), badge = new(), ready = new(), stats = new(), eta = new(), fileLabel = new(), progressLabel = new(), captureStatus = new();
     private ProgressBar progressBar = new();
+    private TextBox experimentalDelay=new();
+    private TextBox stableDelay=new();
     private WrapPanel swatches = new();
     private Button startButton = new(), resumeButton = new(), pauseButton = new(), stopButton = new();
     private CancellationTokenSource? planCancel, paintCancel;
@@ -186,7 +188,7 @@ internal sealed partial class MainWindow : Window
 
     private void Error(Exception e)
     {
-        File.AppendAllText(LogPath, DateTimeOffset.Now + " [" + BuildInfo.Full + "] " + e + Environment.NewLine);
+        File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="error",details=new{version=BuildInfo.Version,page=currentPage,type=e.GetType().Name,message=e.Message}})+Environment.NewLine);
         SetStatus(e.Message);
         MessageBox.Show(T(e.Message), "Pixora", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
@@ -385,7 +387,9 @@ internal sealed partial class MainWindow : Window
         var timing=new StackPanel();quality.Children.Add(new Expander{Header=T("Точні параметри швидкості","Movement timing"),Content=timing});
         AddCombo(timing,"speed_profile",T("Профіль руху","Movement profile"),SpeedProfile.All.Select(x=>x.Name).ToArray(),true);
         AddCombo(timing,"input_engine",T("Режим вводу","Input timing"),new[]{"Stable","Experimental 1 ms"});
-        AddNumber(timing,"input_frame_delay_ms",T("Stable, мс (16–100)","Stable, ms (16–100)"));
+        stableDelay=AddNumber(timing,"input_frame_delay_ms",T("Stable, мс (16–100)","Stable, ms (16–100)"));
+        experimentalDelay=AddNumber(timing,"input_experimental_delay_ms",T("Experimental, мс (8–16)","Experimental, ms (8–16)"));
+        experimentalDelay.ToolTip=T("12 мс — початковий тест. 8 мс — швидше; якщо з’являються пропуски, поверни 12–16 мс. Speed Probe окремо підтверджує маршрути.","Start by testing 12 ms. Try 8 ms for faster input; return to 12–16 ms if gaps appear. Speed Probe verifies routes separately.");
         AddNumber(timing,"fast_path_batch_points",T("Пакет швидкого руху (1–16)","Fast movement packet (1–16)"),true);
         timing.Children.Add(Text(T("Підтверджений Speed Probe замінює ці затримки лише для перевірених Size і напрямків.","A verified Speed Probe replaces these waits only for tested Sizes and directions."),12,Muted));
         eta=Text(T("Орієнтовний час: —","Estimated time: —"),13,Warning);quality.Children.Add(eta);
@@ -423,7 +427,7 @@ internal sealed partial class MainWindow : Window
         parent.Children.Add(Text(title, 11, Muted));
         var combo = new ComboBox
         {
-            ItemsSource = values.Select(v => key == "input_engine" && v == "Experimental 1 ms" ? T("Experimental (захищений)", "Experimental (guarded)") : v).ToArray(),
+            ItemsSource = values.Select(v => key == "input_engine" && v == "Experimental 1 ms" ? "Experimental (8–16 ms)" : v).ToArray(),
             SelectedIndex = Array.IndexOf(values, settings.Text(key, values[0])),
             Margin = new Thickness(0, 3, 0, 5)
         };
@@ -447,7 +451,7 @@ internal sealed partial class MainWindow : Window
         };
     }
 
-    private void AddNumber(StackPanel parent, string key, string title, bool dirty = false)
+    private TextBox AddNumber(StackPanel parent, string key, string title, bool dirty = false)
     {
         var row = new Grid
         {
@@ -473,6 +477,7 @@ internal sealed partial class MainWindow : Window
                 "cell_px"=>value>=1&&value<=64&&value==Math.Truncate(value),
                 "fast_path_batch_points"=>value>=1&&value<=16&&value==Math.Truncate(value),
                 "input_frame_delay_ms"=>value>=16&&value<=100,
+                "input_experimental_delay_ms"=>value>=8&&value<=16,
                 "paint_opacity_value" or "interval_value"=>value<=1,
                 "brush_size_value"=>value>=1&&value<=100,
                 _=>true
@@ -500,6 +505,7 @@ internal sealed partial class MainWindow : Window
                 }
             });
         };
+        return box;
     }
 
     private CheckBox AddCheck(StackPanel parent, string key, string title, bool dirty = false)
@@ -582,6 +588,8 @@ internal sealed partial class MainWindow : Window
 
     private void UpdateReady()
     {
+        experimentalDelay.IsEnabled=!Painting&&StrokeTiming.Experimental(settings);
+        stableDelay.IsEnabled=!Painting&&!StrokeTiming.Experimental(settings);
         var cal=settings.Mode==ColorMode.HexDirect&&settings.HexControlsReady?settings.PaintCalibration():settings.Calibration;
         bool canvas=cal.Rect("canvas").Valid;
         bool color=settings.Mode==ColorMode.HexDirect?cal.HexReady&&settings.HexControlsReady:settings.Palette().Count>0&&cal.Rect("palette").Valid;

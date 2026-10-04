@@ -17,6 +17,14 @@ public static class CoverageAudit
             ?"Аудит потребує актуального калібрування, суцільного пензля, Opacity 1 та Canvas до 4 млн px.":null;
     }
     private static int Delta(Rgb a,Rgb b)=>RustSlider.Delta(a,b);
+    public static ScreenRect? GapBounds(bool[] missing,ScreenRect canvas)
+    {
+        if(missing.Length!=canvas.Width*canvas.Height)throw new ArgumentException("Invalid gap mask.");
+        int left=canvas.Width,top=canvas.Height,right=-1,bottom=-1;
+        for(int i=0;i<missing.Length;i++)if(missing[i])
+        {int x=i%canvas.Width,y=i/canvas.Width;left=Math.Min(left,x);top=Math.Min(top,y);right=Math.Max(right,x);bottom=Math.Max(bottom,y);}
+        return right<0?null:new(canvas.Left+left,canvas.Top+top,canvas.Left+right+1,canvas.Top+bottom+1);
+    }
     public static bool Stable(PixelImage a,PixelImage b)
     {
         Check(a,b);int changed=0;

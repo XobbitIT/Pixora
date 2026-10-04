@@ -539,7 +539,7 @@ Test("Input delay defaults, bounds, and ETA agree", () =>
         catch (InvalidDataException) { }
     }
 });
-Test("Both engines preserve a game-frame release and short-stroke hold", () =>
+Test("Both engines preserve their configured release and short-stroke hold", () =>
 {
     var cfg = Settings.Defaults();
     foreach (var engine in new[] { "Stable", "Experimental 1 ms" })
@@ -548,9 +548,10 @@ Test("Both engines preserve a game-frame release and short-stroke hold", () =>
         cfg.Validate();
         foreach (var speed in SpeedProfile.All)
         {
-            Assert(StrokeTiming.Frame(cfg) >= .016);
-            Assert(StrokeTiming.EndHold(cfg, speed) >= .016);
-            Assert(StrokeTiming.Release(cfg) >= .016);
+            double minimum=engine=="Stable"?.016:.012;
+            Assert(StrokeTiming.Frame(cfg) >= minimum);
+            Assert(StrokeTiming.EndHold(cfg, speed) >= minimum);
+            Assert(StrokeTiming.Release(cfg) >= minimum);
             Assert(StrokeTiming.Estimate(cfg, speed, 0, false) >= .04 + StrokeTiming.Release(cfg));
         }
     }
@@ -1537,6 +1538,46 @@ Test("Stale audit setup remains editable while execution readiness fails",()=>
     cfg.Set("brush_shape_slot",4);cfg.Set("brush_shape","Square");cfg.Validate();
     Assert(CoverageAudit.SetupProblem(cfg) is not null);
     cfg.Set("coverage_audit",false);cfg.Validate();
+});
+
+Test("Experimental delay is configurable below Stable while numeric verification waits stay unchanged",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);cfg.Set("input_frame_delay_ms",16);
+    double numeric=StrokeTiming.SliderChangeEstimate(cfg),hex=StrokeTiming.HexChangeEstimate(cfg);
+    var batch=new PaintBatch(0,new[]{new ScreenLine(0,0,512,0)},1);double stable=TransferSchedule.EstimateBatch(cfg,SpeedProfile.Get("Max Speed"),batch);
+    cfg.Set("input_engine","Experimental 1 ms");Assert(StrokeTiming.Frame(cfg)==.012);
+    double previous=double.PositiveInfinity;
+    foreach(int ms in new[]{16,12,8})
+    {
+        cfg.Set("input_experimental_delay_ms",ms);cfg.Validate();Assert(StrokeTiming.Frame(cfg)==ms/1000.0);
+        Assert(StrokeTiming.ControlFrame(cfg)==.016&&StrokeTiming.SliderChangeEstimate(cfg)==numeric&&StrokeTiming.HexChangeEstimate(cfg)==hex);
+        var input=new RecordingStrokeInput();StrokeMotion.Draw(batch,cfg,SpeedProfile.Get("Max Speed"),input);
+        double estimated=TransferSchedule.EstimateBatch(cfg,SpeedProfile.Get("Max Speed"),batch);
+        Assert(Math.Abs(input.Seconds-estimated)<1e-9&&estimated<previous);previous=estimated;
+        Assert(input.Painted.SetEquals(Centres(batch.Segments))&&!input.Held&&input.UpAt-input.DownAt>=.04-1e-9);
+    }
+    Assert(previous<stable);
+    cfg.Set("input_engine","Stable");Assert(StrokeTiming.Frame(cfg)==.016);
+});
+Test("Experimental timing rejects invalid persisted values and changes checkpoint identity",()=>
+{
+    var cfg=Settings.Defaults();var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]);
+    cfg.Set("input_experimental_delay_ms",8);Assert(PlanIdentity.Compute(image,cfg,[])!=identity);
+    foreach(string value in new[]{"0","7","17","NaN","Infinity"})
+    {
+        cfg.Set("input_experimental_delay_ms",value);
+        try{cfg.Validate();throw new Exception("Invalid experimental delay accepted");}catch(InvalidDataException){}
+    }
+});
+Test("Single-row edge gaps remain failures and are reported even when no repair fits",()=>
+{
+    var before=new PixelImage(80,80);var after=before.Clone();var mask=new bool[6400];
+    for(int y=10;y<70;y++)for(int x=10;x<70;x++){int i=y*80+x;mask[i]=true;if(y>10)after.Set(i,new(220,40,30));}
+    var result=CoverageAudit.Read(before,after,mask,new(new(220,40,30),12));
+    Assert(result.Missing==60&&!result.Passed&&result.Unknown==0);
+    var canvas=new ScreenRect(100,200,180,280);Assert(CoverageAudit.GapBounds(result.MissingMask,canvas)==new ScreenRect(110,210,170,211));
+    Assert(CoverageAudit.Repair(result.MissingMask,mask,canvas,7).Count==0);
+    Assert(CoverageAudit.GapBounds(new bool[6400],canvas) is null);
 });
 
 Console.WriteLine($"ALL {passed} TESTS PASSED");
