@@ -10,6 +10,8 @@ Progress/ETA/status survive language rebuild; new plan/START resets old results.
 Adaptive/schedule cancellation propagated. Old RESUME planner identities become incompatible.
 Expected validation 211 Core / 56 WPF, default runtime and exact published DLLs; see archive manifest.
 New beta.26 in-game verification pending; recorded PNG replays are offline evidence only.
-Temporary compile-host CLR flags remain process-local; clean remote CI result recorded separately.
-Source updates are being published to the existing codex/pixora-1.0.14-beta-calibration draft PR.
+Temporary compile-host CLR flags remain process-local; local root cause remains open.
+Clean Windows CI run 37374418300 passed for product commit 1df06c2; see BETA26_CI_EVIDENCE.json.
+Static stamps do not prove swept motion; ordinary fallback still needs actual same-route audits.
+Product source is published in the existing codex/pixora-1.0.14-beta-calibration draft PR #2.
 See CHANGES_BETA26_UA.md, TESTING_BETA26_UA.md and KNOWN_ISSUES.md.

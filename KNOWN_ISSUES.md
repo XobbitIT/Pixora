@@ -6,13 +6,15 @@ The beta.24 live Four Blocks baseline completed 150 operations in 83.90 active s
 
 Beta.26 separates the old conservative safety radius from measured physical reach, saves possible-union and opaque-intersection masks from three independent commands, and supports seven shape profiles and Size up to 100. Wide safety uses the complete possible mask; fine residuals still use the existing baseline input route. Repair uses a stable mask where available and retains frozen-reference pixel re-audit. Possible-only reach is not declared fixed, Unknown is not targeted, and texture randomness cannot establish a guaranteed fill. Three samples are finite evidence, not a universal guarantee. Shape switching, large stamps, exact color edges and pause/repair recovery need live checks. Large Speed Probe tiles may not fit a normal Canvas; the protocol is not shortened or weakened.
 
+Static stamp measurements do not establish continuous swept coverage during a drag. MeasuredAdaptive removes fine centres inside an ideal swept SolidCore rectangle. The runtime uses a matching shape/Size/direction Speed Probe route only when that proof is current and calibrated strokes are enabled; otherwise ordinary input is still allowed. That fallback is not verified by the stamp calibration. Audit and actual same-route game runs must check for gaps before increasing Size or enabling automatic shape selection. A proof for Size 1/3 must not be presented as evidence for Size 10/20/40/60/100. See BETA26_REVIEW_RESPONSE_UA.md for the staged live plan.
+
 Profiles are bound to absolute geometry/DPI and color/control mode. Recalibrate after moving/resizing Rust. Existing legacy radii remain compatible until measured profiles are introduced; stale masks are not silently replaced by legacy radii. Old RESUME identities are incompatible with the new planner revision. Rust convar/bind transport remains an unimplemented experimental candidate pending client verification.
 
 ## P2 — Offset stability policy needs live data
 
 Beta.24 adds longest stable resolved run and transition rate as diagnostics only. Missing old fields or no comparable pairs are shown as unavailable, not zero stability. Beta.23 records unique full-core centre offsets, ambiguity, adjacent transitions and range, without changing acceptance. A fully covered zigzag inside the existing envelope may still pass. No continuity threshold is introduced until representative Rust data is available. Wider matching cores can be ambiguous; a missing trajectory is not zero drift.
 
-Windows CI now retains runner/runtime evidence and checks published DLLs. The workflow changes are local and have not run on GitHub; the local CLR/Roslyn root cause is still open.
+Windows CI retains runner/runtime evidence and checks published DLLs. The clean Windows workflow passed for product commit 1df06c299e75be2dd93c897f7193c514227be2e8, run 37374418300, including Core, WPF, self-contained publish and published-DLL checks. See BETA26_CI_EVIDENCE.json. The local CLR/Roslyn root cause is still open.
 
 ## P2 — Additional timing and coverage evidence remains limited
 
@@ -35,7 +37,7 @@ Evidence retained outside the source tree in the workspace:
 
 The underlying cause is unknown. This is not evidence that Pixora crashes during ordinary painting. The temporary build flags do not establish a permanent fix. Windows settings and the application's runtimeconfig were not changed.
 
-Before a public release: reproduce builds on a clean Windows CI worker using the same SDK/dependencies and standard runtime settings, retain SDK/runtime versions and failing diagnostics, then investigate host/runtime differences if the issue remains local. Close only after the cause is understood or standard builds are shown to be stable across the release environments. No CI run or external issue has been created by this note.
+The first clean Windows CI build and published-DLL checks passed without the local compile-host flags (run 37374418300, product commit 1df06c2). This addresses the previously missing remote build evidence, but does not diagnose the local CLR failure or establish repeated build stability. Before a public release, retain SDK/runtime versions and failing diagnostics and investigate host/runtime differences. Close only after the cause is understood or standard builds are shown to be stable across the release environments.
 
 ## Palette comparison cancellation
 

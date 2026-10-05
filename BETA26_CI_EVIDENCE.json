@@ -1,0 +1,91 @@
+{
+  "verifiedOn": "2026-10-06",
+  "timezone": "Europe/Kiev",
+  "repository": "XobbitIT/Pixora",
+  "productCommit": "1df06c299e75be2dd93c897f7193c514227be2e8",
+  "runId": 37374418300,
+  "url": "https://github.com/XobbitIT/Pixora/actions/runs/37374418300",
+  "status": "completed",
+  "conclusion": "success",
+  "completedAtUtc": "2026-10-05T21:24:55Z",
+  "cleanCiPassed": true,
+  "jobs": [
+    {
+      "id": 111979261529,
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Setup .NET 8",
+          "conclusion": "success"
+        },
+        {
+          "name": "Record clean runner runtime",
+          "conclusion": "success"
+        },
+        {
+          "name": "Restore",
+          "conclusion": "success"
+        },
+        {
+          "name": "Core regression tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "WPF adaptive UI checks",
+          "conclusion": "success"
+        },
+        {
+          "name": "Read build version",
+          "conclusion": "success"
+        },
+        {
+          "name": "Publish win-x64 self-contained",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check published DLLs",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload validation evidence",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload Pixora portable",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Setup .NET 8",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Checkout",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "expectedVersion": "1.0.14-beta.26",
+  "localChecks": {
+    "core": 211,
+    "wpf": 56
+  },
+  "inGameTestPerformed": false,
+  "localClrRootCauseClosed": false,
+  "issuedArchiveSha256": "9232b78527b3db35d32576e327e0f361bd7440018fd51452695d8588cb5fe416",
+  "issuedArchiveManifestIsPackagingSnapshot": true
+}
