@@ -90,6 +90,11 @@ internal static class BrushFootprintChecks
             BrushFootprints.Save(s,profiles);Assert(BrushFootprints.Read(s,true).Count==7&&BrushFootprints.Read(s).Count==1);
             var other=BrushFootprints.ForShape(s,4);Assert(BrushFootprints.Find(other,1)!.ShapeSlot==4&&SpeedCalibration.Context(other)!=SpeedCalibration.Context(s));
             Assert(SpeedCalibration.Resolve(s,1,new(10,10,100,10),4) is null);
+            BrushFootprints.Save(s,[Profile(s,3,100,Rectangle(-80,-80,81,81),Rectangle(-10,-10,11,11)),
+                Profile(s,4,100,Rectangle(-180,-180,181,181),Rectangle(-10,-10,11,11))]);
+            Assert(BrushFootprints.CaptureRadius(s,100,3)==80&&BrushFootprints.CaptureRadius(s,100,4)==180,
+                "Snapshot used the default shape's radius after an automatic switch");
+            Assert(BrushFootprints.CaptureRadius(s,100,7)==258,"Unmeasured alternative shape inherited default radius");
         });
         test("A verified shape route is available only with its own spatial ID and speed evidence",()=>
         {

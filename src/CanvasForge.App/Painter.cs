@@ -585,7 +585,8 @@ internal sealed partial class Painter : IDisposable
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
             timing.Complete(PaintTimingPlan.Setup,ActiveSeconds-setupStart);
-            Log("adaptive_plan", new { enabled = settings.Bool("adaptive_brush"), wide = groups.Values.SelectMany(x => x).Count(x => x.Size > 0), total });
+            Log("adaptive_plan", new { enabled = settings.Bool("adaptive_brush"), wide = groups.Values.SelectMany(x => x).Count(x => x.Size > 0), total,
+                footprintRevision=BrushFootprints.Revision,shapeSlots=groups.Values.SelectMany(x=>x).Select(x=>x.ShapeSlot>0?x.ShapeSlot:settings.Int("brush_shape_slot",3)).Distinct().Order().ToArray() });
             string? lastHex = null;
             for (var group = resume?.Group ?? 0; group < order.Count; group++)
             {

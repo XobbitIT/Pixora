@@ -33,13 +33,11 @@ internal sealed partial class Painter
         double size=verifiedControls.GetValueOrDefault("size",DesiredControls().Size);
         // Manual/interpolated Sizes may have no exact measured sample. Use a
         // conservative bound in that case rather than preventing an existing audit.
-        int radius=258;
-        try{radius=SpeedCalibration.Footprint(settings,size).Outer;}
-        catch(InvalidOperationException){}
+        int radius=BrushFootprints.CaptureRadius(settings,size,activeShape);
         int margin=CaptureCursor.Clearance(radius,windowDpi);
         var park=CaptureCursor.ParkingPoint(area,windowRect,original,margin)
             ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
-        Log("capture_cursor_park",new{area,original,park,brushRadius=radius,margin,dpi=windowDpi});
+        Log("capture_cursor_park",new{area,original,park,shape=activeShape,brushRadius=radius,margin,dpi=windowDpi});
         return CaptureCursor.Snapshot(original,park,Native.ReleaseChecked,MoveCursor,Frames,
             ()=>CanReturnCursor()&&Native.Cursor()==park,
             error=>Log("cursor_restore_failed",new{phase="snapshot",message=error.Message}));

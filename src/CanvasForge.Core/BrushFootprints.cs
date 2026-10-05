@@ -85,6 +85,14 @@ public static class BrushFootprints
     }
     public static BrushFootprint? Find(Settings s,double size,int? shape=null)
         =>Read(s,true).FirstOrDefault(p=>p.Size==size&&p.ShapeSlot==(shape??s.Int("brush_shape_slot",3)));
+    public static int CaptureRadius(Settings s,double size,int shape=0)
+    {
+        int selected=shape>0?shape:s.Int("brush_shape_slot",3);
+        if(Find(s,size,selected) is { } measured)return measured.Reach;
+        if(selected!=s.Int("brush_shape_slot",3))return 258;
+        try{return SpeedCalibration.Footprint(s,size).Outer;}
+        catch(InvalidOperationException){return 258;}
+    }
     public static void Save(Settings s,IReadOnlyList<BrushFootprint> profiles)
     {
         if(profiles.Count==0||profiles.Any(p=>!Valid(p)||p.Context!=Context(s,p.ShapeSlot))
