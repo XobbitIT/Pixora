@@ -65,6 +65,7 @@ public sealed class PixelImage
 // Import never writes back to the user's Python configuration.
 public sealed class Settings
 {
+    internal bool MeasurementSnapshot { get; set; }
     public JsonObject Data { get; }
 
     public Settings(JsonObject? data = null) => Data = data ?? new();
@@ -141,7 +142,7 @@ public sealed class Settings
 
     public void Validate()
     {
-        foreach (var key in new[] { "input_frame_delay_ms", "input_experimental_delay_ms", "cycle_delay_ms", "stroke_speed", "reclick_delay_ms", "control_verify_tolerance", "adaptive_threshold", "brush_size_value", "interval_value", "paint_opacity_value" })
+        foreach (var key in new[] { "input_frame_delay_ms", "input_experimental_delay_ms", "cycle_delay_ms", "stroke_speed", "reclick_delay_ms", "adaptive_threshold", "brush_size_value", "interval_value", "paint_opacity_value" })
             if (!double.IsFinite(Number(key)) || Number(key) < 0)
                 throw new InvalidDataException($"Invalid setting: {key}");
         if (Number("preblur") > 10 || Number("start_delay") > 300 || Number("color_delay") > 60 || Number("click_delay") > 60)
@@ -155,12 +156,14 @@ public sealed class Settings
         var hexLimit = Text("hex_max_colors", "128");
         if (hexLimit != "Auto" && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 256))
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
-        if (Int("adaptive_max_size", 20) is not (10 or 20))
-            throw new InvalidDataException("Adaptive maximum Size must be 10 or 20.");
+        if (Int("adaptive_max_size", 20) is not (3 or 10 or 20 or 40 or 60 or 100))
+            throw new InvalidDataException("Adaptive maximum Size must be 3, 10, 20, 40, 60 or 100.");
+        if(Number("brush_shape_slot",3) is <1 or >7||Number("brush_shape_slot",3)!=Int("brush_shape_slot",3))
+            throw new InvalidDataException("Brush shape must be 1–7.");
         var motionPacket=Number("fast_path_batch_points",8);
         if(!double.IsFinite(motionPacket)||motionPacket is <1 or >16||motionPacket!=Math.Truncate(motionPacket))
             throw new InvalidDataException("Fast movement packet must be an integer from 1 to 16.");
-        if(Number("probe_size",3) is not (1 or 3 or 10 or 20))throw new InvalidDataException("Probe Size must be 1, 3, 10 or 20.");
+        if(!BrushFootprints.Sizes.Contains(Number("probe_size",3)))throw new InvalidDataException("Probe Size must be 1, 3, 10, 20, 40, 60 or 100.");
         if(Number("audit_repair_passes",1) is not (1 or 2))throw new InvalidDataException("Repair passes must be 1 or 2.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
@@ -176,7 +179,6 @@ public sealed class Settings
             "color_delay",
             "click_delay",
             "hex_apply_delay_ms",
-            "sequence_delay_ms",
             "mouse_up_delay_ms"
         }
 
@@ -211,6 +213,7 @@ public sealed class Settings
             ["alpha_threshold"] = 16,
             ["start_delay"] = 5,
             ["minimize"] = true,
+            ["restore_window_after_paint"] = false,
             ["auto_tools"] = true,
             ["speed_profile"] = "Rapid",
             ["coverage_mode"] = "Precision",
@@ -239,6 +242,8 @@ public sealed class Settings
             ["use_fixed_opacity"] = true,
             ["brush_shape"] = "Round",
             ["brush_shape_slot"] = 3,
+            ["brush_calibration_size"] = "1/3/10/20",
+            ["adaptive_auto_shape"] = false,
             ["background_mode"] = "preserve",
             ["profile"] = "Anime / Line Art",
             ["sequence_delay_ms"] = 3,
@@ -388,7 +393,8 @@ public static class CalibrationSession
     public static void Reset(Settings settings)
     {
         settings.Data.Remove("calibration");
-        foreach (var key in new[] { "hex_controls", "rust_palette", "palette_click_points", "palette_sources", "brush_calibration_points", "brush_calibration_context" })
+        foreach (var key in new[] { "hex_controls", "rust_palette", "palette_click_points", "palette_sources", "brush_calibration_points", "brush_calibration_context",
+            "brush_footprints","shape_speed_profiles","shape_spatial_profiles","speed_probe_profile","probe_spatial_profiles" })
             settings.Data.Remove(key);
     }
 }
@@ -487,8 +493,12 @@ public static class PlanIdentity
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeTiming.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(BrushFootprints.Revision));
+        if (settings.Bool("auto_brush_size", true)
+            && (settings.Text("coverage_mode", "Precision") != "Precision" || !settings.Bool("force_precision_controls", true)))
+            hash.AppendData(System.Text.Encoding.UTF8.GetBytes(AutomaticBrush.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
-        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "fast_move_span_px" })
+        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance" })
             paintSettings.Remove(key);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + paintSettings.ToJsonString() + JsonSerializer.Serialize(palette)));
         return Convert.ToHexString(hash.GetHashAndReset());

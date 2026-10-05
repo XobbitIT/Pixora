@@ -44,7 +44,7 @@ internal sealed partial class MainWindow
     private void BuildWorkflow(StackPanel parent)
     {
         workflowChips.Clear();
-        foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")), ("speed", "Speed Probe"), ("coverage", T("Покриття", "Coverage")) })
+        foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")), ("speed", T("Швидкість", "Speed Probe")), ("coverage", T("Покриття", "Coverage")) })
         {
             var row = new Grid { Margin = new Thickness(0, 3, 0, 3) };
             row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
@@ -81,7 +81,7 @@ internal sealed partial class MainWindow
             pair.Value.Background = selected ? BrushOf("#38302A") : Input;
         }
         string name = value switch { 1 => T("Чітко", "Detail"), 3 => T("Баланс", "Balanced"), 5 => T("Швидко", "Fast"), 8 => T("Чернетка", "Draft"), _ => T("Власне значення", "Custom") };
-        detailState.Text = valid ? $"{name} · {value:0} px · {T("Рух", "Movement")}: {settings.Text("speed_profile")}" : T("Введи ціле значення від 1 до 32 px.", "Enter a whole number from 1 to 32 px.");
+        detailState.Text = valid ? $"{name} · {value:0} px · {T("Рух", "Movement")}: {Option("speed_profile",settings.Text("speed_profile"))}" : T("Введи ціле значення від 1 до 32 px.", "Enter a whole number from 1 to 32 px.");
         detailState.Foreground = valid ? Muted : Danger;
     }
 }

@@ -10,3 +10,4 @@ unification warning remains. No live Windows/Rust testing was performed.
 Only stroke timing changed. HEX input, palette/control clicks, foreground checks,
 window movement protection, cancellation and resume checks remain in place.
 The selected engine and effective frame/release timings are recorded at start.
+

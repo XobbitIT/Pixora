@@ -80,3 +80,4 @@ internal static class Images
         return result;
     }
 }
+

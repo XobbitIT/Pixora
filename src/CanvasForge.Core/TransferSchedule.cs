@@ -1,6 +1,6 @@
 namespace CanvasForge.Core;
 
-public sealed record PaintBatch(double Size, IReadOnlyList<ScreenLine> Segments, int SourceStrokes);
+public sealed record PaintBatch(double Size, IReadOnlyList<ScreenLine> Segments, int SourceStrokes, int ShapeSlot=0, string? ProfileId=null);
 
 // Join only axis-aligned paths that stay inside the original fine coverage or
 // inside a same-color area large enough for the calibrated wide brush.
@@ -9,14 +9,28 @@ public static class TransferSchedule
     public const int MaximumStrokes = 16;
     public const int MaximumConnector = 32;
     public static bool Fast(Settings s) => s.Bool("fast_transfer") && !SpeedCalibration.Use(s) && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
+    public static bool FastBatch(Settings s,PaintBatch batch)=>Fast(s)
+        &&(batch.Segments.Count!=1||SpeedCalibration.Resolve(s,batch.Size>0?batch.Size:PaintTimingPlan.DefaultSize(s),batch.Segments[0],batch.ShapeSlot) is null);
     public static int Length(ScreenLine l) => Math.Max(Math.Abs(l.X2-l.X1), Math.Abs(l.Y2-l.Y1));
     public static ScreenLine Reverse(ScreenLine l) => new(l.X2,l.Y2,l.X1,l.Y1);
 
-    public static Dictionary<int,List<PaintBatch>> Build(PaintPlan plan, Settings s)
-        => Build(plan, s, AdaptiveBrush.Build(plan,s));
-
-    public static Dictionary<int,List<PaintBatch>> Build(PaintPlan plan, Settings s, Dictionary<int,List<BrushStroke>> source)
+    public static List<int> Order(PaintPlan plan, Dictionary<int,List<PaintBatch>> groups)
     {
+        var order = groups.Keys.OrderByDescending(i => plan.Counts.GetValueOrDefault(i)).ToList();
+        if (plan.BackgroundColor is int background)
+        {
+            order.Remove(background);
+            order.Insert(0, background);
+        }
+        return order;
+    }
+
+    public static Dictionary<int,List<PaintBatch>> Build(PaintPlan plan, Settings s,CancellationToken token=default)
+        => Build(plan, s, AdaptiveBrush.Build(plan,s,token),token);
+
+    public static Dictionary<int,List<PaintBatch>> Build(PaintPlan plan, Settings s, Dictionary<int,List<BrushStroke>> source,CancellationToken token=default)
+    {
+        s=BrushFootprints.Snapshot(s);
         var output = new Dictionary<int,List<PaintBatch>>();
         var rect=s.Calibration.Rect("canvas");
         bool join=Fast(s) && s.Int("brush_shape_slot",3) is 3 or 4
@@ -50,6 +64,7 @@ public static class TransferSchedule
         }
         foreach(var(color,strokes)in source)
         {
+            token.ThrowIfCancellationRequested();
             var batches=new List<PaintBatch>();output[color]=batches;
             if(join)
             {
@@ -64,24 +79,39 @@ public static class TransferSchedule
                     }
                 }
             }
-            List<ScreenLine>? segments=null;double size=0;int count=0;
-            void Flush(){if(segments is not null)batches.Add(new(size,segments,count));segments=null;count=0;}
+            List<ScreenLine>? segments=null;double size=0;int count=0,shape=0;string? profileId=null;
+            void Flush(){if(segments is not null)batches.Add(new(size,segments,count,shape,profileId));segments=null;count=0;}
             foreach(var op in strokes)
             {
+                token.ThrowIfCancellationRequested();
                 var next=op.Line;
                 bool connected=false;
-                if(join&&segments is not null&&op.Size==size&&count<MaximumStrokes)
+                if(join&&segments is not null&&op.Size==size&&op.ShapeSlot==shape&&op.ProfileId==profileId&&count<MaximumStrokes
+                    &&SpeedCalibration.Resolve(s,op.Size>0?op.Size:PaintTimingPlan.DefaultSize(s),op.Line,op.ShapeSlot) is null)
                 {
                     var end=segments[^1];
                     foreach(var candidate in new[]{next,Reverse(next)}.OrderBy(l=>Math.Abs(l.X1-end.X2)+Math.Abs(l.Y1-end.Y2)))
                     {
                         var connector=new ScreenLine(end.X2,end.Y2,candidate.X1,candidate.Y1);
-                        if(!SafeConnector(connector,op.Size>0?op.OuterRadius:0,color))continue;
+                        if(op.ProfileId is not null)
+                        {
+                            var p=BrushFootprints.Find(s,op.Size,op.ShapeSlot);
+                            if(p is null||p.Id!=op.ProfileId||connector.X1!=connector.X2&&connector.Y1!=connector.Y2||Length(connector)>MaximumConnector)continue;
+                            bool safe=true;
+                            for(int k=0;k<=Length(connector);k++)
+                            {
+                                int cx=connector.X1+k*Math.Sign(connector.X2-connector.X1)-rect.Left,cy=connector.Y1+k*Math.Sign(connector.Y2-connector.Y1)-rect.Top;
+                                safe&=BrushFootprints.Safe(p,cx,cy,rect.Width,rect.Height,(px,py)=>plan.Indices[Cell(yb,py+rect.Top)*plan.Width+Cell(xb,px+rect.Left)]==color);
+                                if(!safe)break;
+                            }
+                            if(!safe)continue;
+                        }
+                        else if(!SafeConnector(connector,op.Size>0?op.OuterRadius:0,color))continue;
                         if(Length(connector)>0)segments.Add(connector);
                         next=candidate;connected=true;break;
                     }
                 }
-                if(!connected){Flush();segments=[];size=op.Size;}
+                if(!connected){Flush();segments=[];size=op.Size;shape=op.ShapeSlot;profileId=op.ProfileId;}
                 segments!.Add(next);count++;
             }
             Flush();
@@ -92,7 +122,7 @@ public static class TransferSchedule
     public static double EstimateBatch(Settings s,SpeedProfile speed,PaintBatch batch)
     {
         double size=batch.Size>0?batch.Size:speed.BrushSize;
-        if(batch.Segments.Count==1&&SpeedCalibration.Resolve(s,size,batch.Segments[0]) is { } sample)
+        if(batch.Segments.Count==1&&SpeedCalibration.Resolve(s,size,batch.Segments[0],batch.ShapeSlot) is { } sample)
             return CalibratedMotion.Estimate(batch.Segments[0],sample);
         if(!Fast(s))
         {

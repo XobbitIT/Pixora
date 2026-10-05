@@ -60,3 +60,4 @@ BRANDING
 - Windows executable is now Pixora.exe.
 - Existing CanvasForge config/resume files are migrated automatically on first launch.
 - Internal CanvasForge.* namespaces remain unchanged for source compatibility.
+

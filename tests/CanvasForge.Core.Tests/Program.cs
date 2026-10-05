@@ -522,6 +522,49 @@ Test("English translations cover capture, progress and dynamic errors", () =>
     foreach (var value in map.Values)
         Assert(!System.Text.RegularExpressions.Regex.IsMatch(value, "[А-Яа-яІіЇїЄєҐґ]"), "Untranslated dictionary value: " + value);
 });
+Test("Ukrainian messages translate owned English failures without changing user data", () =>
+{
+    var examples = new Dictionary<string,string>
+    {
+        ["Capture Canvas."] = "Захопи полотно.",
+        ["Canvas is outside Rust."] = "Полотно розташоване поза вікном Rust.",
+        ["Cannot open clipboard."] = "Не вдалося відкрити буфер обміну.",
+        ["Unsupported image format."] = "Формат зображення не підтримується.",
+        ["Input frame delay must be 16–100 ms."] = "Затримка стабільного вводу має бути від 16 до 100 мс.",
+        ["Experimental input delay must be 8–16 ms."] = "Затримка експериментального вводу має бути від 8 до 16 мс.",
+        ["Invalid setting: input_engine"] = "Некоректне налаштування: input_engine"
+    };
+    foreach(var (en,uk) in examples)
+    {
+        Assert(CanvasForge.App.Translations.ForLanguage(en,false)==uk,en);
+        Assert(CanvasForge.App.Translations.ForLanguage(uk,true)==en,uk);
+    }
+    foreach(var text in new[]{"C:\\малюнки\\Photo $1.png","My image — малюнок.png","Example.exe"})
+        foreach(bool english in new[]{false,true})Assert(CanvasForge.App.Translations.ForLanguage(text,english)==text,"User data was translated: "+text);
+});
+Test("Dynamic localization preserves captures and translates cached nested failures", () =>
+{
+    const string uk="Покриття: 99.1%; пропуски 336; невпевнено 823.";
+    const string en="Coverage: 99.1%; missing 336; uncertain 823.";
+    Assert(CanvasForge.App.Translations.ForLanguage(uk,true)==en);
+    Assert(CanvasForge.App.Translations.ForLanguage(en,false)==uk);
+    const string detail="C:\\mal\\$1\\image.png\nsecond line";
+    Assert(CanvasForge.App.Translations.ForLanguage("Invalid setting: "+detail,false)=="Некоректне налаштування: "+detail,"Template changed backslashes, dollars, or newlines");
+    const string failure="Could not measure Size 3: Cannot resize image.";
+    const string localized="Не вдалося виміряти розмір 3: Не вдалося змінити розмір зображення.";
+    Assert(CanvasForge.App.Translations.ForLanguage(failure,false)==localized);
+    Assert(CanvasForge.App.Translations.ForLanguage(localized,true)==failure);
+});
+Test("Option labels localize without exposing legacy canonical UI names", () =>
+{
+    foreach(var (key,value) in new[]{("input_engine","Stable"),("input_engine","Experimental 1 ms"),("speed_profile","Max Speed"),("profile","Anime / Line Art"),("profile","Photo"),("profile","Pixel Art"),("color_mode","HEX Direct"),("fit_mode","smart"),("background_mode","auto"),("coverage_mode","Precision"),("max_colors","Auto"),("hex_max_colors","Auto")})
+    {
+        var uk=CanvasForge.App.Translations.Option(key,value,false);
+        Assert(uk!=value&&System.Text.RegularExpressions.Regex.IsMatch(uk,"[А-Яа-яІіЇїЄєҐґ]"),"Missing Ukrainian option: "+key+" / "+value);
+        Assert(!System.Text.RegularExpressions.Regex.IsMatch(CanvasForge.App.Translations.Option(key,value,true),"[А-Яа-яІіЇїЄєҐґ]"),"Missing English option");
+    }
+    Assert(CanvasForge.App.Translations.Option("probe_size","3",false)=="3");
+});
 Test("Input delay defaults, bounds, and ETA agree", () =>
 {
     var cfg = Settings.Defaults();
@@ -847,7 +890,7 @@ Test("Interface-only settings preserve the RESUME identity", () =>
     var hash = PlanIdentity.Compute(image, s, palette);
     s.Set("language", "English");
     Assert(hash == PlanIdentity.Compute(image, s, palette));
-    foreach (var key in new[] { "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize" })
+    foreach (var key in new[] { "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint" })
     {
         s.Set(key, !s.Bool(key));
         Assert(hash == PlanIdentity.Compute(image, s, palette), "interface setting invalidated identity: " + key);
@@ -1395,14 +1438,15 @@ Test("Legacy cursor-jump settings no longer affect identity or motion",()=>
 Settings ProbeConfig()
 {
     var cfg=SessionFixture();cfg.Set("calibrated_strokes",true);
-    var samples=new List<SpeedSample>{new(1,StrokeMethod.Paced,false,12,17,1,32,3,1),new(1,StrokeMethod.Shift,false,8,12,1,32,3,1),new(1,StrokeMethod.Paced,true,20,27,1,32,3,1)};
+    var spatial=SpatialFixtureProfile(cfg,1);ProbeSpatialCalibration.Save(cfg,spatial);
+    var samples=new List<SpeedSample>{new(1,StrokeMethod.Paced,false,12,17,1,32,3,1,spatial.Id),new(1,StrokeMethod.Shift,false,8,12,1,32,3,1,spatial.Id),new(1,StrokeMethod.Paced,true,20,27,1,32,3,1,spatial.Id)};
     cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,samples));return cfg;
 }
 Test("Probe accepts repeated full coverage and rejects unvalidated profiles",()=>
 {
     var cfg=ProbeConfig();Assert(SpeedCalibration.Use(cfg));
     foreach(var invalid in new[]{new SpeedSample(1,StrokeMethod.Shift,false,8,8,1,32,3,1),new(1,StrokeMethod.Shift,false,8,12,1,32,2,1),new(1,StrokeMethod.Shift,false,8,12,1,32,3,.99),new(1,StrokeMethod.Paced,false,8,12,64,32,3,1)})
-    {cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,[invalid]));Assert(!SpeedCalibration.Current(cfg));}
+    {cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,[invalid with{SpatialId=ProbeSpatialCalibration.Read(cfg,1)!.Id}]));Assert(!SpeedCalibration.Current(cfg));}
 });
 Test("Probe context rejects changed samples geometry DPI and color mode",()=>
 {
@@ -1569,18 +1613,771 @@ Test("Experimental timing rejects invalid persisted values and changes checkpoin
         try{cfg.Validate();throw new Exception("Invalid experimental delay accepted");}catch(InvalidDataException){}
     }
 });
-Test("Single-row edge gaps remain failures and are reported even when no repair fits",()=>
+Test("Single-row edge gaps project to safe interior centres without being declared covered",()=>
 {
     var before=new PixelImage(80,80);var after=before.Clone();var mask=new bool[6400];
     for(int y=10;y<70;y++)for(int x=10;x<70;x++){int i=y*80+x;mask[i]=true;if(y>10)after.Set(i,new(220,40,30));}
     var result=CoverageAudit.Read(before,after,mask,new(new(220,40,30),12));
     Assert(result.Missing==60&&!result.Passed&&result.Unknown==0);
     var canvas=new ScreenRect(100,200,180,280);Assert(CoverageAudit.GapBounds(result.MissingMask,canvas)==new ScreenRect(110,210,170,211));
-    Assert(CoverageAudit.Repair(result.MissingMask,mask,canvas,7).Count==0);
+    var repair=CoverageAudit.PlanRepair(result.MissingMask,mask,canvas,7);
+    Assert(repair.TargetPixels==60&&repair.UnreachablePixels==0&&repair.Strokes.Count>0);
+    foreach(var point in Centres(repair.Strokes))
+    {
+        Assert(point.Y==217,"Thin top-edge gap was not projected inward");
+        for(int dy=-7;dy<=7;dy++)for(int dx=-7;dx<=7;dx++)Assert(mask[(point.Y-200+dy)*80+point.X-100+dx]);
+    }
+    var unchanged=CoverageAudit.Read(before,after,mask,result.Reference);
+    Assert(!unchanged.Passed&&unchanged.Missing==60&&unchanged.Unknown==0,"Planned repair fabricated a PASS");
     Assert(CoverageAudit.GapBounds(new bool[6400],canvas) is null);
 });
+Test("Repair cannot target an uncertain-only result or a color region smaller than the footprint",()=>
+{
+    var before=new PixelImage(20,20);var expected=Enumerable.Repeat(true,400).ToArray();
+    var unknown=CoverageAudit.Read(before,before,expected);
+    var empty=CoverageAudit.PlanRepair(unknown.MissingMask,expected,new(0,0,20,20),2);
+    Assert(unknown.Unknown==400&&!unknown.Passed&&empty.Strokes.Count==0&&empty.TargetPixels==0);
+    Array.Fill(expected,false);var gaps=new bool[400];
+    for(int y=3;y<=5;y++)for(int x=3;x<=5;x++)expected[y*20+x]=gaps[y*20+x]=true;
+    var small=CoverageAudit.PlanRepair(gaps,expected,new(0,0,20,20),2);
+    Assert(small.TargetPixels==9&&small.UnreachablePixels==9&&small.Strokes.Count==0);
+});
+Test("Projected repair matches brute-force reach and keeps every moving footprint inside its color",()=>
+{
+    var random=new Random(2505);const int w=18,h=16;
+    for(int trial=0;trial<120;trial++)
+    {
+        int radius=trial%4;var expected=new bool[w*h];var gaps=new bool[w*h];
+        for(int i=0;i<expected.Length;i++){expected[i]=random.NextDouble()>.08;gaps[i]=random.NextDouble()<.25;}
+        var safe=new List<ScreenPoint>();
+        for(int y=radius;y<h-radius;y++)for(int x=radius;x<w-radius;x++)
+        {
+            bool inside=true;
+            for(int dy=-radius;dy<=radius;dy++)for(int dx=-radius;dx<=radius;dx++)inside&=expected[(y+dy)*w+x+dx];
+            if(inside)safe.Add(new(x,y));
+        }
+        var originalGaps=(bool[])gaps.Clone();var originalExpected=(bool[])expected.Clone();
+        var plan=CoverageAudit.PlanRepair(gaps,expected,new(-100,200,-100+w,200+h),radius);
+        int targets=0,unreachable=0;
+        for(int i=0;i<gaps.Length;i++)if(gaps[i]&&expected[i])
+        {
+            targets++;if(!safe.Any(p=>Math.Max(Math.Abs(p.X-i%w),Math.Abs(p.Y-i/w))<=radius))unreachable++;
+        }
+        Assert(plan.TargetPixels==targets&&plan.UnreachablePixels==unreachable,"Distance transform differs from exhaustive search");
+        var centres=Centres(plan.Strokes).Select(p=>new ScreenPoint(p.X+100,p.Y-200)).ToArray();
+        Assert(centres.All(p=>safe.Contains(p)),"A regrouped repair moves through another color");
+        for(int i=0;i<gaps.Length;i++)if(gaps[i]&&expected[i]&&safe.Any(p=>Math.Max(Math.Abs(p.X-i%w),Math.Abs(p.Y-i/w))<=radius))
+            Assert(centres.Any(p=>Math.Max(Math.Abs(p.X-i%w),Math.Abs(p.Y-i/w))<=radius),"Reachable target lost during regrouping");
+        Assert(gaps.SequenceEqual(originalGaps)&&expected.SequenceEqual(originalExpected),"Planning changed the evidence masks");
+    }
+});
+Test("Repair validates geometry and enforces the bounded operation limit",()=>
+{
+    foreach(var operation in new Action[]{()=>CoverageAudit.PlanRepair(new bool[9],new bool[9],new(0,0,3,3),-1),
+        ()=>CoverageAudit.PlanRepair(new bool[8],new bool[9],new(0,0,3,3),1),
+        ()=>CoverageAudit.PlanRepair(new bool[9],new bool[9],new(0,0,3,3),1,0)})
+    {try{operation();throw new Exception("Invalid repair accepted");}catch(ArgumentException){}}
+    var gaps=new bool[400];gaps[42]=gaps[315]=true;
+    try{CoverageAudit.PlanRepair(gaps,Enumerable.Repeat(true,400).ToArray(),new(0,0,20,20),0,1);throw new Exception("Repair limit ignored");}
+    catch(InvalidOperationException){}
+});
+Test("Enlarged gap markers are visible on red paint and never alter audit pixels or masks",()=>
+{
+    var after=new PixelImage(12,10);for(int i=0;i<120;i++)after.Set(i,new(255,40,70));
+    var missing=new bool[120];missing[0]=missing[5*12+6]=true;
+    var overlay=CoverageAudit.GapOverlay(after,missing);
+    Assert(overlay.Color(5*12+6)==new Rgb(0,255,255)&&overlay.Color(3*12+6)==new Rgb(0,0,0));
+    Assert(overlay.Color(0)==new Rgb(0,255,255)&&overlay.Color(119)==new Rgb(255,40,70));
+    Assert(after.Color(0)==new Rgb(255,40,70)&&missing.Count(x=>x)==2,"Diagnostics changed audit evidence");
+});
 
+Test("Auto brush reads legacy and current calibration using outer diameter", () =>
+{
+    foreach(var points in new[]{new double[][]{[1,3],[10,21],[20,43]},new double[][]{[1,3,1],[10,21,13],[20,43,23]}})
+    {
+        var s=Settings.Defaults();s.Set("brush_calibration_points",points);
+        Assert(AutomaticBrush.Value(s,21)==10,"21 px must use calibrated Size 10, not Size 21");
+        Assert(AutomaticBrush.Value(s,12)==5.5,"Outer diameter interpolation differs between formats");
+        Assert(AutomaticBrush.Value(s,1)==1&&AutomaticBrush.Value(s,100)==20);
+    }
+});
+Test("Auto brush rejects stale malformed and nonmonotonic measurements", () =>
+{
+    var s=Settings.Defaults();s.Data["brush_calibration_points"]=JsonNode.Parse("[[1,3,1], [10,21,13], [null,9,1], [20,9,99], [\"bad\",15], [], [1,3,1]]");
+    Assert(AutomaticBrush.Value(s,21)==10,"Bad rows discarded valid calibration");
+    s.Set("brush_calibration_context","v2:stale");Assert(AutomaticBrush.Value(s,21)==21,"Stale measurements were used");
+    s.Set("brush_calibration_context","");s.Set("brush_calibration_points",new double[][]{[10,3,1],[1,21,13]});
+    Assert(AutomaticBrush.Value(s,21)==21,"Nonmonotonic measurements were used");
+    s.Set("brush_calibration_points",new double[][]{});Assert(AutomaticBrush.Value(s,1000)==100);
+});
+Test("Checkpoint commits every completed batch and flushes exact interrupted progress", () =>
+{
+    var folder=Path.Combine(Path.GetTempPath(),"pixora-checkpoint-"+Guid.NewGuid());Directory.CreateDirectory(folder);
+    string path=Path.Combine(folder,"resume.json");var counts=new[]{138,138,138,138};
+    try
+    {
+        var journal=new CheckpointJournal(path,new("plan",0,0,0));journal.Flush();
+        foreach(int target in new[]{49,50,137,138,253,552})
+        {
+            for(int done=journal.Latest.Done+1;done<=target;done++)
+                journal.Update(new("plan",done/138,done%138,done));
+            Assert(journal.Latest.Done==target);journal.Flush();
+            var saved=System.Text.Json.JsonSerializer.Deserialize<ResumeCheckpoint>(File.ReadAllText(path))!;
+            Assert(saved.Done==target&&saved.Matches("plan",counts),"STOP/F6/error would resume from an earlier checkpoint");
+            Assert(!journal.Flush(),"Unchanged checkpoint was written repeatedly");
+        }
+    }
+    finally{foreach(var file in Directory.GetFiles(folder))File.Delete(file);Directory.Delete(folder);}
+});
+Test("Checkpoint write failure preserves previous JSON and allows a later retry", () =>
+{
+    if(!OperatingSystem.IsWindows())return;
+    var folder=Path.Combine(Path.GetTempPath(),"pixora-checkpoint-"+Guid.NewGuid());Directory.CreateDirectory(folder);
+    string path=Path.Combine(folder,"resume.json");
+    try
+    {
+        var journal=new CheckpointJournal(path,new("plan",0,0,0));journal.Flush();
+        journal.Update(new("plan",0,49,49));
+        using(var locked=File.Open(path,FileMode.Open,FileAccess.Read,FileShare.Read))
+        {
+            try{journal.Flush();throw new Exception("Locked checkpoint was overwritten");}catch(Exception e) when(e is IOException or UnauthorizedAccessException){}
+            Assert(System.Text.Json.JsonSerializer.Deserialize<ResumeCheckpoint>(File.ReadAllText(path))!.Done==0);
+        }
+        Assert(journal.Latest.Done==49&&journal.Flush());
+        Assert(System.Text.Json.JsonSerializer.Deserialize<ResumeCheckpoint>(File.ReadAllText(path))!.Done==49);
+        Assert(!File.Exists(path+".tmp"));
+    }
+    finally{foreach(var file in Directory.GetFiles(folder))File.Delete(file);Directory.Delete(folder);}
+});
+Test("Resume validation rejects another plan inconsistent counters and invalid boundaries", () =>
+{
+    var counts=new[]{138,138,138,138};
+    foreach(var state in new[]{new ResumeCheckpoint("plan",0,49,49),new("plan",1,0,138),new("plan",0,138,138),new("plan",4,0,552)})
+        Assert(state.Matches("plan",counts));
+    foreach(var state in new[]{new ResumeCheckpoint("other",0,49,49),new("plan",0,49,0),new("plan",0,139,139),new("plan",4,1,553),new("plan",-1,0,0),new("plan",5,0,552)})
+        Assert(!state.Matches("plan",counts));
+    Assert(!new ResumeCheckpoint("plan",0,0,0).Matches("plan",new[]{-1}));
+});
+Test("Retired controls preserve stored data without affecting plan identity", () =>
+{
+    var s=Config(ColorMode.RustPalette);var image=Fixture();var entries=new[]{new PaletteEntry(new(0,0,0),new(0,0),"main")};
+    var identity=PlanIdentity.Compute(image,s,entries);
+    s.Set("sequence_delay_ms",20);s.Set("double_click_controls",false);s.Set("control_verify_tolerance",.99);
+    s.Validate();Assert(PlanIdentity.Compute(image,s,entries)==identity);
+    Assert(s.Int("sequence_delay_ms")==20&&!s.Bool("double_click_controls")&&s.Number("control_verify_tolerance")==.99);
+});
+Test("Probe separates mixed brush edges from fixed solid core without loosening audit",()=>
+{
+    var (before,after,line)=ProbeFixture();var result=ProbeAnalysis.Control(before,after,line,7,2);
+    Assert(result.Passed&&result.CoreCoverage.Expected==140&&result.CoreCoverage.Covered==140);
+    Assert(result.FullMeasurement.Failure==ReferenceFailure.NonUniformColor);
+    Assert(CoverageAudit.Learn(before,after,result.ChangedMask) is null,"Full audit was silently relaxed");
+    Assert(result.CoreMeasurement.BackgroundRgb==new Rgb(200,200,200)&&result.CoreMeasurement.StrokeRgb==new Rgb(0,0,0));
+    Assert(result.CoreMeasurement.Contrast==200&&result.CoreMeasurement.Uniformity==1&&result.CoreMeasurement.SampleCount==140);
+});
+Test("Reference measurement distinguishes sample count low contrast and mixed color",()=>
+{
+    var before=new PixelImage(10,10);for(int i=0;i<100;i++)before.Set(i,new(200,200,200));
+    var after=before.Clone();for(int i=0;i<100;i++)after.Set(i,new(190,190,190));
+    var mask=Enumerable.Repeat(true,100).ToArray();var low=CoverageAudit.MeasureReference(before,after,mask,true);
+    Assert(low.Failure==ReferenceFailure.LowContrast&&low.Contrast==10&&low.StrokeRgb==new Rgb(190,190,190));
+    Assert(low.Reference is null&&low.SampleCount==100&&low.ChangedSamples==0);
+    Array.Fill(mask,false);for(int i=0;i<7;i++){mask[i]=true;after.Set(i,new(0,0,0));}
+    Assert(CoverageAudit.MeasureReference(before,after,mask,true).Failure==ReferenceFailure.InsufficientSamples);
+    Array.Fill(mask,true);for(int i=0;i<100;i++)after.Set(i,i<50?new(0,0,0):new(200,0,0));
+    Assert(CoverageAudit.MeasureReference(before,after,mask,true).Failure==ReferenceFailure.NonUniformColor);
+});
+Test("Probe rejects missing longitudinal slices instead of fitting its mask to changed pixels",()=>
+{
+    var (before,after,line)=ProbeFixture();for(int y=43;y<=53;y++)after.Set(y*96+48,before.Color(y*96+48));
+    var result=ProbeAnalysis.Control(before,after,line,7,2);
+    Assert(!result.Passed&&result.Failure==ProbeFailure.LongitudinalGap&&result.LongitudinalGaps==1);
+    Assert(result.CoreCoverage.Expected==140&&result.CoreCoverage.Missing==5);
+});
+Test("Thin probe control allows fixed raster offset while trials cannot recenter",()=>
+{
+    var (before,_,line)=ProbeFixture();var after=before.Clone();for(int x=30;x<=65;x++)after.Set(49*96+x,new(0,0,0));
+    var control=ProbeAnalysis.Control(before,after,line,7,0);
+    Assert(control.Passed&&control.PerpendicularOffset==1&&control.CoreCoverage.Expected==28);
+    Assert(ProbeAnalysis.Trial(before,after,line,control).Passed);
+    var shifted=before.Clone();for(int x=30;x<=65;x++)shifted.Set(50*96+x,new(0,0,0));
+    var result=ProbeAnalysis.Trial(before,shifted,line,control);
+    Assert(!result.Passed&&result.CoreCoverage.Missing==28&&result.PerpendicularOffset==1);
+    Assert(result.CoreMask.SequenceEqual(control.CoreMask),"Trial changed the expected mask");
+});
+Test("Probe trials retain control color and reject holes and a different solid color",()=>
+{
+    var (before,after,line)=ProbeFixture();var control=ProbeAnalysis.Control(before,after,line,7,2);
+    var wrong=after.Clone();for(int i=0;i<control.CoreMask.Length;i++)if(control.CoreMask[i])wrong.Set(i,new(0,255,0));
+    var result=ProbeAnalysis.Trial(before,wrong,line,control);
+    Assert(!result.Passed&&result.CoreCoverage.Unknown==140&&result.CoreCoverage.Reference==control.CoreCoverage.Reference);
+    after.Set(48*96+48,before.Color(48*96+48));result=ProbeAnalysis.Trial(before,after,line,control);
+    Assert(!result.Passed&&result.CoreCoverage.Missing==1&&result.CoreCoverage.Expected==140);
+});
+Test("Probe scene-change check uses the whole physical brush region",()=>
+{
+    var (before,after,line)=ProbeFixture();var control=ProbeAnalysis.Control(before,after,line,7,2);
+    Assert(control.Passed&&control.OutsideChanged==0,"Normal brush edges were mistaken for camera movement");
+    for(int y=0;y<2;y++)for(int x=0;x<96;x++)after.Set(y*96+x,new(0,0,0));
+    var result=ProbeAnalysis.Trial(before,after,line,control);
+    Assert(!result.Passed&&result.Failure==ProbeFailure.SceneChanged&&result.CoreCoverage.Unknown==140);
+});
+Test("Wide Size 20 probe retains geometric inner strip on a short control tile",()=>
+{
+    var (before,_,line)=ProbeFixture();var after=before.Clone();
+    for(int y=35;y<=61;y++)for(int x=30;x<=65;x++)after.Set(y*96+x,new(0,0,0));
+    var control=ProbeAnalysis.Control(before,after,line,24,10);
+    Assert(control.Passed&&control.CoreCoverage.Expected==588&&control.CoreCoverage.Covered==588);
+    after.Set(48*96+48,new(100,100,100));var result=ProbeAnalysis.Trial(before,after,line,control);
+    Assert(!result.Passed&&result.CoreCoverage.Unknown==1,"Uncertain inner pixel accepted");
+});
+Test("Probe rejects reuse of a control with mismatched geometry even with equal pixel counts",()=>
+{
+    var (before,after,line)=ProbeFixture();var control=ProbeAnalysis.Control(before,after,line,7,2);
+    foreach(var operation in new Action[]{()=>ProbeAnalysis.Trial(new(128,72),new(128,72),line,control),
+        ()=>ProbeAnalysis.Trial(before,after,new(48,30,48,65),control)})
+    {try{operation();throw new Exception("Geometry mismatch accepted");}catch(ArgumentException){}}
+});
+Test("Probe mask sampling preserves thin lines independently of full-image stride",()=>
+{
+    var before=new PixelImage(1000,1000);var after=before.Clone();var mask=new bool[1_000_000];
+    for(int x=30;x<=65;x++){int i=49*1000+x;mask[i]=true;after.Set(i,new(255,0,0));}
+    Assert(CoverageAudit.MeasureReference(before,after,mask,true).ChangedSamples==36);
+    Assert(CoverageAudit.MeasureReference(before,after,mask,true).Reference is not null);
+    Assert(CoverageAudit.Learn(before,after,mask) is null,"Existing audit sampling behavior changed");
+});
+Test("Snapshot parks at the nearest clear capture edge within the game window",()=>
+{
+    var region=new ScreenRect(100,100,400,400);var window=new ScreenRect(0,0,800,600);
+    Assert(CaptureCursor.ParkingPoint(region,window,new(105,250),20)==new ScreenPoint(80,250));
+    Assert(CaptureCursor.ParkingPoint(region,window,new(250,395),20)==new ScreenPoint(250,420));
+    Assert(CaptureCursor.ParkingPoint(region,window,new(500,250),20)==new ScreenPoint(500,250));
+    Assert(CaptureCursor.ParkingPoint(new(-500,100,-200,400),new(-800,0,0,600),new(-495,250),20)==new ScreenPoint(-520,250));
+    Assert(CaptureCursor.ParkingPoint(window,window,new(200,200),20) is null);
+});
+Test("Capture clearance separates a small brush halo from the snapshot and scales with DPI",()=>
+{
+    Assert(CaptureCursor.Clearance(7)==96&&CaptureCursor.Clearance(7,192)==192);
+    Assert(CaptureCursor.Clearance(258)==270&&CaptureCursor.Clearance(258,192)==282);
+    var region=new ScreenRect(100,100,400,400);var window=new ScreenRect(0,0,800,600);
+    var parked=CaptureCursor.ParkingPoint(region,window,new(105,250),CaptureCursor.Clearance(7));
+    Assert(parked==new ScreenPoint(4,250)&&parked.Value.X+40<region.Left,"Recorded 40 px halo could intersect the tile");
+    Assert(CaptureCursor.ParkingPoint(new(30,30,170,170),new(0,0,200,200),new(40,40),CaptureCursor.Clearance(7)) is null,
+        "A tight window was allowed to capture a contaminated region");
+});
+Test("Recorded beta24 halo contamination remains SceneChanged without relaxing probe acceptance",()=>
+{
+    var (before,_)=SliderFixture("beta24-probe-halo-before");var (after,_)=SliderFixture("beta24-probe-halo-after");
+    var result=ProbeAnalysis.SpatialControl(before,after,new(13,32,50,32),7,0);
+    Assert(!result.Passed&&result.Failure==ProbeFailure.SceneChanged&&result.CoreCoverage.Unknown==30);
+    Assert(result.OutsideChanged==286&&result.OutsidePixels==3316&&result.PerpendicularOffset==3,
+        "Live scene contamination was silently reclassified");
+});
+Test("Snapshot releases input before temporary moves and restores the last action",()=>
+{
+    ScreenPoint original=new(200,200),parked=new(80,200),cursor=original;bool held=true;var moves=new List<ScreenPoint>();
+    int releases=0;void Release(){held=false;releases++;}void Move(ScreenPoint point){Assert(!held,"Cursor moved while painting");cursor=point;moves.Add(point);}
+    int result=CaptureCursor.Snapshot(original,parked,Release,Move,()=>{Assert(cursor==parked&&!held);return 42;},()=>true);
+    Assert(result==42&&cursor==original&&!held&&releases==2&&moves.SequenceEqual(new[]{parked,original}));
+});
+Test("A cursor already clear of the snapshot is left in place without extra moves",()=>
+{
+    var current=new ScreenPoint(500,250);int moves=0,releases=0;
+    Assert(CaptureCursor.Snapshot(current,current,()=>releases++,_=>moves++,()=>42,()=>true)==42);
+    Assert(moves==0&&releases==0);
+});
+Test("Snapshot retains the original capture exception even when cursor return fails",()=>
+{
+    ScreenPoint original=new(200,200),parked=new(80,200);var captureError=new InvalidOperationException("unstable frames");
+    Exception? restoreError=null;
+    try
+    {
+        CaptureCursor.Snapshot<int>(original,parked,()=>{},point=>{if(point==original)throw new IOException("cursor move failed");},
+            ()=>throw captureError,()=>true,error=>restoreError=error);
+        throw new Exception("Capture failure hidden");
+    }
+    catch(InvalidOperationException error){Assert(ReferenceEquals(error,captureError));}
+    Assert(restoreError is IOException);
+});
+Test("Snapshot does not reclaim cursor after focus cancellation or manual movement",()=>
+{
+    ScreenPoint original=new(200,200),parked=new(80,200),userPoint=new(700,500),cursor=original;
+    var moves=new List<ScreenPoint>();void Move(ScreenPoint point){cursor=point;moves.Add(point);}
+    CaptureCursor.Snapshot(original,parked,()=>{},Move,()=>{cursor=userPoint;return 42;},()=>cursor==parked);
+    Assert(cursor==userPoint&&moves.SequenceEqual(new[]{parked}));
+    moves.Clear();CaptureCursor.Snapshot(original,parked,()=>{},Move,()=>42,()=>false);
+    Assert(cursor==parked&&moves.SequenceEqual(new[]{parked}));
+});
+Test("Completion cursor return uses no click and respects interruption predicate",()=>
+{
+    var last=new ScreenPoint(200,200);bool held=true;int releases=0,moves=0;
+    bool Return(bool allowed)=>CaptureCursor.Return(last,()=>{held=false;releases++;},point=>{Assert(point==last&&!held);moves++;},()=>allowed);
+    Assert(!Return(false)&&moves==0&&releases==0);
+    Assert(Return(true)&&moves==1&&releases==1&&!held);
+});
+Test("Snapshot aborts before moving or capturing when input release fails",()=>
+{
+    int moves=0,captures=0;var failure=new IOException("mouse-up rejected");
+    try
+    {
+        CaptureCursor.Snapshot(new(200,200),new(80,200),()=>throw failure,_=>moves++,()=>++captures,()=>true);
+        throw new Exception("Input release failure hidden");
+    }
+    catch(IOException error){Assert(ReferenceEquals(error,failure));}
+    Assert(moves==0&&captures==0,"Cursor moved while mouse-up was unconfirmed");
+});
+Test("Spatial slow control chooses the darkest verified center rather than the first AA edge",()=>
+{
+    var (before,_,line)=ProbeFixture();var after=before.Clone();
+    for(int x=30;x<=65;x++){after.Set(49*96+x,new(80,80,80));after.Set(50*96+x,new(20,20,20));}
+    var slow=ProbeAnalysis.SpatialControl(before,after,line,7,0);
+    Assert(slow.Passed&&slow.PerpendicularOffset==2&&slow.CoreCoverage.Reference!.Color==new Rgb(20,20,20));
+    Assert(ProbeAnalysis.Control(before,after,line,7,0).PerpendicularOffset==1,"Legacy control changed silently");
+});
+Test("Spatial layout spreads six non-overlapping controls over the real small Canvas",()=>
+{
+    foreach(int outer in new[]{8,10,29})
+    {
+        var canvas=new ScreenRect(676,428,1306,901);var tiles=ProbeSpatialCalibration.Tiles(canvas,outer);
+        Assert(tiles.Count==6&&tiles.Take(3).Select(x=>x.Horizontal.Y1).Distinct().Count()==3&&tiles.Skip(3).Select(x=>x.Vertical.X1).Distinct().Count()==3);
+        foreach(var t in tiles)Assert(t.Area.Left>=canvas.Left&&t.Area.Top>=canvas.Top&&t.Area.Right<=canvas.Right&&t.Area.Bottom<=canvas.Bottom);
+        for(int i=0;i<6;i++)for(int j=i+1;j<6;j++)Assert(tiles[i].Area.Right<=tiles[j].Area.Left||tiles[j].Area.Right<=tiles[i].Area.Left||tiles[i].Area.Bottom<=tiles[j].Area.Top||tiles[j].Area.Bottom<=tiles[i].Area.Top);
+    }
+});
+Test("Spatial model requires six complete controls at distinct positions",()=>
+{
+    var cfg=SessionFixture();var (before,_,line)=ProbeFixture();
+    var controls=new List<(ScreenLine Requested,ProbeAnalysisResult Result)>();
+    foreach(bool vertical in new[]{false,true})for(int n=0;n<3;n++)
+    {
+        var local=vertical?new ScreenLine(48,30,48,65):line;var after=SpatialStroke(before,local,n-1,0);
+        var result=ProbeAnalysis.SpatialControl(before,after,local,7,0);
+        controls.Add((vertical?new(130+n*50,220,130+n*50,255):new(120,220+n*40,155,220+n*40),result));
+    }
+    var model=ProbeSpatialCalibration.Build(cfg,1,controls);ProbeSpatialCalibration.Save(cfg,model);
+    Assert(ProbeSpatialCalibration.Read(cfg,1) is not null&&model.Axes.All(x=>x.Offsets.SequenceEqual(new[]{-1,0,1})));
+    foreach(var bad in new[]{controls.Take(5).ToList(),controls.Select(x=>(controls[0].Requested,x.Result)).ToList()})
+    {try{ProbeSpatialCalibration.Build(cfg,1,bad);throw new Exception("Incomplete geometry accepted");}catch(InvalidOperationException){}}
+});
+Test("Spatial persistence rejects moved geometry DPI and corrupted models",()=>
+{
+    var cfg=ProbeConfig();Assert(ProbeSpatialCalibration.Read(cfg,1) is not null);
+    var changed=cfg.Clone();var cal=changed.Calibration;cal.SetRect("canvas",new(101,200,301,350));changed.SetCalibration(cal);
+    Assert(ProbeSpatialCalibration.Read(changed,1) is null&&!SpeedCalibration.Current(changed));
+    changed=cfg.Clone();cal=changed.Calibration;cal.SetSession(new(1,0),96,new(2000,1200));changed.SetCalibration(cal);Assert(ProbeSpatialCalibration.Read(changed,1) is null);
+    foreach(string json in new[]{"null","[null]","{}","[{}]"})
+    {changed=cfg.Clone();changed.Data["probe_spatial_profiles"]=System.Text.Json.Nodes.JsonNode.Parse(json);Assert(ProbeSpatialCalibration.Read(changed,1) is null);}
+});
+Test("Speed routes cannot reuse a missing or replaced spatial model",()=>
+{
+    var cfg=ProbeConfig();var old=SpeedCalibration.Read(cfg)!;
+    cfg.Data.Remove("probe_spatial_profiles");Assert(!SpeedCalibration.Current(cfg));
+    ProbeSpatialCalibration.Save(cfg,SpatialFixtureProfile(cfg,1));Assert(!SpeedCalibration.Current(cfg));
+    var id=ProbeSpatialCalibration.Read(cfg,1)!.Id;cfg.Set("speed_probe_profile",old with{Samples=old.Samples.Select(x=>x with{SpatialId=id}).ToList()});
+    Assert(SpeedCalibration.Current(cfg));
+    cfg.Set("speed_probe_profile",old with{Context="probe-solid-core-diagnostics-v2"});Assert(!SpeedCalibration.Current(cfg));
+});
+Test("Spatial trial freezes a bounded integer envelope and color before speed trials",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,0,1,3);var reference=new AuditReference(new(20,20,20),12);
+    var a=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,1,0),line,7,axis,reference);
+    var b=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,3,0),line,7,axis,reference);
+    Assert(a.Passed&&b.Passed&&a.CoreCoverage.Expected==28&&a.CoreCoverage.Covered==28);
+    Assert(a.CoreMask.SequenceEqual(b.CoreMask)&&a.CoreCoverage.Reference==reference&&b.CoreCoverage.Reference==reference);
+    var intermediate=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,2,0),line,7,axis,reference);
+    Assert(intermediate.Passed&&intermediate.CoreMask.SequenceEqual(a.CoreMask)&&axis.Offsets.SequenceEqual(new[]{1,3})
+        &&axis.AllowedOffsets.SequenceEqual(new[]{1,2,3}));
+});
+Test("Spatial fast trial cannot recenter to a solid line outside its frozen model",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,0,1,2);var reference=new AuditReference(new(20,20,20),12);
+    var result=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,3,0),line,7,axis,reference);
+    Assert(!result.Passed&&result.CoreCoverage.Missing==28&&result.Spatial!.AllowedOffsets.SequenceEqual(new[]{1,2}));
+});
+Test("Spatial trial retains every longitudinal slice including a one-pixel gap",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,0,1,2);var after=SpatialStroke(before,line,2,0);after.Set(50*96+48,before.Color(50*96+48));
+    var result=ProbeSpatialCalibration.Trial(before,after,line,7,axis,new(new(20,20,20),12));
+    Assert(!result.Passed&&result.LongitudinalGaps==1&&result.CoreCoverage.Expected==28&&result.CoreCoverage.Missing==1&&result.Spatial!.PassedSlices==27);
+});
+Test("Spatial trial rejects another color without learning it from fast paint",()=>
+{
+    var (before,_,line)=ProbeFixture();var after=SpatialStroke(before,line,1,0);
+    for(int x=30;x<=65;x++)after.Set(49*96+x,new(0,200,0));var reference=new AuditReference(new(20,20,20),12);
+    var result=ProbeSpatialCalibration.Trial(before,after,line,7,SpatialTestAxis(false,0,1,2),reference);
+    Assert(!result.Passed&&result.CoreCoverage.Unknown==28&&result.CoreCoverage.Reference==reference);
+});
+Test("Spatial wide cores need their full contiguous width, not a thin edge or scattered pixels",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,2,-1,1);var reference=new AuditReference(new(20,20,20),12);
+    Assert(ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,1,2),line,7,axis,reference).Passed);
+    var thin=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,1,0),line,7,axis,reference);
+    Assert(!thin.Passed&&thin.CoreCoverage.Expected==140&&thin.CoreCoverage.Covered==28&&thin.CoreCoverage.Missing==112);
+    var split=SpatialStroke(before,line,0,3);for(int x=30;x<=65;x++)split.Set(48*96+x,before.Color(48*96+x));
+    Assert(!ProbeSpatialCalibration.Trial(before,split,line,7,axis,reference).Passed,"Scattered pixels replaced a full core");
+});
+Test("Spatial trial rejects dirty background and scene changes",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,0,1,2);var reference=new AuditReference(new(20,20,20),12);var after=SpatialStroke(before,line,2,0);
+    Assert(!ProbeSpatialCalibration.Trial(after,after,line,7,axis,reference).Passed,"Existing paint counted as a new stroke");
+    for(int y=0;y<2;y++)for(int x=0;x<96;x++)after.Set(y*96+x,new(0,0,0));
+    var result=ProbeSpatialCalibration.Trial(before,after,line,7,axis,reference);
+    Assert(result.Failure==ProbeFailure.SceneChanged&&result.CoreCoverage.Covered==0&&result.CoreCoverage.Unknown==28);
+});
+Test("Spatial held-out slow validation refuses to expand its offset distribution",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,0,1,2);
+    var slow=ProbeAnalysis.SpatialControl(before,SpatialStroke(before,line,3,0),line,7,0);
+    Assert(slow.Passed);try{ProbeSpatialCalibration.Bind(axis,slow);throw new Exception("Out-of-model slow line accepted");}
+    catch(InvalidOperationException e){Assert(e.Message.StartsWith(ProbeSpatialCalibration.OutsideMessage)&&e.Message.Contains("+3 px"));}
+    Assert(axis.Offsets.SequenceEqual(new[]{1,2}));
+});
+Test("Live vertical minus-one held-out offset fits the predeclared minus-four to zero envelope",()=>
+{
+    var (before,_,_)=ProbeFixture();var line=new ScreenLine(48,30,48,65);
+    var axis=SpatialTestAxis(true,0,-4,0);axis.Anchors[2]=axis.Anchors[2] with{Offset=-2};
+    var slow=ProbeAnalysis.SpatialControl(before,SpatialStroke(before,line,-1,0),line,7,0);
+    var reference=ProbeSpatialCalibration.Bind(axis,slow);
+    var result=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,-1,0),line,7,axis,reference);
+    Assert(result.Passed&&result.Spatial!.PassedSlices==28&&axis.Offsets.SequenceEqual(new[]{-4,-2,0}));
+    foreach(int outside in new[]{-5,1})
+        Assert(!ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,outside,0),line,7,axis,reference).Passed);
+    var gap=SpatialStroke(before,line,-1,0);gap.Set(48*96+47,before.Color(48*96+47));
+    Assert(!ProbeSpatialCalibration.Trial(before,gap,line,7,axis,reference).Passed,"Intermediate offsets hid a missing slice");
+});
+Test("Malformed spatial bounds cannot allocate an unbounded envelope",()=>
+{
+    Assert(SpatialTestAxis(false,0,int.MinValue,int.MaxValue).AllowedOffsets.Length==0);
+});
+Test("Control layout diagnosis needs all three alternate controls and distinct captured rows",()=>
+{
+    bool[] ready=[true,true,true],partial=[true,false,true],missing=[false,false,false];
+    Assert(ControlLayout.Inspect(ready,ready,3)==ControlLayoutState.Ready);
+    Assert(ControlLayout.Inspect(missing,ready,3)==ControlLayoutState.DifferentMode);
+    Assert(ControlLayout.Inspect(partial,partial,3)==ControlLayoutState.Missing);
+    Assert(ControlLayout.Inspect(partial,ready,0)==ControlLayoutState.Missing);
+});
+Test("Spatial vertical reverse lines retain offsets and full-width occupancy",()=>
+{
+    var (before,_,_)=ProbeFixture();var line=new ScreenLine(48,65,48,30);var axis=SpatialTestAxis(true,1,-2,-1);
+    var result=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,-2,1),line,7,axis,new(new(20,20,20),12));
+    Assert(result.Passed&&result.CoreCoverage.Expected==84&&result.Spatial!.PassedSlices==28);
+});
+Test("Offset trajectory records stable paint and a single transition without changing acceptance",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,0,-4,0);var reference=new AuditReference(new(20,20,20),12);
+    var stable=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,-1,0),line,7,axis,reference);
+    var evidence=stable.Spatial!.Trajectory!;
+    Assert(stable.Passed&&evidence.ResolvedSlices==28&&evidence.ComparablePairs==27&&evidence.Transitions==0
+        &&evidence.MinimumOffset==-1&&evidence.MaximumOffset==-1&&evidence.DominantOffsets.SequenceEqual(new[]{-1}));
+    Assert(evidence.LongestStableRun==28&&evidence.TransitionRate==0);
+    var shifted=before.Clone();
+    for(int k=0;k<=35;k++)shifted.Set((48+(k<18?-1:0))*96+30+k,new(20,20,20));
+    var trial=ProbeSpatialCalibration.Trial(before,shifted,line,7,axis,reference);var path=trial.Spatial!.Trajectory!;
+    Assert(trial.Passed&&trial.CoreCoverage.Covered==stable.CoreCoverage.Covered&&trial.CoreMask.SequenceEqual(stable.CoreMask));
+    Assert(path.Transitions==1&&path.ComparablePairs==27&&path.MaximumJump==1&&path.MinimumOffset==-1&&path.MaximumOffset==0
+        &&path.DominantOffsets.SequenceEqual(new[]{-1,0})&&path.DominantCount==14);
+    Assert(path.LongestStableRun==14&&path.TransitionRate==1d/27);
+});
+Test("Offset diagnostics expose jitter while retaining existing PASS and frozen geometry",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,0,-4,0);var after=before.Clone();
+    for(int k=0;k<=35;k++)after.Set((48+(k%2==0?-4:0))*96+30+k,new(20,20,20));
+    var result=ProbeSpatialCalibration.Trial(before,after,line,7,axis,new(new(20,20,20),12));
+    var path=result.Spatial!.Trajectory!;
+    Assert(result.Passed&&result.CoreCoverage.Expected==28&&result.CoreCoverage.Covered==28&&result.CoreCoverage.Unknown==0
+        &&result.Failure==ProbeFailure.None&&result.LongitudinalGaps==0);
+    Assert(path.Transitions==27&&path.ComparablePairs==27&&path.MaximumJump==4&&path.MinimumOffset==-4&&path.MaximumOffset==0);
+    Assert(path.LongestStableRun==1&&path.TransitionRate==1);
+    Assert(axis.Offsets.SequenceEqual(new[]{-4,0})&&result.Spatial.AllowedOffsets.SequenceEqual(new[]{-4,-3,-2,-1,0}));
+});
+Test("Several supported core centres remain ambiguous rather than a fabricated stable trajectory",()=>
+{
+    var (before,_,line)=ProbeFixture();var axis=SpatialTestAxis(false,2,-1,1);
+    var result=ProbeSpatialCalibration.Trial(before,SpatialStroke(before,line,0,3),line,7,axis,new(new(20,20,20),12));
+    var path=result.Spatial!.Trajectory!;
+    Assert(result.Passed&&result.CoreCoverage.Expected==140&&path.AmbiguousSlices==28&&path.ResolvedSlices==0
+        &&path.UnresolvedSlices==0&&path.ComparablePairs==0&&path.DominantOffsets.Length==0
+        &&path.MinimumOffset is null&&path.MaximumOffset is null&&path.OffsetsBySlice.All(x=>x is null));
+    Assert(path.LongestStableRun==0&&path.TransitionRate is null);
+});
+Test("Offset transitions cannot bridge missing or ambiguous slices",()=>
+{
+    var path=ProbeOffsetTrajectory.Measure(new int[][]{[-1],[],[0],[0,-1],[-4],[0]});
+    Assert(path.ResolvedSlices==4&&path.AmbiguousSlices==1&&path.UnresolvedSlices==1&&path.ComparablePairs==1
+        &&path.Transitions==1&&path.MaximumJump==4&&path.DominantOffsets.SequenceEqual(new[]{0}));
+    var (before,_,line)=ProbeFixture();var after=SpatialStroke(before,line,-1,0);after.Set(47*96+48,before.Color(47*96+48));
+    var result=ProbeSpatialCalibration.Trial(before,after,line,7,SpatialTestAxis(false,0,-4,0),new(new(20,20,20),12));
+    Assert(!result.Passed&&result.Spatial!.Trajectory!.UnresolvedSlices==1&&result.Spatial.Trajectory.ComparablePairs==25);
+});
+Test("Stable offset runs cannot join through ambiguous or missing slices",()=>
+{
+    var path=ProbeOffsetTrajectory.Measure(new int[][]{[1],[1],[1,2],[1],[1],[1],[],[1],[1],[2],[2]});
+    Assert(path.LongestStableRun==3&&path.ComparablePairs==6&&path.Transitions==1&&path.TransitionRate==1d/6);
+    var blocks=ProbeOffsetTrajectory.Measure(new int[][]{[1],[1],[1],[1],[1],[1],[2],[2],[2],[2]});
+    var alternating=ProbeOffsetTrajectory.Measure(new int[][]{[1],[2],[1],[2],[1],[2],[1],[2],[1],[1]});
+    Assert(blocks.MinimumOffset==alternating.MinimumOffset&&blocks.MaximumOffset==alternating.MaximumOffset
+        &&blocks.DominantCount==alternating.DominantCount&&blocks.LongestStableRun==6&&alternating.LongestStableRun==2
+        &&blocks.TransitionRate==1d/9&&alternating.TransitionRate==8d/9);
+});
+Test("No adjacent resolved offsets leaves transition rate unavailable",()=>
+{
+    foreach(var slices in new int[][][]{[],[[],[1,2]],[[1]],[[1],[],[1],[1,2],[2]]})
+    {
+        var path=ProbeOffsetTrajectory.Measure(slices);
+        Assert(path.ComparablePairs==0&&path.TransitionRate is null);
+        Assert(path.LongestStableRun==(path.ResolvedSlices==0?0:1));
+    }
+});
+Test("Offset trajectory is withheld on a scene-change failure",()=>
+{
+    var (before,_,line)=ProbeFixture();var after=SpatialStroke(before,line,-1,0);
+    for(int y=0;y<2;y++)for(int x=0;x<96;x++)after.Set(y*96+x,new(0,0,0));
+    var result=ProbeSpatialCalibration.Trial(before,after,line,7,SpatialTestAxis(false,0,-4,0),new(new(20,20,20),12));
+    Assert(result.Failure==ProbeFailure.SceneChanged&&result.Spatial!.Trajectory is null&&result.CoreCoverage.Covered==0);
+});
+Test("ETA warms up on twenty completed operations rather than initial setup or saved Done",()=>
+{
+    var timer=new RemainingTime(Enumerable.Range(0,100).Select(i=>new TimedWork($"m{i}","3:drag:H",.0642,true)));
+    for(int i=0;i<19;i++)timer.Complete($"m{i}",.129);
+    Assert(timer.Estimate(0).Basis==EtaBasis.Planned&&Math.Abs(timer.Estimate(0).Seconds-81*.0642)<1e-9);
+    timer.Complete("m19",.129);var result=timer.Estimate(0);
+    Assert(result.Basis==EtaBasis.Measured&&result.MotionSamples==20&&Math.Abs(result.Seconds-80*.129)<1e-9&&Math.Abs(result.MeanMotionMs-129)<1e-9);
+});
+Test("ETA follows the most recent fifty motions when the actual pace changes",()=>
+{
+    var timer=new RemainingTime(Enumerable.Range(0,150).Select(i=>new TimedWork($"m{i}","drag",.064,true)));
+    for(int i=0;i<50;i++)timer.Complete($"m{i}",.128);
+    Assert(Math.Abs(timer.Estimate(0).Seconds-100*.128)<1e-9);
+    for(int i=50;i<100;i++)timer.Complete($"m{i}",.064);
+    var result=timer.Estimate(0);Assert(result.WindowSamples==50&&Math.Abs(result.Seconds-50*.064)<1e-9&&Math.Abs(result.MotionRatio-1)<1e-9);
+});
+Test("ETA scales remaining motion duration instead of multiplying mixed lengths by a flat average",()=>
+{
+    var work=Enumerable.Range(0,20).Select(i=>new TimedWork($"m{i}","drag",i%2==0?.1:1,true))
+        .Concat(new[]{new TimedWork("short","drag",.1,true),new("long","drag",1,true)});
+    var timer=new RemainingTime(work);for(int i=0;i<20;i++)timer.Complete($"m{i}",i%2==0?.2:2);
+    Assert(Math.Abs(timer.Estimate(0).Seconds-2.2)<1e-9&&Math.Abs(timer.Estimate(0).MotionRatio-2)<1e-9);
+});
+Test("ETA keeps unmeasured Sizes and routes planned rather than extrapolating another route",()=>
+{
+    var work=Enumerable.Range(0,20).Select(i=>new TimedWork($"m{i}","1:drag:H",.1,true))
+        .Concat(new[]{new TimedWork("known","1:drag:H",.1,true),new("wide","20:probe_Shift:V",1,true)});
+    var timer=new RemainingTime(work);for(int i=0;i<20;i++)timer.Complete($"m{i}",.2);
+    var result=timer.Estimate(0);Assert(result.Basis==EtaBasis.Mixed&&result.UnmeasuredOperations==1&&Math.Abs(result.Seconds-1.2)<1e-9);
+});
+Test("ETA needs five local route samples after overall warmup",()=>
+{
+    var work=Enumerable.Range(0,25).Select(i=>new TimedWork($"m{i}",i<20?"H":"V",.1,true)).Append(new("remaining","V",.1,true));
+    var timer=new RemainingTime(work);for(int i=0;i<24;i++)timer.Complete($"m{i}",.2);
+    Assert(timer.Estimate(0).Basis==EtaBasis.Mixed);timer.Complete("m24",.2);
+    Assert(timer.Estimate(0).Basis==EtaBasis.Measured&&Math.Abs(timer.Estimate(0).Seconds-.2)<1e-9);
+});
+Test("Rare Size ETA blends only its own samples and remains partly measured",()=>
+{
+    var work=Enumerable.Range(0,20).Select(i=>new TimedWork($"m{i}","3:H",.1,true))
+        .Concat(Enumerable.Range(0,5).Select(i=>new TimedWork($"wide{i}","20:H",1,true)))
+        .Append(new("unknown","20:V",2,true));
+    var timer=new RemainingTime(work);for(int i=0;i<20;i++)timer.Complete($"m{i}",.8);
+    for(int i=0;i<4;i++)
+    {
+        timer.Complete($"wide{i}",2);var result=timer.Estimate(0);
+        Assert(result.Basis==EtaBasis.Mixed&&Math.Abs(result.Seconds-((4-i)*(1+(i+1)/5.0)+2))<1e-9);
+    }
+    Assert(timer.Estimate(0).UnmeasuredOperations==2);
+});
+Test("ETA isolates startup and rolling color overhead from successful motion measurements",()=>
+{
+    var work=new[]{new TimedWork("setup","setup",2,false)}
+        .Concat(Enumerable.Range(0,10).Select(i=>new TimedWork($"c{i}","color",1,false)))
+        .Concat(Enumerable.Range(0,21).Select(i=>new TimedWork($"m{i}","drag",.1,true)));
+    var timer=new RemainingTime(work);timer.Complete("setup",30);
+    for(int i=0;i<9;i++)timer.Complete($"c{i}",i==0?8:.5);
+    for(int i=0;i<20;i++)timer.Complete($"m{i}",.2);
+    var result=timer.Estimate(0);Assert(result.MotionSamples==20&&Math.Abs(result.Seconds-.7)<1e-9&&Math.Abs(result.MeanMotionMs-200)<1e-9);
+});
+Test("ETA uses active time and remains unchanged through a wall-clock pause",()=>
+{
+    var timer=new RemainingTime(new[]{new TimedWork("color","color",4,false),new("stroke","drag",1,true)});
+    timer.Begin("color",10);Assert(Math.Abs(timer.Estimate(12).Seconds-3)<1e-9);
+    double wall=112,paused=100;Assert(timer.Estimate(wall-paused)==timer.Estimate(12));
+    timer.Complete("color",2);Assert(timer.Estimate(12).Seconds==1&&timer.Estimate(12).MotionSamples==0);
+});
+Test("ETA cannot double-count completion or learn from a skipped or unfinished operation",()=>
+{
+    var timer=new RemainingTime(new[]{new TimedWork("size","brush",2,false),new("motion","drag",1,true)});
+    timer.Begin("motion",0);Assert(timer.Estimate(.5).MotionSamples==0);
+    Assert(timer.Skip("size")&&!timer.Skip("size"));Assert(timer.Complete("motion",1)&&!timer.Complete("motion",10));
+    Assert(timer.Estimate(1).MotionSamples==1&&timer.Estimate(1).Basis==EtaBasis.Complete&&timer.Estimate(1).Seconds==0);
+});
+Test("ETA retains pending audit and finishing work after all drawing operations",()=>
+{
+    var work=Enumerable.Range(0,20).Select(i=>new TimedWork($"m{i}","drag",.1,true))
+        .Concat(new[]{new TimedWork("audit","audit",.2,false),new("finish","finish",1,false)});
+    var timer=new RemainingTime(work);for(int i=0;i<20;i++)timer.Complete($"m{i}",.2);
+    var result=timer.Estimate(0);Assert(result.RemainingOperations==0&&result.Basis!=EtaBasis.Complete&&Math.Abs(result.Seconds-1.2)<1e-9);
+    timer.Complete("audit",2);Assert(timer.Estimate(0).Seconds==1);timer.Complete("finish",1);Assert(timer.Estimate(0).Basis==EtaBasis.Complete);
+});
+Test("ETA rejects invalid observations before consuming pending work",()=>
+{
+    var timer=new RemainingTime(new[]{new TimedWork("m","drag",1,true)});
+    foreach(double invalid in new[]{double.NaN,double.PositiveInfinity,-1})
+    {
+        try{timer.Complete("m",invalid);throw new Exception("Invalid measurement accepted");}catch(ArgumentOutOfRangeException){}
+        Assert(timer.Contains("m")&&timer.Estimate(0).MotionSamples==0);
+    }
+    foreach(var bad in new[]{new[]{new TimedWork("m","drag",0,true)},new[]{new TimedWork("m","drag",1,true),new("m","drag",1,true)},
+        new[]{new TimedWork("a","shared",1,true),new("b","shared",1,false)}})
+        try{_ = new RemainingTime(bad);throw new Exception("Invalid work accepted");}catch(ArgumentException){}
+});
+Test("Timing plan starts fresh at a resume position without counting past operations",()=>
+{
+    var cfg=Settings.Defaults();var groups=new Dictionary<int,List<PaintBatch>>{
+        [0]=Enumerable.Range(0,40).Select(i=>new PaintBatch(0,new[]{new ScreenLine(0,i,20,i)},1)).ToList(),
+        [1]=Enumerable.Range(0,40).Select(i=>new PaintBatch(0,new[]{new ScreenLine(0,i,20,i)},1)).ToList()};
+    var resumed=PaintTimingPlan.Build(cfg,groups,new[]{0,1},1,30);var timer=new RemainingTime(resumed);
+    Assert(resumed.Count(x=>x.Motion)==10&&timer.Estimate(0).MotionSamples==0&&timer.Estimate(0).Basis==EtaBasis.Planned);
+    Assert(resumed.All(x=>!x.Id.StartsWith("motion:0:")&&!x.Id.StartsWith("color:0")));
+    Assert(resumed.Any(x=>x.Id==PaintTimingPlan.Setup)&&resumed.Any(x=>x.Id==PaintTimingPlan.Color(1)));
+});
+Test("Timing plan counts batch operations and captures actual adaptive Size transitions",()=>
+{
+    var cfg=Settings.Defaults();cfg.Set("adaptive_brush",true);cfg.Set("coverage_audit",true);
+    var groups=new Dictionary<int,List<PaintBatch>>{[0]=new(){new(20,new[]{new ScreenLine(0,0,20,0)},8),new(20,new[]{new ScreenLine(0,1,20,1)},8),new(0,new[]{new ScreenLine(0,2,20,2)},1)}};
+    var work=PaintTimingPlan.Build(cfg,groups,new[]{0});Assert(work.Count(x=>x.Motion)==3&&work.Count(x=>x.RateKey=="brush")==2);
+    Assert(work.Any(x=>x.Id==PaintTimingPlan.BeforeAudit(0))&&work.Any(x=>x.Id==PaintTimingPlan.Audit(0)));
+    var resumed=PaintTimingPlan.Build(cfg,groups,new[]{0},0,2);Assert(resumed.All(x=>!x.Id.StartsWith("size:")),"Resume inherited old adaptive Size");
+});
+Test("Timing schedule and route keys preserve settings and reflect verified motion transport",()=>
+{
+    var cfg=ProbeConfig();cfg.Set("adaptive_brush",true);var before=cfg.Data.ToJsonString();
+    var batch=new PaintBatch(1,new[]{new ScreenLine(0,0,32,0)},1);
+    Assert(PaintTimingPlan.Route(cfg,batch,1)=="1:probe_Shift:H");
+    PaintTimingPlan.Build(cfg,new(){[0]=new(){batch}},new[]{0});Assert(cfg.Data.ToJsonString()==before);
+    cfg.Set("calibrated_strokes",false);Assert(PaintTimingPlan.Route(cfg,batch,1)=="1:drag:H");
+});
+Test("Timing default Size agrees with precision, manual and calibrated automatic controls",()=>
+{
+    var cfg=ProbeConfig();Assert(PaintTimingPlan.DefaultSize(cfg)==SpeedProfile.Get(cfg.Text("speed_profile","Rapid")).BrushSize);
+    cfg.Set("force_precision_controls",false);cfg.Set("auto_brush_size",false);cfg.Set("brush_size_value",10);Assert(PaintTimingPlan.DefaultSize(cfg)==10);
+    cfg.Set("auto_brush_size",true);Assert(PaintTimingPlan.DefaultSize(cfg)==AutomaticBrush.Value(cfg,Math.Max(1,cfg.Int("cell_px",3))));
+});
+Test("Palette comparison caps four plans while preserving source, settings and geometry", () =>
+{
+    var cfg = Config(ColorMode.HexDirect, 32, 16); cfg.Set("hex_max_colors", "Auto");
+    cfg.Set("fast_transfer", true); cfg.Set("input_engine", "Experimental 1 ms");
+    var image = new PixelImage(32, 16);
+    for (int i = 0; i < 512; i++) image.Set(i, new((byte)(i % 256), (byte)(i * 7 % 256), (byte)(i * 13 % 256)), i % 17 == 0 ? (byte)0 : (byte)255);
+    var bytes = (byte[])image.Rgba.Clone(); string json = cfg.Data.ToJsonString();
+    var result = PaletteComparison.Build(image, cfg);
+    Assert(result.Variants.Select(v => v.Limit).SequenceEqual(new[] { 64, 96, 128, 256 }));
+    Assert(cfg.Data.ToJsonString() == json && image.Rgba.SequenceEqual(bytes), "Comparison mutated the active input");
+    Assert(result.SettingsJson == json && result.SourceWidth == 32 && result.SourceHeight == 16 && result.SourceSha256.Length == 64);
+    foreach (var variant in result.Variants)
+    {
+        Assert(variant.Plan.Width == 32 && variant.Plan.Height == 16 && variant.Plan.ColorCount <= variant.Limit);
+        Assert(variant.Plan.Mode == ColorMode.HexDirect && variant.Plan.Indices.Where((_, i) => i % 17 == 0).All(x => x == -1));
+        var expected = cfg.Clone(); expected.Set("hex_max_colors", variant.Limit.ToString());
+        var plan = Planner.Build(image, expected);
+        Assert(variant.Plan.Identity == plan.Identity && variant.Plan.Indices.SequenceEqual(plan.Indices), "Comparison changed more than the cap");
+    }
+});
+Test("Palette comparison counts execution batches and timing including colors, start and audits", () =>
+{
+    var cfg = Config(ColorMode.HexDirect); cfg.Set("coverage_audit", true); cfg.Set("start_delay", 7);
+    cfg.Set("fast_transfer", true); cfg.Set("input_engine", "Experimental 1 ms");
+    foreach (var variant in PaletteComparison.Build(Fixture(), cfg).Variants)
+    {
+        var settings = cfg.Clone(); settings.Set("hex_max_colors", variant.Limit.ToString());
+        var groups = TransferSchedule.Build(variant.Plan, settings); var batches = groups.Values.SelectMany(x => x).ToArray();
+        var timing = PaintTimingPlan.Build(settings, groups, TransferSchedule.Order(variant.Plan, groups));
+        Assert(variant.Operations == batches.Length && variant.SourceStrokes == batches.Sum(x => x.SourceStrokes));
+        Assert(variant.ColorChanges == groups.Count && variant.WideOperations == batches.Count(x => x.Size > 0));
+        Assert(Math.Abs(variant.PlannedSeconds - (7 + timing.Sum(x => x.PlannedSeconds))) < 1e-9);
+        Assert(timing.Count(x => x.RateKey == "audit") == groups.Count && variant.SizeChanges == 0);
+    }
+});
+Test("Palette comparison publishes no partial result after cancellation", () =>
+{
+    var cfg = Config(ColorMode.HexDirect); string before = cfg.Data.ToJsonString();
+    using var canceled = new CancellationTokenSource(); canceled.Cancel();
+    try { PaletteComparison.Build(Fixture(), cfg, token: canceled.Token); throw new Exception("Canceled comparison ran"); }
+    catch (OperationCanceledException) { }
+    using var active = new CancellationTokenSource(); int reports = 0;
+    var progress = new InlineComparisonProgress(p => { reports++; if (p.Completed == 1) active.Cancel(); });
+    try { PaletteComparison.Build(Fixture(), cfg, progress, active.Token); throw new Exception("Partial comparison returned"); }
+    catch (OperationCanceledException) { }
+    Assert(reports == 2 && before == cfg.Data.ToJsonString());
+});
+Test("Palette comparison rejects palette mode and stale adaptive calibration", () =>
+{
+    var palette = Config(ColorMode.RustPalette);
+    try { PaletteComparison.Build(Fixture(), palette); throw new Exception("Palette mode accepted"); }
+    catch (InvalidOperationException e) { Assert(e.Message.Contains("HEX Direct")); }
+    var adaptive = Config(ColorMode.HexDirect); adaptive.Set("adaptive_brush", true);
+    try { PaletteComparison.Build(Fixture(), adaptive); throw new Exception("Stale adaptive silently disabled"); }
+    catch (InvalidOperationException) { }
+    Assert(adaptive.Bool("adaptive_brush"));
+});
+Test("Transparent palette comparison has no painting or color operations", () =>
+{
+    var result = PaletteComparison.Build(new PixelImage(16, 12), Config(ColorMode.HexDirect));
+    Assert(result.Variants.All(x => x.Operations == 0 && x.WideOperations == 0 && x.ColorChanges == 0 && x.Plan.ColorCount == 0));
+});
+Test("Palette comparison retains current HEX adaptive calibration and counts accepted wide batches", () =>
+{
+    var cfg = Config(ColorMode.HexDirect, 240, 240); cfg.Set("adaptive_brush", true); cfg.Set("fast_transfer", true);
+    var hex = cfg.Calibration;
+    foreach (var (key, y) in new[] { ("size_track", 260), ("interval_track", 300), ("opacity_track", 340), ("brush_shapes", 380) })
+        hex.SetRect(key, new(250, y, 500, y + 40));
+    cfg.SetPaintCalibration(hex);
+    cfg.Set("brush_calibration_points", new double[][] { [1, 3, 1], [3, 5, 3], [10, 21, 13], [20, 35, 23] });
+    cfg.Set("brush_calibration_context", AdaptiveBrush.Context(cfg));
+    string before = cfg.Data.ToJsonString();
+    var result = PaletteComparison.Build(Fixture(), cfg);
+    Assert(result.Variants.All(v => v.WideOperations > 0 && v.SizeChanges > 0));
+    foreach (var variant in result.Variants)
+    {
+        var settings = cfg.Clone(); settings.Set("hex_max_colors", variant.Limit.ToString());
+        Assert(AdaptiveBrush.CalibrationCurrent(settings));
+        var batches = TransferSchedule.Build(variant.Plan, settings).Values.SelectMany(x => x).ToArray();
+        Assert(variant.WideOperations == batches.Count(x => x.Size > 0) && variant.Operations == batches.Length);
+    }
+    Assert(before == cfg.Data.ToJsonString(), "Comparison modified the shared adaptive calibration");
+});
+BrushFootprintChecks.Run(Test);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
+
+static SpatialProbeProfile SpatialFixtureProfile(Settings cfg,double size)
+{
+    var footprint=SpeedCalibration.Footprint(cfg,size);var c=cfg.Calibration.Rect("canvas");var axes=new List<SpatialAxis>();
+    foreach(bool vertical in new[]{false,true})axes.Add(new(vertical,footprint.Inner,Enumerable.Range(0,3).Select(i=>new SpatialAnchor(
+        vertical?new(c.Left+20+i*30,c.Top+20,c.Left+20+i*30,c.Top+55):new(c.Left+20,c.Top+20+i*30,c.Left+55,c.Top+20+i*30),
+        0,new(20,20,20),12)).ToList()));
+    return new(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(cfg),DateTimeOffset.UtcNow,size,footprint.Outer,axes);
+}
+static SpatialAxis SpatialTestAxis(bool vertical,int inner,int a,int b)=>new(vertical,inner,new[]{a,b,a}.Select((offset,i)=>new SpatialAnchor(
+    vertical?new(100+i*30,100,100+i*30,135):new(100,100+i*30,135,100+i*30),offset,new(20,20,20),12)).ToList());
+static PixelImage SpatialStroke(PixelImage before,ScreenLine line,int offset,int inner)
+{
+    var after=before.Clone();int n=TransferSchedule.Length(line),dx=Math.Sign(line.X2-line.X1),dy=Math.Sign(line.Y2-line.Y1);
+    for(int k=0;k<=n;k++)for(int p=offset-inner;p<=offset+inner;p++)
+        after.Set((line.Y1+k*dy+(dx!=0?p:0))*before.Width+line.X1+k*dx+(dy!=0?p:0),new(20,20,20));
+    return after;
+}
+
+static (PixelImage Before,PixelImage After,ScreenLine Line) ProbeFixture()
+{
+    var before=new PixelImage(96,96);for(int i=0;i<96*96;i++)before.Set(i,new(200,200,200));
+    var after=before.Clone();for(int x=30;x<=65;x++)for(int p=-5;p<=5;p++)
+        after.Set((48+p)*96+x,Math.Abs(p)<=2?new(0,0,0):new((byte)(40+Math.Abs(p)*20),0,0));
+    return(before,after,new(30,48,65,48));
+}
+
+sealed class InlineComparisonProgress(Action<PaletteComparisonProgress> report) : IProgress<PaletteComparisonProgress>
+{
+    public void Report(PaletteComparisonProgress value) => report(value);
+}
 
 sealed class RecordingStrokeInput : ICalibratedStrokeInput
 {

@@ -29,3 +29,4 @@ PASS HEX retries honor zero through five rather than always using six
 PASS HEX diagnostics distinguish copy marker, no text, malformed and wrong color
 PASS Clipboard contention retries and permanent failure prevents subsequent paste
 ALL 30 TESTS PASSED
+

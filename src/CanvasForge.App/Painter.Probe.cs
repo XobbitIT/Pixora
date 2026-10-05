@@ -6,32 +6,56 @@ internal sealed partial class Painter
 {
     public void PrepareProbe(double size)
     {
-        clock.Start();CheckProbe();ApplyControls(size);CheckProbe();
+        probeMode=true;clock.Start();CheckProbe();ApplyControls(size);CheckProbe();
     }
     public void CheckProbe()
     {
         Check();
-        if(Paused)throw new InvalidOperationException("Speed Probe перервано: Rust втратив фокус або натиснуто F6. Очисти Canvas і повтори тест.");
+        if(Paused)throw new InvalidOperationException(pauseReason=="f6"
+            ?"Тест швидкості перервано клавішею F6. Очисти полотно й повтори тест."
+            :"Тест швидкості перервано: Rust втратив фокус. Повернись у Rust, очисти полотно й повтори тест.");
     }
     public void ProbeStroke(ScreenLine line,SpeedSample sample)
     {
         CheckProbe();CalibratedMotion.Draw(line,sample,motionInput);CheckProbe();
+        lastPaintPoint=Native.Cursor();
     }
-    public PixelImage StableShot(ScreenRect area)
+    public PixelImage StableProbeShot(ScreenRect area,Action<PixelImage,PixelImage,int> unstableFrames)
     {
-        var canvas=settings.Calibration.Rect("canvas");var track=settings.PaintCalibration().Rect("size_track");
-        var park=new ScreenPoint(track.Left-12,track.Center.Y);
-        if(park.X>=canvas.Left&&park.X<canvas.Right&&park.Y>=canvas.Top&&park.Y<canvas.Bottom)
-            throw new InvalidOperationException("Місце відведення курсора перекриває Canvas. Повтори захоплення керування.");
-        Native.MovePath([park]);Delay(.12);
+        try{return StableShot(area,unstableFrames);}
+        catch(InputInterrupted){CheckProbe();throw;}
+    }
+    public PixelImage StableShot(ScreenRect area,Action<PixelImage,PixelImage,int>? unstableFrames=null)
+    {
+        var original=Native.Cursor();
+        // A tile capture only needs the cursor outside that tile. Moving to the
+        // nearest clear edge avoids repeated travel to the right-hand controls.
+        double size=verifiedControls.GetValueOrDefault("size",DesiredControls().Size);
+        // Manual/interpolated Sizes may have no exact measured sample. Use a
+        // conservative bound in that case rather than preventing an existing audit.
+        int radius=258;
+        try{radius=SpeedCalibration.Footprint(settings,size).Outer;}
+        catch(InvalidOperationException){}
+        int margin=CaptureCursor.Clearance(radius,windowDpi);
+        var park=CaptureCursor.ParkingPoint(area,windowRect,original,margin)
+            ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
+        Log("capture_cursor_park",new{area,original,park,brushRadius=radius,margin,dpi=windowDpi});
+        return CaptureCursor.Snapshot(original,park,Native.ReleaseChecked,MoveCursor,Frames,
+            ()=>CanReturnCursor()&&Native.Cursor()==park,
+            error=>Log("cursor_restore_failed",new{phase="snapshot",message=error.Message}));
+        PixelImage Frames()
+        {
+        Delay(.12);
         var previous=Native.Screenshot(area);
         for(int i=0;i<5;i++)
         {
             Delay(.08);Check();if(Paused)throw new InputInterrupted();var next=Native.Screenshot(area);
             if(CoverageAudit.Stable(previous,next))return next;
+            unstableFrames?.Invoke(previous,next,i+1);
             previous=next;
         }
         throw new InvalidOperationException("Canvas змінюється між кадрами. Зупини рух камери й повтори тест.");
+        }
     }
     public void RestoreAfterProbe() {CheckProbe();ApplyControls();}
 
@@ -49,25 +73,37 @@ internal sealed partial class Painter
             if(result.Passed)return;
             if(!settings.Bool("audit_repair")||pass>=settings.Int("audit_repair_passes",1)||result.Missing==0)break;
             var footprint=SpeedCalibration.Footprint(settings,1);
-            var repairs=CoverageAudit.Repair(result.MissingMask,expected,canvas,footprint.Outer);
+            var profiles=BrushFootprints.Read(settings,settings.Bool("adaptive_auto_shape")).Where(p=>p.Size==1).ToArray();
+            int physicalReach=SpeedCalibration.PhysicalReach(settings,1);
+            var repairPlan=profiles.Length>0?CoverageAudit.PlanRepair(result.MissingMask,expected,canvas,profiles,token:token)
+                :CoverageAudit.PlanRepair(result.MissingMask,expected,canvas,footprint.Outer,physicalReach:physicalReach);
+            var repairs=repairPlan.Strokes;
+            Log("coverage_repair_plan",new{group,pass=pass+1,strokes=repairs.Count,
+                repairPlan.TargetPixels,repairPlan.UnreachablePixels,repairPlan.PossibleOnlyPixels,safetyRadius=footprint.Outer,physicalReach,maskProfiles=profiles.Select(p=>p.Id)});
             if(repairs.Count==0)
             {
                 Log("coverage_repair_skipped",new{group,reason="no_safe_footprint",outerRadius=footprint.Outer,missingPixels=result.Missing,missingBounds=CoverageAudit.GapBounds(result.MissingMask,canvas)});
                 break;
             }
-            ApplyControls(1);
+            var operations=repairPlan.Operations.Count>0?repairPlan.Operations:repairs.Select(l=>new BrushStroke(l,1,ShapeSlot:settings.Int("brush_shape_slot",3))).ToList();
+            ApplyBrushShape(operations[0].ShapeSlot);ApplyControls(1);
             if(plan.Mode==ColorMode.HexDirect)
             {if(!ApplyHex(plan.Palette[color].Color,true))throw new InvalidOperationException("HEX verification failed before repair.");}
             else ApplyPalette(plan.Palette[color]);
-            var slow=new SpeedSample(1,StrokeMethod.Paced,false,32,48,1,64,3,1);
-            foreach(var line in repairs){Check();if(Paused)throw new InputInterrupted();CalibratedMotion.Draw(line,slow,motionInput);}
-            Log("coverage_repair",new{group,pass=pass+1,strokes=repairs.Count,size=1,intervalMs=48});
+            var slow=new SpeedSample(1,StrokeMethod.Paced,false,64,64,1,64,3,1);
+            foreach(var operation in operations)
+            {
+                Check();if(Paused)throw new InputInterrupted();
+                if(activeShape!=operation.ShapeSlot)ApplyBrushShape(operation.ShapeSlot);
+                CalibratedMotion.Draw(operation.Line,slow,motionInput);
+                lastPaintPoint=Native.Cursor();
+            }
+            Log("coverage_repair",new{group,pass=pass+1,strokes=repairs.Count,size=1,intervalMs=64,shapes=operations.Select(op=>op.ShapeSlot).Distinct()});
             after=StableShot(canvas);Images.Save(after,Path.Combine(directory,$"group-{group}-repair-{pass+1}.png"));
             result=CoverageAudit.Read(before,after,expected,result.Reference);
         }
-        var overlay=after.Clone();
+        var overlay=CoverageAudit.GapOverlay(after,result.MissingMask);
         Images.Save(after,Path.Combine(directory,$"group-{group}-after.png"));
-        for(int i=0;i<expected.Length;i++)if(result.MissingMask[i])overlay.Set(i,new(255,40,70));
         Images.Save(overlay,Path.Combine(directory,$"group-{group}-gaps.png"));
         throw new AuditFailureException(group,result,directory);
     }

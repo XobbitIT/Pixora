@@ -25,3 +25,4 @@ This environment does not contain the .NET SDK, so `dotnet build/publish` and th
 5. F6 pause/resume: first resumed stroke must use the correct color and Size.
 6. HEX Direct: verify swatch on each color and `fullReadback=true` periodically (default every 8 successful changes).
 7. Compare actual transfer time vs ETA in Stable and Experimental.
+

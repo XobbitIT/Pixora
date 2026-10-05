@@ -65,20 +65,20 @@ internal sealed partial class MainWindow
         if (workflowChips.TryGetValue("coverage", out var chip)) SetCoverageChip(chip);
         coverageExplanation.Text = coverageState switch
         {
-            CoverageState.Checking => T("Перевіряється поточний START. Часткове покриття ще не підтверджує весь малюнок.", "The current START is being audited. Partial coverage does not verify the entire painting."),
-            CoverageState.Verified => T("Останній START завершив усі перевірки покриття. Перевір вигляд у Rust.", "The last START passed all coverage checks. Review its appearance in Rust."),
-            CoverageState.NeedsReview => T("Останній START не пройшов аудит. Діагностика зберігається локально; наступний тест почни новим START.", "The last START failed its audit. Diagnostics are stored locally; retry with a fresh START."),
+            CoverageState.Checking => T("Перевіряється поточне малювання. Часткове покриття ще не підтверджує весь малюнок.", "The current START is being audited. Partial coverage does not verify the entire painting."),
+            CoverageState.Verified => T("Останнє малювання завершило всі перевірки покриття. Перевір вигляд у Rust.", "The last START passed all coverage checks. Review its appearance in Rust."),
+            CoverageState.NeedsReview => T("Останнє малювання не пройшло аудит. Діагностика зберігається локально; наступний тест почни кнопкою «Почати».", "The last START failed its audit. Diagnostics are stored locally; retry with a fresh START."),
             CoverageState.Interrupted => T("Перевірку перервано. Покриття всього малюнка не підтверджене.", "The audit was interrupted. Coverage of the entire painting is unverified."),
-            CoverageState.Unchecked => T("Останній START був без аудиту. Виконання команд не підтверджує покриття.", "The last START ran without an audit. Completed commands do not verify coverage."),
+            CoverageState.Unchecked => T("Останнє малювання було без аудиту. Виконання команд не підтверджує покриття.", "The last START ran without an audit. Completed commands do not verify coverage."),
             _ => settings.Bool("coverage_audit")
-                ? T("Очікує нового START. Speed Probe перевіряє швидкість вводу; покриття малюнка перевіряється окремо.", "Waiting for a fresh START. Speed Probe checks input timing; painting coverage is audited separately.")
-                : T("Увімкни аудит нижче, щоб перевіряти покриття після кожного кольору. Speed Probe не підтверджує покриття малюнка.", "Enable auditing below to check coverage after each color. Speed Probe does not verify painting coverage.")
+                ? T("Очікує нового запуску. Тест швидкості перевіряє ввід; покриття малюнка перевіряється окремо.", "Waiting for a fresh START. Speed Probe checks input timing; painting coverage is audited separately.")
+                : T("Увімкни аудит нижче, щоб перевіряти покриття після кожного кольору. Тест швидкості не підтверджує покриття малюнка.", "Enable auditing below to check coverage after each color. Speed Probe does not verify painting coverage.")
         };
         bool available = HasAuditSnapshots();
         string hint = available
-            ? T("Відкрити діагностику останнього START. Доступно також клавішами Enter або Пробіл.", "Open diagnostics from the last START. Enter or Space also opens them.")
+            ? T("Відкрити діагностику останнього малювання. Доступно також клавішами Enter або Пробіл.", "Open diagnostics from the last START. Enter or Space also opens them.")
             : auditNotice is not null
-                ? T("Збережені знімки недоступні. Для нової діагностики потрібен новий START.", "Saved snapshots are unavailable. Run a fresh START for new diagnostics.")
+                ? T("Збережені знімки недоступні. Для нової діагностики потрібен новий запуск.", "Saved snapshots are unavailable. Run a fresh START for new diagnostics.")
                 : T("Діагностика з’явиться, якщо аудит виявить проблему.", "Diagnostics become available if the audit finds a problem.");
         foreach (var action in new[] { coverageAction, workflowCoverageAction })
         {

@@ -4,9 +4,9 @@ using System.Text.Json.Nodes;
 using CanvasForge.Core;
 
 namespace CanvasForge.App;
-internal sealed record PaintProgress(int Done, int Total, double Elapsed, double Eta, string Status);
-internal sealed record ResumeCheckpoint(string Identity, int Group, int Line, int Done);
-internal sealed partial class Painter
+internal sealed record PaintProgress(int Done, int Total, double Elapsed, double Eta, string Status,
+    EtaEstimate? Estimate=null,PaintPhase Phase=PaintPhase.Drawing);
+internal sealed partial class Painter : IDisposable
 {
     private readonly Settings settings;
     private readonly IntPtr window;
@@ -23,11 +23,20 @@ internal sealed partial class Painter
     private bool needsReprime;
     private bool f6Held;
     private long nextSafety;
+    private InputDelay? inputDelay;
+    private string? pauseReason;
+    private bool probeMode;
+    private long safetyCalls,moveCalls;
+    private double safetySeconds,sendInputSeconds;
     private double pausedSeconds;
     private volatile bool paused;
     private readonly Dictionary<string,double> verifiedControls = new();
     private readonly ICalibratedStrokeInput motionInput;
+    private CheckpointJournal? checkpoint;
+    private ScreenPoint? lastPaintPoint;
     public bool Paused { get => paused; set => paused = value; }
+    private InputDelay DelayTimer => inputDelay??=new();
+    public void Dispose()=>inputDelay?.Dispose();
 
     public Painter(Settings s, IntPtr target, string checkpoint, string log, Action<PaintProgress> callback, CancellationToken cancel)
     {
@@ -43,6 +52,7 @@ internal sealed partial class Painter
         windowProcessId = Native.ProcessIdOf(target);
         windowDpi = Native.DpiOf(target);
         rebase = SessionRebase();
+        settings=BrushFootprints.Snapshot(settings);
         motionInput = new GuardedStrokeInput(this);
     }
 
@@ -84,15 +94,29 @@ internal sealed partial class Painter
 
     private void Check()
     {
+        long started=Stopwatch.GetTimestamp();safetyCalls++;
+        try
+        {
         token.ThrowIfCancellationRequested();
         if (Native.Down(0x1B))
+        {
+            Log("input_interruption",new{reason="escape"});
             throw new OperationCanceledException("ESC");
+        }
         var f6 = Native.Down(0x75);
         if (f6 && !f6Held)
+        {
             Paused = !Paused;
+            pauseReason=Paused?"f6":null;
+            Log("input_pause",new{paused=Paused,reason="f6"});
+        }
         f6Held = f6;
-        if (Native.GetForegroundWindow() != window)
+        if (Native.GetForegroundWindow() != window&&!Paused)
+        {
             Paused = true;
+            pauseReason="focus_lost";
+            Log("input_pause",new{paused=true,reason=pauseReason});
+        }
         if (Environment.TickCount64 < nextSafety)
             return;
         nextSafety = Environment.TickCount64 + 75;
@@ -102,16 +126,20 @@ internal sealed partial class Painter
             throw new InvalidOperationException(CalibrationSession.DpiChangedMessage);
         if (!Native.GetWindowRect(window, out var rect) || rect.ToScreen() != windowRect)
             throw new InvalidOperationException("Вікно Rust змінило розмір або положення. Повтори захоплення.");
+        }
+        finally{safetySeconds+=Stopwatch.GetElapsedTime(started).TotalSeconds;}
     }
 
     // All input waits are interruptible; never retain mouse-down while paused.
     private bool WaitReady()
     {
         Check();
+        if(probeMode&&Paused)CheckProbe();
         if (!Paused)
             return false;
         Native.Release();
         verifiedControls.Clear();
+        FlushCheckpoint("pause");
         var start = clock.Elapsed.TotalSeconds;
         report(new(0, 0, 0, 0, "Пауза — повернись у Rust і натисни F6."));
         while (Paused)
@@ -127,6 +155,7 @@ internal sealed partial class Painter
         }
 
         pausedSeconds += clock.Elapsed.TotalSeconds - start;
+        pauseReason=null;
         nextSafety = 0;
         Check();
         if (Paused)
@@ -137,23 +166,17 @@ internal sealed partial class Painter
 
     private void Delay(double seconds)
     {
-        var until = Stopwatch.GetTimestamp() + seconds * Stopwatch.Frequency;
-        while (Stopwatch.GetTimestamp() < until)
+        DelayTimer.Wait(seconds,()=>
         {
             Check();
             if (Paused)
             {
                 Native.Release();
                 verifiedControls.Clear();
+                if(probeMode)CheckProbe();
                 throw new InputInterrupted();
             }
-
-            var remaining = (until - Stopwatch.GetTimestamp()) / (double)Stopwatch.Frequency;
-            if (remaining > .002)
-                Thread.Sleep(1);
-            else
-                Thread.SpinWait(40);
-        }
+        });
     }
 
     private sealed class InputInterrupted : Exception
@@ -309,8 +332,10 @@ internal sealed partial class Painter
     }
 
     private SliderObservation? ReadSlider(string kind)
+        =>ReadSlider(kind,settings.PaintCalibration());
+    private SliderObservation? ReadSlider(string kind,Calibration calibration)
     {
-        var hint = settings.PaintCalibration().Rect(kind + "_track");
+        var hint = calibration.Rect(kind + "_track");
         if (!hint.Valid) return null;
         var bounds = new ScreenRect(
             Math.Max(windowRect.Left, hint.Left - Math.Max(48, hint.Width / 4)),
@@ -382,8 +407,7 @@ internal sealed partial class Painter
             var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 2, 5);
             for (var attempt = 0; attempt <= retries; attempt++)
             {
-                var geometry = ReadSlider(kind) ?? throw new InvalidOperationException(
-                    $"Не вдалося прочитати {kind}. Захопи повзунок із числом справа.");
+                var geometry = ReadSlider(kind) ?? throw new InvalidOperationException(ControlLayoutProblem(kind));
                 Log("control_target", new { kind, value, point = geometry.ValueField.Center, field = geometry.ValueField, strategy = "numeric_field", attempt });
                 Click(geometry.ValueField.Center);
                 ChordKey(0x11, 0x41);
@@ -448,16 +472,21 @@ internal sealed partial class Painter
     }
 
     private double? activeAdaptiveSize;
+    private int activeShape;
 
-    private void ApplyBrushShape()
+    private void ApplyBrushShape(int? shapeOverride=null)
     {
         var cal = settings.PaintCalibration();
         var shapes = cal.GridCenters("brush_shapes", cal.Get("brush_shape_cols", 7), 1);
-        var slot = Math.Clamp(settings.Int("brush_shape_slot", 3) - 1, 0, 6);
+        int selected=shapeOverride??(activeShape>0?activeShape:settings.Int("brush_shape_slot",3));
+        var slot = Math.Clamp(selected - 1, 0, 6);
         if (shapes.Count > slot)
             Click(shapes[slot]);
-        else if (cal.Point(settings.Text("brush_shape", "Round") == "Square" ? "square_brush" : "hard_brush") is ScreenPoint shape)
+        else if (selected is 3 or 4&&cal.Point(selected==4 ? "square_brush" : "hard_brush") is ScreenPoint shape)
             Click(shape);
+        else throw new InvalidOperationException("Capture all seven brush shapes before using this shape.");
+        activeShape=selected;
+        activeAdaptiveSize=null; // Reverify Size after changing the brush style.
     }
 
     private (double Size, double Interval, double Opacity) DesiredControls(double? sizeOverride = null)
@@ -476,6 +505,7 @@ internal sealed partial class Painter
 
     private void ApplyControls(double? sizeOverride)
     {
+        VerifyControlLayout();
         ApplyBrushShape();
         var desired = DesiredControls(sizeOverride);
         Slider("size", desired.Size);
@@ -485,11 +515,11 @@ internal sealed partial class Painter
         needsReprime = false;
     }
 
-    private void ReprimeControls(double? sizeOverride)
+    private void ReprimeControls(double? sizeOverride,int? shapeOverride=null)
     {
         // Returning from pause should not blindly re-click all three controls.
         // Verify their current positions and only repair a control that drifted.
-        ApplyBrushShape();
+        ApplyBrushShape(shapeOverride);
         var desired = DesiredControls(sizeOverride);
         var repaired = new List<string>();
         if (!SliderMatches("size", desired.Size)) { Slider("size", desired.Size); repaired.Add("size"); }
@@ -500,20 +530,7 @@ internal sealed partial class Painter
     }
 
     private double BrushValue(double pixels)
-    {
-        var pts = settings.Data["brush_calibration_points"] as System.Text.Json.Nodes.JsonArray;
-        if (pts is null || pts.Count < 2)
-            return pixels;
-        var list = pts.OfType<System.Text.Json.Nodes.JsonArray>().Where(x => x.Count == 2).Select(x => (Value: x[0]!.GetValue<double>(), Pixels: x[1]!.GetValue<double>())).OrderBy(x => x.Pixels).ToArray();
-        if (list.Length < 2)
-            return pixels;
-        if (pixels <= list[0].Pixels)
-            return list[0].Value;
-        for (var i = 1; i < list.Length; i++)
-            if (pixels <= list[i].Pixels)
-                return list[i - 1].Value + (list[i].Value - list[i - 1].Value) * (pixels - list[i - 1].Pixels) / (list[i].Pixels - list[i - 1].Pixels);
-        return list[^1].Value;
-    }
+        => AutomaticBrush.Value(settings, pixels);
 
     private double ColorDelay() => StrokeTiming.ColorDelay(settings);
 
@@ -524,38 +541,28 @@ internal sealed partial class Painter
             throw new InvalidOperationException(auditProblem);
         if(settings.Bool("coverage_audit")&&resume is not null)
             throw new InvalidOperationException("Аудит потребує початкового кадру Canvas. Виконай новий START; RESUME доступний без аудиту.");
-        var groups = TransferSchedule.Build(plan, settings);
-        var order = groups.Keys.OrderByDescending(i => plan.Counts.GetValueOrDefault(i)).ToList();
-        if (plan.BackgroundColor is int bg)
-        {
-            order.Remove(bg);
-            order.Insert(0, bg);
-        }
+        var groups = TransferSchedule.Build(plan, settings,token);
+        var order = TransferSchedule.Order(plan, groups);
 
         var total = groups.Values.Sum(x => x.Count);
         var done = resume?.Done ?? 0;
-        if (resume is not null)
-        {
-            if (resume.Group < 0 || resume.Group > order.Count || resume.Line < 0 || done < 0 || done > total
-                || resume.Group == order.Count && resume.Line != 0
-                || resume.Group < order.Count && resume.Line > groups[order[resume.Group]].Count)
-                throw new InvalidDataException("Пошкоджений RESUME. Виконай новий START.");
-            var expected = order.Take(resume.Group).Sum(color => groups[color].Count) + resume.Line;
-            if (expected != done)
-                throw new InvalidDataException("Прогрес RESUME не відповідає плану. Виконай новий START.");
-        }
+        if (resume is not null && !resume.Matches(plan.Identity, order.Select(color => groups[color].Count).ToArray()))
+            throw new InvalidDataException("Прогрес RESUME не відповідає плану. Виконай новий START.");
         var speed = SpeedProfile.Get(settings.Text("speed_profile", "Rapid"));
         double nextReport=0;
         clock.Start();
-        if (resume is null)
-            Save(new(plan.Identity, 0, 0, 0));
+        timing=new(PaintTimingPlan.Build(settings,groups,order,resume?.Group??0,resume?.Line??0));
+        timingDone=done;timingTotal=total;timingPhase=PaintPhase.Countdown;
+        checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0));
+        FlushCheckpoint("start");
+        bool completed = false;
         var highResolutionTimer = Native.BeginHighResolutionTimer();
         try
         {
             for (var sec = settings.Int("start_delay", 5); sec > 0; sec--)
             {
                 token.ThrowIfCancellationRequested();
-                report(new(done, total, 0, 0, $"Старт через {sec} с…"));
+                ReportTiming($"Старт через {sec} с…",sec);
                 for (var j = 0; j < 20; j++)
                 {
                     token.ThrowIfCancellationRequested();
@@ -571,10 +578,13 @@ internal sealed partial class Painter
             if (Native.GetForegroundWindow() != window)
                 throw new InvalidOperationException("Поверни фокус у Rust і повтори START.");
             WaitReady();
-            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), calibratedMotion=SpeedCalibration.Use(settings), coverageAudit=settings.Bool("coverage_audit"), motionTransport = SpeedCalibration.Use(settings)?"SendInput probe verified":TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, timingRevision=StrokeTiming.Revision, highResolutionTimer, probeRevision=SpeedCalibration.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, controlFrameMs=StrokeTiming.ControlFrame(settings)*1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
+            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), delayTransport=DelayTimer.Transport, fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), calibratedMotion=SpeedCalibration.Use(settings), coverageAudit=settings.Bool("coverage_audit"), motionTransport = SpeedCalibration.Use(settings)?"SendInput probe verified":TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, timingRevision=StrokeTiming.Revision, highResolutionTimer, probeRevision=SpeedCalibration.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, controlFrameMs=StrokeTiming.ControlFrame(settings)*1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
+            BeginTiming(PaintTimingPlan.Setup,PaintPhase.Preparing,"Налаштовую пензель…");
+            double setupStart=ActiveSeconds;
             for (;;)
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
+            timing.Complete(PaintTimingPlan.Setup,ActiveSeconds-setupStart);
             Log("adaptive_plan", new { enabled = settings.Bool("adaptive_brush"), wide = groups.Values.SelectMany(x => x).Count(x => x.Size > 0), total });
             string? lastHex = null;
             for (var group = resume?.Group ?? 0; group < order.Count; group++)
@@ -582,6 +592,8 @@ internal sealed partial class Painter
                 var color = order[group];
                 var entry = plan.Palette[color];
                 WaitReady();
+                BeginTiming(PaintTimingPlan.Color(group),PaintPhase.Preparing,$"#{entry.Color.Hex}");
+                double colorStart=ActiveSeconds;
                 for (;;)
                     try
                     {
@@ -606,13 +618,20 @@ internal sealed partial class Painter
                         lastHex = null;
                     }
 
+                timing.Complete(PaintTimingPlan.Color(group),ActiveSeconds-colorStart);
                 Log("color_group", new { group, mode = plan.Mode.ToString(), color = entry.Color.Hex, point = entry.ClickPoint, strokes = groups[color].Count });
                 PixelImage? auditBefore=null;
                 if(settings.Bool("coverage_audit"))
+                {
+                    BeginTiming(PaintTimingPlan.BeforeAudit(group),PaintPhase.Auditing,"Знімаю полотно для аудиту…");
+                    double captureStart=ActiveSeconds;
                     for(;;)try{auditBefore=StableShot(settings.Calibration.Rect("canvas"));break;}
                         catch(InputInterrupted){WaitReady();}
+                    timing.Complete(PaintTimingPlan.BeforeAudit(group),ActiveSeconds-captureStart);
+                }
                 var lines = groups[color];
                 double motionSeconds=0,plannedMotionSeconds=0;int motionBatches=0;
+                InputCosts costs=default;
                 for (var line = group == (resume?.Group ?? -1) ? resume!.Line : 0; line < lines.Count; line++)
                 {
                     while (true)
@@ -621,10 +640,11 @@ internal sealed partial class Painter
                             WaitReady();
                             var op = lines[line];
                             var targetSize = settings.Bool("adaptive_brush") ? (op.Size > 0 ? op.Size : speed.BrushSize) : (double?)null;
+                            int targetShape=op.ShapeSlot>0?op.ShapeSlot:settings.Int("brush_shape_slot",3);
 
                             if (needsReprime)
                             {
-                                ReprimeControls(targetSize);
+                                ReprimeControls(targetSize,targetShape);
                                 if (plan.Mode == ColorMode.HexDirect)
                                 {
                                     if (!ApplyHex(entry.Color))
@@ -636,20 +656,38 @@ internal sealed partial class Painter
                                 needsReprime = false;
                             }
 
+                            if(activeShape!=targetShape)
+                            {
+                                BeginTiming(PaintTimingPlan.Shape(group,line),PaintPhase.Preparing,"Змінюю форму пензля…");
+                                double shapeStart=ActiveSeconds;ApplyBrushShape(targetShape);
+                                timing.Complete(PaintTimingPlan.Shape(group,line),ActiveSeconds-shapeStart);
+                                Log("adaptive_shape",new{group,line,shape=targetShape,op.ProfileId});
+                            }
+                            timing.Skip(PaintTimingPlan.Shape(group,line));
                             if (settings.Bool("adaptive_brush"))
                             {
                                 var size = targetSize!.Value;
                                 if (activeAdaptiveSize != size)
                                 {
+                                    BeginTiming(PaintTimingPlan.Size(group,line),PaintPhase.Preparing,"Змінюю розмір пензля…");
+                                    double sizeStart=ActiveSeconds;
                                     Slider("size", size);
+                                    timing.Complete(PaintTimingPlan.Size(group,line),ActiveSeconds-sizeStart);
                                     activeAdaptiveSize = size;
                                     Log("adaptive_size", new { group, line, size, wide = op.Size > 0 });
                                 }
                             }
+                            // Reprime after a pause may have already set the pending Size.
+                            timing.Skip(PaintTimingPlan.Size(group,line));
+                            BeginTiming(PaintTimingPlan.Motion(group,line),PaintPhase.Drawing,$"#{entry.Color.Hex}");
                             long motionStart=Stopwatch.GetTimestamp();
-                            if(TransferSchedule.Fast(settings))DrawBatch(op,speed);
+                            var inputStart=InputSnapshot();
+                            if(TransferSchedule.FastBatch(settings,op))DrawBatch(op,speed);
                             else Draw(op.Segments[0], speed, line % 2 == 1);
-                            motionSeconds+=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;
+                            double actualMotion=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;
+                            costs+=InputSnapshot()-inputStart;
+                            timing.Complete(PaintTimingPlan.Motion(group,line),actualMotion);
+                            motionSeconds+=actualMotion;
                             plannedMotionSeconds+=TransferSchedule.EstimateBatch(settings,speed,op);motionBatches++;
                             break;
                         }
@@ -660,6 +698,7 @@ internal sealed partial class Painter
                         }
 
                     done++;
+                    timingDone=done;
                     var state = new ResumeCheckpoint(plan.Identity, group, line + 1, done);
                     if (line + 1 == lines.Count&&!settings.Bool("coverage_audit"))
                         state = state with
@@ -667,29 +706,39 @@ internal sealed partial class Painter
                             Group = group + 1,
                             Line = 0
                         };
+                    checkpoint.Update(state);
                     if (done % 50 == 0 || line + 1 == lines.Count)
-                        Save(state);
+                        FlushCheckpoint("periodic");
                     if (clock.Elapsed.TotalSeconds>=nextReport || done == total)
                     {
                         nextReport=clock.Elapsed.TotalSeconds+.25;
-                        var elapsed = clock.Elapsed.TotalSeconds - pausedSeconds;
-                        report(new(done, total, elapsed, done > 0 ? elapsed * (total - done) / done : 0, $"#{entry.Color.Hex}"));
+                        ReportTiming($"#{entry.Color.Hex}");
                     }
                 }
-                Log("motion_group",new{group,motionBatches,motionSeconds,plannedMotionSeconds,meanStrokeMs=motionBatches>0?motionSeconds*1000/motionBatches:0,plannedMeanStrokeMs=motionBatches>0?plannedMotionSeconds*1000/motionBatches:0});
+                Log("motion_group",new{group,motionBatches,motionSeconds,plannedMotionSeconds,delayTransport=DelayTimer.Transport,inputCosts=costs,meanStrokeMs=motionBatches>0?motionSeconds*1000/motionBatches:0,plannedMeanStrokeMs=motionBatches>0?plannedMotionSeconds*1000/motionBatches:0});
                 if(auditBefore is not null)
                 {
+                    BeginTiming(PaintTimingPlan.Audit(group),PaintPhase.Auditing,"Перевіряю покриття…");
+                    double auditStart=ActiveSeconds;
                     for(;;)try{AuditGroup(plan,color,group,auditBefore);break;}
                         catch(InputInterrupted){WaitReady();ReprimeControls(activeAdaptiveSize);}
-                    Save(new(plan.Identity,group+1,0,done));
+                    timing.Complete(PaintTimingPlan.Audit(group),ActiveSeconds-auditStart);
+                    checkpoint.Update(new(plan.Identity,group+1,0,done));
+                    FlushCheckpoint("audited_group");
                 }
             }
 
+            BeginTiming(PaintTimingPlan.Finish,PaintPhase.Finishing,"Завершую перенесення…");
+            double finishStart=ActiveSeconds;
             if (Native.GetForegroundWindow() == window)
                 Slider("opacity", 1);
             if (File.Exists(checkpointPath))
                 File.Delete(checkpointPath);
-            report(new(total, total, clock.Elapsed.TotalSeconds - pausedSeconds, 0, settings.Bool("coverage_audit")?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди виконано. Перевір результат у Rust."));
+            RestoreLastStrokeCursor();
+            timing.Complete(PaintTimingPlan.Finish,ActiveSeconds-finishStart);
+            completed = true;
+            timingPhase=PaintPhase.Completed;
+            ReportTiming(settings.Bool("coverage_audit")?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди виконано. Перевір результат у Rust.");
             Log("complete", new { done, total, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), calibratedMotion=SpeedCalibration.Use(settings),coverageVerified=settings.Bool("coverage_audit"),resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
         }
         finally
@@ -697,24 +746,33 @@ internal sealed partial class Painter
             Native.Release();
             if (highResolutionTimer)
                 Native.EndHighResolutionTimer();
+            if (!completed) FlushCheckpoint(token.IsCancellationRequested ? "stop" : "interruption");
         }
     }
 
-    private void Save(ResumeCheckpoint state)
+    private void FlushCheckpoint(string reason)
     {
-        var temp = checkpointPath + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(state));
-        File.Move(temp, checkpointPath, true);
+        try
+        {
+            if (checkpoint?.Flush() == true)
+                Log("checkpoint", new { reason, checkpoint.Latest.Group, checkpoint.Latest.Line, checkpoint.Latest.Done });
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log("checkpoint_save_failed", new { reason, checkpoint?.Latest, message = e.Message });
+            throw new IOException("Не вдалося зберегти прогрес. Продовження може повторити дії після попередньої контрольної точки.", e);
+        }
     }
 
     private void Draw(ScreenLine line, SpeedProfile speed, bool reverse)
     {
         double size=activeAdaptiveSize??DesiredControls().Size;
-        if(SpeedCalibration.Resolve(settings,size,line) is { } sample)
+        if(SpeedCalibration.Resolve(settings,size,line,activeShape) is { } sample)
         {
             // Probe validates left-to-right / top-to-bottom. Preserve that direction.
             var tested=line.X2<line.X1||line.Y2<line.Y1?TransferSchedule.Reverse(line):line;
             CalibratedMotion.Draw(tested,sample,motionInput);
+            lastPaintPoint=Native.Cursor();
             return;
         }
         var a = new ScreenPoint(reverse ? line.X2 : line.X1, reverse ? line.Y2 : line.Y1);
@@ -747,7 +805,7 @@ internal sealed partial class Painter
                     batch.Add(new((int)Math.Round(a.X + (b.X - a.X) * f), (int)Math.Round(a.Y + (b.Y - a.Y) * f)));
                     if (batch.Count >= speed.BatchSize || step >= length)
                     {
-                        Native.MovePath(batch);
+                        MovePathMeasured(batch);
                         Delay(speed.PointDelay * batch.Count);
                         batch.Clear();
                     }
@@ -765,10 +823,31 @@ internal sealed partial class Painter
         }
 
         Delay(StrokeTiming.Release(settings));
+        lastPaintPoint=Native.Cursor();
     }
 
     private void DrawBatch(PaintBatch batch,SpeedProfile speed)
-        => StrokeMotion.Draw(batch,settings,speed,motionInput);
+    {
+        StrokeMotion.Draw(batch,settings,speed,motionInput);lastPaintPoint=Native.Cursor();
+    }
+
+    private void MoveCursor(ScreenPoint point)
+    {
+        // SetCursorPos can leave Rust's rendered brush indicator at the last
+        // stroke. Use the guarded input event path for parking and returning too,
+        // so the game receives the move before the settled capture is taken.
+        motionInput.Move([point]);
+    }
+    private bool CanReturnCursor()=>!token.IsCancellationRequested&&!Paused&&!Native.Down(0x1B)&&!Native.Down(0x75)
+        &&Native.GetForegroundWindow()==window&&Native.ProcessIdOf(window)==windowProcessId
+        &&Native.DpiOf(window)==windowDpi&&Native.GetWindowRect(window,out var rect)&&rect.ToScreen()==windowRect;
+    public void RestoreLastStrokeCursor()
+    {
+        if(lastPaintPoint is not { } point)return;
+        bool restored=CaptureCursor.Return(point,Native.ReleaseChecked,MoveCursor,CanReturnCursor,
+            error=>Log("cursor_restore_failed",new{phase="completion",message=error.Message}));
+        Log("cursor_finish",new{point,restored});
+    }
 
     private sealed class GuardedStrokeInput(Painter owner) : ICalibratedStrokeInput
     {
@@ -776,8 +855,8 @@ internal sealed partial class Painter
         public void Move(IReadOnlyList<ScreenPoint> points)
         {
             owner.Check();
-            if(owner.Paused)throw new InputInterrupted();
-            Native.MovePath(points);
+            if(owner.Paused){if(owner.probeMode)owner.CheckProbe();throw new InputInterrupted();}
+            owner.MovePathMeasured(points);
         }
         public void Button(bool up) => Native.Mouse(up);
         public void Shift(bool up) => Native.Key(0x10,up);

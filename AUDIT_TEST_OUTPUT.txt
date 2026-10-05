@@ -23,3 +23,4 @@ PASS Nonfinite timing, enormous delays and malformed HEX caps reject cleanly
 PASS Tiny, thin and fully transparent images survive background and crop processing
 PASS Large noisy image completes quantization, dithering and all speed estimates
 ALL 24 TESTS PASSED
+

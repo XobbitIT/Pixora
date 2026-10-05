@@ -314,11 +314,12 @@ internal static class Native
 
     public static void Mouse(bool up) => Send(MouseButtonInputOf(up));
     public static void MoveAndDown(int x, int y) => Send(AbsoluteMoveInputOf(x, y), MouseButtonInputOf(false));
+    public static void ReleaseChecked()=>Send(MouseButtonInputOf(true), KeyInputOf(0x10, true), KeyInputOf(0x11, true), KeyInputOf(0x12, true));
     public static void Release()
     {
         try
         {
-            Send(MouseButtonInputOf(true), KeyInputOf(0x10, true), KeyInputOf(0x11, true), KeyInputOf(0x12, true));
+            ReleaseChecked();
         }
         catch
         {

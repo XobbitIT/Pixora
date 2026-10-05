@@ -6,32 +6,35 @@ namespace CanvasForge.Core;
 
 public enum StrokeMethod { Paced, Shift }
 public sealed record SpeedSample(double Size, StrokeMethod Method, bool Vertical, double TestedMs,
-    double SafeMs, int StepPx, int MaxLength, int Repeats, double Coverage);
+    double SafeMs, int StepPx, int MaxLength, int Repeats, double Coverage, string? SpatialId=null);
 public sealed record SpeedProbeProfile(string Context, DateTimeOffset Created, List<SpeedSample> Samples);
 
 public static class SpeedCalibration
 {
-    public const string Revision = "probe-paced-shift-v1";
+    public const string Revision = "probe-spatial-envelope-v4";
     public static readonly int[] CandidatesMs = [32,20,12,8];
     public const int Repeats = 3;
     public static double Margin(double ms) => Math.Ceiling(ms*1.25+2);
     public static string Context(Settings s)
     {
         var cal=s.Calibration;
+        var masks=string.Join(";",BrushFootprints.Read(s).OrderBy(p=>p.Size).Select(p=>p.Id));
         var text=$"{Revision}:{AdaptiveBrush.Context(s)}:{s.Data["brush_calibration_points"]}:{cal.SessionDpi}:{cal.SessionSize}";
+        if(masks.Length>0)text=$"{Revision}:{AdaptiveBrush.Context(s)}:{cal.SessionDpi}:{cal.SessionSize}:{BrushFootprints.Revision}:{masks}";
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
     }
     public static SpeedProbeProfile? Read(Settings s)
     {
         try
         {
-            var profile=s.Data["speed_probe_profile"]?.Deserialize<SpeedProbeProfile>();
+            var profile=(s.Data["shape_speed_profiles"]?[s.Int("brush_shape_slot",3).ToString()]??s.Data["speed_probe_profile"])?.Deserialize<SpeedProbeProfile>();
             if(profile is null||profile.Context!=Context(s)||profile.Samples is null||!AdaptiveBrush.CalibrationCurrent(s))return null;
-            if(profile.Samples.Count>64||profile.Samples.Any(x=>x is null||!double.IsFinite(x.Size)||x.Size is <1 or >20
+            if(profile.Samples.Count>64||profile.Samples.Any(x=>x is null||!double.IsFinite(x.Size)||!BrushFootprints.Sizes.Contains(x.Size)
                 ||!Enum.IsDefined(x.Method)||!double.IsFinite(x.TestedMs)||x.TestedMs is <8 or >64
                 ||!double.IsFinite(x.SafeMs)||x.SafeMs<Margin(x.TestedMs)||x.SafeMs>100
                 ||x.StepPx is <1 or >64||x.StepPx>2*Footprint(s,x.Size).Inner+1
-                ||x.MaxLength is <8 or >16384||x.Repeats<Repeats||x.Coverage!=1))return null;
+                ||x.MaxLength is <8 or >16384||x.Repeats<Repeats||x.Coverage!=1
+                ||ProbeSpatialCalibration.Read(s,x.Size) is not { } spatial||x.SpatialId!=spatial.Id))return null;
             return profile;
         }
         catch(JsonException){return null;}
@@ -41,9 +44,17 @@ public static class SpeedCalibration
     public static bool Current(Settings s) => Read(s)?.Samples.Count>0;
     public static bool Use(Settings s) => s.Bool("calibrated_strokes")&&Current(s)
         &&s.Text("coverage_mode","Precision")=="Precision"&&s.Bool("force_precision_controls",true)
-        &&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1&&s.Int("brush_shape_slot",3) is 3 or 4;
-    public static SpeedSample? Resolve(Settings s,double size,ScreenLine line)
+        &&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
+        &&(s.Int("brush_shape_slot",3) is 3 or 4||BrushFootprints.Read(s).Any(p=>p.SolidCore.Valid));
+    public static SpeedSample? Resolve(Settings s,double size,ScreenLine line,int shapeSlot=0)
     {
+        if(shapeSlot>0&&shapeSlot!=s.Int("brush_shape_slot",3))
+        {
+            // Most alternative shapes have no evidence yet. Avoid cloning all
+            // measured masks for every estimated operation in that common case.
+            if(s.Data["shape_speed_profiles"]?[shapeSlot.ToString()] is null)return null;
+            s=BrushFootprints.ForShape(s,shapeSlot);
+        }
         if(!Use(s)||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
         int length=TransferSchedule.Length(line);bool vertical=line.X1==line.X2&&line.Y1!=line.Y2;
         if(length<8)return null;
@@ -52,6 +63,17 @@ public static class SpeedCalibration
     }
     public static (int Outer,int Inner) Footprint(Settings s,double size)
     {
+        if(BrushFootprints.Find(s,size) is { } p)
+        {
+            int inner=0;var solid=BrushFootprints.Points(p.Solid).ToHashSet();
+            if(solid.Contains(new(0,0)))
+                for(int r=1;r<=p.Reach;r++)
+                {
+                    bool full=true;for(int k=-r;k<=r;k++)full&=solid.Contains(new(k,-r))&&solid.Contains(new(k,r))&&solid.Contains(new(-r,k))&&solid.Contains(new(r,k));
+                    if(!full)break;inner=r;
+                }
+            return (p.Reach,inner);
+        }
         foreach(var point in (s.Data["brush_calibration_points"] as System.Text.Json.Nodes.JsonArray??[]).OfType<System.Text.Json.Nodes.JsonArray>())
             if(point.Count>=3&&double.TryParse(point[0]?.ToString(),out var value)&&value==size)
             {
@@ -61,6 +83,14 @@ public static class SpeedCalibration
                 return ((int)Math.Ceiling(outer/2)+2,Math.Max(0,(int)Math.Floor((inner-1)/2)-1));
             }
         throw new InvalidOperationException("Немає вимірювання для цього Size. Повтори калібрування пензля.");
+    }
+    public static int PhysicalReach(Settings s,double size)
+    {
+        if(BrushFootprints.Find(s,size) is { } p)return p.Reach;
+        foreach(var row in (s.Data["brush_calibration_points"] as System.Text.Json.Nodes.JsonArray??[]).OfType<System.Text.Json.Nodes.JsonArray>())
+            if(row.Count>=3&&double.TryParse(row[0]?.ToString(),out var value)&&value==size)
+            {double diameter=row[1]!.GetValue<double>();if(double.IsFinite(diameter)&&diameter is >=1 and <=512)return (int)Math.Floor((diameter-1)/2);}
+        throw new InvalidOperationException("No physical brush measurement for this Size.");
     }
     public static List<(ScreenRect Area,ScreenLine Horizontal,ScreenLine Vertical)> Tiles(ScreenRect canvas,int outer)
     {

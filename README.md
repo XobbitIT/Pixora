@@ -1,12 +1,24 @@
 # Pixora
 
-Raster painting assistant for Rust. Development build **1.0.14-beta.12**, Windows 10/11 x64.
+Raster painting assistant for Rust. Development build **1.0.14-beta.26**, Windows 10/11 x64.
+
+Beta.26 separates physical brush reach from safety bounds, measures command-relative possible/solid masks from three independent dots, supports Sizes up to 100 and seven selectable/calibratable shapes, and chooses profitable measured shapes inside each color group. Repair uses real physical geometry and distinguishes unreachable targets from possible-only coverage. Progress and ETA survive language changes; adaptive planning supports cancellation. See [changes](CHANGES_BETA26_UA.md) and [Rust checklist](TESTING_BETA26_UA.md). New beta.26 game verification remains pending; measured masks and source tests do not prove in-game coverage.
+
+Beta.24 adds the longest contiguous stable resolved offset run and transition rate to Speed Probe diagnostics. These fields are optional in reports; older reports show unavailable values. Acceptance, timing, and calibration contexts are unchanged. See [changes](CHANGES_BETA24_UA.md) and [Rust checklist](TESTING_BETA24_UA.md).
+
+Beta.23 adds diagnostic-only per-slice offset statistics to Speed Probe, with explicit ambiguity and legacy-report handling. Windows CI now checks published DLLs and retains validation evidence; no remote CI run has been performed.
+
+Beta.22 fixes held-out spatial offset rejection, uses a guarded high-resolution wait timer,
+adds input cost diagnostics, displays elapsed completion time and checks captured Palette/HEX control layouts.
+It leaves Rust visible after a successful minimized transfer by default; window return is configurable.
+Existing speed proofs are stale: rerun spatial calibration and Speed Probe, then start a fresh transfer.
+See [changes](CHANGES_BETA22_UA.md) and [Rust test checklist](TESTING_BETA22_UA.md).
 
 - [Українська інструкція](README_UA.md)
 - [Release changes](CHANGES_1.0.14_UA.md)
 - [Rust testing guide](TESTING_1.0.14_UA.md)
 
-The Windows workflow runs 123 Core tests and 27 WPF checks before publishing a self-contained portable build. Download `Pixora_1.0.14-beta.12_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
+The Windows workflow runs 211 Core tests and 56 WPF checks before publishing a self-contained portable build. After a successful workflow run, download the artifact named `Pixora_<version>_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
 
 Size, Interval and Opacity use verified numeric entry. Brush calibration and values have a dedicated page; Speed Probe and coverage audit have a separate sidebar entry. Speed Probe compares paced SendInput movement and Shift lines on separate clean areas with three repeated trials and a validated timing margin. A current per-Size/axis profile selects verified routes in Precision and adaptive painting; untested cases retain normal input. Long Shift strokes are split at tested spans.
 

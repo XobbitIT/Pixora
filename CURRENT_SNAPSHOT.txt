@@ -1,6 +1,15 @@
-Pixora 1.0.14-beta.12 — retained audit diagnostics and compact workflow UI
-Coverage chips reopen snapshots after banner dismissal; keyboard/accessibility supported.
-Fresh START clears prior diagnostics; missing files disable the action with a tooltip.
-Compact preparation rows; localized empty previews; caption-sized Settings buttons.
-Numeric labels expose full captions in tooltips.
-Validation: 123 Core tests, 27 WPF checks. In-game validation pending.
+Pixora 1.0.14-beta.26 — command-relative measured brush masks and seven shape profiles.
+Three independent dots: possible union / stable opaque intersection / separate safety bounds.
+Size is a Rust control value, not pixels. Calibration: 1/3/10/20 together; 40/60/100 separately.
+All seven slots selectable/calibratable; opt-in profitable measured-shape adaptive planning.
+Color-first grouping, shape-aware batches/ETA/reprime and independent per-shape speed evidence.
+Legacy repair now separates padded safety from physical reach. Mask repair uses actual stable offsets.
+UnreachablePixels and PossibleOnlyPixels are diagnostics, not audited coverage claims.
+Frozen-reference re-audit remains authoritative; Unknown not targets; no relaxed Probe tolerance.
+Progress/ETA/status survive language rebuild; new plan/START resets old results.
+Adaptive/schedule cancellation propagated. Old RESUME planner identities become incompatible.
+Expected validation 211 Core / 56 WPF, default runtime and exact published DLLs; see archive manifest.
+New beta.26 in-game verification pending; recorded PNG replays are offline evidence only.
+Temporary compile-host CLR flags remain process-local; clean remote CI result recorded separately.
+Source updates are being published to the existing codex/pixora-1.0.14-beta-calibration draft PR.
+See CHANGES_BETA26_UA.md, TESTING_BETA26_UA.md and KNOWN_ISSUES.md.

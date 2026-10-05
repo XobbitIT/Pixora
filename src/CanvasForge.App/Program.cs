@@ -23,7 +23,8 @@ internal static class Program
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
             Native.Release();
-            MessageBox.Show(application.MainWindow is MainWindow window && window.English ? Translations.Get(e.Exception.Message) : e.Exception.Message, "Pixora", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (application.MainWindow is MainWindow window) window.ShowMessage(e.Exception.Message);
+            else MessageBox.Show(Translations.ForLanguage(e.Exception.Message, false), "Pixora", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         };
         application.Resources["Bg"] = new SolidColorBrush(Color.FromRgb(24, 24, 28));

@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#FF7A18"/>
-  <path fill="#FFFFFF" fill-rule="evenodd" d="M20 48V16H35C44 16 49 21 49 29C49 37 44 42 35 42H29V48ZM29 24V34H35C39 34 41 32 41 29C41 26 39 24 35 24Z"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="384" viewBox="0 0 384 384" role="img"><title>Pixora</title><rect width="384" height="384" rx="78" fill="#181B22"/><g transform="translate(16 24) scale(1.05)"><path fill="#F5F6F8" d="M76 8H198C259 8 308 58 308 122C308 186 259 236 198 236H146V316H76V206L116 166H198C223 166 244 147 244 122C244 97 223 80 198 80H76Z"/><rect fill="#FF7900" x="28" y="94" width="56" height="56"/></g></svg>

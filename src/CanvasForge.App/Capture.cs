@@ -13,31 +13,31 @@ internal sealed partial class MainWindow
         page.Children.Add(Card("Налаштування Rust", out var hero));
         hero.Children.Add(Text(T("Відкрий редактор картини Rust. Далі Pixora проведе через 7 коротких кроків. Перед запуском вибери пензель у грі.", "Open the Rust painting editor. Pixora will guide you through 7 short steps. Select the brush in game before starting."), 12, Muted));
         hero.Children.Add(AsyncButton(T("Почати налаштування", "Start setup"), CaptureWizard, true));
-        hero.Children.Add(AsyncButton(T("Лише змінити Canvas", "Change Canvas only"), () => Capture("canvas", "CANVAS")));
-        page.Children.Add(Card("Canvas / Палітра", out var info));
+        hero.Children.Add(AsyncButton(T("Лише змінити полотно", "Change Canvas only"), () => Capture("canvas", T("ПОЛОТНО", "CANVAS"))));
+        page.Children.Add(Card(T("Полотно / палітра", "Canvas / palette"), out var info));
         captureStatus = Text("—", 11, Muted);
         info.Children.Add(captureStatus);
-        page.Children.Add(Card("Числові поля Size / Interval / Opacity", out var controls));
-        page.Children.Add(Card("HEX Direct", out var hex));
+        page.Children.Add(Card("Числові поля розміру, інтервалу й прозорості", out var controls));
+        page.Children.Add(Card(Option("color_mode","HEX Direct"), out var hex));
         hex.Children.Add(Text(T("Захопи поле з шістьма HEX-цифрами, потім виконай тест. Символ # вводити не потрібно.", "Capture the field with six HEX digits, then run the test. Do not include #."), 12, Muted));
-        hex.Children.Add(AsyncButton(T("1. Захопити HEX", "1. Capture HEX"), () => Capture("hex", "HEX — 6 digits")));
+        hex.Children.Add(AsyncButton(T("1. Захопити HEX", "1. Capture HEX"), () => Capture("hex", T("HEX — 6 цифр", "HEX — 6 digits"))));
         hex.Children.Add(AsyncButton(T("2. Тест HEX (3 кольори)", "2. Test HEX (3 colors)"), TestHex));
         hex.Children.Add(AsyncButton(T("3. Пензель і повзунки HEX", "3. HEX brush and sliders"), CaptureHexControls));
         hex.Children.Add(Text(T("Відкрий HEX-палітру Rust і захопи форми пензля та кожну зелену смугу разом із числовим полем справа. Робочі межі визначаються автоматично.", "Open the HEX palette in Rust and capture brush shapes and each complete green bar including its numeric field. Interactive boundaries are detected automatically."), 12, Muted));
         var manual = new StackPanel();
         page.Children.Add(new Expander { Header = T("Ручне калібрування", "Manual calibration"), Content = manual });
         manual.Children.Add(Card("Палітра і прев’ю", out var pal));
-        pal.Children.Add(AsyncButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", "PALETTE 4×16")));
-        pal.Children.Add(AsyncButton("Quick Colors", () => Capture("quick", "QUICK COLORS — 1×10")));
-        pal.Children.Add(AsyncButton(T("Поточний color swatch (опційно)", "Current color swatch (optional)"),
-            () => Capture(settings.Mode == ColorMode.HexDirect ? "swatch" : "palette_swatch", "COLOR SWATCH")));
+        pal.Children.Add(AsyncButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", T("ПАЛІТРА 4×16", "PALETTE 4×16"))));
+        pal.Children.Add(AsyncButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("ШВИДКІ КОЛЬОРИ — 1×10", "QUICK COLORS — 1×10"))));
+        pal.Children.Add(AsyncButton(T("Зразок активного кольору (необов’язково)", "Active color swatch (optional)"),
+            () => Capture(settings.Mode == ColorMode.HexDirect ? "swatch" : "palette_swatch", T("ЗРАЗОК КОЛЬОРУ", "COLOR SWATCH"))));
         pal.Children.Add(Button(T("Показати вставку", "Show insertion"), ShowInsertion));
         manual.Children.Add(Card("Додаткові області", out var extra));
         foreach (var(key, title)in new[]
         {
             ("brush_shapes", "Форми пензля"),
             ("top_toolbar", "Верхня панель"),
-            ("save_cancel", "Save / Cancel"),
+            ("save_cancel", T("Зберегти / скасувати", "Save / Cancel")),
             ("full_ui", "Повний інтерфейс Rust")
         }
 
@@ -59,9 +59,9 @@ internal sealed partial class MainWindow
         }
 
         )
-            controls.Children.Add(AsyncButton(kind.ToUpperInvariant(), () => Capture(kind + "_track", kind.ToUpperInvariant() + " — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))));
-        controls.Children.Add(Text(T("Числа вводяться напряму. Ручні Size anchors більше не потрібні.", "Values are entered directly. Manual Size anchors are no longer needed."), 11, Muted));
-        controls.Children.Add(AsyncButton(T("Перевірити Rust controls", "Test Rust controls"), TestControls));
+            controls.Children.Add(AsyncButton(Option("control",kind), () => Capture(kind + "_track", Option("control",kind) + " — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))));
+        controls.Children.Add(Text(T("Числа вводяться напряму. Ручні опорні точки розміру більше не потрібні.", "Values are entered directly. Manual Size anchors are no longer needed."), 11, Muted));
+        controls.Children.Add(AsyncButton(T("Перевірити керування Rust", "Test Rust controls"), TestControls));
         controls.Children.Add(Button(T("Калібрування пензля", "Brush calibration"), () => ShowPage("adaptive")));
     }
 
@@ -228,10 +228,10 @@ internal sealed partial class MainWindow
         {
             var (screen, shot) = await CaptureShot();
             Calibration? cal = null;
-            var steps = new[] { ("brush_shapes", "HEX — 7 brush shapes"),
-                ("size_track", "HEX SIZE — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
-                ("interval_track", "HEX INTERVAL — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
-                ("opacity_track", "HEX OPACITY — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")) };
+            var steps = new[] { ("brush_shapes", T("HEX — 7 форм пензля", "HEX — 7 brush shapes")),
+                ("size_track", "HEX " + Option("control","size")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("interval_track", "HEX " + Option("control","interval")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("opacity_track", "HEX " + Option("control","opacity")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")) };
             for (var i = 0; i < steps.Length; i++)
             {
                 var (key, title) = steps[i];
@@ -259,13 +259,13 @@ internal sealed partial class MainWindow
             var(screen, shot) = await CaptureShot();
             var steps = new[]
             {
-                ("canvas", "CANVAS"),
-                ("palette", "PALETTE 4×16"),
-                ("quick", "QUICK COLORS 1×10"),
+                ("canvas", T("ПОЛОТНО", "CANVAS")),
+                ("palette", T("ПАЛІТРА 4×16", "PALETTE 4×16")),
+                ("quick", T("ШВИДКІ КОЛЬОРИ 1×10", "QUICK COLORS 1×10")),
                 ("brush_shapes", T("7 форм пензля", "7 brush shapes")),
-                ("size_track", "SIZE — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
-                ("interval_track", "INTERVAL — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
-                ("opacity_track", "OPACITY — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))
+                ("size_track", Option("control","size")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("interval_track", Option("control","interval")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
+                ("opacity_track", Option("control","opacity")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))
             };
             Calibration? cal = null;
             for (var i = 0; i < steps.Length; i++)
@@ -378,7 +378,7 @@ internal sealed partial class MainWindow
         {
             await Task.Delay(1500);
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-            var worker = new Painter(settings, target, ResumePath, LogPath, _ =>
+            using var worker = new Painter(settings, target, ResumePath, LogPath, _ =>
             {
             }, timeout.Token);
             Native.SetForegroundWindow(target);
@@ -393,7 +393,7 @@ internal sealed partial class MainWindow
             cal.Set("hex_verified", ok ? 1 : 0);
             settings.SetCalibration(cal);
             Dirty();
-            SetStatus(ok ? "HEX VERIFIED" : "HEX FAILED");
+            SetStatus(ok ? T("HEX підтверджено", "HEX verified") : T("Перевірка HEX не пройдена", "HEX verification failed"));
             if (!ok)
                 throw new InvalidOperationException(T("Rust не підтвердив усі тестові HEX-кольори. Перевір поле й записи hex_readback у логу.", "Rust did not confirm all test HEX colors. Check the field and hex_readback log."));
         }
@@ -422,11 +422,11 @@ internal sealed partial class MainWindow
             Native.SetForegroundWindow(target);
             var s = settings.Clone();
             s.Set("verify_controls", true);
-            var worker = new Painter(s, target, ResumePath, LogPath, _ =>
+            using var worker = new Painter(s, target, ResumePath, LogPath, _ =>
             {
             }, CancellationToken.None);
             await Task.Run(worker.ApplyControls);
-            SetStatus(T("Rust controls перевірено.", "Rust controls verified."));
+            SetStatus(T("Керування Rust перевірено.", "Rust controls verified."));
         }
         finally
         {
@@ -448,7 +448,10 @@ internal sealed partial class MainWindow
         var origin = cal.SessionClient!.Value;
         var size = cal.SessionSize!.Value;
         var dpi = cal.SessionDpi;
-        if (MessageBox.Show(T("Відкрий чистий Canvas. Pixora сама вибере контрастний колір, введе Size 1/3/10/20 і намалює 4 крапки. Не рухай мишу; ESC — скасувати. Після калібрування очисти Canvas. Почати?", "Open a clean Canvas. Pixora selects a contrasting color, enters Size 1/3/10/20, and draws 4 dots automatically. Do not move the mouse; ESC cancels. Clear Canvas afterwards. Start?"), T("Автоматичне калібрування", "Automatic calibration"), MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
+        var selection=settings.Text("brush_calibration_size","1/3/10/20");
+        double[] sizes=selection=="1/3/10/20"?[1,3,10,20]:[double.Parse(selection,System.Globalization.CultureInfo.InvariantCulture)];
+        var tiles=BrushFootprints.Tiles(r,sizes); // Reject insufficient space before any input.
+        if (!ShowMessage(T($"Відкрий чисте полотно. Буде {tiles.Count} крапок: по три незалежні вимірювання кожного Size. Не рухай мишу; ESC — скасувати. Після калібрування очисти полотно. Почати?", $"Open a clean Canvas. {tiles.Count} dots will be drawn: three independent measurements per Size. Do not move the mouse; ESC cancels. Clear Canvas afterwards. Start?"), T("Автоматичне калібрування", "Automatic calibration"), true)) return;
         if (Native.FindRustAt(r.Center) != target) throw new InvalidOperationException("Canvas is outside Rust.");
         void CheckFrame()
         {
@@ -460,8 +463,6 @@ internal sealed partial class MainWindow
         }
         AdaptiveBrush.Prepare(settings);
         settings.Set("adaptive_brush", false);
-        settings.Data.Remove("brush_calibration_context");
-        settings.Set("brush_calibration_points", Array.Empty<double[]>());
         Dirty();
         BuildUi();
         SetEditing(false);
@@ -471,62 +472,57 @@ internal sealed partial class MainWindow
         {
             await Task.Delay(1500);
             Native.SetForegroundWindow(target);
-            var points = await Task.Run(() =>
+            var profiles = await Task.Run(() =>
             {
                 CheckFrame();
-                var colorWorker = new Painter(AdaptiveBrush.CalibrationSettings(settings, 1), target, ResumePath, LogPath, _ => { }, CancellationToken.None);
+                using var colorWorker = new Painter(AdaptiveBrush.CalibrationSettings(settings, 1), target, ResumePath, LogPath, _ => { }, CancellationToken.None);
+                colorWorker.VerifyControlLayout();
                 var color = colorWorker.SelectCalibrationColor(Native.Median(new(r.Left + r.Width / 4 - 4, r.Top + r.Height / 4 - 4, r.Left + r.Width / 4 + 5, r.Top + r.Height / 4 + 5)));
-                var measured = new List<double[]>();
-                var sizes = new[] { 1.0, 3, 10, 20 };
-                var park = new ScreenPoint(cal.Rect("size_track").Left - 12, cal.Rect("size_track").Center.Y);
-                for (int i = 0; i < sizes.Length; i++)
+                var measured=sizes.ToDictionary(value=>value,_=>new List<BrushStamp>());
+                var diagnostic=Path.Combine(folder,"brush-calibration","run-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(diagnostic);
+                foreach(var tile in tiles)
                 {
-                    currentSize = sizes[i];
+                    currentSize = tile.Size;
                     CheckFrame();
-                    var worker = new Painter(AdaptiveBrush.CalibrationSettings(settings, sizes[i]), target, ResumePath, LogPath, _ => { }, CancellationToken.None);
-                    worker.ApplyControls(); CheckFrame();
-                    var p = new ScreenPoint(r.Left + r.Width * (i % 2 == 0 ? 1 : 3) / 4, r.Top + r.Height * (i < 2 ? 1 : 3) / 4);
-                    int radius = Math.Min(240, Math.Min(r.Width, r.Height) / 4 - 4);
-                    var area = new ScreenRect(p.X - radius, p.Y - radius, p.X + radius + 1, p.Y + radius + 1);
-                    // Rust draws its brush preview in the framebuffer. Park it outside
-                    // the measured area in BOTH frames so the ghost cannot hide the dot.
-                    Native.SetCursorPos(park.X, park.Y); Thread.Sleep(200); CheckFrame();
-                    var before = Native.Screenshot(area);
-                    Native.SetCursorPos(p.X, p.Y); Thread.Sleep(100); CheckFrame();
-                    Native.Mouse(false);
-                    try { Thread.Sleep(140); }
-                    finally { Native.Mouse(true); }
-                    Native.SetCursorPos(park.X, park.Y); Thread.Sleep(300); CheckFrame();
-                    var after = Native.Screenshot(area);
-                    BrushMeasurement result;
-                    try { result = BrushMeasurement.Read(before, after, new(radius, radius)); }
-                    catch (InvalidOperationException)
-                    {
-                        var diagnostic = Path.Combine(folder, "brush-calibration"); Directory.CreateDirectory(diagnostic);
-                        Images.Save(before, Path.Combine(diagnostic, "failed-before.png"));
-                        Images.Save(after, Path.Combine(diagnostic, "failed-after.png"));
-                        throw;
-                    }
-                    measured.Add([sizes[i], result.OuterDiameter, result.InnerDiameter]);
-                    File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = new { size = sizes[i], result.OuterDiameter, result.InnerDiameter, result.SeedOffset, result.ChangedPixels, color = color.Hex } }) + Environment.NewLine);
+                    using var worker = new Painter(AdaptiveBrush.CalibrationSettings(settings, tile.Size), target, ResumePath, LogPath, _ => { }, CancellationToken.None);
+                    worker.PrepareProbe(tile.Size); CheckFrame();
+                    var p=tile.Command;var area=tile.Area;
+                    // Calibration dots use the same guarded movement and settled,
+                    // cursor-free capture as spatial controls and coverage audits.
+                    var before = worker.StableProbeShot(area,(_,_,_)=>{}); CheckFrame();
+                    worker.ProbeStroke(new(p.X,p.Y,p.X,p.Y),new(tile.Size,StrokeMethod.Paced,false,64,64,1,8,3,1));
+                    var after = worker.StableProbeShot(area,(_,_,_)=>{}); CheckFrame();
+                    var stem=$"shape-{settings.Int("brush_shape_slot",3)}-size-{tile.Size}-repeat-{tile.Repeat+1}";
+                    Images.Save(before,Path.Combine(diagnostic,stem+"-before.png"));Images.Save(after,Path.Combine(diagnostic,stem+"-after.png"));
+                    var stamp=BrushFootprints.Measure(before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size,measured[tile.Size].FirstOrDefault()?.Reference);
+                    measured[tile.Size].Add(stamp);
+                    var detail=new{shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,stamp,color=color.Hex};
+                    File.WriteAllText(Path.Combine(diagnostic,stem+".json"),System.Text.Json.JsonSerializer.Serialize(detail));
+                    File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = detail }) + Environment.NewLine);
                 }
-                return measured;
+                var rows=measured.Select(row=>BrushFootprints.Build(settings,settings.Int("brush_shape_slot",3),row.Key,row.Value)).ToArray();
+                File.WriteAllText(Path.Combine(diagnostic,"profiles.json"),System.Text.Json.JsonSerializer.Serialize(rows));
+                return rows;
             });
+            BrushFootprints.Save(settings,profiles);
+            var points=BrushFootprints.Read(settings).OrderBy(p=>p.Size).Select(p=>new double[]{p.Size,p.Reach*2+1,
+                Math.Max(1,SpeedCalibration.Footprint(settings,p.Size).Inner*2+1)}).ToArray();
             settings.Set("brush_calibration_points", points);
             settings.Set("brush_calibration_context", AdaptiveBrush.Context(settings));
-            settings.Set("adaptive_brush", true);
+            settings.Set("adaptive_brush", AdaptiveBrush.CalibrationCurrent(settings));
             adaptiveFailure = "";
             Dirty();
-            SetStatus(T("Калібрування завершено. Адаптивний режим увімкнено; очисти Canvas перед START.", "Calibration complete. Adaptive mode is enabled; clear Canvas before START."));
+            SetStatus(T("Три вимірювання збережено. Форми без стабільного ядра не використовуються для прискорення. Очисти полотно перед START.", "Three measurements saved. Shapes without a stable core are excluded from acceleration. Clear Canvas before START."));
         }
         catch (OperationCanceledException)
         {
-            adaptiveFailure = T("Калібрування скасовано. Очисти Canvas й повтори.", "Calibration cancelled. Clear Canvas and retry.");
+            adaptiveFailure = T("Калібрування скасовано. Очисти полотно й повтори.", "Calibration cancelled. Clear Canvas and retry.");
             SetStatus(adaptiveFailure);
         }
         catch (Exception e)
         {
-            adaptiveFailure = T("Не вдалося виміряти Size", "Could not measure Size") + " " + currentSize + ": " + T(e.Message);
+            adaptiveFailure = T("Не вдалося виміряти розмір", "Could not measure Size") + " " + currentSize + ": " + T(e.Message);
             throw new InvalidOperationException(adaptiveFailure, e);
         }
         finally

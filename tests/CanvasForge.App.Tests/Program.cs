@@ -12,6 +12,8 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        try
+        {
         var destination = Path.GetFullPath(args.Length > 0 ? args[0] : Path.Combine(AppContext.BaseDirectory, "ui-verification"));
         Directory.CreateDirectory(destination);
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
@@ -42,13 +44,234 @@ internal static class Program
         CheckCoverageStates(destination,"English");
         CheckPolish(destination,"Українська",900,620);
         CheckPolish(destination,"English",2000,780);
-        Console.WriteLine("ALL 27 WPF UI CHECKS PASSED");
+        CheckLocalization(destination,"Українська");
+        CheckLocalization(destination,"English");
+        CheckLanguageSwitch(destination);
+        CheckReliabilityUi(destination,"Українська");
+        CheckReliabilityUi(destination,"English");
+        CheckAutoBrushExecutor();
+        CheckProbeDiagnosticStorage(destination);
+        CheckProbeDiagnosticsUi(destination,"Українська");
+        CheckProbeDiagnosticsUi(destination,"English");
+        CheckSpatialWorkflow(destination,"Українська");
+        CheckSpatialWorkflow(destination,"English");
+        CheckSpatialDiagnostics(destination);
+        CheckSmallCanvasProbePreflight(destination);
+        CheckMeasuredEtaUi(destination,"Українська");
+        CheckMeasuredEtaUi(destination,"English");
+        CheckPainterTimingPublisher(destination);
+        CheckPainterCursorTransport();
+        CheckPaletteComparison(destination, "Українська", 900);
+        CheckPaletteComparison(destination, "English", 1060);
+        CheckPaletteApply(destination);
+        CheckPaletteRelativeIndicators();
+        CheckInputDelay(destination);
+        CheckOffsetTrajectoryUi(destination,"Українська");
+        CheckOffsetTrajectoryUi(destination,"English");
+        CheckAuditZoom(destination,"Українська");
+        CheckAuditZoom(destination,"English");
+        CheckMeasuredBrushUi(destination,"Українська");
+        CheckMeasuredBrushUi(destination,"English");
+        CheckProgressLanguageRebuild(destination);
+        Console.WriteLine("ALL 56 WPF UI CHECKS PASSED");
+        if(args.Length==2)ReplaySlowControls(args[1],destination);
+        if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
         // Windows are rendered without showing or invoking game/capture/input actions.
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine(e);
+            Environment.ExitCode = 1;
+        }
     }
 
+    private static void CheckMeasuredBrushUi(string output,string language)
+    {
+        bool english=language=="English";string name="measured-brush-"+(english?"en":"ua");
+        var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var s=ReadySettings(language);
+        BrushSpan[] pixels=[new(1,0,2),new(2,0,2)];
+        var p=BrushFootprints.Build(s,3,1,Enumerable.Repeat(new BrushStamp(pixels,pixels,new(20,20,20)),3).ToArray());
+        BrushFootprints.Save(s,[p]);s.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        var root=(FrameworkElement)window.Content;
+        var shapes=Descendants(root).OfType<Button>().Where(b=>b.Tag?.ToString()?.StartsWith("brush-shape:")==true).ToArray();
+        Assert(shapes.Length==7&&shapes.Select(b=>b.Tag).Distinct().Count()==7,"Seven individual shapes are not selectable");
+        var size=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="adaptive_max_size");
+        Assert(size.Items.Cast<object>().Any(v=>v.ToString()=="100"),"Large adaptive Size missing");
+        var calibration=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="brush_calibration_size");
+        Assert(calibration.Items.Count==8,"Individual calibration Sizes missing");
+        var toggle=Descendants(root).OfType<CheckBox>().Single(b=>b.Content?.ToString()==(english?"Automatically choose measured shapes":"Автоматично вибирати виміряні форми"));
+        Assert(toggle.IsChecked==false,"Automatic shape choice enabled without explicit selection");
+        foreach(var expander in Descendants(root).OfType<Expander>().ToArray())expander.IsExpanded=true;
+        root.UpdateLayout();var captions=string.Join("\n",Captions(root));
+        Assert(captions.Contains("3/3")&&captions.Contains(english?"core":"ядро"),"Measured physical/solid geometry is invisible");
+        if(english)Assert(Captions(root).Where(t=>t!="Українська").All(t=>!System.Text.RegularExpressions.Regex.IsMatch(t,@"[\u0400-\u04FF]")),"New brush UI untranslated");
+        shapes.Single(b=>b.Tag?.ToString()=="brush-shape:4").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(Field<Settings>(window,"settings").Int("brush_shape_slot")==4&&!AdaptiveBrush.CalibrationCurrent(Field<Settings>(window,"settings")),"Changing shape reused another footprint");
+        Console.WriteLine("PASS "+name);
+    }
+    private static void CheckProgressLanguageRebuild(string output)
+    {
+        var directory=Path.Combine(output,"progress-rebuild");Directory.CreateDirectory(directory);
+        ReadySettings("Українська").Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        var estimate=new EtaEstimate(23.6,EtaBasis.Measured,50,50,178,0,129,2.01);
+        Invoke(window,"ApplyPaintProgress",new PaintProgress(50,228,8,23.6,"#ABCDEF",estimate));
+        Invoke(window,"ApplyPaintProgress",new PaintProgress(0,0,0,0,"Пауза — повернись у Rust і натисни F6."));
+        Field<Settings>(window,"settings").Set("language","English");Invoke(window,"BuildUi");
+        Assert(Math.Abs(Field<ProgressBar>(window,"progressBar").Value-50*100.0/228)<1e-9&&Field<TextBlock>(window,"eta").Text.Contains("measured pace"),"Rebuild reset measured progress or ETA");
+        Assert(Field<TextBlock>(window,"status").Text.Contains("F6")&&!Field<TextBlock>(window,"status").Text.Contains("ABCDEF"),"Rebuild lost the pause status");
+        Invoke(window,"ApplyPaintProgress",new PaintProgress(228,228,83.8,0,"Команди виконано. Перевір результат у Rust.",estimate with{Basis=EtaBasis.Complete,Seconds=0},PaintPhase.Completed));
+        Field<Settings>(window,"settings").Set("language","Українська");Invoke(window,"BuildUi");
+        Assert(Field<ProgressBar>(window,"progressBar").Value==100&&Field<TextBlock>(window,"eta").Text.Contains("Завершено за"),"Completed progress disappeared after language switch");
+        Render(window,Path.Combine(output,"progress-rebuild-complete.png"),900);Console.WriteLine("PASS progress-language-rebuild");
+    }
     private static void Assert(bool condition, string message)
     {
         if (!condition) throw new Exception(message);
+    }
+    private static PixelImage PaletteFixture()
+    {
+        var image = new PixelImage(96, 96);
+        for (int y = 0; y < 96; y++) for (int x = 0; x < 96; x++)
+            image.Set(y * 96 + x, new((byte)(40 + x / 8 * 16), (byte)(30 + y / 8 * 16), (byte)(40 + (x / 8 + y / 8) * 8)),
+                x < 8 && y < 8 ? (byte)0 : (byte)255);
+        return image;
+    }
+    private static void CheckPaletteComparison(string output, string language, int width)
+    {
+        bool english = language == "English"; string name = "palette-comparison-" + (english ? "en" : "ua");
+        var cfg = Settings.Defaults(); cfg.Set("color_mode", "HEX Direct"); cfg.Set("cell_px", 1);
+        cfg.Set("preblur", 0); cfg.Set("edge_preserve", false); cfg.Set("skin_assist", false); cfg.Set("fit_mode", "fit whole");
+        var cal = cfg.Calibration; cal.SetRect("canvas", new(10, 10, 106, 106)); cfg.SetCalibration(cal);
+        var comparison = PaletteComparison.Build(PaletteFixture(), cfg);
+        int selected = 0; var window = new PaletteComparisonWindow(english, limit => selected = limit);
+        window.ShowResults(comparison);
+        var root = (FrameworkElement)window.Content;
+        void Draw(string suffix)
+        {
+            root.Measure(new Size(width, 800)); root.Arrange(new Rect(0, 0, width, 800)); root.UpdateLayout();
+            var bitmap = new RenderTargetBitmap(width, 800, 96, 96, PixelFormats.Pbgra32); bitmap.Render(root);
+            var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using var stream = File.Create(Path.Combine(output, name + suffix + ".png")); encoder.Save(stream);
+        }
+        Draw(""); var scroll = Descendants(root).OfType<ScrollViewer>().Single();
+        scroll.ScrollToEnd(); Draw("-bottom");
+        Assert(Descendants(root).OfType<Image>().Count(x => x.Source is not null) == 4, "Palette comparison lost a preview");
+        string captions = string.Join("\n", Descendants(root).SelectMany(Captions));
+        Assert(captions.Contains(english ? "planner forecast" : "прогноз планувальника"), "Palette time claimed to be measured");
+        Assert(captions.Contains(english ? "Wide operations" : "Широких операцій"), "Adaptive metrics missing");
+        Assert(captions.Contains(english ? "Changes are relative to 256" : "Зміни — відносно 256"), "Comparison baseline not explained");
+        var deltas = Descendants(root).OfType<TextBlock>().Where(x => x.Tag?.ToString()?.EndsWith(":delta") == true).ToArray();
+        Assert(deltas.Length == 18 && deltas.All(x => !x.Tag!.ToString()!.StartsWith("palette:256:")), "Relative metrics missing or baseline compared to itself");
+        foreach (var delta in deltas)
+        {
+            var row = (Grid)delta.Parent;
+            var value = row.Children.OfType<TextBlock>().Single(x => Grid.GetRow(x) == Grid.GetRow(delta) && Grid.GetColumn(x) == 1);
+            var point = value.TransformToAncestor(row).Transform(new Point());
+            var relativePoint = delta.TransformToAncestor(row).Transform(new Point());
+            Assert(point.X + value.ActualWidth + 6 <= relativePoint.X && relativePoint.X + delta.ActualWidth <= row.ActualWidth + .1, "Relative indicator overlaps or clips a metric");
+            Assert(delta.ToolTip is string && delta.Text.Length > 0, "Relative metric has no explanation");
+        }
+        var culture = english ? System.Globalization.CultureInfo.InvariantCulture : System.Globalization.CultureInfo.GetCultureInfo("uk-UA");
+        Assert(deltas.Single(x => x.Tag!.ToString() == "palette:64:operations:delta").Text == (english ? "↓30.1%" : "↓30,1%"), "Operation reduction not derived from the fixture baseline");
+        Assert(deltas.Single(x => x.Tag!.ToString() == "palette:64:colors:delta").Text == (english ? "↓55.2%" : "↓55,2%"), "Color reduction used the cap instead of actual colors");
+        Assert(deltas.Single(x => x.Tag!.ToString() == "palette:64:error:delta").Text == "+" + comparison.Variants[0].Plan.Error.ToString("F2", culture), "Delta E showed a percentage or lost its sign");
+        if (english) Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions, @"[\u0400-\u04FF]"), "Palette comparison contains untranslated UI");
+        var choices = Descendants(root).OfType<Button>().Where(x => x.Content?.ToString()?.StartsWith(english ? "Apply " : "Застосувати ") == true).ToArray();
+        Assert(choices.Length == 4 && selected == 0, "Comparison implicitly applied a palette");
+        choices.Single(x => x.Content!.ToString()!.EndsWith("96")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(selected == 96, "Selected comparison cap was not applied");
+        using var report = new MemoryStream(); PaletteComparisonWindow.WriteReport(comparison, report); report.Position = 0;
+        using var zip = new System.IO.Compression.ZipArchive(report, System.IO.Compression.ZipArchiveMode.Read);
+        Assert(zip.Entries.Count == 7, "Palette export incomplete");
+        using var json = System.Text.Json.JsonDocument.Parse(zip.GetEntry("comparison.json")!.Open());
+        Assert(!json.RootElement.GetProperty("inGameMeasured").GetBoolean(), "Export mislabeled forecast");
+        Assert(json.RootElement.GetProperty("variants").GetArrayLength() == 4 && json.RootElement.GetProperty("SourceSha256").GetString() == comparison.SourceSha256, "Export lost reproducibility data");
+        foreach (var variant in comparison.Variants)
+        {
+            using var bytes = new MemoryStream(); using (var entry = zip.GetEntry($"preview-{variant.Limit}.png")!.Open()) entry.CopyTo(bytes);
+            bytes.Position = 0; var decoded = new PngBitmapDecoder(bytes, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad).Frames[0];
+            var expected = Images.Bitmap(variant.Plan.Preview); byte[] actualPixels = new byte[96 * 96 * 4], expectedPixels = new byte[96 * 96 * 4];
+            new FormatConvertedBitmap(decoded, PixelFormats.Bgra32, null, 0).CopyPixels(actualPixels, 96 * 4, 0); expected.CopyPixels(expectedPixels, 96 * 4, 0);
+            Assert(actualPixels.SequenceEqual(expectedPixels), "Exported preview changed pixels: " + variant.Limit);
+        }
+        File.WriteAllBytes(Path.Combine(output, name + ".zip"), report.ToArray());
+        Console.WriteLine("PASS " + name);
+    }
+    private static void CheckPaletteRelativeIndicators()
+    {
+        var culture = System.Globalization.CultureInfo.InvariantCulture;
+        Assert(PaletteComparisonWindow.PercentDelta(0, 0, culture) == "—" && PaletteComparisonWindow.PercentDelta(10, 0, culture) == "—", "Zero baseline produced a false percentage");
+        Assert(PaletteComparisonWindow.PercentDelta(99.999, 100, culture) == "0.0%", "Rounded zero retained a misleading direction");
+        Assert(PaletteComparisonWindow.PercentDelta(120, 100, culture) == "↑20.0%", "Increased cost looks like a reduction");
+        Assert(PaletteComparisonWindow.AbsoluteDelta(10, 7, 0, culture) == "+3" && PaletteComparisonWindow.AbsoluteDelta(3, 5, 0, culture) == "-2", "Wide/Size difference is not an absolute signed count");
+        Assert(PaletteComparisonWindow.AbsoluteDelta(.0001, .0002, 2, culture) == "0.00", "Delta E shows a negative rounded zero");
+        var cfg = Settings.Defaults(); cfg.Set("color_mode", "HEX Direct");
+        var cal = cfg.Calibration; cal.SetRect("canvas", new(0, 0, 16, 16)); cfg.SetCalibration(cal);
+        var comparison = PaletteComparison.Build(new PixelImage(16, 16), cfg);
+        var window = new PaletteComparisonWindow(true, _ => throw new Exception("Comparison auto-selected a palette")); window.ShowResults(comparison);
+        var root=(FrameworkElement)window.Content;
+        root.Measure(new Size(1060,840));root.Arrange(new Rect(0,0,1060,840));root.UpdateLayout();
+        var captions = Descendants(root).OfType<TextBlock>().ToArray();
+        var undefined = captions.Where(x => x.Tag?.ToString()?.EndsWith(":delta") == true && x.Text == "—").ToArray();
+        Assert(undefined.Length == 6 && undefined.All(x => x.ToolTip?.ToString()?.Contains("baseline value is zero") == true), "Transparent comparison hides the zero-baseline explanation");
+        Assert(captions.All(x => !x.Text.Contains("NaN") && !x.Text.Contains("Infinity")), "Relative metrics contain nonfinite values");
+        Console.WriteLine("PASS palette-relative-indicators");
+    }
+    private static void CheckPaletteApply(string output)
+    {
+        var directory = Path.Combine(output, "palette-apply"); Directory.CreateDirectory(directory);
+        var cfg = ReadySettings("English"); cfg.Set("color_mode", "HEX Direct"); cfg.Set("hex_max_colors", "256");
+        var path = Path.Combine(directory, "config-csharp.json"); cfg.Save(path); var window = new MainWindow(directory);
+        Render(window, Path.Combine(output, "palette-apply-empty.png"), 900);
+        Assert(!Field<Button>(window, "paletteCompareButton").IsEnabled, "Comparison enabled without an image");
+        var source = PaletteFixture(); SetField(window, "source", source); Invoke(window, "UpdateReady");
+        Assert(Field<Button>(window, "paletteCompareButton").IsEnabled, "HEX comparison unavailable after loading an image");
+        var oldPlan = Planner.Build(source, cfg); SetField(window, "plan", oldPlan);
+        SetField(window, "paintTask", new TaskCompletionSource().Task); Invoke(window, "UpdateReady");
+        Assert(!Field<Button>(window, "paletteCompareButton").IsEnabled, "Comparison enabled while painting");
+        window.ApplyPaletteLimit(64); Assert(Field<Settings>(window, "settings").Text("hex_max_colors") == "256", "Comparison changed an active painting plan");
+        SetField(window, "paintTask", Task.CompletedTask); window.ApplyPaletteLimit(96); Invoke(window, "ReadSettings");
+        Assert(Field<Settings>(window, "settings").Text("hex_max_colors") == "96" && Settings.Load(path).Text("hex_max_colors") == "96", "ComboBox reader restored the old cap");
+        Assert(ReferenceEquals(Field<PixelImage>(window, "source"), source) && Field<PaintPlan?>(window, "plan") is null, "Applying the cap lost source or retained a stale plan");
+        var saved = Settings.Load(path); Assert(saved.Int("cell_px") == cfg.Int("cell_px") && saved.Text("speed_profile") == cfg.Text("speed_profile"), "Apply changed detail or speed");
+        Field<System.Windows.Threading.DispatcherTimer>(window, "debounce").Stop();
+        Console.WriteLine("PASS palette-apply");
+    }
+    private static void CheckPainterCursorTransport()
+    {
+        var worker=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
+        var input=new CaptureInput();
+        typeof(Painter).GetField("motionInput",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(worker,input);
+        var move=typeof(Painter).GetMethod("MoveCursor",BindingFlags.Instance|BindingFlags.NonPublic)!
+            .CreateDelegate<Action<ScreenPoint>>(worker);
+        ScreenPoint original=new(200,200),parked=new(80,200);input.Cursor=original;
+        int snapshot=CaptureCursor.Snapshot(original,parked,()=>input.Button(true),move,
+            ()=>{Assert(input.Cursor==parked,"Painter did not notify game input before the capture");return 42;},
+            ()=>input.Cursor==parked);
+        Assert(snapshot==42&&input.Cursor==original&&input.Moves.SequenceEqual(new[]{parked,original}),"Painter parking/return bypassed its guarded event transport");
+        Assert(input.Releases==2,"Parking/return did not release input");
+        input.Blocked=true;
+        try { move(parked);throw new Exception("Painter cursor move bypassed the input guard"); }
+        catch(OperationCanceledException){}
+        Assert(input.Moves.Count==2,"Blocked move changed the game cursor");
+        Console.WriteLine("PASS painter-cursor-event-transport");
+    }
+    private sealed class CaptureInput : ICalibratedStrokeInput
+    {
+        public double Seconds=>0;
+        public ScreenPoint Cursor;
+        public bool Blocked;
+        public int Releases;
+        public List<ScreenPoint> Moves=new();
+        public void Move(IReadOnlyList<ScreenPoint> points)
+        {
+            if(Blocked)throw new OperationCanceledException();
+            foreach(var point in points){Cursor=point;Moves.Add(point);}
+        }
+        public void Button(bool up){Assert(up,"A capture cursor move pressed the paint button");Releases++;}
+        public void Shift(bool up)=>throw new Exception("A capture cursor move used Shift");
+        public void Wait(double seconds)=>throw new Exception("Unexpected movement wait");
     }
     private static IEnumerable<DependencyObject> Descendants(DependencyObject root)
     {
@@ -124,7 +347,7 @@ internal static class Program
 
     private static T Field<T>(MainWindow window,string name) => (T)typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
     private static void SetField(MainWindow window,string name,object value) => typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(window,value);
-    private static void Invoke(MainWindow window,string name,params object[] args) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,args);
+    private static object? Invoke(MainWindow window,string name,params object[] args) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,args);
     private static Settings ReadySettings(string language)
     {
         var settings=Settings.Defaults();settings.Set("language",language);
@@ -136,7 +359,12 @@ internal static class Program
         settings.SetPalette(new[]{new PaletteEntry(new(0,0,0),new(1100,400),"main")});
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[3,5,3],[10,21,13],[20,35,23]});
         settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));
-        settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Shift,false,8,12,1,40,3,1)]));
+        var axes=new List<SpatialAxis>();
+        foreach(bool vertical in new[]{false,true})axes.Add(new(vertical,0,Enumerable.Range(0,3).Select(i=>new SpatialAnchor(
+            vertical?new(100+i*300,100,100+i*300,135):new(100,100+i*300,135,100+i*300),0,new(0,0,0),12)).ToList()));
+        var spatial=new SpatialProbeProfile(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(settings),DateTimeOffset.UtcNow,3,5,axes);
+        ProbeSpatialCalibration.Save(settings,spatial);
+        settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Shift,false,8,12,1,40,3,1,spatial.Id)]));
         return settings;
     }
     private static void Render(MainWindow window,string path,int width,int height=780)
@@ -192,7 +420,7 @@ internal static class Program
         Render(window,Path.Combine(output,name+".png"),900);
         foreach(var expander in Descendants((FrameworkElement)window.Content).OfType<Expander>().ToArray())expander.IsExpanded=true;
         ((FrameworkElement)window.Content).UpdateLayout();
-        var engine=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Items.Cast<object>().Any(v=>v.ToString()=="Experimental (8–16 ms)"));
+        var engine=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Items.Cast<object>().Any(v=>v.ToString()==Translations.Option("input_engine","Experimental 1 ms",false)));
         engine.SelectedIndex=1;
         Assert(field.IsEnabled&&StrokeTiming.Frame(Field<Settings>(window,"settings"))==.012,"Experimental did not use the visible 12 ms setting");
         Assert(!Field<TextBox>(window,"stableDelay").IsEnabled,"Experimental kept its inactive Stable field editable");
@@ -267,7 +495,9 @@ internal static class Program
         Invoke(window,"BuildUi");Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Visible,"Rebuilding UI hid the unresolved audit");
         var dialog=(Window)typeof(MainWindow).GetMethod("CreateAuditDiagnosticWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null)!;
         var root=(FrameworkElement)dialog.Content;root.Measure(new Size(960,740));root.Arrange(new Rect(0,0,960,740));root.UpdateLayout();
-        var image=Descendants(root).OfType<Image>().Single();var selector=Descendants(root).OfType<ComboBox>().Single();
+        var auditImages=Descendants(root).OfType<Image>().ToArray();
+        Assert(auditImages.Length==1,"Audit viewer image missing; visual controls: "+string.Join(",",Descendants(root).Select(x=>x.GetType().Name)));
+        var image=auditImages.Single();var selector=Descendants(root).OfType<ComboBox>().Single(x=>x.Items.Count==3);
         Rgb FirstPixel() {byte[] pixel=new byte[4];((BitmapSource)image.Source).CopyPixels(new Int32Rect(0,0,1,1),pixel,4,0);return new(pixel[2],pixel[1],pixel[0]);}
         Assert(FirstPixel()==new Rgb(255,40,70),"Diagnostics did not load the red gaps overlay");
         selector.SelectedIndex=1;Assert(FirstPixel()==new Rgb(0,220,0),"After snapshot could not be selected");
@@ -277,7 +507,7 @@ internal static class Program
         // Missing files produce an inline unavailable state rather than a modal failure.
         var missing=(Window)typeof(MainWindow).GetMethod("CreateAuditDiagnosticWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null)!;
         var missingRoot=(FrameworkElement)missing.Content;missingRoot.Measure(new Size(960,740));missingRoot.Arrange(new Rect(0,0,960,740));missingRoot.UpdateLayout();
-        Descendants(missingRoot).OfType<ComboBox>().Single().SelectedIndex=2;
+        Descendants(missingRoot).OfType<ComboBox>().Single(x=>x.Items.Count==3).SelectedIndex=2;
         Assert(Descendants(missingRoot).OfType<Image>().Single().Source is null,"Missing snapshot was not handled");
         Assert(Descendants(missingRoot).OfType<TextBlock>().Any(x=>x.Visibility==Visibility.Visible&&x.Text.Contains(language=="English"?"Snapshot unavailable":"Знімок недоступний")),"Unavailable snapshot message missing");
         Field<Button>(window,"auditDismissButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -290,6 +520,11 @@ internal static class Program
         {
             var action=Field<Button>(window,key);Assert(action.IsEnabled,"Dismissed audit diagnostics cannot be reopened from "+key);
             presented=null;action.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+            if(presented is not null)
+            {
+                var content=(FrameworkElement)presented.Content;
+                content.Measure(new Size(960,740));content.Arrange(new Rect(0,0,960,740));content.UpdateLayout();
+            }
             Assert(presented is not null&&Descendants((FrameworkElement)presented.Content).OfType<Image>().Single().Source is not null,"Coverage chip did not reopen the retained snapshots");
             Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Opening diagnostics restored the dismissed banner");
         }
@@ -313,6 +548,51 @@ internal static class Program
         Console.WriteLine("PASS "+name);
     }
 
+    private static void CheckAuditZoom(string output,string language)
+    {
+        string name="audit-zoom-"+(language=="English"?"en":"ua");
+        string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        ReadySettings(language).Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
+        var after=new PixelImage(1049,1046);for(int i=0;i<1049*1046;i++)after.Set(i,new(230,30,40));
+        var gaps=new bool[1049*1046];for(int x=31;x<320;x++)gaps[31*1049+x]=true;
+        var overlay=CoverageAudit.GapOverlay(after,gaps);
+        Images.Save(overlay,Path.Combine(diagnostics,"group-0-gaps.png"));Images.Save(after,Path.Combine(diagnostics,"group-0-after.png"));
+        var failure=new AuditFailureException(0,new(114827,112759,1175,893,gaps,new(new(230,30,40),12)),diagnostics);
+        typeof(MainWindow).GetMethod("Error",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,[failure]);
+        var dialog=(Window)typeof(MainWindow).GetMethod("CreateAuditDiagnosticWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null)!;
+        var root=(FrameworkElement)dialog.Content;
+        root.Measure(new Size(620,460));root.Arrange(new Rect(0,0,620,460));root.UpdateLayout();
+        var viewer=Descendants(root).OfType<ScrollViewer>().Single();
+        var image=Descendants(root).OfType<Image>().Single();var combos=Descendants(root).OfType<ComboBox>().ToArray();
+        var zoom=combos.Single(x=>x.Items.Count==4);var snapshots=combos.Single(x=>x.Items.Count==3);
+        void Layout(string suffix)
+        {
+            root.Measure(new Size(620,460));root.Arrange(new Rect(0,0,620,460));root.UpdateLayout();
+            var bitmap=new RenderTargetBitmap(620,460,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
+            var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using var file=File.Create(Path.Combine(output,name+suffix+".png"));encoder.Save(file);
+        }
+        Layout("-fit");
+        Assert(double.IsNaN(image.Width)&&viewer.ScrollableWidth==0&&viewer.ScrollableHeight==0,"Fit did not constrain the snapshot to the available frame");
+        Assert(!string.IsNullOrWhiteSpace(System.Windows.Automation.AutomationProperties.GetName(zoom)),"Zoom has no accessible name");
+        for(int i=1;i<=3;i++)
+        {
+            zoom.SelectedIndex=i;Layout("-"+(100<<(i-1)));
+            Assert(image.Width==1049*(1<<(i-1))&&image.Height==1046*(1<<(i-1)),"Zoom uses layout width instead of source pixels");
+            Assert(viewer.ScrollableWidth>0&&viewer.ScrollableHeight>0,"Zoomed Canvas cannot be scrolled");
+        }
+        viewer.ScrollToHorizontalOffset(100);viewer.ScrollToVerticalOffset(100);Layout("-scrolled");
+        Assert(viewer.HorizontalOffset>0&&viewer.VerticalOffset>0,"Scroll actions did not expose enlarged pixels");
+        snapshots.SelectedIndex=1;Layout("-after");
+        Assert(zoom.SelectedIndex==3&&image.Width==4196,"Switching snapshots discarded zoom");
+        var action=Descendants(root).OfType<Button>().Single();var position=action.TransformToAncestor(root).Transform(new Point());
+        Assert(position.Y+action.ActualHeight<=460,"Large snapshot displaced the diagnostics action off screen");
+        zoom.SelectedIndex=0;Layout("-fit-restored");
+        Assert(double.IsNaN(image.Width)&&viewer.ScrollableWidth==0&&viewer.ScrollableHeight==0,"Fit did not reset scrolling");
+        Console.WriteLine("PASS "+name);
+    }
+
     private static void CheckDetailAndPreview(string output)
     {
         string name="detail-preview";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
@@ -320,7 +600,7 @@ internal static class Program
         var window=new MainWindow(directory);Render(window,Path.Combine(output,name+".png"),1280);
         var detail=Field<TextBox>(window,"detailInput");var buttons=Field<Dictionary<int,Button>>(window,"detailPresets");
         Color Border(Button b)=>((SolidColorBrush)b.BorderBrush).Color;
-        Color accent=(Color)ColorConverter.ConvertFromString("#FF7A18");
+        Color accent=((SolidColorBrush)window.Resources["ThemeAccent"]).Color;
         detail.Text="5";Assert(Border(buttons[5])==accent&&Border(buttons[3])!=accent,"Manual detail did not synchronize the selected preset");
         Assert(Field<TextBlock>(window,"detailState").Text.Contains("5 px"),"Current manual detail is not explained");
         detail.Text="4";Assert(buttons.Values.All(x=>Border(x)!=accent)&&Field<TextBlock>(window,"detailState").Text.Contains("Власне"),"Custom detail looks like a standard preset");
@@ -440,6 +720,478 @@ internal static class Program
         Console.WriteLine("PASS "+name);
     }
 
+    private static void CheckAutoBrushExecutor()
+    {
+        var settings=Settings.Defaults();settings.Set("coverage_mode","Fast");settings.Set("cell_px",21);
+        settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
+        var worker=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
+        typeof(Painter).GetField("settings",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(worker,settings);
+        var method=typeof(Painter).GetMethod("DesiredControls",BindingFlags.NonPublic|BindingFlags.Instance)!;
+        var actual=((double Size,double Interval,double Opacity))method.Invoke(worker,[null])!;
+        Assert(actual.Size==10,"Actual executor ignored three-column calibration");
+        settings.Set("auto_brush_size",false);settings.Set("brush_size_value",7);
+        actual=((double,double,double))method.Invoke(worker,[null])!;Assert(actual.Size==7,"Auto fix changed manual Size");
+        settings.Set("coverage_mode","Precision");
+        actual=((double,double,double))method.Invoke(worker,[null])!;Assert(actual.Size==SpeedProfile.Get(settings.Text("speed_profile")).BrushSize,"Auto fix changed Precision Size");
+        actual=((double,double,double))method.Invoke(worker,[20d])!;Assert(actual.Size==20,"Adaptive override was ignored");
+        Console.WriteLine("PASS auto-brush-executor");
+    }
+
+    private static void CheckReliabilityUi(string output,string language)
+    {
+        bool english=language=="English";string name="reliability-"+(english?"en":"ua");
+        var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);var actual=Field<Settings>(window,"settings");
+        var image=new PixelImage(16,16);for(int i=0;i<256;i++)image.Set(i,new(0,0,0));
+        var plan=Planner.Build(image,actual);var groups=TransferSchedule.Build(plan,actual);
+        var counts=TransferSchedule.Order(plan,groups).Select(color=>groups[color].Count).ToArray();
+        SetField(window,"source",image);SetField(window,"plan",plan);SetField(window,"resumeSchedule",(plan,counts));
+        string resume=Path.Combine(directory,"resume-csharp.json");
+        void Write(ResumeCheckpoint state){File.WriteAllText(resume,System.Text.Json.JsonSerializer.Serialize(state));Invoke(window,"UpdateReady");}
+        Write(new(plan.Identity,0,0,0));Assert(Field<Button>(window,"resumeButton").IsEnabled,"Compatible progress was disabled");
+        Write(new("different-plan",0,0,0));Assert(!Field<Button>(window,"resumeButton").IsEnabled,"Another plan enabled Resume");
+        Write(new(plan.Identity,0,0,49));Assert(!Field<Button>(window,"resumeButton").IsEnabled,"Inconsistent counters enabled Resume");
+        File.WriteAllText(resume,"{broken");Invoke(window,"UpdateReady");Assert(!Field<Button>(window,"resumeButton").IsEnabled,"Malformed progress enabled Resume");
+        window.SetEditing(false);window.SetEditing(true);Assert(!Field<Button>(window,"resumeButton").IsEnabled,"SetEditing bypassed compatibility checks");
+        window.ShowPage("settings");Render(window,Path.Combine(output,name+".png"),900);
+        var readers=Field<Dictionary<string,Func<object>>>(window,"readers");
+        foreach(string key in new[]{"sequence_delay_ms","double_click_controls","control_verify_tolerance"})
+            Assert(!readers.ContainsKey(key)&&actual.Data.ContainsKey(key),"Retired setting remains editable or was lost from configuration: "+key);
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static IEnumerable<string> Captions(DependencyObject root)
+    {
+        foreach(var element in Descendants(root))
+        {
+            if(element is TextBlock text)yield return text.Text;
+            if(element is Expander expander && expander.Header is string header)yield return header;
+            if(element is ContentControl control && control.Content is string caption)yield return caption;
+            if(element is ComboBox combo)foreach(var item in combo.Items)yield return item.ToString()??"";
+            if(element is FrameworkElement view && view.ToolTip is string tooltip)yield return tooltip;
+        }
+    }
+
+    private static void CheckLocalization(string output,string language)
+    {
+        bool english=language=="English";string name="localization-"+(english?"en":"ua");
+        var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(window,"pages");
+        foreach(var page in pages)
+        {
+            window.ShowPage(page.Key);Render(window,Path.Combine(output,name+"-"+page.Key+".png"),900);
+            foreach(var expander in Descendants(page.Value).OfType<Expander>().ToArray())expander.IsExpanded=true;
+            ((FrameworkElement)window.Content).UpdateLayout();
+            var captions=Captions(page.Value).Where(x=>!string.IsNullOrWhiteSpace(x)).Distinct().ToArray();
+            File.WriteAllLines(Path.Combine(directory,page.Key+"-captions.txt"),captions);
+            foreach(string caption in captions)
+            {
+                if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(caption,"[А-Яа-яІіЇїЄєҐґ]"),"Untranslated English caption: "+caption);
+                else Assert(!System.Text.RegularExpressions.Regex.IsMatch(caption,@"\b(START|RESUME|PAUSE|STOP|Canvas|Speed Probe|Stable|Experimental|Precision|Quick Colors|Max Speed|Photo|Custom|Auto)\b"),"Untranslated Ukrainian caption: "+caption);
+            }
+        }
+        foreach(var (field,uk,en) in new[]{("startButton","Почати","Start"),("resumeButton","Продовжити","Resume"),("pauseButton","Пауза","Pause"),("stopButton","Зупинити","Stop")})
+            Assert(Field<Button>(window,field).Content?.ToString()==(english?en:uk),"Painting button is not localized: "+field);
+        foreach(bool confirmation in new[]{false,true})
+        {
+            var dialog=window.CreateMessageDialog("Capture Canvas.","Pixora",confirmation);
+            var root=(FrameworkElement)dialog.Content;root.Measure(new Size(540,700));root.Arrange(new Rect(0,0,540,root.DesiredSize.Height));root.UpdateLayout();
+            var buttons=Descendants(root).OfType<Button>().Where(x=>x.Content is string).ToArray();
+            Assert(buttons[0].Content?.ToString()==(confirmation?(english?"Yes":"Так"):(english?"OK":"Гаразд"))&&buttons[0].IsDefault,"Dialog primary action is not localized or changed its default");
+            Assert(buttons.Length==(confirmation?2:1),"Dialog action count changed");
+            if(confirmation)Assert(buttons[1].Content?.ToString()==(english?"No":"Ні")&&buttons[1].IsCancel,"Dialog cancel action is not localized");
+            Assert(Descendants(root).OfType<TextBlock>().Any(x=>x.Text==(english?"Capture Canvas.":"Захопи полотно.")),"Dialog error body is not localized");
+        }
+        SetField(window,"speedFailure","Windows rejected SendInput. Check privilege levels.");Invoke(window,"RefreshSpeedStatus");
+        Assert(Field<TextBlock>(window,"speedStatus").Text==Translations.ForLanguage("Windows rejected SendInput. Check privilege levels.",english),"Cached speed failure is not localized");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckLanguageSwitch(string output)
+    {
+        string name="localization-switch";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var config=Path.Combine(directory,"config-csharp.json");var settings=ReadySettings("Українська");settings.Save(config);
+        var window=new MainWindow(directory);
+        foreach(var (key,value) in new[]{("speed_profile","Max Speed"),("input_engine","Experimental 1 ms"),("profile","Photo"),("fit_mode","crop"),("background_mode","auto"),("coverage_mode","Fast"),("max_colors","64"),("color_mode","HEX Direct"),("hex_max_colors","128")})
+        {
+            window.ShowPage(key is "profile" or "fit_mode" or "background_mode" or "coverage_mode"?"settings":"paint");
+            Render(window,Path.Combine(output,name+".png"),900);
+            foreach(var expander in Descendants((FrameworkElement)window.Content).OfType<Expander>().ToArray())expander.IsExpanded=true;
+            ((FrameworkElement)window.Content).UpdateLayout();
+            var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Tag?.ToString()==key);
+            combo.SelectedIndex=Array.FindIndex(combo.Items.Cast<object>().ToArray(),v=>v.ToString()==Translations.Option(key,value,false));
+            Assert(Field<Dictionary<string,Func<object>>>(window,"readers")[key]().ToString()==value,"Localized option altered canonical value: "+key);
+        }
+        Invoke(window,"ReadSettings");Invoke(window,"Save");var before=Settings.Load(config);var image=new PixelImage(16,16);var identity=PlanIdentity.Compute(image,before,before.Palette());
+        foreach(string language in new[]{"English","Українська"})
+        {
+            var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Items.Cast<object>().Any(v=>v.ToString()=="English"));
+            combo.SelectedItem=language;var saved=Settings.Load(config);
+            Assert(saved.Text("language")==language,"Language choice was not saved");
+            Assert(PlanIdentity.Compute(image,saved,saved.Palette())==identity,"Language change altered image planning");
+            foreach(var key in new[]{"speed_profile","input_engine","profile","fit_mode","background_mode","coverage_mode","max_colors","color_mode","hex_max_colors","brush_calibration_context"})
+                Assert(saved.Text(key)==before.Text(key),"Language change altered stored settings: "+key);
+            Assert(Field<Button>(window,"startButton").Content?.ToString()==(language=="English"?"Start":"Почати"),"Language switch did not rebuild buttons");
+        }
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void CheckSpatialWorkflow(string output,string language)
+    {
+        bool english=language=="English";string name="spatial-workflow-"+(english?"en":"ua");
+        var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);var model=ProbeSpatialCalibration.Read(settings,3)!;
+        settings.Data.Remove("probe_spatial_profiles");settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");Render(window,Path.Combine(output,name+"-pending.png"),900);
+        Assert(Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Fast probe starts without spatial evidence");
+        var actual=Field<Settings>(window,"settings");ProbeSpatialCalibration.Save(actual,model);Invoke(window,"UpdateReady");
+        Assert(Field<Button>(window,"probeButton").IsEnabled,"Spatial model did not unlock the speed test");
+        Assert(Field<TextBlock>(window,"spatialStatus").Text.Contains("3/3"),"Offset distribution missing");
+        var root=(FrameworkElement)window.Content;
+        var size=Descendants(root).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");size.SelectedIndex=0;
+        Assert(!Field<Button>(window,"probeButton").IsEnabled&&Field<Button>(window,"spatialButton").IsEnabled,"Unmeasured Size reused another spatial model");
+        size.SelectedIndex=1;Assert(Field<Button>(window,"probeButton").IsEnabled,"Measured Size cannot be restored");
+        window.SetEditing(false);Assert(!Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Calibration buttons live during painting");
+        window.SetEditing(true);Assert(Field<Button>(window,"spatialButton").IsEnabled&&Field<Button>(window,"probeButton").IsEnabled,"Restoring UI lost calibration gate");
+        ProbeSpatialCalibration.Save(actual,model with{Id=Guid.NewGuid().ToString("N")});Invoke(window,"UpdateReady");
+        Assert(!SpeedCalibration.Current(actual),"Retaken spatial calibration retained the old route");
+        Render(window,Path.Combine(output,name+"-measured.png"),900);
+        string captions=string.Join("\n",Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["speed"]));
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"Spatial UI contains untranslated Ukrainian: "+string.Join(" | ",captions.Split('\n').Where(x=>System.Text.RegularExpressions.Regex.IsMatch(x,@"[\u0400-\u04FF]"))));
+        Assert(captions.Contains(english?"Spatial calibration":"Просторове калібрування"),"Spatial section missing");
+        Console.WriteLine("PASS "+name);
+    }
+    private static void CheckSpatialDiagnostics(string output)
+    {
+        string name="spatial-diagnostics";var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var settings=ReadySettings("English");var model=ProbeSpatialCalibration.Read(settings,3)!;
+        var (before,after,line)=ProbeFixture();var slow=ProbeAnalysis.SpatialControl(before,after,line,7,0);
+        var reference=slow.CoreCoverage.Reference!;var axis=model.Axes.Single(x=>!x.Vertical);
+        var trial=ProbeSpatialCalibration.Trial(before,after,line,7,axis,reference);Assert(trial.Passed,"Diagnostic fixture failed");
+        var session=new ProbeDiagnosticSession(directory,SpeedCalibration.Context(settings),3,7,0);session.SpatialMode(false,model);
+        session.FreezeReferences(new(){[false]=reference,[true]=reference});session.Begin("candidate",StrokeMethod.Paced,false,20,new(100,100,196,196),line);
+        session.Before(before);session.After(after);session.Analysed(before,after,trial);session.Complete([]);
+        var report=ProbeDiagnosticSession.Read(session.DirectoryPath)!;
+        Assert(report.Scope=="spatial_core_occupancy"&&report.SpatialModel!.Id==model.Id&&report.FrozenReferences!.Count==2,"Frozen evidence lost on disk");
+        Assert(report.Stages[0].Metrics!.Spatial!.PassedSlices==28,"Slice occupancy not persisted");
+        settings.Save(Path.Combine(directory,"config-csharp.json"));Window? presented=null;
+        var window=new MainWindow(directory,w=>presented=w);Invoke(window,"ShowProbeDiagnostics");Assert(presented is not null,"Spatial diagnostics inaccessible");
+        var root=(FrameworkElement)presented!.Content;root.Measure(new(980,820));root.Arrange(new(0,0,980,820));root.UpdateLayout();
+        string captions=string.Join("\n",Captions(root));Assert(captions.Contains("Frozen offsets")&&captions.Contains("Verified slices"),"Spatial decision details missing");
+        Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"Spatial diagnostic text untranslated");
+        var bitmap=new RenderTargetBitmap(980,820,96,96,PixelFormats.Pbgra32);bitmap.Render(root);var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using(var file=File.Create(Path.Combine(output,name+".png")))encoder.Save(file);
+        var spatial=new ProbeDiagnosticSession(directory,"fixture",3,7,0);spatial.SpatialMode(true,null);spatial.CompleteSpatial(model);
+        Assert(ProbeDiagnosticSession.Read(spatial.DirectoryPath)!.State=="spatial_complete"&&ProbeDiagnosticSession.Read(session.DirectoryPath)!.Scope=="spatial_core_occupancy","Spatial completion overwrote speed evidence");
+        Console.WriteLine("PASS "+name);
+    }
+    private static void ReplaySlowControls(string source,string destination)
+    {
+        var old=ProbeDiagnosticSession.Read(source)??throw new Exception("Missing replay source");
+        var rows=new List<object>();
+        foreach(var stage in old.Stages.Where(x=>x.Phase=="control"))
+        {
+            var before=Images.Load(Path.Combine(source,stage.Id,"before.png"));var after=Images.Load(Path.Combine(source,stage.Id,"after.png"));
+            var result=ProbeAnalysis.SpatialControl(before,after,stage.LocalLine,old.OuterRadius,old.InnerRadius);
+            rows.Add(new{stage.Id,stage.Vertical,oldOffset=stage.Metrics!.PerpendicularOffset,newOffset=result.PerpendicularOffset,
+                result.Passed,result.CoreMeasurement,result.CoreCoverage.Expected,result.CoreCoverage.Covered});
+        }
+        File.WriteAllText(Path.Combine(destination,"slow-controls-replay.json"),System.Text.Json.JsonSerializer.Serialize(new{
+            source,version=BuildInfo.Version,scope="offline_old_slow_controls_only",spatialModelVerified=false,
+            fastRoutesReclassified=false,rows},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+        Console.WriteLine("REPLAY old slow controls only; no spatial profile or fast route verified");
+    }
+    private static void ReplayRecordedSpatialProbe(string spatialDirectory,string speedDirectory,string destination)
+    {
+        // Offline replay of recorded PNGs, not a new in-game test or route proof.
+        var spatial=ProbeDiagnosticSession.Read(spatialDirectory)??throw new Exception("Missing spatial recording");
+        var model=spatial.SpatialModel??throw new Exception("Missing frozen spatial model");
+        Assert(spatial.Stages.Count==6&&model.Axes.Count==2,"Incomplete recorded spatial controls");
+        var rows=new List<object>();
+        foreach(var stage in spatial.Stages)
+        {
+            var before=Images.Load(Path.Combine(spatialDirectory,stage.Id,"before.png"));
+            var after=Images.Load(Path.Combine(spatialDirectory,stage.Id,"after.png"));
+            var result=ProbeAnalysis.SpatialControl(before,after,stage.LocalLine,spatial.OuterRadius,spatial.InnerRadius);
+            Assert(result.Passed&&result.PerpendicularOffset==stage.Metrics!.PerpendicularOffset,"Recorded spatial control changed");
+            rows.Add(new{stage.Id,stage.Vertical,phase="spatial",result.Passed,result.PerpendicularOffset,result.CoreCoverage.Expected,result.CoreCoverage.Covered});
+        }
+        var speed=ProbeDiagnosticSession.Read(speedDirectory)??throw new Exception("Missing speed recording");
+        Assert(speed.Stages.Count==2&&speed.Stages.All(x=>x.Phase=="control"),"Recording contains speed candidates");
+        foreach(var stage in speed.Stages)
+        {
+            var before=Images.Load(Path.Combine(speedDirectory,stage.Id,"before.png"));
+            var after=Images.Load(Path.Combine(speedDirectory,stage.Id,"after.png"));
+            var slow=ProbeAnalysis.SpatialControl(before,after,stage.LocalLine,speed.OuterRadius,speed.InnerRadius);
+            var axis=model.Axes.Single(x=>x.Vertical==stage.Vertical);
+            var reference=ProbeSpatialCalibration.Bind(axis,slow);
+            var result=ProbeSpatialCalibration.Trial(before,after,stage.LocalLine,speed.OuterRadius,axis,reference);
+            Assert(result.Passed&&result.CoreCoverage.Covered==result.CoreCoverage.Expected,"Recorded full held-out control still fails");
+            var gap=after.Clone();var line=stage.LocalLine;int k=TransferSchedule.Length(line)/2;
+            foreach(int p in Enumerable.Range(axis.AllowedOffsets.Min()-axis.InnerRadius,axis.AllowedOffsets.Length+2*axis.InnerRadius))
+            {
+                int x=line.X1+(stage.Vertical?p:k),y=line.Y1+(stage.Vertical?k:p),i=y*before.Width+x;
+                gap.Set(i,before.Color(i));
+            }
+            Assert(!ProbeSpatialCalibration.Trial(before,gap,stage.LocalLine,speed.OuterRadius,axis,reference).Passed,"Recorded one-slice gap was accepted");
+            rows.Add(new{stage.Id,stage.Vertical,phase="held_out_slow",result.Passed,slow.PerpendicularOffset,
+                axis.AllowedOffsets,result.CoreCoverage.Expected,result.CoreCoverage.Covered,artificialGapRejected=true,
+                trajectory=result.Spatial!.Trajectory});
+        }
+        File.WriteAllText(Path.Combine(destination,"recorded-spatial-replay.json"),System.Text.Json.JsonSerializer.Serialize(new{
+            version=BuildInfo.Version,scope="offline recorded PNG replay only",newInGameTest=false,fastRoutesVerified=false,
+            source=new[]{spatialDirectory,speedDirectory},rows},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+        Console.WriteLine("PASS recorded-spatial-replay: six spatial controls, two held-out slow controls; no fast routes verified");
+    }
+    private static void CheckOffsetTrajectoryUi(string output,string language)
+    {
+        bool english=language=="English";string name="offset-trajectory-"+(english?"en":"ua");
+        var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var cfg=ReadySettings(language);var footprint=SpeedCalibration.Footprint(cfg,1);
+        var model=ProbeSpatialCalibration.Read(cfg,3)! with{Size=1,OuterRadius=footprint.Outer,
+            Axes=ProbeSpatialCalibration.Read(cfg,3)!.Axes.Select(a=>a with{InnerRadius=footprint.Inner,
+                Anchors=a.Anchors.Select(x=>x with{}).ToList()}).ToList()};
+        var (before,_,line)=ProbeFixture();var after=before.Clone();
+        for(int k=0;k<=35;k++)after.Set((48+(k%2==0?-1:0))*96+30+k,new(20,20,20));
+        var axis=model.Axes.Single(x=>!x.Vertical);axis.Anchors[0]=axis.Anchors[0] with{Offset=-1};
+        ProbeSpatialCalibration.Save(cfg,model);cfg.Save(Path.Combine(directory,"config-csharp.json"));
+        var trial=ProbeSpatialCalibration.Trial(before,after,line,model.OuterRadius,axis,new(new(20,20,20),12));Assert(trial.Passed,"Jitter fixture changed acceptance");
+        var session=new ProbeDiagnosticSession(directory,SpeedCalibration.Context(cfg),1,model.OuterRadius,0);session.SpatialMode(false,model);
+        session.Begin("candidate",StrokeMethod.Paced,false,12,new(100,100,196,196),line);
+        session.Before(before);session.After(after);session.Analysed(before,after,trial);session.Complete([]);
+        var evidence=ProbeDiagnosticSession.Read(session.DirectoryPath)!.Stages[0].Metrics!.Spatial!.Trajectory!;
+        Assert(evidence.Transitions==27&&evidence.ComparablePairs==27&&evidence.OffsetsBySlice.Length==28
+            &&evidence.LongestStableRun==1&&evidence.TransitionRate==1,"Trajectory lost on disk");
+        var window=new MainWindow(directory);var dialog=(Window)Invoke(window,"CreateProbeDiagnosticWindow",session.DirectoryPath)!;
+        var root=(FrameworkElement)dialog.Content;
+        void Draw(string suffix)
+        {
+            root.Measure(new(980,820));root.Arrange(new(0,0,980,820));root.UpdateLayout();
+            var bitmap=new RenderTargetBitmap(980,820,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
+            var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using var stream=File.Create(Path.Combine(output,name+suffix+".png"));encoder.Save(stream);
+        }
+        Draw("");var label=Descendants(root).OfType<TextBlock>().Single(x=>x.Tag?.ToString()=="probe_trajectory");
+        Assert(label.Text.Contains("27/27")&&label.Text.Contains(english?"equal frequency":"однакова частота"),"Jitter/tied mode not explained");
+        var culture=System.Globalization.CultureInfo.GetCultureInfo(english?"en-US":"uk-UA");
+        Assert(label.Text.Contains(english?"Longest stable run, slices: 1":"Найдовша стала серія, перерізи: 1")
+            &&label.Text.Contains(1d.ToString("P1",culture)),"Stable run/rate not displayed");
+        var header=Descendants(root).OfType<ScrollViewer>().First();
+        var position=label.TransformToAncestor(header).Transform(new Point());
+        Assert(position.Y>=0&&position.Y+label.ActualHeight<=header.ActualHeight,"Offset diagnostics are hidden below the initial viewport");
+        Assert(label.ToolTip!.ToString()!.Contains("PASS/FAIL"),"Diagnostic-only nature hidden");
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(label.Text+label.ToolTip,@"[\u0400-\u04FF]"),"Offset diagnostics untranslated");
+        // Beta.23 has trajectory but no new run/rate fields: do not reconstruct them.
+        var old=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(session.DirectoryPath,"run.json")))!;
+        var oldTravel=old["stages"]![0]!["metrics"]!["spatial"]!["trajectory"]!.AsObject();
+        oldTravel.Remove("longestStableRun");oldTravel.Remove("transitionRate");
+        File.WriteAllText(Path.Combine(session.DirectoryPath,"run.json"),old.ToJsonString());
+        var legacy=ProbeDiagnosticSession.Read(session.DirectoryPath)!.Stages[0].Metrics!.Spatial!.Trajectory!;
+        Assert(legacy.Transitions==27&&legacy.LongestStableRun is null&&legacy.TransitionRate is null,"Legacy report invented run/rate evidence");
+        dialog=(Window)Invoke(window,"CreateProbeDiagnosticWindow",session.DirectoryPath)!;root=(FrameworkElement)dialog.Content;Draw("-beta23");
+        label=Descendants(root).OfType<TextBlock>().Single(x=>x.Tag?.ToString()=="probe_trajectory");
+        Assert(label.Text.Contains("27/27")&&label.Text.Contains(english?"Longest stable run, slices: —":"Найдовша стала серія, перерізи: —")
+            &&label.Text.Contains(english?"Transition rate: —":"Частка переходів: —"),"Absent legacy run/rate looked like zero");
+        // A beta.22 report has no trajectory property: display unavailable, not zero.
+        old["stages"]![0]!["metrics"]!["spatial"]!.AsObject().Remove("trajectory");
+        File.WriteAllText(Path.Combine(session.DirectoryPath,"run.json"),old.ToJsonString());
+        Assert(ProbeDiagnosticSession.Read(session.DirectoryPath)!.Stages[0].Metrics!.Spatial!.Trajectory is null,"Legacy report invented trajectory evidence");
+        dialog=(Window)Invoke(window,"CreateProbeDiagnosticWindow",session.DirectoryPath)!;root=(FrameworkElement)dialog.Content;Draw("-legacy");
+        label=Descendants(root).OfType<TextBlock>().Single(x=>x.Tag?.ToString()=="probe_trajectory");
+        Assert(label.Text.Contains(english?"unavailable":"немає діагностики"),"Missing legacy evidence looked like zero transitions");
+        Console.WriteLine("PASS "+name);
+    }
+    private static void CheckSmallCanvasProbePreflight(string output)
+    {
+        string name="spatial-small-canvas";var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var settings=ReadySettings("English");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1306,901));settings.SetCalibration(cal);
+        settings.Set("brush_calibration_points",new double[][]{[1,11,1],[3,15,3],[10,29,17],[20,53,29]});
+        settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));settings.Data.Remove("probe_spatial_profiles");
+        foreach(double size in new[]{1d,3})
+        {
+            var footprint=SpeedCalibration.Footprint(settings,size);var tiles=ProbeSpatialCalibration.Tiles(cal.Rect("canvas"),footprint.Outer);
+            var axes=new List<SpatialAxis>();foreach(bool vertical in new[]{false,true})
+                axes.Add(new(vertical,footprint.Inner,tiles.Skip(vertical?3:0).Take(3).Select(x=>new SpatialAnchor(vertical?x.Vertical:x.Horizontal,0,new(0,0,0),12)).ToList()));
+            ProbeSpatialCalibration.Save(settings,new(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(settings),DateTimeOffset.UtcNow,size,footprint.Outer,axes));
+        }
+        settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
+        Assert(Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Size 3 speed test exceeds the real Canvas");
+        Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 68×68"),"Small Canvas requirement hidden or untranslated");
+        Render(window,Path.Combine(output,name+".png"),900);
+        var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");combo.SelectedIndex=0;
+        Assert(Field<Button>(window,"probeButton").IsEnabled,"Size 1 strict probe no longer fits on the current Canvas");
+        Console.WriteLine("PASS "+name);
+    }
+    private static void CheckMeasuredEtaUi(string output,string language)
+    {
+        bool english=language=="English";string name="measured-eta-"+(english?"en":"ua");
+        var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        ReadySettings(language).Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        void Report(PaintProgress p)=>Invoke(window,"ApplyPaintProgress",p);
+        var preliminary=new EtaEstimate(13,EtaBasis.Planned,0,0,1376,1376,0,1);
+        Report(new(3904,5280,0,13,"Налаштовую пензель…",preliminary,PaintPhase.Preparing));
+        Assert(Field<TextBlock>(window,"eta").Text.Contains("0/20"),"Saved Done incorrectly satisfied ETA warmup");
+        var measured=new EtaEstimate(23.6,EtaBasis.Measured,50,50,178,0,129,2.01);
+        Report(new(50,228,8,23.6,"#000000",measured));
+        var label=Field<TextBlock>(window,"eta");Assert(label.Text.Contains(english?"measured pace":"виміряним темпом")&&label.Text.Contains("24"),"Measured ETA missing or rounded down");
+        string before=label.Text;Report(new(0,0,0,0,"Пауза — повернись у Rust і натисни F6."));Assert(label.Text==before,"Pause overwrote the measured estimate");
+        Report(new(228,228,29,.2,"Перевіряю покриття…",measured with{Seconds=.2,RemainingOperations=0},PaintPhase.Auditing));
+        Assert(Field<TextBlock>(window,"progressLabel").Text.Contains(english?"Audit":"Аудит")&&!label.Text.Contains(english?"Transfer complete":"Перенесення завершене"),"All strokes prematurely finished the audit");
+        Assert(label.Text.Contains("1"),"Pending audit was displayed as zero seconds");
+        Report(new(50,228,8,30,"#000000",measured with{Basis=EtaBasis.Mixed,Seconds=30,UnmeasuredOperations=100}));
+        Assert(label.Text.Contains(english?"Partly measured":"Частково виміряно"),"Unmeasured routes looked fully measured");
+        Render(window,Path.Combine(output,name+"-mixed.png"),900);
+        Field<TextBlock>(window,"progressLabel").BringIntoView();Render(window,Path.Combine(output,name+"-mixed.png"),900);
+        var complete=new EtaEstimate(0,EtaBasis.Complete,228,50,0,0,129,2.01);
+        Report(new(228,228,132.5566,0,"Команди виконано. Перевір результат у Rust.",complete,PaintPhase.Completed));
+        Assert(label.Text==(english?"Completed in 2 min 13 s":"Завершено за 2 хв 13 с")&&Field<TextBlock>(window,"progressLabel").Text.Contains(english?"Complete":"Завершено"),"Completion lost actual elapsed time");
+        var captions=Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["paint"]).ToArray();
+        if(english)Assert(captions.All(x=>!System.Text.RegularExpressions.Regex.IsMatch(x,@"[\u0400-\u04FF]")),"Timing UI contains untranslated Ukrainian");
+        foreach(string message in new[]{"Налаштовую пензель…","Змінюю розмір пензля…","Знімаю полотно для аудиту…","Перевіряю покриття…","Завершую перенесення…",
+            ControlLayout.PaletteMismatch,ControlLayout.HexMismatch,
+            "Не вдалося прочитати size у режимі HEX Direct. Перевір, що в Rust відкрита відповідна палітра, і захопи повзунок із числом справа.",
+            "Тест швидкості перервано клавішею F6. Очисти полотно й повтори тест.",
+            "Тест швидкості перервано: Rust втратив фокус. Повернись у Rust, очисти полотно й повтори тест.",
+            ProbeSpatialCalibration.OutsideMessage+"\nЗміщення: +3 px; допустимі: -4, -3, -2, -1, 0 px."})
+            Assert(!System.Text.RegularExpressions.Regex.IsMatch(Translations.ForLanguage(message,true),@"[\u0400-\u04FF]"),"Timing status untranslated");
+        Render(window,Path.Combine(output,name+"-complete.png"),900);Console.WriteLine("PASS "+name);
+    }
+    private static void CheckInputDelay(string output)
+    {
+        var results=new List<object>();
+        foreach(bool precise in new[]{true,false})
+        {
+            using var delay=new InputDelay(precise);int guards=0;
+            var clock=System.Diagnostics.Stopwatch.StartNew();
+            foreach(double seconds in new[]{.0004,.0056,.008,.012,.016})
+                for(int i=0;i<12;i++)delay.Wait(seconds,()=>guards++);
+            var costs=delay.Costs;
+            Assert(costs.Calls==60&&Math.Abs(costs.RequestedSeconds-.504)<1e-9,"Requested waits changed");
+            Assert(costs.ActualSeconds>=costs.RequestedSeconds&&guards>=120,"Timer returned early or skipped input guards");
+            results.Add(new{precise,delay.Transport,guards,costs,wallSeconds=clock.Elapsed.TotalSeconds});
+        }
+        using var stopped=new InputDelay();int callbacks=0;bool interrupted=false;
+        try{stopped.Wait(1,()=>{if(++callbacks==3)throw new OperationCanceledException();});}
+        catch(OperationCanceledException){interrupted=true;}
+        Assert(interrupted&&stopped.Costs.ActualSeconds<1,"Cancellation guard did not interrupt the wait");
+        long calls=stopped.Costs.Calls;
+        foreach(double invalid in new[]{double.NaN,-1,double.PositiveInfinity})
+            try{stopped.Wait(invalid,()=>{});throw new Exception("Invalid delay accepted");}catch(ArgumentOutOfRangeException){}
+        Assert(stopped.Costs.Calls==calls,"Invalid waits entered the timer");
+        stopped.Dispose();stopped.Dispose();
+        try{stopped.Wait(.01,()=>{});throw new Exception("Disposed timer accepted work");}catch(ObjectDisposedException){}
+        File.WriteAllText(Path.Combine(output,"input-delay-benchmark.json"),System.Text.Json.JsonSerializer.Serialize(new{
+            scope="local timer waits only; no Rust input and no in-game speed claim",results},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+        Console.WriteLine("PASS guarded-input-delay");
+    }
+    private static void CheckPainterTimingPublisher(string output)
+    {
+        // Invoke only the production progress publisher. No constructor or input API.
+        var worker=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
+        void Put(string name,object value)=>typeof(Painter).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(worker,value);
+        var timer=new RemainingTime(Enumerable.Range(0,30).Select(i=>new TimedWork($"m{i}","3:drag:H",.1,true)));
+        var seen=new List<PaintProgress>();var directory=Path.Combine(output,"timing-publisher",Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        Put("timing",timer);Put("timingDone",3904);Put("timingTotal",5280);Put("clock",new System.Diagnostics.Stopwatch());
+        Put("report",(Action<PaintProgress>)(p=>seen.Add(p)));Put("logPath",Path.Combine(directory,"session.jsonl"));Put("timingStatus","#000000");
+        typeof(Painter).GetMethod("ReportTiming",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(worker,new object?[]{null,0d});
+        Assert(seen[^1].Done==3904&&seen[^1].Estimate!.MotionSamples==0&&seen[^1].Estimate!.Basis==EtaBasis.Planned,"Production callback used saved Done as samples");
+        for(int i=0;i<20;i++)timer.Complete($"m{i}",.2);Put("timingDone",3924);
+        typeof(Painter).GetMethod("ReportTiming",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(worker,new object?[]{null,0d});
+        Assert(seen[^1].Estimate!.Basis==EtaBasis.Measured&&Math.Abs(seen[^1].Eta-2)<1e-9,"Production callback ignored measured timing");
+        var rows=File.ReadAllLines(Path.Combine(directory,"session.jsonl"));Assert(rows.Length==2&&rows.All(x=>x.Contains("eta_update")&&x.Contains("rolling-timing-v1")),"ETA evidence not logged");
+        Console.WriteLine("PASS painter-timing-publisher");
+    }
+    private static (PixelImage Before,PixelImage After,ScreenLine Line) ProbeFixture()
+    {
+        var before=new PixelImage(96,96);for(int i=0;i<96*96;i++)before.Set(i,new(200,200,200));
+        var after=before.Clone();for(int x=30;x<=65;x++)for(int p=-5;p<=5;p++)
+            after.Set((48+p)*96+x,Math.Abs(p)<=2?new(0,0,0):new((byte)(40+Math.Abs(p)*20),0,0));
+        return(before,after,new(30,48,65,48));
+    }
+    private static void CheckProbeDiagnosticStorage(string output)
+    {
+        var directory=Path.Combine(output,"probe-storage",Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var (before,after,line)=ProbeFixture();var area=new ScreenRect(100,100,196,196);
+        var session=new ProbeDiagnosticSession(directory,"fixture",3,7,2);session.RequestedColor(new(0,0,0));
+        session.Begin("control",StrokeMethod.Paced,false,64,area,line,48);session.Before(before);session.CapturingAfter();session.After(after);
+        var control=ProbeAnalysis.Control(before,after,line,7,2);session.Analysed(before,after,control);
+        Assert(ProbeDiagnosticSession.Latest(directory)==session.DirectoryPath,"Latest run did not persist");
+        var report=ProbeDiagnosticSession.Read(session.DirectoryPath)!;
+        Assert(report.Scope=="solid_core"&&report.RequestedRgb==new Rgb(0,0,0)&&report.Stages.Single().Metrics!.Covered==140,"Diagnostic metrics lost on JSON roundtrip");
+        foreach(string name in new[]{"before","after","mask","expected-region","core-mask","detected-core"})
+        {
+            var png=Images.Load(Path.Combine(session.DirectoryPath,"stage-001",name+".png"));
+            Assert(png.Width==96&&png.Height==96,"Diagnostic PNG missing or invalid: "+name);
+        }
+        var mask=Images.Load(Path.Combine(session.DirectoryPath,"stage-001","core-mask.png"));
+        Assert(Enumerable.Range(0,96*96).Count(i=>mask.Color(i)==Rgb.White)==140,"Saved mask differs from expected core");
+        session.Begin("candidate",StrokeMethod.Shift,false,8,area,line);session.Before(before);session.CapturingAfter();
+        for(int attempt=1;attempt<=5;attempt++)session.Unstable(before,after,attempt);
+        session.Failed(new InvalidOperationException("Canvas змінюється між кадрами. Зупини рух камери й повтори тест."));
+        report=ProbeDiagnosticSession.Read(session.DirectoryPath)!;
+        Assert(report.State=="failed"&&report.Stage=="stage-002"&&report.Stages[1].UnstableAttempts==5&&report.Stages[1].FailedAt=="capturing_after"&&report.Stages[1].Metrics is null,"Capture failure was not recorded");
+        Assert(File.Exists(Path.Combine(session.DirectoryPath,"stage-002","before.png"))&&File.Exists(Path.Combine(session.DirectoryPath,"stage-002","unstable-after.png")),"Capture failure lost its available evidence");
+        var next=new ProbeDiagnosticSession(directory,"fixture",20,24,10);next.Failed(new OperationCanceledException("ESC"));
+        Assert(next.DirectoryPath!=session.DirectoryPath&&File.Exists(Path.Combine(session.DirectoryPath,"stage-001","after.png")),"Later run overwrote diagnostics");
+        Assert(ProbeDiagnosticSession.Read(next.DirectoryPath)!.State=="cancelled","Cancellation lost its run summary");
+        File.WriteAllText(Path.Combine(directory,"speed-probe","latest.json"),"{\"run\":\"../../elsewhere\"}");
+        Assert(ProbeDiagnosticSession.Latest(directory) is null,"External diagnostic path accepted");
+        Console.WriteLine("PASS probe-diagnostic-storage");
+    }
+    private static void CheckProbeDiagnosticsUi(string output,string language)
+    {
+        bool english=language=="English";string name="probe-diagnostics-"+(english?"en":"ua");
+        var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        Window? presented=null;var window=new MainWindow(directory,w=>presented=w);window.ShowPage("speed");
+        Render(window,Path.Combine(output,name+"-empty.png"),900);
+        Assert(!Field<Button>(window,"probeDiagnosticButton").IsEnabled,"Empty diagnostic action enabled");
+        var (before,after,line)=ProbeFixture();after.Set(48*96+48,before.Color(48*96+48));
+        var result=ProbeAnalysis.Control(before,after,line,7,2);Assert(!result.Passed,"Failed-control fixture unexpectedly passed");
+        var session=new ProbeDiagnosticSession(directory,"fixture",3,7,2);
+        session.Begin("control",StrokeMethod.Paced,false,64,new(100,100,196,196),line,48);
+        session.Before(before);session.After(after);session.Analysed(before,after,result);session.Failed(new InvalidOperationException(ProbeAnalysis.Explain(result.Failure)));
+        Invoke(window,"RefreshSpeedStatus");var button=Field<Button>(window,"probeDiagnosticButton");Assert(button.IsEnabled,"Failed control has no diagnostic action");
+        button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));Assert(presented is not null,"Diagnostic action did not present a viewer");
+        var root=(FrameworkElement)presented!.Content;
+        void Draw(string suffix,int width=980,int height=820)
+        {
+            root.Measure(new Size(width,height));root.Arrange(new Rect(0,0,width,height));root.UpdateLayout();
+            var bitmap=new RenderTargetBitmap(width,height,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
+            var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
+            using var stream=File.Create(Path.Combine(output,name+suffix+".png"));encoder.Save(stream);
+        }
+        Draw("");var view=Descendants(root).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_view");
+        var image=Descendants(root).OfType<Image>().Single();Assert(image.Source is not null,"Detected core not shown");
+        for(int index=0;index<6;index++){view.SelectedIndex=index;root.UpdateLayout();Assert(image.Source is not null,"Saved diagnostic view unavailable: "+index);}
+        view.SelectedIndex=6;root.UpdateLayout();Assert(image.Source is null,"Missing unstable frame displayed as a real snapshot");
+        view.SelectedIndex=0;Draw("-compact",640,600);
+        string text=string.Join("\n",Descendants(root).SelectMany(Captions));
+        Assert(text.Contains(english?"Core coverage":"Покриття ядра")&&text.Contains(english?"Full changed region":"Уся змінена область"),"Diagnostic measurements missing");
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(text,@"[\u0400-\u04FF]"),"English diagnostic viewer contains Ukrainian");
+        else Assert(text.Contains("Пропуски")&&view.Items.Cast<object>().All(x=>!x.ToString()!.Contains("stroke")),"Ukrainian diagnostics not localized");
+        var reopened=new MainWindow(directory);reopened.ShowPage("speed");Render(reopened,Path.Combine(output,name+"-reopened.png"),900);
+        Assert(Field<Button>(reopened,"probeDiagnosticButton").IsEnabled,"Diagnostics inaccessible after app restart");
+        foreach(var reason in Enum.GetValues<ProbeFailure>())
+        {
+            string localized=Translations.ForLanguage(ProbeAnalysis.Explain(reason),english);
+            if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(localized,@"[\u0400-\u04FF]"),"Probe rejection reason untranslated: "+reason);
+        }
+        var captureFailure=new ProbeDiagnosticSession(directory,"fixture",20,24,10);
+        captureFailure.Begin("control",StrokeMethod.Paced,false,64,new(100,100,196,196),line);
+        captureFailure.Unstable(before,after,1);
+        captureFailure.Failed(new InvalidOperationException("Canvas змінюється між кадрами. Зупини рух камери й повтори тест."));
+        Invoke(window,"RefreshSpeedStatus");button.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        root=(FrameworkElement)presented!.Content;Draw("-capture-failed");
+        text=string.Join("\n",Descendants(root).SelectMany(Captions));
+        Assert(text.Contains(english?"capture before stroke":"знімок до штриха"),"Capture failure phase not explained");
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(text,@"[\u0400-\u04FF]"),"Native capture failure reason untranslated");
+        view=Descendants(root).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_view");view.SelectedIndex=7;root.UpdateLayout();
+        Assert(Descendants(root).OfType<Image>().Single().Source is not null,"Available unstable frame could not be viewed");
+        Console.WriteLine("PASS "+name);
+    }
     private static void CheckPolish(string output,string language,int width,int height)
     {
         bool english=language=="English";string name="polish-"+(english?"en":"ua");var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
