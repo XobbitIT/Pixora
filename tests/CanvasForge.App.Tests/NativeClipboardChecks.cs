@@ -11,10 +11,10 @@ internal static class NativeClipboardChecks
     internal static void Run()
     {
         if(Environment.GetEnvironmentVariable("PIXORA_NATIVE_CLIPBOARD_SMOKE")!="1")return;
-        using var original=Native.ClipboardBackup.Capture();
+        using var original=Capture();
         try
         {
-            Clipboard.Clear();using(var empty=Native.ClipboardBackup.Capture())
+            Clipboard.Clear();using(var empty=Capture())
             {Native.ClipboardWrite("temporary marker");Require(empty.Restore(Native.ClipboardSequence()));Require(!Clipboard.ContainsText());}
             Clipboard.SetText("original text");
             using(var lease=new ClipboardLease(new WindowsClipboardStore(),uint.MaxValue,_=>{}))
@@ -32,7 +32,7 @@ internal static class NativeClipboardChecks
             Require(Clipboard.GetText()=="new external copy");
             var pixels=new byte[]{0,0,255,255,0,255,0,255,255,0,0,255,255,255,255,255};
             var image=BitmapSource.Create(2,2,96,96,PixelFormats.Bgra32,null,pixels,8);image.Freeze();Clipboard.SetImage(image);
-            using(var saved=Native.ClipboardBackup.Capture())
+            using(var saved=Capture())
             {
                 Native.ClipboardWrite("marker");Require(saved.Restore(Native.ClipboardSequence()));
                 var restored=Clipboard.GetImage()??throw new Exception("Bitmap clipboard lost");
@@ -40,11 +40,12 @@ internal static class NativeClipboardChecks
                 Require(actual.SequenceEqual(pixels));
             }
             var files=new StringCollection{"C:\\Pixora-fixture-one.png","C:\\Pixora-fixture-two.png"};Clipboard.SetFileDropList(files);
-            using(var saved=Native.ClipboardBackup.Capture())
+            using(var saved=Capture())
             {Native.ClipboardWrite("marker");Require(saved.Restore(Native.ClipboardSequence()));Require(Clipboard.GetFileDropList().Cast<string>().SequenceEqual(files.Cast<string>()));}
             Console.WriteLine("PASS native-clipboard-smoke: text transaction, empty, WPF bitmap pixels and file-drop paths restored");
         }
         finally{Require(original.Restore(Native.ClipboardSequence()));}
     }
     private static void Require(bool value){if(!value)throw new Exception("Native clipboard roundtrip regression");}
+    private static Native.ClipboardBackup Capture()=>CanvasForge.Core.ClipboardRetry.Run(Native.ClipboardBackup.Capture,()=>Thread.Sleep(25));
 }

@@ -399,6 +399,9 @@ internal static partial class Native
     public static string? ClipboardRead()=>ObserveClipboard().Text;
     internal static ClipboardObservation ObserveClipboard()
     {
+        for(int attempt=0;attempt<3;attempt++)
+        {
+        ClipboardObservation observation;
         ClipboardOpen();
         try
         {
@@ -419,12 +422,17 @@ internal static partial class Native
                 GlobalUnlock(handle);
             }
             }
-            return new(ReadText(),ClipboardSequence(),ProcessIdOf(ClipboardOwner()));
+            observation=new(ReadText(),ClipboardSequence(),ProcessIdOf(ClipboardOwner()));
         }
         finally
         {
             CloseClipboard();
         }
+        // Windows finalizes its sequence on CloseClipboard. Materializing a
+        // delayed/synthesized format can therefore invalidate the first read.
+        if(ClipboardSequence()==observation.Sequence)return observation;
+        }
+        throw new Win32Exception(1460,"Cannot open clipboard.");
     }
 
     public static uint ClipboardWrite(string text,uint? expectedSequence=null,IntPtr ownerWindow=default)
@@ -449,7 +457,8 @@ internal static partial class Native
             }
 
             using var owner=ownerWindow==IntPtr.Zero?new ClipboardWriteWindow():null;
-            ClipboardOpen(owner?.Handle??ownerWindow);
+            var writer=owner?.Handle??ownerWindow;
+            ClipboardOpen(writer);
             try
             {
                 if(expectedSequence.HasValue&&ClipboardSequence()!=expectedSequence.Value)
@@ -457,12 +466,20 @@ internal static partial class Native
                 if (!EmptyClipboard() || SetClipboardData(13, handle) == IntPtr.Zero)
                     throw new Win32Exception();
                 owned = false;
-                return ClipboardSequence();
             }
             finally
             {
                 CloseClipboard();
             }
+            // Read the committed sequence after closing the write. Keep the
+            // window alive and re-lock so external data cannot be adopted.
+            ClipboardOpen(writer);
+            try
+            {
+                if(ClipboardOwner()!=writer)throw new InvalidOperationException("Буфер обміну змінився під час вводу. Зупини стороннє копіювання та повтори.");
+                return ClipboardSequence();
+            }
+            finally{CloseClipboard();}
         }
         finally
         {

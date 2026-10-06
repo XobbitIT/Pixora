@@ -90,19 +90,23 @@ internal static partial class Native
                     backup.entries.Add(new ClipboardEntry(format,handle).Copy());
                 }
                 if(advertised>0&&backup.entries.Count==0)throw new InvalidOperationException("Cannot preserve clipboard data.");
-                backup.Sequence=ClipboardSequence();return backup;
+                backup.Sequence=ClipboardSequence();
             }
             catch{backup.Dispose();throw;}
             finally{CloseClipboard();}
+            if(ClipboardSequence()!=backup.Sequence)
+            {backup.Dispose();throw new Win32Exception(1460,"Cannot preserve clipboard data.");}
+            return backup;
         }
         internal bool Restore(uint expectedSequence)
         {
             var owner=restoreOwner??=new ClipboardWriteWindow();ClipboardOpen(owner.Handle);
             var copies=new List<ClipboardEntry>();
+            bool interrupted=false;
             try
             {
                 uint current=ClipboardSequence();
-                if(current!=expectedSequence&&current!=interruptedRestoreSequence)return false;
+                if(current!=expectedSequence&&(current!=interruptedRestoreSequence||ClipboardOwner()!=owner.Handle))return false;
                 // Keep the backup intact until all copies have transferred, so
                 // a transient restore failure can retry the complete snapshot.
                 foreach(var entry in entries)copies.Add(entry.Copy());
@@ -117,10 +121,14 @@ internal static partial class Native
             }
             catch
             {
-                if(ClipboardOwner()==owner.Handle)interruptedRestoreSequence=ClipboardSequence();
+                interrupted=ClipboardOwner()==owner.Handle;
                 throw;
             }
-            finally{foreach(var entry in copies)entry.Free();CloseClipboard();}
+            finally
+            {
+                foreach(var entry in copies)entry.Free();CloseClipboard();
+                if(interrupted&&ClipboardOwner()==owner.Handle)interruptedRestoreSequence=ClipboardSequence();
+            }
         }
         public void Dispose(){foreach(var entry in entries)entry.Free();entries.Clear();restoreOwner?.Dispose();restoreOwner=null;}
     }
