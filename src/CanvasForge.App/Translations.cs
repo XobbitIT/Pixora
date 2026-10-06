@@ -31,6 +31,15 @@ internal static class Translations
     public static string ForLanguage(string text, bool english, string? englishText = null)
     {
         if (english && englishText is not null) return englishText;
+        var translatedWhole=english?Get(text):Ukrainian.TryGetValue(text,out var fullUk)?fullUk:FromTemplate(text,UkrainianTemplates);
+        if(translatedWhole!=text)return translatedWhole;
+        // Setup failures retain their stage and independently translated diagnostics.
+        foreach(var (stageUk,stageEn) in new[]{("Полотно й області Rust","Canvas and Rust regions"),("Кольори / HEX","Colors / HEX"),
+            ("Пензель і числові поля","Brush and numeric fields"),("Вимірювання пензля","Brush measurement"),
+            ("Просторові зміщення","Spatial offsets"),("Тест швидкості","Speed Probe")})
+            foreach(var prefix in new[]{stageUk,stageEn})
+                if(text.StartsWith(prefix+": ",StringComparison.Ordinal))
+                    return (english?stageEn:stageUk)+": "+string.Join("\n",text[(prefix.Length+2)..].Split('\n').Select(line=>ForLanguage(line,english)));
         // A cached calibration failure contains a second, independently localized error.
         var failure = Regex.Match(text, @"\A(?:Не вдалося виміряти (?:Size|розмір)|Could not measure Size) ([0-9]+): ([\s\S]+)\z");
         if (failure.Success)

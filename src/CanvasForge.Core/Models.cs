@@ -94,7 +94,7 @@ public sealed class Settings
     public Calibration PaintCalibration()
     {
         var result = new Calibration((JsonObject)Calibration.Data.DeepClone());
-        if (Mode == ColorMode.HexDirect && !Bool("manual_brush_controls"))
+        if (Mode == ColorMode.HexDirect)
         {
             if (!HexControlsReady) throw new InvalidOperationException("Захопи пензель і повзунки HEX у розділі Захоплення Rust.");
             foreach (var entry in (JsonObject)Data["hex_controls"]!)

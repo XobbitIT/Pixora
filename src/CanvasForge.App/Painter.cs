@@ -526,13 +526,6 @@ internal sealed partial class Painter : IDisposable
 
     private void ApplyControls(double? sizeOverride)
     {
-        if (settings.Bool("manual_brush_controls"))
-        {
-            activeShape = settings.Int("brush_shape_slot", 4);
-            activeAdaptiveSize = 1; needsReprime = false;
-            Log("manual_brush_controls", new { size = 1, interval = .01, opacity = 1, automatic = false });
-            return;
-        }
         VerifyControlLayout();
         ApplyBrushShape();
         var desired = DesiredControls(sizeOverride);
@@ -545,7 +538,6 @@ internal sealed partial class Painter : IDisposable
 
     private void ReprimeControls(double? sizeOverride,int? shapeOverride=null)
     {
-        if (settings.Bool("manual_brush_controls")) { ApplyControls(); return; }
         // Returning from pause should not blindly re-click all three controls.
         // Verify their current positions and only repair a control that drifted.
         ApplyBrushShape(shapeOverride);
@@ -779,10 +771,9 @@ internal sealed partial class Painter : IDisposable
         }
     }
 
-    // Manual controls apply for the entire transfer, including its final cleanup.
+    // Only restore controls while Rust is still foreground.
     internal static void FinishControls(Settings settings, Func<bool> foreground, Action<double> applyOpacity)
     {
-        if (settings.Bool("manual_brush_controls")) return;
         if (foreground()) applyOpacity(1);
     }
 

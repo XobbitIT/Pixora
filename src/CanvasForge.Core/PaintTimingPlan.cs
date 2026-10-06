@@ -23,7 +23,7 @@ public static class PaintTimingPlan
         if(startGroup<0||startGroup>order.Count||startLine<0||startGroup==order.Count&&startLine!=0
             ||startGroup<order.Count&&startLine>groups[order[startGroup]].Count)throw new ArgumentException("Invalid timing resume position.");
         var speed=SpeedProfile.Get(s.Text("speed_profile","Rapid"));double previous=DefaultSize(s);int previousShape=s.Int("brush_shape_slot",3);
-        var work=new List<TimedWork>{new(Setup,"setup",s.Bool("manual_brush_controls")?0:3*StrokeTiming.SliderChangeEstimate(s)+StrokeTiming.ClickEstimate(s),false)};
+        var work=new List<TimedWork>{new(Setup,"setup",3*StrokeTiming.SliderChangeEstimate(s)+StrokeTiming.ClickEstimate(s),false)};
         for(int group=startGroup;group<order.Count;group++)
         {
             var lines=groups[order[group]];
@@ -42,7 +42,7 @@ public static class PaintTimingPlan
             }
             if(s.Bool("coverage_audit"))work.Add(new(Audit(group),"audit",.2,false));
         }
-        double finish=s.Bool("manual_brush_controls")?0:StrokeTiming.Fast(s)&&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
+        double finish=StrokeTiming.Fast(s)&&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
             ?StrokeTiming.ControlFrame(s):StrokeTiming.SliderChangeEstimate(s);
         work.Add(new(Finish,"finish",finish,false));return work;
     }

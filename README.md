@@ -1,6 +1,6 @@
-# Pixora 1.0.14-beta.32
+# Pixora 1.0.14-beta.33
 
-Rust painting assistant for Windows 10/11 x64. The default Simple mode has three steps: open or drop an image, select Canvas and colors, then Paint. Set the solid square brush in Rust to Size 1, Interval 0.01 and Opacity 1; this mode does not require slider capture, brush measurement, Speed Probe or coverage audit. The Paint action stays visible in short windows. Advanced mode retains measured adaptive brushes, verified speed routes, auditing and their original acceptance criteria. See [changes](CHANGES_BETA32_UA.md) and the [Rust checklist](TESTING_BETA32_UA.md). Offline checks do not establish in-game coverage; a new live test is required.
+Rust painting assistant for Windows 10/11 x64. One advanced interface replaces the Simple/Advanced switch. Use **Set up and verify everything** on Painting or Capture: regions → colors → numeric controls → brush measurements → spatial controls → Speed Probe. Missing regions are selected in a mode-aware seven-step wizard; existing captures are reused when the Rust window session still matches. Individual functions remain available. Painting actions stay visible below the scrolling settings. A failed Round Size 1 triggers one Square attempt on fresh regions, keeping the original contrast, repeat and coverage requirements. Tests share disjoint clean regions, so clear the Canvas once after the sequence. Speed evidence covers one measured Size; coverage audit runs during an actual painting transfer. See [changes](CHANGES_BETA33_UA.md) and the [Rust checklist](TESTING_BETA33_UA.md). 266 Core / 75 WPF checks pass locally. New in-game verification is pending.
 
 ## Historical releases
 

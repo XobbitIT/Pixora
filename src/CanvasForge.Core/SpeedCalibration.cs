@@ -101,16 +101,23 @@ public static class SpeedCalibration
             {double diameter=row[1]!.GetValue<double>();if(double.IsFinite(diameter)&&diameter is >=1 and <=512)return (int)Math.Floor((diameter-1)/2);}
         throw new InvalidOperationException("No physical brush measurement for this Size.");
     }
-    public static List<SpeedProbeTile> Tiles(ScreenRect canvas,int outer)
+    public static List<SpeedProbeTile> Tiles(ScreenRect canvas,int outer,IReadOnlyList<ScreenRect>? excluded=null)
     {
         if(!canvas.Valid||outer is <0 or >512)throw new ArgumentException("Invalid probe Canvas or footprint.");
         int tile=Math.Max(64,4*outer+48),cols=canvas.Width/tile,rows=canvas.Height/tile;
         const int needed=2+2*2*4*Repeats+2*2*Repeats;
-        if(cols*rows<needed)throw new InvalidOperationException($"Для цього Size потрібно {needed} чистих ділянок {tile}×{tile} px. Збільш Canvas або вибери менший Size.");
+        var areas=new List<ScreenRect>();
+        for(int i=0;i<cols*rows;i++)
+        {
+            int x=canvas.Left+i%cols*tile,y=canvas.Top+i/cols*tile;
+            var area=new ScreenRect(x,y,x+tile,y+tile);
+            if(excluded is null||!excluded.Any(r=>area.Left<r.Right&&area.Right>r.Left&&area.Top<r.Bottom&&area.Bottom>r.Top))areas.Add(area);
+        }
+        if(areas.Count<needed)throw new InvalidOperationException($"Для цього Size потрібно {needed} чистих ділянок {tile}×{tile} px. Збільш Canvas або вибери менший Size.");
         var result=new List<SpeedProbeTile>();
         for(int i=0;i<needed;i++)
         {
-            int x=canvas.Left+i%cols*tile,y=canvas.Top+i/cols*tile,edge=outer+6;
+            int x=areas[i].Left,y=areas[i].Top,edge=outer+6;
             int near=outer+12,far=tile-outer-12;
             result.Add(new(new(x,y,x+tile,y+tile),new(x+edge,y+far,x+tile-edge-1,y+far),
                 new(x+far,y+edge,x+far,y+tile-edge-1),new(x+edge,y+near,x+tile-edge-1,y+near),

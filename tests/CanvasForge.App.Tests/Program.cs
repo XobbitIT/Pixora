@@ -83,7 +83,7 @@ internal static partial class Program
         CheckWideBrushUi(destination,"English");
         RuntimeSafetyChecks.SingleInstance();RuntimeSafetyChecks.Integrity();RuntimeSafetyChecks.Clipboard();
         CheckProbeTimeoutUi(destination,"Українська");CheckProbeTimeoutUi(destination,"English");
-        CheckSimpleWorkflow(destination,"Українська",900); CheckSimpleWorkflow(destination,"English",1280); CheckSimpleFreshWindow(destination); CheckSimpleHexWindow(destination); CheckSimplePainter(destination); CheckSimpleImageImport(destination); Console.WriteLine("ALL 75 WPF UI CHECKS PASSED");
+        CheckUnifiedSetup(destination,"Українська",900); CheckUnifiedSetup(destination,"English",1280); CheckUnifiedFreshWindow(destination); CheckUnifiedHexWindow(destination); CheckUnifiedFinish(); CheckUnifiedImageImport(destination); Console.WriteLine("ALL 75 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);

@@ -46,7 +46,6 @@ internal sealed partial class MainWindow
         workflowChips.Clear();
         foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")), ("speed", T("Швидкість", "Speed Probe")), ("coverage", T("Покриття", "Coverage")) })
         {
-            if (SimpleMode && key is not ("image" or "rust")) continue;
             var row = new Grid { Margin = new Thickness(0, 3, 0, 3) };
             row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
             row.ColumnDefinitions.Add(new() { Width = new GridLength(8) });

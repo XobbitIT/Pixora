@@ -101,17 +101,17 @@ internal sealed partial class MainWindow
     private Task RunSpatialProbe()=>RunProbe(true);
     private async Task RunProbe(bool spatialOnly)
     {
-        if(Painting)return;ReadSettings();
+        if(Painting&&!setupRunning)return;lastProbeSucceeded=false;ReadSettings();
         var problem=AdaptiveBrush.SetupProblem(settings);if(problem is not null)throw new InvalidOperationException(T(problem));
         if(!SpeedCalibration.BrushReady(settings,settings.Number("probe_size",3)))throw new InvalidOperationException(T("Спочатку відкалібруй вибраний розмір пензля.","Calibrate the selected brush Size first."));
         var target=AlignRustForTest();double size=settings.Number("probe_size",3);var footprint=SpeedCalibration.Footprint(settings,size);
         var spatialModel=ProbeSpatialCalibration.Read(settings,size);
         if(!spatialOnly&&spatialModel is null)throw new InvalidOperationException(ProbeSpatialCalibration.MissingMessage);
-        var tiles=spatialOnly?ProbeSpatialCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer)
+        var tiles=spatialOnly?(setupWorkspace?.Spatial(footprint.Outer)??ProbeSpatialCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer))
                 .Select(t=>new SpeedProbeTile(t.Area,t.Horizontal,t.Vertical,t.Horizontal,t.Vertical)).ToList()
-            :SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer);
+            :setupWorkspace?.Speed(footprint.Outer)??SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer);
         int maximumLines=spatialOnly?tiles.Count:2+2*(tiles.Count-2);
-        if(!ShowMessage(T($"Тест розміру {size} намалює до {maximumLines} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {maximumLines} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
+        if(!setupRunning&&!ShowMessage(T($"Тест розміру {size} намалює до {maximumLines} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {maximumLines} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
         var snapshot=AdaptiveBrush.CalibrationSettings(settings,size);snapshot.Set("coverage_audit",false);snapshot.Set("calibrated_strokes",false);
         // Never stamp unverified routes from an older detector/context as current.
         var old=SpeedCalibration.Current(settings)?SpeedCalibration.Read(settings):null;
@@ -120,7 +120,7 @@ internal sealed partial class MainWindow
         // Nearby controls add real slow motion. Allow the full bounded protocol
         // for wider brushes rather than hitting the old fixed eight-minute cap.
         double budgetSeconds=spatialOnly?480:Math.Max(480,tiles.Count*((TransferSchedule.Length(tiles[0].Horizontal)+4)*.106+1.6)+120);
-        var cancel=paintCancel=new CancellationTokenSource();
+        var cancel=setupRunning?setupCancel!:paintCancel=new CancellationTokenSource();
         using var budget=new CancellationTokenSource(TimeSpan.FromSeconds(budgetSeconds));
         using var linked=CancellationTokenSource.CreateLinkedTokenSource(cancel.Token,budget.Token);
         Painter? restore=null,worker=null;
@@ -234,10 +234,11 @@ internal sealed partial class MainWindow
             await paintTask;
             if(spatialOnly)
             {
-                ProbeSpatialCalibration.Save(settings,measuredSpatial!);Dirty();
+                ProbeSpatialCalibration.Save(settings,measuredSpatial!);lastProbeSucceeded=true;Dirty();
                 File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_spatial_complete",details=measuredSpatial})+Environment.NewLine);
                 SetStatus(T("Просторове калібрування збережене. Очисти полотно, потім запусти тест швидкості.","Spatial calibration saved. Clear Canvas, then run Speed Probe."));return;
             }
+            lastProbeSucceeded=selected.Count>0;
             diagnostics.Complete(selected);
             var rows=(old?.Samples??[]).Where(x=>x.Size!=size).Concat(selected).ToList();
             settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,rows));
@@ -257,8 +258,9 @@ internal sealed partial class MainWindow
                 var failure=new ProbeBudgetExceededException(T("Тест швидкості перевищив ліміт часу. Очисти полотно перед повтором.","Speed Probe exceeded its time budget. Clear Canvas before retrying."),e);
                 RecordFailure(failure);speedFailure=failure.Message;SetStatus(speedFailure);
                 File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_timeout",details=new{budgetSeconds}})+Environment.NewLine);
+                if(setupRunning)throw failure;
             }
-            else{RecordFailure(e);SetStatus(T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying."));}
+            else{RecordFailure(e);SetStatus(T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying."));if(setupRunning)throw;}
         }
         catch(Exception e){RecordFailure(e);speedFailure=e.Message;throw;}
         finally
@@ -274,7 +276,7 @@ internal sealed partial class MainWindow
                 });
             }
             else if(restore is not null)File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_skipped",details=new{reason=closing?"closing":"focus_lost"}})+Environment.NewLine);
-            worker?.Dispose();restore?.Dispose();painter=null;cancel.Dispose();paintCancel=null;Save();
+            worker?.Dispose();restore?.Dispose();painter=null;if(!setupRunning){cancel.Dispose();paintCancel=null;}Save();
             if(!closing){var message=status.Text;BuildUi();ShowSpeedSetup();SetEditing(true);SetStatus(message);Show();Activate();}
         }
         void RecordFailure(Exception e)

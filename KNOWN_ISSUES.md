@@ -1,3 +1,9 @@
+# Known issues — current beta.33
+
+The recorded beta.32 Round Size 1 dots failed at contrast 79/65/79 versus required 80 and poor spatial agreement. Numeric controls matched. Beta.33 adds automatic Square fallback on separate clean areas; this is a new testable path, not a claim that Round or Square now passes in Rust. Full setup, cancellation, later calibrated painting and coverage need the new live checklist. A small Canvas or large selected Size can lack enough clean regions; use individual functions with clearing between stages. Speed Probe verifies one Size only. Passed setup is not verified painting coverage. See TESTING_BETA33_UA.md.
+
+Historical issues follow:
+
 # Known issues — current beta.31
 
 No new beta.31 in-game coverage run has been performed. Recorded weak Round Size 1 and audited missing/unknown pixels remain unresolved. Numeric readback/core clipping/singleton/integrity/clipboard/timeout fixes have offline checks; they require the linked live checklist. Old speed/spatial revision is stale; thresholds remain strict. See TESTING_BETA31_UA.md and BETA31_REVIEW_RESPONSE_UA.md for confirmed fixes, review corrections and deferred work.

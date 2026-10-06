@@ -769,5 +769,16 @@
   "Налаштування має бути цілим числом: {p0}": "Setting must be an integer: {p0}",
   "Потрібна резервна копія буфера обміну.": "Clipboard backup is required.",
   "Вкладена операція буфера обміну.": "Nested clipboard transaction.",
-  "Неприпустимий запит числової перевірки.": "Invalid control readback request."
+  "Неприпустимий запит числової перевірки.": "Invalid control readback request.",
+"Спочатку захопи коректне полотно.": "Capture a valid Canvas first.",
+  "Недостатньо чистого місця для вимірювання пензля. Калібруй менше розмірів окремо.": "Not enough clean space for brush measurements. Calibrate fewer Sizes separately.",
+  "Недостатньо чистого місця для трьох позицій кожного напрямку. Виконай просторове калібрування окремо.": "Not enough clean space for three positions per axis. Run spatial calibration separately.",
+"Форма {p0} · Нові підтверджені Size: {p1}": "Shape {p0} · New verified Sizes: {p1}",
+  "Size {p0} · Інші розміри перевіряються окремо.": "Size {p0} · Other Sizes are tested separately.",
+  "Перевірки завершено. Очисти тестові крапки й лінії перед малюванням. Аудит покриття виконується під час малювання.": "Setup checks completed. Clear test dots and lines before painting. Coverage is audited during painting.",
+  "Перевірку скасовано. Завершені етапи збережені; очисти тестове полотно.": "Setup cancelled. Completed stages are retained; clear the test Canvas.",
+  "Size 1 не має підтвердженого суцільного ядра. Відкрий «Пензель» і переглянь причини; швидкі проби не запускалися.": "Size 1 has no verified solid core. Open Brush to review the reasons; speed trials were not run.",
+  "Не всі області захоплені. Повтори виділення.": "Some regions are missing. Repeat the selections.",
+  "Просторові зміщення не підтверджені.": "Spatial offsets were not verified.",
+  "Жоден швидкий маршрут не пройшов перевірку. Окремі налаштування доступні в розділі «Тест швидкості».": "No fast route passed. Individual controls are available on the Speed Probe page."
 }

@@ -1,12 +1,14 @@
-Pixora 1.0.14-beta.32 — Simple painting by default; measured automation in Advanced mode.
-261 Core / 75 WPF checks; native clipboard smoke runs only on isolated Windows CI.
+Pixora 1.0.14-beta.33 — one advanced interface and a sequential full-setup action.
+266 Core / 75 WPF checks; native clipboard smoke runs only on isolated Windows CI.
 Exact published DLL checks, source/docs version contract, portable packaging without PDB.
-Simple: image -> two region selections -> Paint; manual Square / Size 1 / Interval .01 / Opacity 1 in Rust.
-No slider capture, measured brush, Speed Probe or coverage audit required for Simple.
-Advanced preferences retained; unmeasured adaptive remains refused with an explanation.
+Mode-aware seven-region capture; all individual functions retained.
+Colors -> controls -> brush -> six spatial controls -> single-Size Speed Probe.
+Round base failure tries Square once; weak contrast never certifies a brush.
+Separate clean regions across stages; original full-Canvas contexts remain in use.
+Cancellation or failure stops future stages and retains prior completed measurements.
 Probe probe-complete-core-v6 and brush command-masks-color-v2 criteria unchanged.
-No new in-game result: Simple Four Blocks and advanced audited coverage remain pending.
-See CHANGES_BETA32_UA.md and TESTING_BETA32_UA.md. Old checkpoints may need a fresh START.
+No new in-game result: Square fallback, full sequence and audited painting pending.
+See CHANGES_BETA33_UA.md and TESTING_BETA33_UA.md.
 
 Historical snapshot follows:
 
