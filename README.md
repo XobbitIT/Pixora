@@ -1,4 +1,6 @@
-# Pixora 1.0.14-beta.34
+# Pixora 1.0.14-beta.35
+
+Beta.35 fixes a Speed Probe false rejection caused by choosing a darker slow-control row outside the frozen spatial envelope while a complete core exists inside it. Slow/fast pairs now use separate collinear spans with a shared perpendicular coordinate. Wrong-color traces remain rejected and receive a precise diagnostic. Existing brush measurements remain valid; spatial/speed proofs need renewal for `probe-collinear-slow-v7`. See [changes](CHANGES_BETA35_UA.md) and [live checklist](TESTING_BETA35_UA.md). The latest live beta.34 Square Size 1/3 measurements passed, but the new speed protocol still needs an in-game run.
 
 Beta.34 fixes a clipboard backup failure that prevented brush calibration after copying physical files in Explorer. The file-drop list and readable formats are retained; an unavailable alternative FileContents stream is omitted only when all dropped files/folders exist. Virtual-only or unknown unavailable formats still stop before clipboard writes. Clipboard diagnostics record format IDs/names without user content. See [hotfix details](CHANGES_BETA34_UA.md) and the [live Rust checklist](TESTING_BETA34_UA.md). Square Size 1 still needs a fresh in-game measurement.
 

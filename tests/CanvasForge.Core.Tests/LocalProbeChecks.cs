@@ -15,12 +15,20 @@ internal static class LocalProbeChecks
     {
         test("Paired probe lanes preserve separate physical envelopes",()=>{
             var tiles=SpeedCalibration.Tiles(new(0,0,1200,1200),24);Require(tiles.Count==62);
-            foreach(var t in tiles){Require(t.Horizontal.Y1-t.ControlHorizontal.Y1>48&&t.Vertical.X1-t.ControlVertical.X1>48);
-                Require(t.ControlHorizontal.Y1-24>=t.Area.Top&&t.Horizontal.Y1+24<t.Area.Bottom);
-                Require(t.ControlVertical.X1-24>=t.Area.Left&&t.Vertical.X1+24<t.Area.Right);}
+            foreach(var t in tiles){Require(t.Horizontal.Y1==t.ControlHorizontal.Y1&&t.Vertical.X1==t.ControlVertical.X1);
+                Require(t.Horizontal.X1-t.ControlHorizontal.X2>48&&t.Vertical.Y1-t.ControlVertical.Y2>48);
+                Require(t.ControlHorizontal.X1-24>=t.Area.Left&&t.Horizontal.X2+24<t.Area.Right);
+                Require(t.ControlVertical.Y1-24>=t.Area.Top&&t.Vertical.Y2+24<t.Area.Bottom);
+                Require(TransferSchedule.Length(t.Horizontal)-2*ProbeAnalysis.EndMargin+1>=8);}
         });
         test("Paired probe rejects area that fits only single lanes",()=>{
             try{SpeedCalibration.Tiles(new(0,0,1000,1000),24);throw new Exception("Accepted insufficient area");}catch(InvalidOperationException){}
+        });
+        test("Collinear probe prefers longer spans when clean space permits",()=>{
+            var longer=SpeedCalibration.Tiles(new(467,148,1511,1192),5);Require(TransferSchedule.Length(longer[0].Horizontal)==31);
+            var shorter=SpeedCalibration.Tiles(new(0,0,1200,1200),24);Require(TransferSchedule.Length(shorter[0].Horizontal)==15);
+            foreach(var t in longer){Require(t.ControlHorizontal.Y1==t.Horizontal.Y1&&t.ControlVertical.X1==t.Vertical.X1);
+                Require(t.Area.Left>=467&&t.Area.Top>=148&&t.Area.Right<=1511&&t.Area.Bottom<=1192);}
         });
         test("Independent slow color validates matching trial but rejects wrong color and gaps",()=>{
             var f=Fixture();var axis=Axis();var slow=ProbeAnalysis.SpatialControl(f.Before,f.After,f.Line,7,0);
@@ -36,10 +44,40 @@ internal static class LocalProbeChecks
             try{ProbeSpatialCalibration.Bind(Axis(),slow);throw new Exception("Expanded envelope");}catch(InvalidOperationException){}
             Require(Axis().AllowedOffsets.SequenceEqual(new[]{0}));
         });
+        test("Held-out slow reference uses a complete in-model core beside a darker outside row",()=>{
+            foreach(bool vertical in new[]{false,true})
+            {
+                var f=Fixture();var line=vertical?new ScreenLine(48,30,48,65):f.Line;var after=f.Before.Clone();
+                var offsets=vertical?new[]{-3,-2,0}:new[]{0,2,3};int inside=vertical?-3:3,outside=vertical?-4:4;
+                for(int k=30;k<=65;k++)
+                {after.Set(vertical?k*96+48+outside:(48+outside)*96+k,new(45,45,45));after.Set(vertical?k*96+48+inside:(48+inside)*96+k,new(46,46,46));}
+                var axis=new SpatialAxis(vertical,0,offsets.Select((offset,i)=>new SpatialAnchor(vertical?new(20+i*10,20,20+i*10,60):new(20,20+i*10,60,20+i*10),offset,new(20,20,20),12)).ToList());
+                Require(ProbeAnalysis.SpatialControl(f.Before,after,line,5,0).PerpendicularOffset==outside);
+                var slow=ProbeAnalysis.BoundControl(f.Before,after,line,5,axis);
+                Require(slow.Passed&&slow.PerpendicularOffset==inside&&slow.CoreCoverage.Expected==28);
+                Require(ProbeSpatialCalibration.Bind(axis,slow).Color==new Rgb(46,46,46));
+                Require(axis.Offsets.SequenceEqual(offsets.Order()));
+            }
+        });
+        test("Bound slow control preserves refusal when paint exists only outside the model",()=>{
+            var f=Fixture(45,2);var slow=ProbeAnalysis.BoundControl(f.Before,f.After,f.Line,7,Axis());
+            Require(slow.PerpendicularOffset==2);
+            try{ProbeSpatialCalibration.Bind(Axis(),slow);throw new Exception("Outside core authorized trial");}catch(InvalidOperationException){}
+        });
+        test("Bound slow control cannot substitute a narrow edge for a full wide core",()=>{
+            var f=Fixture();var axis=Axis() with{InnerRadius=1};var slow=ProbeAnalysis.BoundControl(f.Before,f.After,f.Line,7,axis);
+            Require(!slow.Passed);
+            try{ProbeSpatialCalibration.Bind(axis,slow);throw new Exception("Thin edge authorized trial");}catch(InvalidOperationException){}
+        });
+        test("Bound slow control retains every longitudinal slice and rejects a gap",()=>{
+            var f=Fixture();f.After.Set(48*96+46,f.Before.Color(48*96+46));
+            var slow=ProbeAnalysis.BoundControl(f.Before,f.After,f.Line,7,Axis());Require(!slow.Passed&&slow.LongitudinalGaps==1);
+        });
         test("Contrast trace explains color rejection without granting PASS",()=>{
             var f=Fixture(70);var result=ProbeSpatialCalibration.Trial(f.Before,f.After,f.Line,7,Axis(),new(new(20,20,20),12));
-            var g=result.Spatial!.Geometry!;Require(!result.Passed&&g.ObservedSlices==g.Slices&&g.ColorRejectedSlices==g.Slices);
+            var g=result.Spatial!.Geometry!;Require(!result.Passed&&result.Failure==ProbeFailure.ColorMismatch&&g.ObservedSlices==g.Slices&&g.ColorRejectedSlices==g.Slices);
             Require(g.ObservedRgb==new Rgb(70,70,70)&&g.MedianRgbDelta==50);
+            Require(result.CoreCoverage.Covered==0&&result.CoreCoverage.Unknown==28&&result.Spatial.FrozenReference.Color==new Rgb(20,20,20));
         });
         test("Blank shifted and unstable probes retain distinct diagnostics",()=>{
             var f=Fixture();var reference=new AuditReference(new(60,60,60),12);

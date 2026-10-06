@@ -180,7 +180,7 @@ internal sealed partial class MainWindow
                     worker.ProbeStroke(line,new(size,StrokeMethod.Paced,vertical,64,64,1,TransferSchedule.Length(line),3,1));
                     diagnostics.CapturingAfter();
                     var after=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(after);
-                    var result=ProbeAnalysis.SpatialControl(before,after,Local(line,tile.Area),footprint.Outer,footprint.Inner);
+                    var result=ProbeAnalysis.BoundControl(before,after,Local(line,tile.Area),footprint.Outer,spatialModel!.Axes.Single(x=>x.Vertical==vertical));
                     diagnostics.Analysed(before,after,result);LogResult("speed_probe_control",StrokeMethod.Paced,vertical,64,"control",result);
                     if(!result.Passed)throw new InvalidOperationException(ProbeAnalysis.Explain(result.Failure));
                     try{references[vertical]=ProbeSpatialCalibration.Bind(spatialModel!.Axes.Single(x=>x.Vertical==vertical),result);}
@@ -195,7 +195,7 @@ internal sealed partial class MainWindow
                     var controlBefore=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.Before(controlBefore);
                     worker.ProbeStroke(controlLine,new(size,StrokeMethod.Paced,vertical,64,64,1,TransferSchedule.Length(controlLine),3,1));
                     diagnostics.CapturingAfter();var controlAfter=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(controlAfter);
-                    var controlResult=ProbeAnalysis.SpatialControl(controlBefore,controlAfter,Local(controlLine,tile.Area),footprint.Outer,footprint.Inner);
+                    var controlResult=ProbeAnalysis.BoundControl(controlBefore,controlAfter,Local(controlLine,tile.Area),footprint.Outer,spatialModel!.Axes.Single(x=>x.Vertical==vertical));
                     diagnostics.Analysed(controlBefore,controlAfter,controlResult);
                     LogResult("speed_probe_local_control",StrokeMethod.Paced,vertical,64,"local_control",controlResult);
                     // Neither geometry nor color may be learned from the fast line.

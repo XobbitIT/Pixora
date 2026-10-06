@@ -1252,7 +1252,7 @@ internal static partial class Program
             "Не вдалося прочитати size у режимі HEX Direct. Перевір, що в Rust відкрита відповідна палітра, і захопи повзунок із числом справа.",
             "Тест швидкості перервано клавішею F6. Очисти полотно й повтори тест.",
             "Тест швидкості перервано: Rust втратив фокус. Повернись у Rust, очисти полотно й повтори тест.",
-            ProbeSpatialCalibration.OutsideMessage+"\nЗміщення: +3 px; допустимі: -4, -3, -2, -1, 0 px."})
+            ProbeSpatialCalibration.OutsideMessage+"\nЗміщення: +3 px; допустимі: -4, -3, -2, -1, 0 px.",ProbeAnalysis.Explain(ProbeFailure.ColorMismatch)})
             Assert(!System.Text.RegularExpressions.Regex.IsMatch(Translations.ForLanguage(message,true),@"[\u0400-\u04FF]"),"Timing status untranslated");
         Render(window,Path.Combine(output,name+"-complete.png"),900);Console.WriteLine("PASS "+name);
     }

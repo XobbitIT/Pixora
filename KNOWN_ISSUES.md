@@ -1,4 +1,8 @@
-# Known issues — current beta.34
+# Known issues — current beta.35
+
+Beta.34's latest Square 4 Size 1/3 brush measurements passed. Its speed run contained 12 lighter horizontal candidates that did not match the local slow reference, then stopped after selecting offset -4 although a full core exists at allowed offset -3. Beta.35 fixes that selection and uses collinear paired references; all recorded wrong-color candidates still fail replay. The new layout needs a fresh in-game speed test. It may still find no safe accelerated route. RGB tolerances and coverage requirements remain strict; no speed improvement is claimed before live validation. Renew spatial/speed calibration, retain current brush masks. See TESTING_BETA35_UA.md.
+
+Previous beta.34 issues follow:
 
 The 21:09 live recording selected Square 4 / Size 1 correctly but aborted before drawing on clipboard backup. Current Explorer clipboard metadata reproduced an unrenderable FileContents with accessible CF_HDROP. Beta.34 preserves the physical file-drop list and skips only this unreadable alternative when all paths exist; virtual-only streams are not supported and remain protected by aborting before writes. Readable auxiliary formats are retained. Full OLE stream restoration is outside this hotfix. New clipboard telemetry identifies future failures.
 

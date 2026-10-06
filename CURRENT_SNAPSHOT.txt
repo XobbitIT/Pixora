@@ -1,4 +1,12 @@
-Pixora 1.0.14-beta.34 — Explorer file-drop clipboard backup hotfix.
+Pixora 1.0.14-beta.35 — in-envelope slow references and collinear Speed Probe pairs.
+271 Core / 76 WPF checks; latest 27-stage live replay fixes one false rejection and keeps all 12 wrong-color candidates rejected.
+Square 4 / Size 1 and 3 measurements passed in beta.34; new speed layout requires live validation.
+Probe revision probe-collinear-slow-v7 invalidates spatial/speed proofs; brush masks remain valid.
+The preferred span is 31 px; limited-space fallback verifies at least 8 full-width slices and limits Shift to tested MaxLength.
+No RGB tolerance, coverage threshold, planner, audit or painting timing changes.
+See CHANGES_BETA35_UA.md and TESTING_BETA35_UA.md.
+
+Previous beta.34 — Explorer file-drop clipboard backup hotfix.
 266 Core / 76 WPF checks; native clipboard smoke runs only on isolated Windows CI.
 Read-only current Explorer backup succeeded: 11 formats retained, 1 unrenderable alternate FileContents omitted.
 Physical file paths and readable formats restored; virtual-only streams and unknown missing formats remain protected.

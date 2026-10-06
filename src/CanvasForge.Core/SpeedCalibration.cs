@@ -11,7 +11,7 @@ public sealed record SpeedProbeProfile(string Context, DateTimeOffset Created, L
 
 public static class SpeedCalibration
 {
-    public const string Revision = "probe-complete-core-v6";
+    public const string Revision = "probe-collinear-slow-v7";
     public static readonly int[] CandidatesMs = [32,20,12,8];
     public const int Repeats = 3;
     public static double Margin(double ms) => Math.Ceiling(ms*1.25+2);
@@ -104,31 +104,40 @@ public static class SpeedCalibration
     public static List<SpeedProbeTile> Tiles(ScreenRect canvas,int outer,IReadOnlyList<ScreenRect>? excluded=null)
     {
         if(!canvas.Valid||outer is <0 or >512)throw new ArgumentException("Invalid probe Canvas or footprint.");
-        int tile=Math.Max(64,4*outer+48),cols=canvas.Width/tile,rows=canvas.Height/tile;
         const int needed=2+2*2*4*Repeats+2*2*Repeats;
-        var areas=new List<ScreenRect>();
-        for(int i=0;i<cols*rows;i++)
+        List<ScreenRect> Areas(int side)
         {
-            int x=canvas.Left+i%cols*tile,y=canvas.Top+i/cols*tile;
-            var area=new ScreenRect(x,y,x+tile,y+tile);
-            if(excluded is null||!excluded.Any(r=>area.Left<r.Right&&area.Right>r.Left&&area.Top<r.Bottom&&area.Bottom>r.Top))areas.Add(area);
+            int cols=canvas.Width/side,rows=canvas.Height/side;var available=new List<ScreenRect>();
+            for(int i=0;i<cols*rows;i++)
+            {
+                int x=canvas.Left+i%cols*side,y=canvas.Top+i/cols*side;
+                var area=new ScreenRect(x,y,x+side,y+side);
+                if(excluded is null||!excluded.Any(r=>area.Left<r.Right&&area.Right>r.Left&&area.Top<r.Bottom&&area.Bottom>r.Top))available.Add(area);
+            }
+            return available;
         }
+        // Collinear pairs share a perpendicular coordinate, avoiding a reference
+        // taken from a different texture sampling row/column. Prefer 31 px spans;
+        // use shorter fully checked spans when clean space is limited. Shift may
+        // only execute the actual tested span (MaxLength), never extrapolate it.
+        int tile=Math.Max(64,4*outer+80);var areas=Areas(tile);
+        if(areas.Count<needed){tile=Math.Max(64,4*outer+48);areas=Areas(tile);}
         if(areas.Count<needed)throw new InvalidOperationException($"Для цього Size потрібно {needed} чистих ділянок {tile}×{tile} px. Збільш Canvas або вибери менший Size.");
         var result=new List<SpeedProbeTile>();
         for(int i=0;i<needed;i++)
         {
             int x=areas[i].Left,y=areas[i].Top,edge=outer+6;
-            int near=outer+12,far=tile-outer-12;
-            result.Add(new(new(x,y,x+tile,y+tile),new(x+edge,y+far,x+tile-edge-1,y+far),
-                new(x+far,y+edge,x+far,y+tile-edge-1),new(x+edge,y+near,x+tile-edge-1,y+near),
-                new(x+near,y+edge,x+near,y+tile-edge-1)));
+            int separation=2*outer+4,length=(tile-1-2*edge-separation)/2,far=edge+length+separation,center=tile/2;
+            result.Add(new(new(x,y,x+tile,y+tile),new(x+far,y+center,x+far+length,y+center),
+                new(x+center,y+far,x+center,y+far+length),new(x+edge,y+center,x+edge+length,y+center),
+                new(x+center,y+edge,x+center,y+edge+length)));
         }
         return result;
     }
 }
 
-// Independent slow and fast lanes share a neighbourhood but never a physical
-// brush envelope. The slow reference is frozen before its paired fast stroke.
+// Independent collinear slow and fast spans share their perpendicular coordinate
+// but never a physical brush envelope. The slow reference is frozen first.
 public sealed record SpeedProbeTile(ScreenRect Area,ScreenLine Horizontal,ScreenLine Vertical,
     ScreenLine ControlHorizontal,ScreenLine ControlVertical);
 

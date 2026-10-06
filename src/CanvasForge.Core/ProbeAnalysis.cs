@@ -1,6 +1,6 @@
 namespace CanvasForge.Core;
 
-public enum ProbeFailure { None, InsufficientSamples, LowContrast, NonUniformColor, LongitudinalGap, UncertainPixels, SceneChanged, ClippedCore }
+public enum ProbeFailure { None, InsufficientSamples, LowContrast, NonUniformColor, LongitudinalGap, UncertainPixels, SceneChanged, ClippedCore, ColorMismatch }
 public sealed record ProbeAnalysisResult(int Width, int Height, ScreenLine Line, bool[] RegionMask, bool[] ChangedMask, bool[] CoreMask,
     ReferenceMeasurement FullMeasurement, ReferenceMeasurement CoreMeasurement, AuditResult CoreCoverage,
     ProbeFailure Failure, int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,
@@ -19,6 +19,21 @@ public static class ProbeAnalysis
     public static ProbeAnalysisResult SpatialControl(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner)
         => Control(before,after,line,outer,inner,Enumerable.Range(-ProbeSpatialCalibration.MaxOffset,2*ProbeSpatialCalibration.MaxOffset+1)
             .Where(x=>Math.Abs(x)+inner<=outer),true);
+
+    public static ProbeAnalysisResult BoundControl(PixelImage before,PixelImage after,ScreenLine line,int outer,SpatialAxis axis)
+    {
+        var offsets=axis.AllowedOffsets;
+        if((line.X1==line.X2)!=axis.Vertical||offsets.Length==0||axis.Anchors.Count!=ProbeSpatialCalibration.ControlsPerAxis
+            ||offsets.Any(x=>Math.Abs(x)+axis.InnerRadius>outer))throw new ArgumentException("Invalid spatial control model.");
+        // A broad rendered stripe may have its darkest row just outside the frozen
+        // envelope while still containing a complete core inside it. Select the
+        // independent slow reference within that envelope, before drawing a trial.
+        var bounded=Control(before,after,line,outer,axis.InnerRadius,offsets,true);
+        if(bounded.Passed)return bounded;
+        // Preserve out-of-model evidence for Bind/diagnostics when no full core is
+        // verified inside. This fallback never authorizes a fast trial.
+        return SpatialControl(before,after,line,outer,axis.InnerRadius);
+    }
 
     private static ProbeAnalysisResult Control(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner,IEnumerable<int> offsets,bool strongest)
     {
@@ -137,6 +152,7 @@ public static class ProbeAnalysis
         ProbeFailure.NonUniformColor=>"Тест швидкості: неоднорідний колір у суцільному ядрі лінії.",
         ProbeFailure.LongitudinalGap=>"Тест швидкості: у контрольній лінії є прогалини.",
         ProbeFailure.UncertainPixels=>"Тест швидкості: частину пікселів ядра не вдалося підтвердити.",
+        ProbeFailure.ColorMismatch=>"Тест швидкості: лінія є в допустимій області, але її колір не відповідає повільному еталону. Маршрут відхилено.",
         ProbeFailure.SceneChanged=>"Тест швидкості: сцена змінилася за межами тестової лінії.",
         ProbeFailure.ClippedCore=>"Тест швидкості: очікуване ядро обрізане межами знімка. Потрібна більша тестова ділянка.",
         _=>"Суцільне ядро лінії підтверджене."

@@ -25,7 +25,7 @@ public static class ProbeSpatialCalibration
     public const int ControlsPerAxis=3;
     public const int MaxOffset=4;
     public const string MissingMessage="Спочатку виконай просторове калібрування для цього розміру, потім очисти полотно.";
-    public const string OutsideMessage="Повільний контроль вийшов за межі просторової моделі. Повтори просторове калібрування; швидкі проби не запускалися.";
+    public const string OutsideMessage="Повільний контроль вийшов за межі просторової моделі. Повтори просторове калібрування; поточну швидку пробу не запущено. Попередні результати збережені в діагностиці.";
     public static string Context(Settings s)
     {
         // Absolute origin matters for input quantisation too. Moving Rust invalidates
@@ -171,11 +171,16 @@ public static class ProbeSpatialCalibration
         bool unstable=outsideChanged>Math.Max(32,outside/100);int expected=slices*width;
         var failure=unstable?ProbeFailure.SceneChanged:missing>0?ProbeFailure.LongitudinalGap:unknown>0?ProbeFailure.UncertainPixels:ProbeFailure.None;
         var coverage=unstable?new AuditResult(expected,0,0,expected,new bool[region.Length],reference):new(expected,covered,missing,unknown,gaps,reference);
+        var geometry=unstable?null:ProbeGeometryInspection.Measure(before,after,line,outer,axis.InnerRadius,offsets,reference,supportedOffsets);
+        // Explain a fully observed but wrong-color trace without changing any
+        // covered/missing/unknown counts, references or acceptance thresholds.
+        if(failure==ProbeFailure.UncertainPixels&&geometry is { } trace
+            &&trace.InEnvelopeSlices==slices&&trace.ColorRejectedSlices==slices)failure=ProbeFailure.ColorMismatch;
         return new(before.Width,before.Height,line,region,changed,envelope,
             CoverageAudit.MeasureReference(before,after,changed,true),CoverageAudit.MeasureReference(before,after,envelope,true),
             coverage,failure,0,slices-passed,outside,outsideChanged,
             new(offsets,width,slices,unstable?0:passed,reference,confirmed,
                 unstable?null:ProbeOffsetTrajectory.Measure(supportedOffsets),
-                unstable?null:ProbeGeometryInspection.Measure(before,after,line,outer,axis.InnerRadius,offsets,reference,supportedOffsets)));
+                geometry));
     }
 }
