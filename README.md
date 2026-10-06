@@ -1,6 +1,6 @@
-# Pixora 1.0.14-beta.31
+# Pixora 1.0.14-beta.32
 
-Rust painting assistant for Windows 10/11 x64. Numeric readback now polls and retries fresh copies; Speed Probe requires the complete core. Startup prevents duplicate instances and checks input integrity. Supported clipboard formats are preserved, timeout/cancellation are distinct, JSON identity is canonical and current documentation is version checked. See [changes](CHANGES_BETA31_UA.md), [Rust checklist](TESTING_BETA31_UA.md), and [review response](BETA31_REVIEW_RESPONSE_UA.md). New audited in-game coverage is still pending.
+Rust painting assistant for Windows 10/11 x64. The default Simple mode has three steps: open or drop an image, select Canvas and colors, then Paint. Set the solid square brush in Rust to Size 1, Interval 0.01 and Opacity 1; this mode does not require slider capture, brush measurement, Speed Probe or coverage audit. The Paint action stays visible in short windows. Advanced mode retains measured adaptive brushes, verified speed routes, auditing and their original acceptance criteria. See [changes](CHANGES_BETA32_UA.md) and the [Rust checklist](TESTING_BETA32_UA.md). Offline checks do not establish in-game coverage; a new live test is required.
 
 ## Historical releases
 

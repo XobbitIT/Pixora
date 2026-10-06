@@ -43,7 +43,7 @@ internal sealed partial class MainWindow
         adaptiveStatus = Text("", 13); calibration.Children.Add(adaptiveStatus);
         calibration.Children.Add(Text(T("Size — значення в Rust, а не діаметр у пікселях. Три незалежні крапки визначають можливий слід та стабільне суцільне ядро від координати миші.", "Size is the Rust control value, not a diameter in pixels. Three independent dots measure the possible footprint and stable solid core relative to the mouse command."), 12, Muted));
         AddCombo(calibration,"brush_calibration_size",T("Розміри для калібрування","Sizes to calibrate"),new[]{"1/3/10/20","1","3","10","20","40","60","100"});
-        adaptiveCalibrate = AsyncButton(T("Калібрувати автоматично", "Calibrate automatically"), CalibrateBrush, true);
+        adaptiveCalibrate = AsyncButton(T("Калібрувати автоматично", "Calibrate automatically"), BeginBrushCalibration, true);
         calibration.Children.Add(adaptiveCalibrate);
         adaptiveRetry=AsyncButton(T("Повторити лише невдалі вибрані Size","Retry only failed selected Sizes"),CalibrateFailedBrush);
         adaptiveRetry.Tag="brush-retry-failed";calibration.Children.Add(adaptiveRetry);
@@ -70,7 +70,15 @@ internal sealed partial class MainWindow
         adaptiveEnabled.Click += (_, _) => Guard(() =>
         {
             if (buildingUi) return;
-            ReadSettings(); if (settings.Bool("adaptive_brush")) AdaptiveBrush.Prepare(settings);
+            ReadSettings();
+            if (settings.Bool("adaptive_brush") && !AdaptiveBrush.CalibrationCurrent(settings))
+            {
+                settings.Set("adaptive_brush", false); adaptiveEnabled.IsChecked = false; Save();
+                SetStatus(T("Адаптивному пензлю потрібне вимірювання Size 1. Натисни «Калібрувати автоматично» або повернися до простого режиму.",
+                    "Adaptive brush needs a measured Size 1. Press Calibrate automatically or return to simple mode."));
+                UpdateReady(); return;
+            }
+            if (settings.Bool("adaptive_brush")) AdaptiveBrush.Prepare(settings);
             Dirty(); BuildUi();
         });
         AddCombo(painting, "adaptive_max_size", T("Максимальний розмір широкого пензля", "Maximum wide brush Size"), new[] { "3", "10", "20", "40", "60", "100" }, true);
@@ -92,13 +100,14 @@ internal sealed partial class MainWindow
         var problem = AdaptiveBrush.SetupProblem(settings);
         var current = AdaptiveBrush.CalibrationCurrent(settings);
         adaptivePreparation.Text = problem is null ? T("✓ Полотно, керування й палітра захоплені.", "✓ Canvas, controls, and palette are captured.") : T(problem);
-        adaptiveCalibrate.IsEnabled = problem is null && !Painting;
+        adaptiveCalibrate.IsEnabled = !Painting;
+        adaptiveCalibrate.ToolTip = problem is null ? null : T(problem);
         var selected=settings.Text("brush_calibration_size","1/3/10/20");
         double[] requested=double.TryParse(selected,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var parsed)
             &&BrushFootprints.Sizes.Contains(parsed)?[parsed]:[1,3,10,20];
         adaptiveRetry.IsEnabled=problem is null&&!Painting&&BrushSignalDiagnostics.RetrySizes(settings,requested).Length>0;
         // A legacy/stale enabled setting must remain possible to turn off.
-        adaptiveEnabled.IsEnabled = !Painting && (settings.Bool("adaptive_brush") || current && problem is null);
+        adaptiveEnabled.IsEnabled = !Painting;
         adaptiveEnabled.ToolTip = current ? null : T("Спочатку натисни «Калібрувати автоматично».", "Click Calibrate automatically first.");
         var hasSamples = settings.Data["brush_calibration_points"] is JsonArray a && a.Count > 0;
         var measured=BrushFootprints.Read(settings);
@@ -113,6 +122,14 @@ internal sealed partial class MainWindow
         adaptiveSummary.Text = settings.Bool("adaptive_brush") && current
             ? T("Адаптивний режим: увімкнено", "Adaptive mode: enabled")
             : T("Адаптивний режим: вимкнено або потрібне калібрування", "Adaptive mode: disabled or needs calibration");
+    }
+
+    private async Task BeginBrushCalibration()
+    {
+        ReadSettings();
+        if (AdaptiveBrush.SetupProblem(settings) is { } problem)
+        { ShowPage("capture"); SetStatus(T(problem)); return; }
+        await CalibrateBrush();
     }
 
     private void BuildBrushStates(StackPanel panel)

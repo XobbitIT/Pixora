@@ -56,7 +56,7 @@ internal sealed partial class MainWindow
 
     private void RefreshAuditBanner()
     {
-        auditBanner.Visibility = auditNotice is null || auditBannerDismissed ? Visibility.Collapsed : Visibility.Visible;
+        auditBanner.Visibility = SimpleMode || auditNotice is null || auditBannerDismissed ? Visibility.Collapsed : Visibility.Visible;
         if (auditNotice is null) return;
         var tone = auditNotice.Missing > 0 ? Danger : Warning;
         var color = ((SolidColorBrush)tone).Color;

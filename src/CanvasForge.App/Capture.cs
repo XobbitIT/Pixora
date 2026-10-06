@@ -7,6 +7,7 @@ internal sealed partial class MainWindow
 {
     private void BuildCapture()
     {
+        if (SimpleMode) { BuildSimpleCapture(); return; }
         var page = FormContent();
         pages["capture"] = Scroll(page);
         page.Children.Add(Text(T("Захоплення Rust"), 24));
@@ -141,7 +142,7 @@ internal sealed partial class MainWindow
         }
 
         await BuildPlan();
-        if (key == "canvas" && settings.Bool("auto_insert_preview", true) && plan is not null)
+        if (!SimpleMode && key == "canvas" && settings.Bool("auto_insert_preview", true) && plan is not null)
             ShowInsertion();
     }
 

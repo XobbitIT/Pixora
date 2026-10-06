@@ -297,6 +297,9 @@ internal sealed partial class MainWindow : Window
         };
         DockPanel.SetDock(language, Dock.Right);
         top.Children.Add(language);
+        modeButton = Button(SimpleMode ? T("Розширений режим", "Advanced mode") : T("Простий режим", "Simple mode"), () => SetDrawingMode(SimpleMode));
+        modeButton.Tag = "drawing-mode"; modeButton.VerticalAlignment = VerticalAlignment.Center;
+        DockPanel.SetDock(modeButton, Dock.Right); top.Children.Add(modeButton);
         badge = Text("", 11);
         badge.VerticalAlignment = VerticalAlignment.Center;
         badge.HorizontalAlignment = HorizontalAlignment.Right;
@@ -332,6 +335,7 @@ internal sealed partial class MainWindow : Window
 
         )
         {
+            if (SimpleMode && key is not ("paint" or "capture")) continue;
             var nav=Button(title,()=>ShowPage(key));nav.HorizontalContentAlignment=HorizontalAlignment.Left;
             navigation[key]=nav;side.Children.Add(nav);
         }
@@ -342,9 +346,7 @@ internal sealed partial class MainWindow : Window
         shell.Children.Add(host);
         BuildPaint();
         BuildCapture();
-        BuildAdaptive();
-        BuildSpeedPage();
-        BuildSettings();
+        if (!SimpleMode) { BuildAdaptive(); BuildSpeedPage(); BuildSettings(); }
         foreach (var p in pages.Values)
             host.Children.Add(p);
         ShowPage(currentPage);
@@ -371,6 +373,9 @@ internal sealed partial class MainWindow : Window
 
     internal void ShowPage(string page)
     {
+        if (SimpleMode && page is "adaptive" or "speed" or "settings")
+        { SetDrawingMode(true); }
+        if (!pages.ContainsKey(page)) page = "paint";
         currentPage = page;
         foreach(var nav in navigation)
         {nav.Value.Foreground=nav.Key==page?Accent:Muted;nav.Value.BorderBrush=nav.Key==page?Accent:BorderColor;}
@@ -380,6 +385,7 @@ internal sealed partial class MainWindow : Window
 
     private void BuildPaint()
     {
+        if (SimpleMode) { BuildSimplePaint(); return; }
         var page=new Grid{Margin=new Thickness(0,0,0,8)};
         page.RowDefinitions.Add(new(){Height=GridLength.Auto});page.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});pages["paint"]=page;
         var header=new DockPanel{Margin=new Thickness(0,0,0,12)};
@@ -583,13 +589,13 @@ internal sealed partial class MainWindow : Window
             };
             if(!same&&reader.Key is not ("language" or "transfer_simulator" or "smooth_preview" or "auto_insert_preview"))changed=true;
         }
-        snapshot.Validate();
+        DrawingWorkflow.Effective(snapshot).Validate();
         settings=snapshot;
         if(changed)ResetCoverageState();
     }
 
     private void Save() => settings.Save(ConfigPath);
-    private void Dirty()
+    private void Dirty(bool refreshReady = true)
     {
         plan = null;
         resumeSchedule = null;
@@ -597,7 +603,7 @@ internal sealed partial class MainWindow : Window
         generation++;
         planCancel?.Cancel();
         Save();
-        UpdateReady();
+        if (refreshReady) UpdateReady();
         if (source is not null)
         {
             debounce.Stop();
@@ -636,6 +642,8 @@ internal sealed partial class MainWindow : Window
 
     private void UpdateReady()
     {
+        modeButton.IsEnabled = !Painting;
+        if (SimpleMode) { UpdateSimpleReady(); return; }
         paletteCompareButton.IsEnabled = !Painting && source is not null && numberErrors.Count == 0 && settings.Mode == ColorMode.HexDirect;
         experimentalDelay.IsEnabled=!Painting&&StrokeTiming.Experimental(settings);
         stableDelay.IsEnabled=!Painting&&!StrokeTiming.Experimental(settings);
@@ -676,7 +684,7 @@ internal sealed partial class MainWindow : Window
         }
 
         var active = plan;
-        var snapshot = settings.Clone();
+        var snapshot = EffectiveSettings;
         var canvas = capturedCanvas;
         try
         {
@@ -721,15 +729,20 @@ internal sealed partial class MainWindow : Window
         {
             Filter = T("Зображення","Images")+"|*.png;*.jpg;*.jpeg;*.webp;*.bmp;*.gif|"+T("Усі файли","All files")+"|*.*"
         };
-        if (dialog.ShowDialog(this) != true)
-            return;
+        if (dialog.ShowDialog(this) != true) return;
+        await LoadImageFile(dialog.FileName);
+    }
+
+    private async Task LoadImageFile(string path)
+    {
+        if (Painting || closing) return;
         try
         {
             SetStatus(T("Завантаження…", "Loading…"));
-            source = await Task.Run(() => Images.Load(dialog.FileName));
+            source = await Task.Run(() => Images.Load(path));
             if (closing)
                 return;
-            imagePath = dialog.FileName;
+            imagePath = path;
             originalImage.Source = Images.Bitmap(source);
             Dirty();
             await BuildPlan();
@@ -751,8 +764,13 @@ internal sealed partial class MainWindow : Window
         planCancel?.Cancel();
         var cancel = planCancel = new();
         var id = ++generation;
-        var snapshot = settings.Clone();
+        var snapshot = EffectiveSettings;
         var src = source;
+        if (SimpleMode && snapshot.Mode == ColorMode.RustPalette && snapshot.Palette().Count == 0)
+        {
+            SetStatus(T("Зображення відкрите. Тепер натисни «Вибрати полотно й кольори».", "Image loaded. Now press Select Canvas and colors."));
+            UpdateReady(); return;
+        }
         SetStatus(T("Будую план…", "Building plan…"));
         var updates = new Progress<string>(s =>
         {
@@ -824,21 +842,24 @@ internal sealed partial class MainWindow : Window
             return;
         ReadSettings();
         Save();
-        try { AdaptiveBrush.Validate(settings); }
+        var execution = EffectiveSettings;
+        if (SimpleMode && DrawingWorkflow.SimpleSetupProblem(execution) is { } problem)
+        { ShowPage("capture"); throw new InvalidOperationException(T(problem)); }
+        try { AdaptiveBrush.Validate(execution); }
         catch (InvalidOperationException) { ShowPage("adaptive"); throw; }
-        if (plan is null || plan.Identity != PlanIdentity.Compute(source, settings, plan.Palette))
+        if (plan is null || plan.Identity != PlanIdentity.Compute(source, execution, plan.Palette))
             await BuildPlan();
         if (plan is null)
             throw new InvalidOperationException(T("Не вдалося побудувати план.", "Cannot build plan."));
         var cal = settings.Calibration;
         if (!cal.Rect("canvas").Valid)
             throw new InvalidOperationException(T("Захопи полотно.", "Capture Canvas."));
-        if (plan.Mode == ColorMode.HexDirect && !settings.HexControlsReady)
+        if (!SimpleMode && plan.Mode == ColorMode.HexDirect && !settings.HexControlsReady)
             throw new InvalidOperationException("Відкрий HEX-палітру Rust і виконай «3. Пензель і повзунки HEX» у розділі Захоплення Rust.");
-        if (plan.Mode == ColorMode.HexDirect && !cal.HexReady)
+        if (!SimpleMode && plan.Mode == ColorMode.HexDirect && !cal.HexReady)
             throw new InvalidOperationException(T("Спочатку перевір HEX.", "Verify HEX first."));
-        cal = settings.PaintCalibration();
-        if (settings.Bool("fidelity_guard", true) && settings.Text("coverage_mode") == "Precision" && new[]{"size","interval","opacity"}.Any(x=>!cal.Rect(x+"_track").Valid||!cal.Rect(x+"_value_field").Valid))
+        cal = execution.PaintCalibration();
+        if (!SimpleMode && execution.Bool("fidelity_guard", true) && execution.Text("coverage_mode") == "Precision" && new[]{"size","interval","opacity"}.Any(x=>!cal.Rect(x+"_track").Valid||!cal.Rect(x+"_value_field").Valid))
             throw new InvalidOperationException(T("Захопи розмір, інтервал і прозорість для точного перенесення.", "Capture Size / Interval / Opacity for precision transfer."));
         ResumeCheckpoint? state = null;
         if (resume)
@@ -846,7 +867,7 @@ internal sealed partial class MainWindow : Window
             state = JsonSerializer.Deserialize<ResumeCheckpoint>(File.ReadAllText(ResumePath));
             if (state is null || state.Identity != plan.Identity)
                 throw new InvalidOperationException(T("План змінився. Потрібен новий запуск.", "Plan changed. Start a new transfer."));
-            if (settings.Number("paint_opacity_value", 1) < .999)
+            if (execution.Number("paint_opacity_value", 1) < .999)
                 throw new InvalidOperationException(T("Продовження потребує прозорості 1, щоб не накладати прозорі штрихи повторно.", "RESUME requires opacity 1 to avoid repeated translucent strokes."));
         }
 
@@ -858,7 +879,7 @@ internal sealed partial class MainWindow : Window
         ClearAuditDiagnostics();
         ResetPaintProgress();
         var cancellation = paintCancel = new();
-        var snapshot = settings.Clone();
+        var snapshot = execution;
         var activePlan = plan;
         painter = new(snapshot, window, ResumePath, LogPath, p => Dispatcher.BeginInvoke(() =>ApplyPaintProgress(p)), cancellation.Token);
         BeginCoverageCheck(snapshot.Bool("coverage_audit"));

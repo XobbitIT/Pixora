@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 using CanvasForge.App;
 using CanvasForge.Core;
 
-internal static class Program
+internal static partial class Program
 {
     [STAThread]
     public static void Main(string[] args)
@@ -83,7 +83,7 @@ internal static class Program
         CheckWideBrushUi(destination,"English");
         RuntimeSafetyChecks.SingleInstance();RuntimeSafetyChecks.Integrity();RuntimeSafetyChecks.Clipboard();
         CheckProbeTimeoutUi(destination,"Українська");CheckProbeTimeoutUi(destination,"English");
-        Console.WriteLine("ALL 69 WPF UI CHECKS PASSED");
+        CheckSimpleWorkflow(destination,"Українська",900); CheckSimpleWorkflow(destination,"English",1280); CheckSimpleFreshWindow(destination); CheckSimpleHexWindow(destination); CheckSimplePainter(destination); CheckSimpleImageImport(destination); Console.WriteLine("ALL 75 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -182,7 +182,8 @@ internal static class Program
         var samples=Enumerable.Range(1,3).Select(i=>new BrushSignalSample(i,new(69+i%2,4,80,new(140,140,140),new(70,70,70)),2,support)).ToArray();
         var weak=BrushSignalDiagnostics.Summarize(s,3,1,samples,null);BrushSignalDiagnostics.Save(s,[weak]);s.Save(Path.Combine(directory,"config-csharp.json"));
         var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
-        Assert(!Field<CheckBox>(window,"adaptiveEnabled").IsEnabled&&!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Weak evidence enabled exact painting");
+        CheckUnmeasuredAdaptiveClick(window);
+        Assert(!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Weak evidence enabled exact painting");
         Assert(Field<Button>(window,"adaptiveRetry").IsEnabled,"Failed Size retry inaccessible");
         string captions=string.Join("\n",Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"]));
         Assert(captions.Contains(english?"Weak repeatable trace":"Слабкий повторюваний слід")&&captions.Contains("69–70/80"),"Weak measurements hidden");
@@ -215,7 +216,7 @@ internal static class Program
         var s=ReadySettings(language);BrushSpan[] pixels=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(pixels,pixels,new(20,20,20));
         BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[stamp,stamp,stamp])]);s.Set("probe_size",3);s.Set("adaptive_brush",false);s.Set("coverage_audit",false);s.Save(Path.Combine(directory,"config-csharp.json"));
         var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
-        Assert(!Field<CheckBox>(window,"adaptiveEnabled").IsEnabled,"Partial masks enabled adaptive without Size 1");
+        CheckUnmeasuredAdaptiveClick(window);
         Assert(!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Partial Size 3 incorrectly enabled audit without Size 1");
         string failure="Size 1, повтор 1/3: контраст 69/255, потрібно 80; змінених пікселів 8. Цей Size не збережено.";
         SetField(window,"adaptiveFailure",failure);Invoke(window,"RefreshAdaptiveStatus");
@@ -334,7 +335,7 @@ internal static class Program
     private static void CheckPaletteComparison(string output, string language, int width)
     {
         bool english = language == "English"; string name = "palette-comparison-" + (english ? "en" : "ua");
-        var cfg = Settings.Defaults(); cfg.Set("color_mode", "HEX Direct"); cfg.Set("cell_px", 1);
+        var cfg=Settings.Defaults();cfg.Set("drawing_mode","Advanced"); cfg.Set("color_mode", "HEX Direct"); cfg.Set("cell_px", 1);
         cfg.Set("preblur", 0); cfg.Set("edge_preserve", false); cfg.Set("skin_assist", false); cfg.Set("fit_mode", "fit whole");
         var cal = cfg.Calibration; cal.SetRect("canvas", new(10, 10, 106, 106)); cfg.SetCalibration(cal);
         var comparison = PaletteComparison.Build(PaletteFixture(), cfg);
@@ -400,7 +401,7 @@ internal static class Program
         Assert(PaletteComparisonWindow.PercentDelta(120, 100, culture) == "↑20.0%", "Increased cost looks like a reduction");
         Assert(PaletteComparisonWindow.AbsoluteDelta(10, 7, 0, culture) == "+3" && PaletteComparisonWindow.AbsoluteDelta(3, 5, 0, culture) == "-2", "Wide/Size difference is not an absolute signed count");
         Assert(PaletteComparisonWindow.AbsoluteDelta(.0001, .0002, 2, culture) == "0.00", "Delta E shows a negative rounded zero");
-        var cfg = Settings.Defaults(); cfg.Set("color_mode", "HEX Direct");
+        var cfg=Settings.Defaults();cfg.Set("drawing_mode","Advanced"); cfg.Set("color_mode", "HEX Direct");
         var cal = cfg.Calibration; cal.SetRect("canvas", new(0, 0, 16, 16)); cfg.SetCalibration(cal);
         var comparison = PaletteComparison.Build(new PixelImage(16, 16), cfg);
         var window = new PaletteComparisonWindow(true, _ => throw new Exception("Comparison auto-selected a palette")); window.ShowResults(comparison);
@@ -478,7 +479,7 @@ internal static class Program
     private static void CheckWindow(string output, bool calibrated, bool stale, string language, string name, int width, bool enabled = false)
     {
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=Settings.Defaults();settings.Set("language",language);settings.Set("adaptive_brush",enabled);
+        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);settings.Set("adaptive_brush",enabled);
         var cal=settings.Calibration;cal.SetRect("canvas",new(50,50,450,450));cal.SetSession(new(0,0),96,new(1280,720));
         cal.SetPoint("brush_tool",new(600,80));cal.SetRect("brush_shapes",new(500,100,850,140));
         foreach(var (kind,y) in new[]{("size",200),("interval",250),("opacity",300)})
@@ -499,9 +500,9 @@ internal static class Program
         root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
         var checks=Descendants(root).OfType<CheckBox>().Where(x=>x.Content?.ToString()?.Contains(language=="English"?"Enable adaptive brush":"Увімкнути адаптивний пензель")==true).ToArray();
         Assert(checks.Length==1,"Adaptive toggle duplicated");
-        Assert(checks[0].IsEnabled==(enabled||calibrated&&!stale),"Adaptive readiness not reflected in toggle");
+        Assert(checks[0].IsEnabled,"Adaptive help must remain accessible without measurements");
         window.SetEditing(false);window.SetEditing(true);
-        Assert(checks[0].IsEnabled==(enabled||calibrated&&!stale),"Returning from an operation bypassed adaptive readiness");
+        Assert(checks[0].IsEnabled,"Adaptive help must remain accessible after operations");
         var text=string.Join("\n",Descendants(root).OfType<TextBlock>().Select(x=>x.Text));
         Assert(text.Contains(language=="English"?"1. Preparation":"1. Підготовка"),"Preparation section missing");
         Assert(text.Contains(language=="English"?"2. Automatic calibration":"2. Автоматичне калібрування"),"Calibration section missing");
@@ -519,7 +520,7 @@ internal static class Program
     {
         string name="fast-"+(language=="English"?"en":"ua")+"-"+width;
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=Settings.Defaults();settings.Set("language",language);settings.Set("cell_px",3);settings.Set("speed_profile","Rapid");
+        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);settings.Set("cell_px",3);settings.Set("speed_profile","Rapid");
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
         string config=Path.Combine(directory,"config-csharp.json");settings.Save(config);
         var window=new MainWindow(directory);window.ShowPage("paint");var root=(FrameworkElement)window.Content;
@@ -546,7 +547,7 @@ internal static class Program
     private static object? Invoke(MainWindow window,string name,params object[] args) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,args);
     private static Settings ReadySettings(string language)
     {
-        var settings=Settings.Defaults();settings.Set("language",language);
+        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);
         var cal=settings.Calibration;cal.SetRect("canvas",new(10,10,1010,1010));cal.SetSession(new(0,0),96,new(1440,1080));
         cal.SetPoint("brush_tool",new(1050,80));cal.SetRect("brush_shapes",new(1050,100,1400,140));
         foreach(var (kind,y) in new[]{("size",200),("interval",250),("opacity",300)})
@@ -918,7 +919,7 @@ internal static class Program
 
     private static void CheckAutoBrushExecutor()
     {
-        var settings=Settings.Defaults();settings.Set("coverage_mode","Fast");settings.Set("cell_px",21);
+        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("coverage_mode","Fast");settings.Set("cell_px",21);
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
         var worker=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
         typeof(Painter).GetField("settings",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(worker,settings);
