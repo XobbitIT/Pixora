@@ -751,5 +751,7 @@
   "Size {p0}: три вимірювання неузгоджені; цей Size не збережено.": "Size {p0}: three measurements are inconsistent; this Size was not saved.",
   "Для адаптивного режиму потрібен підтверджений Size 1. Спробуй суцільний квадратний пензель №4 і калібруй лише Size 1 на чистому полотні.": "Adaptive mode requires a verified Size 1. Try solid square brush 4 and calibrate Size 1 alone on a clean Canvas.",
   "Калібрування часткове: збережено {p0} Size, відхилено {p1}. Кожен збережений Size має 3/3 вимірювання. Переглянь причини в розділі «Пензель»; очисти полотно.": "Partial calibration: {p0} Sizes saved, {p1} rejected. Each saved Size has 3/3 measurements. See reasons on the Brush page; clear Canvas.",
-  "Спочатку відкалібруй вибраний розмір пензля.": "Calibrate the selected brush Size first."
+  "Спочатку відкалібруй вибраний розмір пензля.": "Calibrate the selected brush Size first.",
+  "Size {p0}: фон нестабільний; цей Size не збережено.": "Size {p0}: background is unstable; this Size was not saved.",
+  "Немає вимірювання фону.": "Background measurement is unavailable."
 }

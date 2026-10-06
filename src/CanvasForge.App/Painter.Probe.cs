@@ -20,12 +20,12 @@ internal sealed partial class Painter
         CheckProbe();CalibratedMotion.Draw(line,sample,motionInput);CheckProbe();
         lastPaintPoint=Native.Cursor();
     }
-    public PixelImage StableProbeShot(ScreenRect area,Action<PixelImage,PixelImage,int> unstableFrames)
+    public PixelImage StableProbeShot(ScreenRect area,Action<PixelImage,PixelImage,int> unstableFrames,Action<PixelImage,PixelImage>? settledFrames=null)
     {
-        try{return StableShot(area,unstableFrames);}
+        try{return StableShot(area,unstableFrames,settledFrames);}
         catch(InputInterrupted){CheckProbe();throw;}
     }
-    public PixelImage StableShot(ScreenRect area,Action<PixelImage,PixelImage,int>? unstableFrames=null)
+    public PixelImage StableShot(ScreenRect area,Action<PixelImage,PixelImage,int>? unstableFrames=null,Action<PixelImage,PixelImage>? settledFrames=null)
     {
         var original=Native.Cursor();
         // A tile capture only needs the cursor outside that tile. Moving to the
@@ -48,7 +48,7 @@ internal sealed partial class Painter
         for(int i=0;i<5;i++)
         {
             Delay(.08);Check();if(Paused)throw new InputInterrupted();var next=Native.Screenshot(area);
-            if(CoverageAudit.Stable(previous,next))return next;
+            if(CoverageAudit.Stable(previous,next)){settledFrames?.Invoke(previous,next);return next;}
             unstableFrames?.Invoke(previous,next,i+1);
             previous=next;
         }

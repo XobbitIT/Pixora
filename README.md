@@ -1,6 +1,8 @@
 # Pixora
 
-Raster painting assistant for Rust. Development build **1.0.14-beta.28**, Windows 10/11 x64.
+Raster painting assistant for Rust. Development build **1.0.14-beta.29**, Windows 10/11 x64.
+
+Beta.29 collects all three weak dot measurements with settled background frames, separates diagnostic weak repeatability from certified solid masks, adds per-Size status and scoped retry, and checks package document/DLL versions. No weak result enables adaptive painting or Speed Probe. See [changes](CHANGES_BETA29_UA.md) and [Round/Square A/B checklist](TESTING_BETA29_UA.md). New live verification is pending.
 
 Beta.28 keeps complete three-dot measurements per Size when another Size has weak contrast. Spatial/Speed Probe readiness is scoped to its measured Size; partial Size 3 does not certify Size 1 or enable adaptive painting. The recorded faint Round Size 1 remains rejected. See [changes](CHANGES_BETA28_UA.md) and [calibration checklist](TESTING_BETA28_UA.md).
 
@@ -22,7 +24,7 @@ See [changes](CHANGES_BETA22_UA.md) and [Rust test checklist](TESTING_BETA22_UA.
 - [Release changes](CHANGES_1.0.14_UA.md)
 - [Rust testing guide](TESTING_1.0.14_UA.md)
 
-The Windows workflow runs 211 Core tests and 56 WPF checks before publishing a self-contained portable build. After a successful workflow run, download the artifact named `Pixora_<version>_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
+The Windows workflow runs 230 Core tests and 62 WPF checks before publishing a self-contained portable build. After a successful workflow run, download the artifact named `Pixora_<version>_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
 
 Size, Interval and Opacity use verified numeric entry. Brush calibration and values have a dedicated page; Speed Probe and coverage audit have a separate sidebar entry. Speed Probe compares paced SendInput movement and Shift lines on separate clean areas with three repeated trials and a validated timing margin. A current per-Size/axis profile selects verified routes in Precision and adaptive painting; untested cases retain normal input. Long Shift strokes are split at tested spans.
 

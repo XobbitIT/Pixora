@@ -69,6 +69,12 @@ jobs:
             published-ui-verification/**
           if-no-files-found: warn
 
+      - name: Check package documents and version contract
+        shell: pwsh
+        run: |
+          ./tools/Package-Version.ps1 -SelfTest -WriteDocuments -PackageDirectory "$PWD/publish/windows-x64" -SourceDirectory "$PWD"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Upload Pixora portable
         uses: actions/upload-artifact@v4
         with:

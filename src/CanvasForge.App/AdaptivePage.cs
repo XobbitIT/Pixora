@@ -10,6 +10,7 @@ internal sealed partial class MainWindow
     private TextBlock adaptiveStatus = new(), adaptiveSummary = new(), adaptivePreparation = new(), adaptiveResult = new();
     private CheckBox adaptiveEnabled = new();
     private Button adaptiveCalibrate = new();
+    private Button adaptiveRetry = new();
     private string adaptiveFailure = "";
     private void ShowSpeedSetup()=>ShowPage("speed");
 
@@ -44,10 +45,14 @@ internal sealed partial class MainWindow
         AddCombo(calibration,"brush_calibration_size",T("Розміри для калібрування","Sizes to calibrate"),new[]{"1/3/10/20","1","3","10","20","40","60","100"});
         adaptiveCalibrate = AsyncButton(T("Калібрувати автоматично", "Calibrate automatically"), CalibrateBrush, true);
         calibration.Children.Add(adaptiveCalibrate);
+        adaptiveRetry=AsyncButton(T("Повторити лише невдалі вибрані Size","Retry only failed selected Sizes"),CalibrateFailedBrush);
+        adaptiveRetry.Tag="brush-retry-failed";calibration.Children.Add(adaptiveRetry);
         calibration.Children.Add(Text(T("Під час тесту не рухай мишу. ESC — скасувати. Після завершення очисти полотно.", "Do not move the mouse during the test. ESC cancels. Clear Canvas afterwards."), 11, Muted));
         calibration.Children.Add(Text(T("Кожен Size зберігається лише після 3/3 узгоджених вимірювань. Слабкий Size не блокує решту. Підтверджений Size 3/10/20 можна окремо перевірити тестом швидкості; адаптивному режиму потрібен Size 1.",
             "Each Size is saved only after 3/3 consistent measurements. A weak Size does not block the others. Verified Size 3/10/20 can be tested independently in Speed Probe; adaptive mode requires Size 1."),12,Muted));
         adaptiveResult = Text("", 12); calibration.Children.Add(adaptiveResult);
+        var states=new StackPanel();calibration.Children.Add(states);
+        BuildBrushStates(states);
         var samples = new StackPanel();
         calibration.Children.Add(new Expander { Header = T("Виміряні розміри пензля", "Measured brush sizes"), Content = samples });
         samples.Children.Add(Text(T("Розмір → діаметр крапки / суцільне покриття (px)", "Size → dot diameter / solid coverage (px)"), 11, Muted));
@@ -88,6 +93,10 @@ internal sealed partial class MainWindow
         var current = AdaptiveBrush.CalibrationCurrent(settings);
         adaptivePreparation.Text = problem is null ? T("✓ Полотно, керування й палітра захоплені.", "✓ Canvas, controls, and palette are captured.") : T(problem);
         adaptiveCalibrate.IsEnabled = problem is null && !Painting;
+        var selected=settings.Text("brush_calibration_size","1/3/10/20");
+        double[] requested=double.TryParse(selected,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var parsed)
+            &&BrushFootprints.Sizes.Contains(parsed)?[parsed]:[1,3,10,20];
+        adaptiveRetry.IsEnabled=problem is null&&!Painting&&BrushSignalDiagnostics.RetrySizes(settings,requested).Length>0;
         // A legacy/stale enabled setting must remain possible to turn off.
         adaptiveEnabled.IsEnabled = !Painting && (settings.Bool("adaptive_brush") || current && problem is null);
         adaptiveEnabled.ToolTip = current ? null : T("Спочатку натисни «Калібрувати автоматично».", "Click Calibrate automatically first.");
@@ -104,5 +113,39 @@ internal sealed partial class MainWindow
         adaptiveSummary.Text = settings.Bool("adaptive_brush") && current
             ? T("Адаптивний режим: увімкнено", "Adaptive mode: enabled")
             : T("Адаптивний режим: вимкнено або потрібне калібрування", "Adaptive mode: disabled or needs calibration");
+    }
+
+    private void BuildBrushStates(StackPanel panel)
+    {
+        var diagnostics=BrushSignalDiagnostics.Read(settings);
+        var speed=SpeedCalibration.Read(settings);
+        foreach(double size in new double[]{1,3,10,20}.Union(diagnostics.Select(r=>r.Size)).Union(BrushFootprints.Read(settings).Select(r=>r.Size)).Order())
+        {
+            var attempt=diagnostics.FirstOrDefault(r=>r.Size==size);var profile=BrushFootprints.Find(settings,size);
+            var state=attempt?.State??(profile is {SolidCore.Valid:true}?BrushSignalState.Verified:(BrushSignalState?)null);
+            var row=new Grid{Margin=new(0,5,0,5),Tag=$"brush-state:{size}"};
+            row.ColumnDefinitions.Add(new(){Width=new GridLength(78)});row.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
+            var label=Text($"Size {size}",12);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
+            var values=new StackPanel();Grid.SetColumn(values,1);row.Children.Add(values);
+            var chip=new StatusChip();chip.Set(state switch{
+                BrushSignalState.Verified=>T("Підтверджено · 3/3","Verified · 3/3"),
+                BrushSignalState.WeakRepeatable=>T("Слабкий повторюваний слід · 3/3","Weak repeatable trace · 3/3"),
+                BrushSignalState.Rejected=>T("Відхилено","Rejected"),BrushSignalState.Stale=>T("Застаріло","Stale"),
+                _=>T("Не виміряно","Not measured")},state==BrushSignalState.Verified?Success:state==BrushSignalState.Rejected?Danger:Warning);
+            values.Children.Add(chip);
+            if(attempt is not null)
+            {
+                string detail=T($"Контраст {attempt.Samples.Min(s=>s.Contrast.PeakDelta)}–{attempt.Samples.Max(s=>s.Contrast.PeakDelta)}/80 · шум ≤{attempt.Samples.Max(s=>s.NoisePeak)} · збіг масок {attempt.SpatialAgreement:P0}",
+                    $"Contrast {attempt.Samples.Min(s=>s.Contrast.PeakDelta)}–{attempt.Samples.Max(s=>s.Contrast.PeakDelta)}/80 · noise ≤{attempt.Samples.Max(s=>s.NoisePeak)} · mask agreement {attempt.SpatialAgreement:P0}");
+                values.Children.Add(Text(detail,11,Muted));
+                chip.ToolTip=T("Слабкий слід — діагностика, а не підтверджене суцільне покриття. Він не вмикає Adaptive чи Speed Probe.",
+                    "A weak trace is diagnostic evidence, not verified solid coverage. It does not enable Adaptive or Speed Probe.");
+                if(state!=BrushSignalState.Verified&&profile is {SolidCore.Valid:true})values.Children.Add(Text(T("Попередня актуальна маска збережена.","Previous current mask retained."),11,Muted));
+            }
+            var routes=speed?.Samples.Where(s=>s.Size==size).ToArray()??[];
+            values.Children.Add(Text(routes.Length==0?T("Швидкість: не перевірено","Speed: not tested"):
+                T("Швидкість: ","Speed: ")+string.Join(" / ",routes.Select(s=>$"{(s.Vertical?"V":"H")} {s.Method} {s.SafeMs} ms")),11,Muted));
+            panel.Children.Add(row);
+        }
     }
 }

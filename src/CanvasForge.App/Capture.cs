@@ -436,7 +436,9 @@ internal sealed partial class MainWindow
         }
     }
 
-    private async Task CalibrateBrush()
+    private Task CalibrateBrush()=>CalibrateBrushSizes(false);
+    private Task CalibrateFailedBrush()=>CalibrateBrushSizes(true);
+    private async Task CalibrateBrushSizes(bool retryOnly)
     {
         if (Painting) return;
         ReadSettings();
@@ -450,6 +452,8 @@ internal sealed partial class MainWindow
         var dpi = cal.SessionDpi;
         var selection=settings.Text("brush_calibration_size","1/3/10/20");
         double[] sizes=selection=="1/3/10/20"?[1,3,10,20]:[double.Parse(selection,System.Globalization.CultureInfo.InvariantCulture)];
+        if(retryOnly)sizes=BrushSignalDiagnostics.RetrySizes(settings,sizes);
+        if(sizes.Length==0){SetStatus(T("Усі вибрані Size вже підтверджені.","All selected Sizes are already verified."));return;}
         var tiles=BrushFootprints.Tiles(r,sizes); // Reject insufficient space before any input.
         if (!ShowMessage(T($"Відкрий чисте полотно. Буде {tiles.Count} крапок: по три незалежні вимірювання кожного Size. Не рухай мишу; ESC — скасувати. Після калібрування очисти полотно. Почати?", $"Open a clean Canvas. {tiles.Count} dots will be drawn: three independent measurements per Size. Do not move the mouse; ESC cancels. Clear Canvas afterwards. Start?"), T("Автоматичне калібрування", "Automatic calibration"), true)) return;
         if (Native.FindRustAt(r.Center) != target) throw new InvalidOperationException("Canvas is outside Rust.");
@@ -497,31 +501,33 @@ internal sealed partial class MainWindow
                     {
                     // Calibration dots use the same guarded movement and settled,
                     // cursor-free capture as spatial controls and coverage audits.
-                    var before = worker.StableProbeShot(area,(_,_,_)=>{}); CheckFrame();
+                    PixelImage? background=null;
+                    var before = worker.StableProbeShot(area,(_,_,_)=>{},(previous,_)=>background=previous); CheckFrame();
                     worker.ProbeStroke(new(p.X,p.Y,p.X,p.Y),new(tile.Size,StrokeMethod.Paced,false,64,64,1,8,3,1));
                     var after = worker.StableProbeShot(area,(_,_,_)=>{}); CheckFrame();
                     var stem=$"shape-{settings.Int("brush_shape_slot",3)}-size-{tile.Size}-repeat-{tile.Repeat+1}";
                     Images.Save(before,Path.Combine(diagnostic,stem+"-before.png"));Images.Save(after,Path.Combine(diagnostic,stem+"-after.png"));
+                    if(background is null)throw new InvalidOperationException("Background measurement is unavailable.");
+                    Images.Save(background,Path.Combine(diagnostic,stem+"-background.png"));
                     File.WriteAllText(Path.Combine(diagnostic,stem+"-metrics.json"),System.Text.Json.JsonSerializer.Serialize(new{
                         shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
-                        contrast=BrushFootprints.Contrast(before,after),requestedColor=color.Hex}));
-                    BrushStamp stamp;
-                    try{stamp=BrushFootprints.Measure(before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size,measurements.Reference(tile.Size));}
-                    catch(BrushContrastException e){measurements.Reject(tile.Size,tile.Repeat+1,e);continue;}
-                    measurements.Add(tile.Size,tile.Repeat+1,stamp);
-                    var detail=new{shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,stamp,color=color.Hex};
+                        contrast=BrushFootprints.Contrast(before,after),backgroundNoise=BrushFootprints.Contrast(background,before),requestedColor=color.Hex}));
+                    measurements.Record(tile.Size,tile.Repeat+1,background,before,after,new(p.X-area.Left,p.Y-area.Top));
+                    var detail=new{shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
+                        signal=BrushSignalDiagnostics.Inspect(tile.Repeat+1,background,before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size),color=color.Hex};
                     File.WriteAllText(Path.Combine(diagnostic,stem+".json"),System.Text.Json.JsonSerializer.Serialize(detail));
                     File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = detail }) + Environment.NewLine);
                     }
                     finally {worker.RestoreLastStrokeCursor();}
                 }
                 File.WriteAllText(Path.Combine(diagnostic,"profiles.json"),System.Text.Json.JsonSerializer.Serialize(measurements.Profiles));
-                File.WriteAllText(Path.Combine(diagnostic,"result.json"),System.Text.Json.JsonSerializer.Serialize(new{measurements.Profiles,measurements.Rejected}));
+                File.WriteAllText(Path.Combine(diagnostic,"result.json"),System.Text.Json.JsonSerializer.Serialize(new{measurements.Profiles,measurements.Rejected,measurements.Diagnostics}));
                 foreach(var rejected in measurements.Rejected)
                     File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="brush_calibration_rejected",details=rejected})+Environment.NewLine);
                 return measurements;
             });
             if(batch.Profiles.Count>0)BrushFootprints.Save(settings,batch.Profiles);
+            BrushSignalDiagnostics.Save(settings,batch.Diagnostics);
             var points=BrushFootprints.Read(settings).OrderBy(p=>p.Size).Select(p=>new double[]{p.Size,p.Reach*2+1,
                 Math.Max(1,SpeedCalibration.Footprint(settings,p.Size).Inner*2+1)}).ToArray();
             if(batch.Profiles.Count>0)
@@ -530,7 +536,9 @@ internal sealed partial class MainWindow
                 settings.Set("brush_calibration_context", AdaptiveBrush.Context(settings));
             }
             settings.Set("adaptive_brush",batch.Rejected.Count==0&&AdaptiveBrush.CalibrationCurrent(settings));
-            adaptiveFailure=string.Join("\n",batch.Rejected.Select(f=>f.Contrast is { } c
+            adaptiveFailure=string.Join("\n",batch.Rejected.Select(f=>f.Reason=="Background is unstable."
+                ?T($"Size {f.Size}: фон нестабільний; цей Size не збережено.",$"Size {f.Size}: background is unstable; this Size was not saved.")
+                :f.Contrast is { } c
                 ?T($"Size {f.Size}, повтор {f.Repeat}/3: контраст {c.PeakDelta}/255, потрібно {c.RequiredDelta}; змінених пікселів {c.ChangedPixels}. Цей Size не збережено.",
                     $"Size {f.Size}, repeat {f.Repeat}/3: contrast {c.PeakDelta}/255, required {c.RequiredDelta}; changed pixels {c.ChangedPixels}. This Size was not saved.")
                 :T($"Size {f.Size}: три вимірювання неузгоджені; цей Size не збережено.",
@@ -538,7 +546,7 @@ internal sealed partial class MainWindow
             if(batch.Rejected.Any(f=>f.Size==1))adaptiveFailure+="\n"+T("Для адаптивного режиму потрібен підтверджений Size 1. Спробуй суцільний квадратний пензель №4 і калібруй лише Size 1 на чистому полотні.",
                 "Adaptive mode requires a verified Size 1. Try solid square brush 4 and calibrate Size 1 alone on a clean Canvas.");
             File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="brush_calibration_complete",details=new{
-                version=BuildInfo.Version,shape=settings.Int("brush_shape_slot",3),savedSizes=batch.Profiles.Select(p=>p.Size),rejected=batch.Rejected,
+                version=BuildInfo.Version,shape=settings.Int("brush_shape_slot",3),savedSizes=batch.Profiles.Select(p=>p.Size),rejected=batch.Rejected,signals=batch.Diagnostics,
                 adaptiveReady=AdaptiveBrush.CalibrationCurrent(settings),diagnostics=diagnosticPath}})+Environment.NewLine);
             Dirty();
             SetStatus(batch.Rejected.Count==0

@@ -16,6 +16,7 @@ internal static class BrushBatchChecks
         test("Weak Size 1 cannot discard three complete Size 3 measurements",()=>{
             var batch=new BrushCalibrationBatch(Config(),3,[1,3]);
             batch.Add(1,1,Stamp());batch.Reject(1,2,new(new(69,8,80,new(145,140,130),new(76,74,72))));
+            Require(batch.ShouldMeasure(1));batch.Reject(1,3,new(new(70,8,80,new(146,140,130),new(76,74,72))));
             for(int repeat=1;repeat<=3;repeat++)batch.Add(3,repeat,Stamp());
             Require(!batch.ShouldMeasure(1)&&batch.Profiles.Count==1&&batch.Profiles[0].Size==3&&batch.Profiles[0].Repeats==3);
             Require(batch.Rejected.Single().Contrast!.PeakDelta==69&&batch.Rejected[0].Repeat==2);

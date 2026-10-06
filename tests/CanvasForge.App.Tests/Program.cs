@@ -77,7 +77,9 @@ internal static class Program
         CheckLocalProbeDiagnostics(destination,"English");
         CheckPartialBrushUi(destination,"Українська");
         CheckPartialBrushUi(destination,"English");
-        Console.WriteLine("ALL 60 WPF UI CHECKS PASSED");
+        CheckBrushSignalUi(destination,"Українська");
+        CheckBrushSignalUi(destination,"English");
+        Console.WriteLine("ALL 62 WPF UI CHECKS PASSED");
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
         if(args.Length>3)ReplayBeta26Failures(args[3],destination);
@@ -91,6 +93,28 @@ internal static class Program
         }
     }
 
+    private static void CheckBrushSignalUi(string output,string language)
+    {
+        bool english=language=="English";string name="brush-signal-"+(english?"en":"ua");string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var s=ReadySettings(language);s.Data.Remove("brush_footprints");s.Data.Remove("brush_calibration_points");s.Data.Remove("brush_calibration_context");
+        BrushSpan[] support=[new(0,0,2),new(1,0,2)];
+        var samples=Enumerable.Range(1,3).Select(i=>new BrushSignalSample(i,new(69+i%2,4,80,new(140,140,140),new(70,70,70)),2,support)).ToArray();
+        var weak=BrushSignalDiagnostics.Summarize(s,3,1,samples,null);BrushSignalDiagnostics.Save(s,[weak]);s.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        Assert(!Field<CheckBox>(window,"adaptiveEnabled").IsEnabled&&!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Weak evidence enabled exact painting");
+        Assert(Field<Button>(window,"adaptiveRetry").IsEnabled,"Failed Size retry inaccessible");
+        string captions=string.Join("\n",Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"]));
+        Assert(captions.Contains(english?"Weak repeatable trace":"Слабкий повторюваний слід")&&captions.Contains("69–70/80"),"Weak measurements hidden");
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"Signal diagnostics untranslated");
+        var current=Field<Settings>(window,"settings");var c=current.Calibration;c.SetSession(new(1,0),96,new(1920,1440));current.SetCalibration(c);
+        Assert(BrushSignalDiagnostics.Read(current).Single().State==BrushSignalState.Stale,"Changed session did not invalidate signal context");
+        Invoke(window,"BuildUi");window.ShowPage("adaptive");Render(window,Path.Combine(output,name+"-stale.png"),1280);
+        captions=string.Join("\n",Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"]));
+        Assert(captions.Contains(english?"Stale":"Застаріло"),"Moved calibration retained current diagnostic status");
+        Field<Settings>(window,"settings").Set("brush_calibration_size","invalid imported value");Invoke(window,"BuildUi");
+        Assert(Field<Button>(window,"adaptiveRetry").IsEnabled,"Malformed imported Size broke retry UI");
+        Console.WriteLine("PASS "+name);
+    }
     private static void ReplayBeta27WeakDots(string source,string output)
     {
         var rows=new List<object>();
