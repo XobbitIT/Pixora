@@ -18,7 +18,11 @@ internal static class NativeClipboardChecks
             {Native.ClipboardWrite("temporary marker");Require(empty.Restore(Native.ClipboardSequence()));Require(!Clipboard.ContainsText());}
             Clipboard.SetText("original text");
             using(var lease=new ClipboardLease(new WindowsClipboardStore(),(uint)Environment.ProcessId,_=>{}))
-            {lease.Write("first marker");lease.Write("second marker");Require(lease.Read()=="second marker");}
+            {
+                lease.Write("first marker");Console.WriteLine("PASS native clipboard first transaction write");
+                lease.Write("second marker");Console.WriteLine("PASS native clipboard second transaction write");
+                Require(lease.Read()=="second marker");
+            }
             Require(Clipboard.GetText()=="original text");
             var pixels=new byte[]{0,0,255,255,0,255,0,255,255,0,0,255,255,255,255,255};
             var image=BitmapSource.Create(2,2,96,96,PixelFormats.Bgra32,null,pixels,8);image.Freeze();Clipboard.SetImage(image);

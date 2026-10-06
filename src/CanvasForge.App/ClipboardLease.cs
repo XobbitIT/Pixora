@@ -26,7 +26,8 @@ internal sealed class ClipboardLease:IDisposable
     internal ClipboardLease(IClipboardStore store,uint targetProcess,Action<string> report)
     {
         this.store=store;this.targetProcess=targetProcess;this.report=report;
-        backup=ClipboardRetry.Run(store.Capture,()=>Thread.Sleep(25));expected=backup.Sequence;
+        try{backup=ClipboardRetry.Run(store.Capture,()=>Thread.Sleep(25));expected=backup.Sequence;}
+        catch{(store as IDisposable)?.Dispose();throw;}
     }
     internal void Write(string text)
     {
@@ -55,15 +56,19 @@ internal sealed class ClipboardLease:IDisposable
             report("restore_failed:"+e.GetType().Name);
             throw new InvalidOperationException("Не вдалося відновити буфер обміну. Закрий програму, яка утримує його, і перевір вміст.",e);
         }
-        finally{backup.Dispose();}
+        finally{try{backup.Dispose();}finally{(store as IDisposable)?.Dispose();}}
     }
 }
-internal sealed class WindowsClipboardStore:IClipboardStore
+internal sealed class WindowsClipboardStore:IClipboardStore,IDisposable
 {
+    // Keep the owner alive for the whole transaction. Destroying it between
+    // writes changes the clipboard sequence and looks like an external copy.
+    private Native.ClipboardWriteWindow? owner;
     public uint Sequence=>Native.ClipboardSequence();
     public uint OwnerProcess=>Native.ProcessIdOf(Native.ClipboardOwner());
     public IClipboardBackup Capture()=>Native.ClipboardBackup.Capture();
     public ClipboardObservation Read()=>Native.ObserveClipboard();
-    public uint Write(string text,uint expectedSequence)=>Native.ClipboardWrite(text,expectedSequence);
+    public uint Write(string text,uint expectedSequence)=>Native.ClipboardWrite(text,expectedSequence,(owner??=new()).Handle);
     public bool Restore(IClipboardBackup backup,uint expectedSequence)=>((Native.ClipboardBackup)backup).Restore(expectedSequence);
+    public void Dispose(){owner?.Dispose();owner=null;}
 }

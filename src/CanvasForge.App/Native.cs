@@ -427,7 +427,7 @@ internal static partial class Native
         }
     }
 
-    public static uint ClipboardWrite(string text,uint? expectedSequence=null)
+    public static uint ClipboardWrite(string text,uint? expectedSequence=null,IntPtr ownerWindow=default)
     {
         var bytes = Encoding.Unicode.GetBytes(text + '\0');
         var handle = GlobalAlloc(0x42, (UIntPtr)bytes.Length);
@@ -448,8 +448,8 @@ internal static partial class Native
                 GlobalUnlock(handle);
             }
 
-            using var owner=new ClipboardWriteWindow();
-            ClipboardOpen(owner.Handle);
+            using var owner=ownerWindow==IntPtr.Zero?new ClipboardWriteWindow():null;
+            ClipboardOpen(owner?.Handle??ownerWindow);
             try
             {
                 if(expectedSequence.HasValue&&ClipboardSequence()!=expectedSequence.Value)
