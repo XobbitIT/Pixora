@@ -781,5 +781,15 @@
   "Size 1 не має підтвердженого суцільного ядра. Відкрий «Пензель» і переглянь причини; швидкі проби не запускалися.": "Size 1 has no verified solid core. Open Brush to review the reasons; speed trials were not run.",
   "Не всі області захоплені. Повтори виділення.": "Some regions are missing. Repeat the selections.",
   "Просторові зміщення не підтверджені.": "Spatial offsets were not verified.",
-  "Жоден швидкий маршрут не пройшов перевірку. Окремі налаштування доступні в розділі «Тест швидкості».": "No fast route passed. Individual controls are available on the Speed Probe page."
+  "Жоден швидкий маршрут не пройшов перевірку. Окремі налаштування доступні в розділі «Тест швидкості».": "No fast route passed. Individual controls are available on the Speed Probe page.",
+  "Контекст тесту змінився; нові маршрути не збережені.": "The test context changed; new routes were not saved.",
+  "Неповний доказ маршруту; результат тесту не збережений.": "Incomplete route evidence; probe results were not saved.",
+  "Тест швидкості: замало зразків суцільного ядра лінії.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: insufficient solid-core samples.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}.",
+  "Тест швидкості: слабкий контраст між полотном і лінією.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: low contrast between Canvas and the line.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}.",
+  "Тест швидкості: неоднорідний колір у суцільному ядрі лінії.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: non-uniform color in the solid core.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}.",
+  "Тест швидкості: у контрольній лінії є прогалини.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: the tested line has gaps.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}.",
+  "Тест швидкості: частину пікселів ядра не вдалося підтвердити.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: some core pixels could not be verified.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}.",
+  "Тест швидкості: лінія є в допустимій області, але її колір не відповідає повільному еталону. Маршрут відхилено.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: a line is present inside the allowed region, but its color does not match the slow reference. The route was rejected.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}.",
+  "Тест швидкості: сцена змінилася за межами тестової лінії.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: the scene changed outside the test line.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}.",
+  "Тест швидкості: очікуване ядро обрізане межами знімка. Потрібна більша тестова ділянка.\nПідтверджено: {p0}/{p1}; пропуски: {p2}; невпевнені: {p3}.": "Speed Probe: the expected core is clipped by the screenshot. A larger test area is required.\nVerified: {p0}/{p1}; gaps: {p2}; uncertain: {p3}."
 }

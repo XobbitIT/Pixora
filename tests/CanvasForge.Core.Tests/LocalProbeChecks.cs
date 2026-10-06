@@ -61,8 +61,21 @@ internal static class LocalProbeChecks
         });
         test("Bound slow control preserves refusal when paint exists only outside the model",()=>{
             var f=Fixture(45,2);var slow=ProbeAnalysis.BoundControl(f.Before,f.After,f.Line,7,Axis());
-            Require(slow.PerpendicularOffset==2);
-            try{ProbeSpatialCalibration.Bind(Axis(),slow);throw new Exception("Outside core authorized trial");}catch(InvalidOperationException){}
+            Require(!slow.Passed&&slow.PerpendicularOffset==0&&slow.OutsideCore is {Offset:2,Covered:28,Expected:28});
+            try{ProbeSpatialCalibration.Bind(Axis(),slow);throw new Exception("Outside core authorized trial");}
+            catch(InvalidOperationException e){Require(e.Message.StartsWith(ProbeSpatialCalibration.OutsideMessage));}
+        });
+        test("Uncertain in-model dark core is not replaced by a complete lighter outside edge",()=>{
+            var f=Fixture(39);f.After.Set(48*96+46,new(90,90,90));
+            for(int x=30;x<=65;x++)f.After.Set(52*96+x,new(92,92,92));
+            var axis=new SpatialAxis(false,0,new[]{0,1,3}.Select((offset,i)=>new SpatialAnchor(new(20,20+i*10,60,20+i*10),offset,new(39,39,39),12)).ToList());
+            var slow=ProbeAnalysis.BoundControl(f.Before,f.After,f.Line,5,axis);
+            Require(!slow.Passed&&slow.Failure==ProbeFailure.UncertainPixels&&slow.PerpendicularOffset==0);
+            Require(slow.CoreCoverage is {Covered:27,Expected:28,Missing:0,Unknown:1}&&slow.CoreCoverage.Reference!.Color==new Rgb(39,39,39));
+            Require(slow.OutsideCore is {Offset:4,Color.R:92,Covered:28});
+            try{ProbeSpatialCalibration.Bind(axis,slow);throw new Exception("Uncertain reference authorized trial");}
+            catch(InvalidOperationException e){Require(!e.Message.Contains(ProbeSpatialCalibration.OutsideMessage)&&e.Message.Contains("27/28"));}
+            Require(axis.AllowedOffsets.SequenceEqual(new[]{0,1,2,3}));
         });
         test("Bound slow control cannot substitute a narrow edge for a full wide core",()=>{
             var f=Fixture();var axis=Axis() with{InnerRadius=1};var slow=ProbeAnalysis.BoundControl(f.Before,f.After,f.Line,7,axis);

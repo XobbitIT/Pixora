@@ -18,7 +18,7 @@ internal sealed partial class MainWindow
     }
     private void SetSpeedChip(StatusChip chip)
     {
-        if(speedFailure.Length>0)chip.Set(T("Помилка","Error"),Danger);
+        if(speedFailure.Length>0)chip.Set(SpeedCalibration.Current(settings)?T("Частково перевірено","Partially verified"):T("Помилка","Error"),SpeedCalibration.Current(settings)?Warning:Danger);
         else if(SpeedCalibration.Current(settings))chip.Set(T("Перевірено","Verified"),Success);
         else chip.Set(settings.Data["speed_probe_profile"] is null?T("Очікує","Pending"):T("Застаріло","Stale"),Warning);
     }
@@ -96,6 +96,7 @@ internal sealed partial class MainWindow
         speedStatus.Text=speedFailure.Length>0?T(speedFailure):current?T("✓ Є підтверджені маршрути. Інші розміри використовують звичайний ввід.","Verified routes are available. Other Sizes use normal input.")
             :settings.Data["speed_probe_profile"] is null&&settings.Data["shape_speed_profiles"]?[settings.Int("brush_shape_slot",3).ToString()] is null?T("Швидкість ще не перевірена.","Speed has not been tested yet."):T("Результат тесту застарів — повтори тест швидкості.","Probe results are stale — run Speed Probe again.");
         if(speedProblem is not null)speedStatus.Text+="\n"+T(speedProblem);
+        if(speedFailure.Length>0&&current)speedStatus.Text+="\n"+T("Збережені підтверджені маршрути доступні; решта використовує звичайний ввід.","Saved verified routes are available; other routes use normal input.");
     }
     private Task RunSpeedProbe()=>RunProbe(false);
     private Task RunSpatialProbe()=>RunProbe(true);
@@ -115,6 +116,7 @@ internal sealed partial class MainWindow
         var snapshot=AdaptiveBrush.CalibrationSettings(settings,size);snapshot.Set("coverage_audit",false);snapshot.Set("calibrated_strokes",false);
         // Never stamp unverified routes from an older detector/context as current.
         var old=SpeedCalibration.Current(settings)?SpeedCalibration.Read(settings):null;
+        string probeContext=SpeedCalibration.Context(settings);
         var diagnostics=new ProbeDiagnosticSession(folder,SpeedCalibration.Context(settings),size,footprint.Outer,footprint.Inner);
         diagnostics.SpatialMode(spatialOnly,spatialModel);
         // Nearby controls add real slow motion. Allow the full bounded protocol
@@ -150,6 +152,7 @@ internal sealed partial class MainWindow
                         size,method,vertical,intervalMs=interval,phase,scope=result.Spatial is null?"solid_core":"spatial_core_occupancy",coverage=coverage.Coverage,
                         missing=coverage.Missing,unknown=coverage.Unknown,passed=result.Passed,failure=result.Failure.ToString(),
                         core=result.CoreMeasurement,full=result.FullMeasurement,result.PerpendicularOffset,result.LongitudinalGaps,
+                        result.OutsideCore,
                         spatial=result.Spatial is { } check?new{check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry}:null,
                         diagnostics=diagnostics.DirectoryPath}})+Environment.NewLine);
                 }
@@ -182,9 +185,8 @@ internal sealed partial class MainWindow
                     var after=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(after);
                     var result=ProbeAnalysis.BoundControl(before,after,Local(line,tile.Area),footprint.Outer,spatialModel!.Axes.Single(x=>x.Vertical==vertical));
                     diagnostics.Analysed(before,after,result);LogResult("speed_probe_control",StrokeMethod.Paced,vertical,64,"control",result);
-                    if(!result.Passed)throw new InvalidOperationException(ProbeAnalysis.Explain(result.Failure));
                     try{references[vertical]=ProbeSpatialCalibration.Bind(spatialModel!.Axes.Single(x=>x.Vertical==vertical),result);}
-                    catch(Exception e){diagnostics.RejectedModel(e.Message);throw;}
+                    catch(Exception e){diagnostics.RejectedControl(e.Message);throw;}
                 }
                 diagnostics.FreezeReferences(references);
                 bool Trial(StrokeMethod method,bool vertical,double interval,string phase)
@@ -202,7 +204,7 @@ internal sealed partial class MainWindow
                     // A failed local slow control aborts without testing that trial.
                     AuditReference localReference;
                     try{localReference=ProbeSpatialCalibration.Bind(spatialModel!.Axes.Single(x=>x.Vertical==vertical),controlResult);}
-                    catch(Exception e){diagnostics.RejectedModel(e.Message);throw;}
+                    catch(Exception e){diagnostics.RejectedControl(e.Message);throw;}
                     var controlId=diagnostics.ActiveId;
                     int step=Math.Max(1,2*footprint.Inner+1);
                     diagnostics.Begin(phase,method,vertical,interval,tile.Area,Local(line,tile.Area),stepPixels:step,localControlId:controlId);
@@ -218,15 +220,12 @@ internal sealed partial class MainWindow
                 }
                 foreach(var method in new[]{StrokeMethod.Paced,StrokeMethod.Shift})foreach(bool vertical in new[]{false,true})
                 {
-                    double best=0;
-                    foreach(int ms in SpeedCalibration.CandidatesMs)
+                    if(ProbeSpeedSearch.Run((ms,phase)=>Trial(method,vertical,ms,phase)) is { } timing)
                     {
-                        bool passed=true;for(int repeat=0;repeat<SpeedCalibration.Repeats;repeat++)passed=Trial(method,vertical,ms,"candidate")&&passed;
-                        if(passed)best=ms;
+                        selected.Add(new(size,method,vertical,timing.TestedMs,timing.SafeMs,Math.Max(1,2*footprint.Inner+1),TransferSchedule.Length(tiles[0].Horizontal),3,1,spatialModel!.Id));
+                        diagnostics.Checkpoint(selected);
+                        File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_route_verified",details=selected[^1]})+Environment.NewLine);
                     }
-                    if(best==0)continue;double safe=SpeedCalibration.Margin(best);bool validated=true;
-                    for(int repeat=0;repeat<SpeedCalibration.Repeats;repeat++)validated=Trial(method,vertical,safe,"margin")&&validated;
-                    if(validated)selected.Add(new(size,method,vertical,best,safe,Math.Max(1,2*footprint.Inner+1),TransferSchedule.Length(tiles[0].Horizontal),3,1,spatialModel!.Id));
                 }
                 }
                 finally {Native.Release();if(timer)Native.EndHighResolutionTimer();}
@@ -240,14 +239,9 @@ internal sealed partial class MainWindow
             }
             lastProbeSucceeded=selected.Count>0;
             diagnostics.Complete(selected);
-            var rows=(old?.Samples??[]).Where(x=>x.Size!=size).Concat(selected).ToList();
-            settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,rows));
-            var shapes=settings.Data["shape_speed_profiles"] as System.Text.Json.Nodes.JsonObject??new();
-            shapes[settings.Int("brush_shape_slot",3).ToString()]=settings.Data["speed_probe_profile"]!.DeepClone();settings.Data["shape_speed_profiles"]=shapes;
-            settings.Data.Remove("speed_probe_profile");
-            settings.Set("calibrated_strokes",rows.Count>0);
-            if(selected.Count==0)speedFailure=T("Жоден маршрут для цього розміру не пройшов перевірку. Очисти полотно і повтори тест.","No route for this Size passed verification. Clear Canvas and repeat the test.");
+            StoreProbeRoutes(settings,old,selected,size,probeContext,spatialModel!.Id);
             Dirty();
+            if(selected.Count==0)speedFailure=T("Жоден маршрут для цього розміру не пройшов перевірку. Очисти полотно і повтори тест.","No route for this Size passed verification. Clear Canvas and repeat the test.");
             File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_complete",details=new{version=BuildInfo.Version,size,selected,profileContext=SpeedCalibration.Context(settings)}})+Environment.NewLine);
             SetStatus(selected.Count>0?T("Тест завершено. Підтверджені маршрути збережено; очисти полотно перед початком малювання.","Test complete. Verified routes saved; clear Canvas before START."):T("Жоден маршрут не пройшов перевірку. Збережено звичайний ввід.","No route passed verification. Normal input remains active."));
         }
@@ -260,7 +254,7 @@ internal sealed partial class MainWindow
                 File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_timeout",details=new{budgetSeconds}})+Environment.NewLine);
                 if(setupRunning)throw failure;
             }
-            else{RecordFailure(e);SetStatus(T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying."));if(setupRunning)throw;}
+            else{RecordFailure(e);speedFailure=T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying.");SetStatus(speedFailure);if(setupRunning)throw;}
         }
         catch(Exception e){RecordFailure(e);speedFailure=e.Message;throw;}
         finally
@@ -281,9 +275,31 @@ internal sealed partial class MainWindow
         }
         void RecordFailure(Exception e)
         {
+            // The worker has ended. Persist only complete candidate + margin proofs,
+            // keeping a later failure visible and the full setup marked incomplete.
+            if(!spatialOnly&&selected.Count>0)
+            {
+                StoreProbeRoutes(settings,old,selected,size,probeContext,spatialModel!.Id);
+                Dirty();
+                File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_partial_saved",details=new{size,selected,error=e.Message}})+Environment.NewLine);
+            }
             try{diagnostics.Failed(e);}
             catch(Exception saveError) when(saveError is IOException or UnauthorizedAccessException)
             {File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_diagnostics_save_failed",details=new{message=saveError.Message}})+Environment.NewLine);}
         }
+    }
+
+    internal static void StoreProbeRoutes(Settings settings,SpeedProbeProfile? old,List<SpeedSample> selected,double size,string context,string spatialId)
+    {
+        if(SpeedCalibration.Context(settings)!=context||ProbeSpatialCalibration.Read(settings,size)?.Id!=spatialId)
+            throw new InvalidOperationException("Контекст тесту змінився; нові маршрути не збережені.");
+        var rows=(old?.Samples??[]).Where(x=>x.Size!=size).Concat(selected).ToList();
+        var check=settings.Clone();
+        var shapes=check.Data["shape_speed_profiles"] as System.Text.Json.Nodes.JsonObject??new();
+        shapes[check.Int("brush_shape_slot",3).ToString()]=JsonSerializer.SerializeToNode(new SpeedProbeProfile(context,DateTimeOffset.UtcNow,rows));
+        check.Data["shape_speed_profiles"]=shapes;check.Data.Remove("speed_probe_profile");
+        if(SpeedCalibration.Read(check) is null)throw new InvalidOperationException("Неповний доказ маршруту; результат тесту не збережений.");
+        settings.Data["shape_speed_profiles"]=shapes.DeepClone();settings.Data.Remove("speed_probe_profile");
+        settings.Set("calibrated_strokes",rows.Count>0);
     }
 }

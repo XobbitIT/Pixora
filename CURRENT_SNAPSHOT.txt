@@ -1,4 +1,14 @@
-Pixora 1.0.14-beta.35 — in-envelope slow references and collinear Speed Probe pairs.
+Pixora 1.0.14-beta.36 — prioritize safety-margin verification and retain certified partial routes.
+280 Core / 79 WPF checks; beta.35 stage-017 replay remains rejected at 23/24, Missing 0, Unknown 1.
+Separate outside +4 edge observation cannot replace the failed in-envelope +2 dark core or authorize fast input.
+After a faster candidate fails, verify the last 3/3 successful candidate at its margin, with 3/3 new pairs.
+Completed candidate + margin routes survive later failure/cancellation; candidates alone are never saved.
+Untested faster intervals are not claimed as the machine limit; an invalid slow reference still stops the run.
+Existing probe-collinear-slow-v7 spatial/brush proofs remain valid in unchanged context. New live test pending.
+No RGB tolerance, coverage threshold, envelope, painter transport, planner, audit or motion-timing changes.
+See CHANGES_BETA36_UA.md and TESTING_BETA36_UA.md.
+
+Previous beta.35 — in-envelope slow references and collinear Speed Probe pairs.
 271 Core / 76 WPF checks; latest 27-stage live replay fixes one false rejection and keeps all 12 wrong-color candidates rejected.
 Square 4 / Size 1 and 3 measurements passed in beta.34; new speed layout requires live validation.
 Probe revision probe-collinear-slow-v7 invalidates spatial/speed proofs; brush masks remain valid.

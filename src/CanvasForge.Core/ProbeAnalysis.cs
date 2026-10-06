@@ -1,10 +1,12 @@
 namespace CanvasForge.Core;
 
 public enum ProbeFailure { None, InsufficientSamples, LowContrast, NonUniformColor, LongitudinalGap, UncertainPixels, SceneChanged, ClippedCore, ColorMismatch }
+// Observation only: this core is outside the frozen envelope and cannot authorize input.
+public sealed record OutsideProbeCore(int Offset, Rgb Color, int Tolerance, int Expected, int Covered);
 public sealed record ProbeAnalysisResult(int Width, int Height, ScreenLine Line, bool[] RegionMask, bool[] ChangedMask, bool[] CoreMask,
     ReferenceMeasurement FullMeasurement, ReferenceMeasurement CoreMeasurement, AuditResult CoreCoverage,
     ProbeFailure Failure, int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,
-    SpatialInspection? Spatial=null)
+    SpatialInspection? Spatial=null,OutsideProbeCore? OutsideCore=null)
 {
     public bool Passed => Failure==ProbeFailure.None && CoreCoverage.Passed;
 }
@@ -30,9 +32,12 @@ public static class ProbeAnalysis
         // independent slow reference within that envelope, before drawing a trial.
         var bounded=Control(before,after,line,outer,axis.InnerRadius,offsets,true);
         if(bounded.Passed)return bounded;
-        // Preserve out-of-model evidence for Bind/diagnostics when no full core is
-        // verified inside. This fallback never authorizes a fast trial.
-        return SpatialControl(before,after,line,outer,axis.InnerRadius);
+        // Keep the failed in-envelope measurements authoritative. A lighter edge
+        // outside the model must never hide an uncertain dark core inside it.
+        var outside=SpatialControl(before,after,line,outer,axis.InnerRadius);
+        return bounded with{OutsideCore=outside.Passed&&!offsets.Contains(outside.PerpendicularOffset)
+            &&outside.CoreCoverage.Reference is { } reference
+            ?new(outside.PerpendicularOffset,reference.Color,reference.Tolerance,outside.CoreCoverage.Expected,outside.CoreCoverage.Covered):null};
     }
 
     private static ProbeAnalysisResult Control(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner,IEnumerable<int> offsets,bool strongest)
@@ -119,7 +124,7 @@ public static class ProbeAnalysis
             ReferenceFailure.InsufficientSamples=>ProbeFailure.InsufficientSamples,
             ReferenceFailure.LowContrast=>ProbeFailure.LowContrast,
             ReferenceFailure.NonUniformColor=>ProbeFailure.NonUniformColor,
-            _=>gapSlices>0 || missing>0?ProbeFailure.LongitudinalGap:unknown>0?ProbeFailure.UncertainPixels:ProbeFailure.None
+            _=>missing>0?ProbeFailure.LongitudinalGap:unknown>0?ProbeFailure.UncertainPixels:gapSlices>0?ProbeFailure.LongitudinalGap:ProbeFailure.None
         };
         var coverage=unstable?new AuditResult(expected,0,0,expected,new bool[core.Length],reference)
             :new(expected,covered,missing,unknown,missingMask,reference);
@@ -157,4 +162,7 @@ public static class ProbeAnalysis
         ProbeFailure.ClippedCore=>"Тест швидкості: очікуване ядро обрізане межами знімка. Потрібна більша тестова ділянка.",
         _=>"Суцільне ядро лінії підтверджене."
     };
+
+    public static string Explain(ProbeAnalysisResult result)=>Explain(result.Failure)+
+        $"\nПідтверджено: {result.CoreCoverage.Covered}/{result.CoreCoverage.Expected}; пропуски: {result.CoreCoverage.Missing}; невпевнені: {result.CoreCoverage.Unknown}.";
 }

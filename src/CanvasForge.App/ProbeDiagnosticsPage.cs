@@ -46,6 +46,9 @@ internal sealed partial class MainWindow
         heading.Children.Add(Text(report is null?T("Звіт недоступний. Відкрий папку діагностики.","Report unavailable. Open the diagnostics folder.")
             :$"{State(report.State)} · {T("Розмір","Size")} {report.Size} · {T("Перевірка суцільного ядра","Solid core verification")}",13,report?.State is "complete" or "spatial_complete"?Success:Warning));
         if(report?.Error is {Length:>0} error)heading.Children.Add(Text(T(error),12,Warning));
+        if(report?.Selected is {Count:>0} saved)
+            heading.Children.Add(Text(T($"Підтверджені із запасом маршрути: {saved.Count}. Незавершені проби не сертифіковані.",
+                $"Routes verified with a safety margin: {saved.Count}. Incomplete trials are not certified."),12,Success));
         if(report?.SpatialModel is { } model)
             heading.Children.Add(Text(string.Join("\n",model.Axes.Select(axis=>(axis.Vertical?T("Вертикальні зміщення","Vertical offsets"):T("Горизонтальні зміщення","Horizontal offsets"))+": "+
                 string.Join(" · ",axis.Anchors.GroupBy(x=>x.Offset).OrderBy(x=>x.Key).Select(g=>$"{g.Key:+0;-0;0} px ({g.Count()}/3)")))),12,Muted));
@@ -83,6 +86,9 @@ internal sealed partial class MainWindow
                     +(m.Spatial is null?$"{T("Зміщення ядра","Core offset")}: {m.PerpendicularOffset} px · ":"")
                     +$"{T("Зміни поза пензлем","Changes outside brush")}: {m.OutsideChanged}/{m.OutsidePixels}\n{T(ProbeAnalysis.Explain(m.Failure))}";
             else metrics.Text=stage?.Error is {Length:>0} message?T(message):T("Аналіз не завершений. Доступні кадри збережені.","Analysis incomplete. Available frames have been saved.");
+            if(stage?.Metrics?.OutsideCore is { } outside)
+                metrics.Text+="\n"+T($"Окреме ядро поза моделлю: {outside.Offset:+0;-0;0} px · {Color(outside.Color)} · {outside.Covered}/{outside.Expected}. Лише діагностика; не замінює результат усередині моделі.",
+                    $"Separate core outside model: {outside.Offset:+0;-0;0} px · {Color(outside.Color)} · {outside.Covered}/{outside.Expected}. Diagnostic only; does not replace the in-model result.");
             if(stage?.LocalControlId is { } id)
                 metrics.Text+="\n"+T("Незалежний локальний контроль: ","Independent local control: ")+id;
             if(stage?.Metrics?.Spatial is { } spatial)
@@ -121,6 +127,7 @@ internal sealed partial class MainWindow
                 "capturing_before"=>T("знімок до штриха","capture before stroke"),"drawing"=>T("малювання штриха","drawing stroke"),
                 "capturing_after"=>T("знімок після штриха","capture after stroke"),"analysing"=>T("аналіз кадрів","frame analysis"),
                 "spatial_model"=>T("просторова модель","spatial model"),
+                "slow_reference"=>T("підтвердження повільного еталона","slow reference verification"),
                 _=>T("збереження діагностики","saving diagnostics")
             });
             if(stage is not null && stage.UnstableAttempts>0)metrics.Text+=$"\n{T("Нестабільні пари кадрів","Unstable frame pairs")}: {stage.UnstableAttempts}";

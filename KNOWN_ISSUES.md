@@ -1,4 +1,10 @@
-# Known issues — current beta.35
+# Known issues — current beta.36
+
+The latest beta.35 live run confirmed all six spatial controls and horizontal paced candidates at 32/20 ms (three repeats each). The first 12 ms trial was 22/24 with two uncertain samples; the next local 64 ms control had a dark in-envelope +2 core at 23/24, Missing 0, Unknown 1. Its fallback incorrectly substituted a complete lighter +4 edge outside the model. Beta.36 preserves the failed bounded evidence and prioritizes validating the earlier successful candidate's margin. The captured uncertain pixel remains unverified: no tolerance or envelope expansion, automatic retry, or fabricated 27 ms certification is introduced.
+
+Completed margin-certified routes are retained if a subsequent route fails. The whole test/setup remains incomplete, untested directions use ordinary input, and an invalid local slow reference still aborts. Faster intervals skipped after a failure are not claimed as the machine's maximum speed. Existing beta.35 proof contexts remain compatible; new live candidate/margin pairs are required. Test on the same clean Canvas; see TESTING_BETA36_UA.md.
+
+Previous beta.35 issues follow:
 
 Beta.34's latest Square 4 Size 1/3 brush measurements passed. Its speed run contained 12 lighter horizontal candidates that did not match the local slow reference, then stopped after selecting offset -4 although a full core exists at allowed offset -3. Beta.35 fixes that selection and uses collinear paired references; all recorded wrong-color candidates still fail replay. The new layout needs a fresh in-game speed test. It may still find no safe accelerated route. RGB tolerances and coverage requirements remain strict; no speed improvement is claimed before live validation. Renew spatial/speed calibration, retain current brush masks. See TESTING_BETA35_UA.md.
 

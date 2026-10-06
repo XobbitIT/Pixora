@@ -13,7 +13,7 @@ internal sealed record SpatialProbeMetrics(int[] AllowedOffsets,int RequiredWidt
 internal sealed record FrozenProbeReference(bool Vertical,AuditReference Reference);
 internal sealed record ProbeMetrics(ReferenceMeasurement Full, ReferenceMeasurement Core,
     ProbeFailure Failure, int Expected, int Covered, int Missing, int Unknown, double Coverage,
-    int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,SpatialProbeMetrics? Spatial=null);
+    int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,SpatialProbeMetrics? Spatial=null,OutsideProbeCore? OutsideCore=null);
 internal sealed record ProbeStageReport(string Id, string Phase, StrokeMethod Method, bool Vertical,
     double IntervalMs, double InitialDownWaitMs, int StepPixels, ScreenRect Area, ScreenLine LocalLine, string State, string? Error,
     int UnstableAttempts, int LastUnstableAttempt, string? FailedAt, ProbeMetrics? Metrics,string? LocalControlId=null);
@@ -51,8 +51,11 @@ internal sealed class ProbeDiagnosticSession
     {report=report with{FrozenReferences=references.Select(x=>new FrozenProbeReference(x.Key,x.Value)).ToList()};Persist();}
     public void CompleteSpatial(SpatialProbeProfile model)
     {report=report with{State="spatial_complete",Stage="complete",SpatialModel=model};Persist();}
-    public void RejectedModel(string message)
-    {active=active! with{State="rejected_model",Error=message,FailedAt="spatial_model"};SaveActive();}
+    public void RejectedControl(string message)
+    {
+        bool outside=message.StartsWith(ProbeSpatialCalibration.OutsideMessage,StringComparison.Ordinal);
+        active=active! with{State=outside?"rejected_model":"rejected_reference",Error=message,FailedAt=outside?"spatial_model":"slow_reference"};SaveActive();
+    }
     public void Begin(string phase,StrokeMethod method,bool vertical,double interval,ScreenRect area,ScreenLine local,double? downMs=null,int stepPixels=1,string? localControlId=null)
     {
         string id=$"stage-{report.Stages.Count+1:000}";
@@ -90,11 +93,13 @@ internal sealed class ProbeDiagnosticSession
         active=active! with{State=result.Passed?"passed":"rejected",Metrics=new(result.FullMeasurement,
             result.CoreMeasurement,result.Failure,coverage.Expected,coverage.Covered,coverage.Missing,coverage.Unknown,
             coverage.Coverage,result.PerpendicularOffset,result.LongitudinalGaps,result.OutsidePixels,result.OutsideChanged,
-            result.Spatial is { } check?new(check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry):null)};
+            result.Spatial is { } check?new(check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry):null,result.OutsideCore)};
         SaveActive();
     }
     public void Complete(List<SpeedSample> selected)
-    {report=report with{State=selected.Count>0?"complete":"no_routes",Stage="complete",Selected=selected};Persist();}
+    {report=report with{State=selected.Count>0?"complete":"no_routes",Stage="complete",Selected=selected.ToList()};Persist();}
+    public void Checkpoint(List<SpeedSample> selected)
+    {report=report with{Selected=selected.ToList()};Persist();}
     public void Failed(Exception error)
     {
         string state=error is ProbeBudgetExceededException?"timed_out":error is OperationCanceledException?"cancelled":"failed";

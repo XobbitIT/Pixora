@@ -109,8 +109,10 @@ public static class ProbeSpatialCalibration
 
     public static AuditReference Bind(SpatialAxis axis,ProbeAnalysisResult slow)
     {
+        if(slow.Failure!=ProbeFailure.SceneChanged&&slow.CoreMeasurement.ChangedSamples==0&&slow.OutsideCore is { } outside)
+            throw new InvalidOperationException($"{OutsideMessage}\nЗміщення: {outside.Offset:+0;-0;0} px; допустимі: {string.Join(", ",axis.AllowedOffsets)} px.");
         if(!slow.Passed||slow.CoreCoverage.Reference is not { } reference)
-            throw new InvalidOperationException(ProbeAnalysis.Explain(slow.Failure));
+            throw new InvalidOperationException(ProbeAnalysis.Explain(slow));
         if((slow.Line.X1==slow.Line.X2)!=axis.Vertical||!axis.AllowedOffsets.Contains(slow.PerpendicularOffset))
             throw new InvalidOperationException($"{OutsideMessage}\nЗміщення: {slow.PerpendicularOffset:+0;-0;0} px; допустимі: {string.Join(", ",axis.AllowedOffsets)} px.");
         // Colour is measured on an independent slow line before its fast trial.

@@ -76,6 +76,7 @@ internal static partial class Program
         CheckProgressLanguageRebuild(destination);
         CheckLocalProbeDiagnostics(destination,"Українська");
         CheckLocalProbeDiagnostics(destination,"English");
+        CheckBoundProbeRecovery(destination,"Українська");CheckBoundProbeRecovery(destination,"English");CheckProbeRoutePersistence();
         CheckPartialBrushUi(destination,"Українська");
         CheckPartialBrushUi(destination,"English");
         CheckBrushSignalUi(destination,"Українська");
@@ -84,7 +85,7 @@ internal static partial class Program
         CheckWideBrushUi(destination,"English");
         RuntimeSafetyChecks.SingleInstance();RuntimeSafetyChecks.Integrity();RuntimeSafetyChecks.Clipboard();
         CheckProbeTimeoutUi(destination,"Українська");CheckProbeTimeoutUi(destination,"English");
-        CheckUnifiedSetup(destination,"Українська",900); CheckUnifiedSetup(destination,"English",1280); CheckUnifiedFreshWindow(destination); CheckUnifiedHexWindow(destination); CheckUnifiedFinish(); CheckUnifiedImageImport(destination); Console.WriteLine("ALL 76 WPF UI CHECKS PASSED");
+        CheckUnifiedSetup(destination,"Українська",900); CheckUnifiedSetup(destination,"English",1280); CheckUnifiedFreshWindow(destination); CheckUnifiedHexWindow(destination); CheckUnifiedFinish(); CheckUnifiedImageImport(destination); Console.WriteLine("ALL 79 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -1003,7 +1004,9 @@ internal static partial class Program
             Assert(Descendants(root).OfType<TextBlock>().Any(x=>x.Text==(english?"Capture Canvas.":"Захопи полотно.")),"Dialog error body is not localized");
         }
         SetField(window,"speedFailure","Windows rejected SendInput. Check privilege levels.");Invoke(window,"RefreshSpeedStatus");
-        Assert(Field<TextBlock>(window,"speedStatus").Text==Translations.ForLanguage("Windows rejected SendInput. Check privilege levels.",english),"Cached speed failure is not localized");
+        string expectedFailure=Translations.ForLanguage("Windows rejected SendInput. Check privilege levels.",english)
+            +(SpeedCalibration.Current(Field<Settings>(window,"settings"))?"\n"+(english?"Saved verified routes are available; other routes use normal input.":"Збережені підтверджені маршрути доступні; решта використовує звичайний ввід."):"");
+        Assert(Field<TextBlock>(window,"speedStatus").Text==expectedFailure,"Cached speed failure or partial route availability is not localized");
         Console.WriteLine("PASS "+name);
     }
 
