@@ -1,4 +1,8 @@
-# Known issues — current beta.33
+# Known issues — current beta.34
+
+The 21:09 live recording selected Square 4 / Size 1 correctly but aborted before drawing on clipboard backup. Current Explorer clipboard metadata reproduced an unrenderable FileContents with accessible CF_HDROP. Beta.34 preserves the physical file-drop list and skips only this unreadable alternative when all paths exist; virtual-only streams are not supported and remain protected by aborting before writes. Readable auxiliary formats are retained. Full OLE stream restoration is outside this hotfix. New clipboard telemetry identifies future failures.
+
+The earlier clean Round test rejected Size 1 at contrast 73/69/75 with unstable command-relative support. Size 3/10/20 profiles passed, but their stable cores were 1x2, 8x9, and 2x4 px. Fixed-screen-RGB comparison across differently lit canvas areas may underestimate solid coverage; beta.34 does not change that model or claim it fixed. Square calibration, speed trials and actual painting remain pending.
 
 The recorded beta.32 Round Size 1 dots failed at contrast 79/65/79 versus required 80 and poor spatial agreement. Numeric controls matched. Beta.33 adds automatic Square fallback on separate clean areas; this is a new testable path, not a claim that Round or Square now passes in Rust. Full setup, cancellation, later calibrated painting and coverage need the new live checklist. A small Canvas or large selected Size can lack enough clean regions; use individual functions with clearing between stages. Speed Probe verifies one Size only. Passed setup is not verified painting coverage. See TESTING_BETA33_UA.md.
 

@@ -10,6 +10,8 @@ internal static partial class Native
     [DllImport("user32.dll",EntryPoint="GetClipboardOwner")]internal static extern IntPtr ClipboardOwner();
     [DllImport("user32.dll",SetLastError=true)]private static extern uint EnumClipboardFormats(uint format);
     [DllImport("user32.dll",CharSet=CharSet.Unicode)]private static extern int GetClipboardFormatNameW(uint format,StringBuilder name,int maximum);
+    [DllImport("user32.dll")]private static extern bool IsClipboardFormatAvailable(uint format);
+    [DllImport("shell32.dll",CharSet=CharSet.Unicode)]private static extern uint DragQueryFileW(IntPtr drop,uint index,StringBuilder? path,uint size);
     [DllImport("ole32.dll")]private static extern IntPtr OleDuplicateData(IntPtr source,ushort format,uint flags);
     [DllImport("gdi32.dll",CharSet=CharSet.Unicode)]private static extern IntPtr CopyEnhMetaFileW(IntPtr source,string? file);
     [DllImport("gdi32.dll")]private static extern bool DeleteEnhMetaFile(IntPtr handle);
@@ -26,6 +28,27 @@ internal static partial class Native
         public void Dispose()=>DestroyWindow(Handle);
     }
     [StructLayout(LayoutKind.Sequential)]private struct MetafilePicture {public int Mode,X,Y;public IntPtr Metafile;}
+    internal sealed class ClipboardFormatException(uint format,string name,int error):Win32Exception(error,"Cannot preserve clipboard format.")
+    {
+        internal uint Format { get; }=format;
+        internal string FormatName { get; }=name;
+    }
+    internal static bool MaySkipFileContents(string name,int error,bool physicalFileDrop)
+        =>name=="FileContents"&&error==0&&physicalFileDrop;
+    private static bool PhysicalFileDrop(IntPtr handle)
+    {
+        uint count=DragQueryFileW(handle,uint.MaxValue,null,0);
+        if(count is 0 or >4096)return false;
+        for(uint i=0;i<count;i++)
+        {
+            uint length=DragQueryFileW(handle,i,null,0);if(length is 0 or >32767)return false;
+            var path=new StringBuilder((int)length+1);
+            if(DragQueryFileW(handle,i,path,(uint)path.Capacity)!=length)return false;
+            string value=path.ToString();
+            if(!Path.IsPathFullyQualified(value)||!File.Exists(value)&&!Directory.Exists(value))return false;
+        }
+        return true;
+    }
     private sealed record ClipboardEntry(uint Format,IntPtr Handle)
     {
         internal ClipboardEntry Copy()
@@ -57,6 +80,9 @@ internal static partial class Native
     internal sealed class ClipboardBackup:IClipboardBackup
     {
         private readonly List<ClipboardEntry> entries=[];
+        private readonly List<uint> skippedFileContents=[];
+        internal IReadOnlyList<uint> SkippedFileContents=>skippedFileContents;
+        internal int FormatCount=>entries.Count;
         public uint Sequence { get; private set; }
         private uint? interruptedRestoreSequence;
         private ClipboardWriteWindow? restoreOwner;
@@ -67,6 +93,18 @@ internal static partial class Native
             try
             {
                 backup.Sequence=ClipboardSequence();
+                // Explorer also advertises indexed FileContents streams. They
+                // cannot be read with GetClipboardData. Capture CF_HDROP first;
+                // only an unreadable alternate stream backed by existing local
+                // files may be omitted. Virtual-only files still abort safely.
+                bool physicalFileDrop=false;
+                if(IsClipboardFormatAvailable(15))
+                {
+                    SetLastError(0);var drop=GetClipboardData(15);
+                    if(drop==IntPtr.Zero)throw new ClipboardFormatException(15,"CF_HDROP",Marshal.GetLastWin32Error());
+                    var savedDrop=new ClipboardEntry(15,drop).Copy();backup.entries.Add(savedDrop);
+                    physicalFileDrop=PhysicalFileDrop(savedDrop.Handle);
+                }
                 uint format=0;
                 int advertised=0;
                 while(true)
@@ -74,10 +112,13 @@ internal static partial class Native
                     SetLastError(0);format=EnumClipboardFormats(format);
                     if(format==0){int error=Marshal.GetLastWin32Error();if(error!=0)throw new Win32Exception(error);break;}
                     advertised++;
+                    if(advertised>256)throw new InvalidOperationException("Too many clipboard formats.");
+                    if(format==15)continue;
+                    string label="";
                     if(format>=0xc000)
                     {
                         var name=new StringBuilder(256);GetClipboardFormatNameW(format,name,name.Capacity);
-                        string label=name.ToString();
+                        label=name.ToString();
                         // OLE bookkeeping is not user data and contains source
                         // object pointers, so it cannot be byte-copied safely.
                         if(label is "Ole Private Data" or "DataObject" or "Ole Clipboard Persist On Flush")continue;
@@ -85,8 +126,14 @@ internal static partial class Native
                             throw new InvalidOperationException("Цей формат буфера обміну неможливо безпечно зберегти. Збережи його вміст перед тестом.");
                     }
                     if(backup.entries.Count>=256)throw new InvalidOperationException("Too many clipboard formats.");
+                    SetLastError(0);
                     var handle=GetClipboardData(format);
-                    if(handle==IntPtr.Zero)throw new Win32Exception("Cannot preserve clipboard format.");
+                    if(handle==IntPtr.Zero)
+                    {
+                        int error=Marshal.GetLastWin32Error();
+                        if(MaySkipFileContents(label,error,physicalFileDrop)){backup.skippedFileContents.Add(format);continue;}
+                        throw new ClipboardFormatException(format,label,error);
+                    }
                     backup.entries.Add(new ClipboardEntry(format,handle).Copy());
                 }
                 if(advertised>0&&backup.entries.Count==0)throw new InvalidOperationException("Cannot preserve clipboard data.");

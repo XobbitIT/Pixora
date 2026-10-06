@@ -1,5 +1,8 @@
-Pixora 1.0.14-beta.33 — one advanced interface and a sequential full-setup action.
-266 Core / 75 WPF checks; native clipboard smoke runs only on isolated Windows CI.
+Pixora 1.0.14-beta.34 — Explorer file-drop clipboard backup hotfix.
+266 Core / 76 WPF checks; native clipboard smoke runs only on isolated Windows CI.
+Read-only current Explorer backup succeeded: 11 formats retained, 1 unrenderable alternate FileContents omitted.
+Physical file paths and readable formats restored; virtual-only streams and unknown missing formats remain protected.
+Clipboard capture telemetry includes format ID/name/error without user payloads.
 Exact published DLL checks, source/docs version contract, portable packaging without PDB.
 Mode-aware seven-region capture; all individual functions retained.
 Colors -> controls -> brush -> six spatial controls -> single-Size Speed Probe.
@@ -7,8 +10,8 @@ Round base failure tries Square once; weak contrast never certifies a brush.
 Separate clean regions across stages; original full-Canvas contexts remain in use.
 Cancellation or failure stops future stages and retains prior completed measurements.
 Probe probe-complete-core-v6 and brush command-masks-color-v2 criteria unchanged.
-No new in-game result: Square fallback, full sequence and audited painting pending.
-See CHANGES_BETA33_UA.md and TESTING_BETA33_UA.md.
+No new in-game result: Square Size 1, full sequence and audited painting pending.
+See CHANGES_BETA34_UA.md and TESTING_BETA34_UA.md.
 
 Historical snapshot follows:
 

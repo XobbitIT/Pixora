@@ -443,7 +443,7 @@ internal sealed partial class Painter : IDisposable
     private ClipboardLease BeginClipboard()
     {
         if(clipboardLease is not null)throw new InvalidOperationException("Nested clipboard transaction.");
-        return clipboardLease=new(new WindowsClipboardStore(),windowProcessId,status=>Log("clipboard_restore",new{status}));
+        return clipboardLease=new(new WindowsClipboardStore(detail=>Log("clipboard_capture",detail)),windowProcessId,status=>Log("clipboard_restore",new{status}));
     }
     private void RestoreClipboard(ClipboardLease previous)
     {

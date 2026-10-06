@@ -60,14 +60,27 @@ internal sealed class ClipboardLease:IDisposable
         finally{try{backup.Dispose();}finally{(store as IDisposable)?.Dispose();}}
     }
 }
-internal sealed class WindowsClipboardStore:IClipboardStore,IDisposable
+internal sealed class WindowsClipboardStore(Action<object>? report=null):IClipboardStore,IDisposable
 {
     // Keep the owner alive for the whole transaction. Destroying it between
     // writes changes the clipboard sequence and looks like an external copy.
     private Native.ClipboardWriteWindow? owner;
     public uint Sequence=>Native.ClipboardSequence();
     public uint OwnerProcess=>Native.ProcessIdOf(Native.ClipboardOwner());
-    public IClipboardBackup Capture()=>Native.ClipboardBackup.Capture();
+    public IClipboardBackup Capture()
+    {
+        try
+        {
+            var backup=Native.ClipboardBackup.Capture();
+            if(backup.SkippedFileContents.Count>0)report?.Invoke(new{status="physical_file_drop_preserved",formats=backup.FormatCount,
+                omittedAlternateFormats=backup.SkippedFileContents,formatName="FileContents"});
+            return backup;
+        }
+        catch(Native.ClipboardFormatException e)
+        {
+            report?.Invoke(new{status="format_unavailable",format=e.Format,formatName=e.FormatName,error=e.NativeErrorCode});throw;
+        }
+    }
     public ClipboardObservation Read()=>Native.ObserveClipboard();
     public uint Write(string text,uint expectedSequence)=>Native.ClipboardWrite(text,expectedSequence,(owner??=new()).Handle);
     public bool Restore(IClipboardBackup backup,uint expectedSequence)=>((Native.ClipboardBackup)backup).Restore(expectedSequence);

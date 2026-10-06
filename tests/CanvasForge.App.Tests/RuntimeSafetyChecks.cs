@@ -43,6 +43,11 @@ internal static class RuntimeSafetyChecks
     }
     public static void Clipboard()
     {
+        Require(Native.MaySkipFileContents("FileContents",0,true));
+        Require(!Native.MaySkipFileContents("FileContents",0,false));
+        Require(!Native.MaySkipFileContents("FileContents",5,true));
+        Require(!Native.MaySkipFileContents("FileGroupDescriptorW",0,true));
+        Require(!Native.MaySkipFileContents("HTML Format",0,true));
         var statuses=new List<string>();var store=new Store{Formats=new(){{"text","original"},{"image","bitmap bytes"},{"files","one.png;two.png"}}};
         using(var lease=new ClipboardLease(store,42,statuses.Add)){lease.Write("marker");store.Copy("3.00",42);lease.ExpectCopy();Require(lease.Read()=="3.00");}
         Require(store.Disposed&&store.Formats.Count==3&&store.Formats["image"]=="bitmap bytes"&&store.Formats["files"]=="one.png;two.png"&&statuses.Last()=="restored");
@@ -68,5 +73,6 @@ internal static class RuntimeSafetyChecks
             Require(!System.Text.RegularExpressions.Regex.IsMatch(Translations.ForLanguage(text,true),@"[\u0400-\u04ff]"));
         Require(Translations.ForLanguage("Invalid numeric setting: stroke_speed",false).Contains("Некоректне числове"));
         Console.WriteLine("PASS clipboard-transaction-and-wait-errors");
+        Console.WriteLine("PASS physical-file-drop-clipboard-policy");
     }
 }
