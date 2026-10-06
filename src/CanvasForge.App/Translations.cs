@@ -31,6 +31,10 @@ internal static class Translations
     public static string ForLanguage(string text, bool english, string? englishText = null)
     {
         if (english && englishText is not null) return englishText;
+        // A cached calibration failure contains a second, independently localized error.
+        var failure = Regex.Match(text, @"\A(?:Не вдалося виміряти (?:Size|розмір)|Could not measure Size) ([0-9]+): ([\s\S]+)\z");
+        if (failure.Success)
+            return $"{(english ? "Could not measure Size" : "Не вдалося виміряти розмір")} {failure.Groups[1].Value}: {ForLanguage(failure.Groups[2].Value, english)}";
         var translatedWhole=english?Get(text):Ukrainian.TryGetValue(text,out var fullUk)?fullUk:FromTemplate(text,UkrainianTemplates);
         if(translatedWhole!=text)return translatedWhole;
         // Setup failures retain their stage and independently translated diagnostics.
@@ -40,10 +44,6 @@ internal static class Translations
             foreach(var prefix in new[]{stageUk,stageEn})
                 if(text.StartsWith(prefix+": ",StringComparison.Ordinal))
                     return (english?stageEn:stageUk)+": "+string.Join("\n",text[(prefix.Length+2)..].Split('\n').Select(line=>ForLanguage(line,english)));
-        // A cached calibration failure contains a second, independently localized error.
-        var failure = Regex.Match(text, @"\A(?:Не вдалося виміряти (?:Size|розмір)|Could not measure Size) ([0-9]+): ([\s\S]+)\z");
-        if (failure.Success)
-            return $"{(english ? "Could not measure Size" : "Не вдалося виміряти розмір")} {failure.Groups[1].Value}: {ForLanguage(failure.Groups[2].Value, english)}";
         if (english) return Get(text);
         if (Map.TryGetValue(text, out var translated) && Ukrainian.TryGetValue(translated, out var normalized)) return normalized;
         return Ukrainian.TryGetValue(text, out var uk) ? uk : FromTemplate(text, UkrainianTemplates);
