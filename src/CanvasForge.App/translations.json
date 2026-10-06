@@ -753,5 +753,21 @@
   "Калібрування часткове: збережено {p0} Size, відхилено {p1}. Кожен збережений Size має 3/3 вимірювання. Переглянь причини в розділі «Пензель»; очисти полотно.": "Partial calibration: {p0} Sizes saved, {p1} rejected. Each saved Size has 3/3 measurements. See reasons on the Brush page; clear Canvas.",
   "Спочатку відкалібруй вибраний розмір пензля.": "Calibrate the selected brush Size first.",
   "Size {p0}: фон нестабільний; цей Size не збережено.": "Size {p0}: background is unstable; this Size was not saved.",
-  "Немає вимірювання фону.": "Background measurement is unavailable."
+  "Немає вимірювання фону.": "Background measurement is unavailable.",
+  "Тест швидкості: очікуване ядро обрізане межами знімка. Потрібна більша тестова ділянка.": "Speed Probe: the expected core is clipped by the screenshot. A larger test area is required.",
+  "Не вдалося перевірити права Rust. Запусти Rust і Pixora зі звичайними правами та повтори.": "Could not verify Rust privileges. Run Rust and Pixora with normal privileges and retry.",
+  "Rust запущено з вищими правами, ніж Pixora. Перезапусти Rust зі звичайними правами перед автоматичним вводом.": "Rust has higher privileges than Pixora. Restart Rust with normal privileges before automated input.",
+  "Буфер обміну змінився під час вводу. Зупини стороннє копіювання та повтори.": "The clipboard changed during input. Stop other copying and retry.",
+  "Не вдалося відновити буфер обміну. Закрий програму, яка утримує його, і перевір вміст.": "Could not restore the clipboard. Close the application holding it and check its contents.",
+  "Цей формат буфера обміну неможливо безпечно зберегти. Збережи його вміст перед тестом.": "This clipboard format cannot be preserved safely. Save its contents before testing.",
+  "Система не відповіла на таймер вводу за 100 мс. Зменш навантаження й повтори тест.": "The system did not respond to the input timer within 100 ms. Reduce the load and retry.",
+  "Не вдалося зберегти дані буфера обміну.": "Cannot preserve clipboard data.",
+  "Не вдалося зберегти формат буфера обміну.": "Cannot preserve clipboard format.",
+  "Забагато форматів у буфері обміну.": "Too many clipboard formats.",
+  "Неприпустима точка палітри.": "Invalid palette click point.",
+  "Некоректне числове налаштування: {p0}": "Invalid numeric setting: {p0}",
+  "Налаштування має бути цілим числом: {p0}": "Setting must be an integer: {p0}",
+  "Потрібна резервна копія буфера обміну.": "Clipboard backup is required.",
+  "Вкладена операція буфера обміну.": "Nested clipboard transaction.",
+  "Неприпустимий запит числової перевірки.": "Invalid control readback request."
 }

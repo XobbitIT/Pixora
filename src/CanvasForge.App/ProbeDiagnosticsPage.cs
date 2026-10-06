@@ -41,7 +41,7 @@ internal sealed partial class MainWindow
         string State(string state)=>state switch
         {
             "complete"=>T("Завершено","Complete"),"spatial_complete"=>T("Просторове калібрування збережене","Spatial calibration saved"),"no_routes"=>T("Маршрути не підтверджені","No routes verified"),
-            "cancelled"=>T("Скасовано","Cancelled"),"failed"=>T("Помилка","Failed"),_=>T("Незавершений тест","Incomplete test")
+            "cancelled"=>T("Скасовано","Cancelled"),"timed_out"=>T("Ліміт часу вичерпано","Time budget exceeded"),"failed"=>T("Помилка","Failed"),_=>T("Незавершений тест","Incomplete test")
         };
         heading.Children.Add(Text(report is null?T("Звіт недоступний. Відкрий папку діагностики.","Report unavailable. Open the diagnostics folder.")
             :$"{State(report.State)} · {T("Розмір","Size")} {report.Size} · {T("Перевірка суцільного ядра","Solid core verification")}",13,report?.State is "complete" or "spatial_complete"?Success:Warning));

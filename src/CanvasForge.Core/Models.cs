@@ -125,7 +125,13 @@ public sealed class Settings
                 continue;
             if (c.Any(x => x is null || !int.TryParse(x.ToString(), out var n) || n < 0 || n > 255))
                 throw new InvalidDataException("Invalid palette RGB.");
-            ScreenPoint? p = pts is not null && i < pts.Count && pts[i] is JsonArray a && a.Count == 2 ? new(a[0]!.GetValue<int>(), a[1]!.GetValue<int>()) : i < centers.Count ? centers[i] : null;
+            static int Coordinate(JsonNode? value)
+            {
+                if(value is not JsonValue||!double.TryParse(value.ToString(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var number)
+                    ||!double.IsFinite(number)||number<int.MinValue||number>int.MaxValue)throw new InvalidDataException("Invalid palette click point.");
+                return checked((int)Math.Round(number));
+            }
+            ScreenPoint? p = pts is not null && i < pts.Count && pts[i] is JsonArray a && a.Count == 2 ? new(Coordinate(a[0]),Coordinate(a[1])) : i < centers.Count ? centers[i] : null;
             result.Add(new(new(c[0]!.GetValue<byte>(), c[1]!.GetValue<byte>(), c[2]!.GetValue<byte>()), p, sources is not null && i < sources.Count ? sources[i]?.ToString() ?? "palette" : "palette"));
         }
 
@@ -142,6 +148,12 @@ public sealed class Settings
 
     public void Validate()
     {
+        foreach(var key in Defaults().Data.Where(p=>p.Value is JsonValue v&&v.GetValueKind()==JsonValueKind.Number).Select(p=>p.Key))
+            if(Data.ContainsKey(key)&&(Data[key] is not JsonValue
+                ||!double.TryParse(Data[key]!.ToString(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var number)||!double.IsFinite(number)))
+                throw new InvalidDataException($"Invalid numeric setting: {key}");
+        foreach(var key in new[]{"cell_px","alpha_threshold","smooth_passes","min_region","hex_readback_every","hex_verify_retries","control_verify_retries","adaptive_max_size","brush_shape_slot","fast_path_batch_points","audit_repair_passes"})
+            if(Data.ContainsKey(key)&&Number(key)!=Math.Truncate(Number(key)))throw new InvalidDataException($"Setting must be an integer: {key}");
         foreach (var key in new[] { "input_frame_delay_ms", "input_experimental_delay_ms", "cycle_delay_ms", "stroke_speed", "reclick_delay_ms", "adaptive_threshold", "brush_size_value", "interval_value", "paint_opacity_value" })
             if (!double.IsFinite(Number(key)) || Number(key) < 0)
                 throw new InvalidDataException($"Invalid setting: {key}");
@@ -490,6 +502,7 @@ public static class PlanIdentity
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes("canonical-plan-json-v1"));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeTiming.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
@@ -500,7 +513,7 @@ public static class PlanIdentity
         var paintSettings = (JsonObject)settings.Data.DeepClone();
         foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance" })
             paintSettings.Remove(key);
-        hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + paintSettings.ToJsonString() + JsonSerializer.Serialize(palette)));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + CanonicalJson.Serialize(paintSettings) + JsonSerializer.Serialize(palette)));
         return Convert.ToHexString(hash.GetHashAndReset());
     }
 }

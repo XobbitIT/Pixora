@@ -2350,6 +2350,7 @@ LocalProbeChecks.Run(Test);
 BrushBatchChecks.Run(Test);
 BrushSignalChecks.Run(Test);
 BrushColorChecks.Run(Test);
+ReviewRegressionChecks.Run(Test);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 
 static SpatialProbeProfile SpatialFixtureProfile(Settings cfg,double size)

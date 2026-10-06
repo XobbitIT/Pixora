@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      PIXORA_NATIVE_CLIPBOARD_SMOKE: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -49,12 +51,15 @@ jobs:
           $verificationHost = 'verification/published-host'
           New-Item -ItemType Directory -Path $verificationHost -Force | Out-Null
           Copy-Item 'tests/CanvasForge.App.Tests/bin/Release/net8.0-windows/*' $verificationHost -Recurse -Force
+          Copy-Item 'tests/CanvasForge.Core.Tests/bin/Release/net8.0/*' $verificationHost -Recurse -Force
           Copy-Item 'publish/windows-x64/*' $verificationHost -Recurse -Force
           foreach ($assembly in @('Pixora.dll', 'CanvasForge.Core.dll')) {
             $publishedHash = (Get-FileHash "publish/windows-x64/$assembly" -Algorithm SHA256).Hash
             $testedHash = (Get-FileHash "$verificationHost/$assembly" -Algorithm SHA256).Hash
             if ($publishedHash -ne $testedHash) { throw "Published DLL mismatch: $assembly" }
           }
+          dotnet "$verificationHost/CanvasForge.Core.Tests.dll"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           dotnet "$verificationHost/CanvasForge.App.Tests.dll" published-ui-verification
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 

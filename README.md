@@ -1,6 +1,12 @@
+# Pixora 1.0.14-beta.31
+
+Rust painting assistant for Windows 10/11 x64. Numeric readback now polls and retries fresh copies; Speed Probe requires the complete core. Startup prevents duplicate instances and checks input integrity. Supported clipboard formats are preserved, timeout/cancellation are distinct, JSON identity is canonical and current documentation is version checked. See [changes](CHANGES_BETA31_UA.md), [Rust checklist](TESTING_BETA31_UA.md), and [review response](BETA31_REVIEW_RESPONSE_UA.md). New audited in-game coverage is still pending.
+
+## Historical releases
+
 # Pixora
 
-Raster painting assistant for Rust. Development build **1.0.14-beta.29**, Windows 10/11 x64.
+Raster painting assistant for Rust. Historical beta.29 build **1.0.14-beta.29**, Windows 10/11 x64.
 
 Beta.29 collects all three weak dot measurements with settled background frames, separates diagnostic weak repeatability from certified solid masks, adds per-Size status and scoped retry, and checks package document/DLL versions. No weak result enables adaptive painting or Speed Probe. See [changes](CHANGES_BETA29_UA.md) and [Round/Square A/B checklist](TESTING_BETA29_UA.md). New live verification is pending.
 

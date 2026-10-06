@@ -1,6 +1,6 @@
 namespace CanvasForge.Core;
 
-public enum ProbeFailure { None, InsufficientSamples, LowContrast, NonUniformColor, LongitudinalGap, UncertainPixels, SceneChanged }
+public enum ProbeFailure { None, InsufficientSamples, LowContrast, NonUniformColor, LongitudinalGap, UncertainPixels, SceneChanged, ClippedCore }
 public sealed record ProbeAnalysisResult(int Width, int Height, ScreenLine Line, bool[] RegionMask, bool[] ChangedMask, bool[] CoreMask,
     ReferenceMeasurement FullMeasurement, ReferenceMeasurement CoreMeasurement, AuditResult CoreCoverage,
     ProbeFailure Failure, int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,
@@ -29,13 +29,17 @@ public static class ProbeAnalysis
         ProbeAnalysisResult? best=null;
         foreach(int offset in offsets.OrderBy(x=>strongest?Math.Abs(x):0))
         {
+            if(Math.Abs(offset)+inner>outer)continue;
             var core=new bool[region.Length];int length=TransferSchedule.Length(line);
             int dx=Math.Sign(line.X2-line.X1),dy=Math.Sign(line.Y2-line.Y1);
+            bool complete=true;
             for(int k=EndMargin;k<=length-EndMargin;k++)for(int p=-inner;p<=inner;p++)
             {
                 int x=line.X1+k*dx+(dy!=0?p+offset:0),y=line.Y1+k*dy+(dx!=0?p+offset:0);
                 if(x>=0&&x<before.Width&&y>=0&&y<before.Height&&region[y*before.Width+x])core[y*before.Width+x]=true;
+                else complete=false;
             }
+            if(!complete)continue;
             var measured=CoverageAudit.MeasureReference(before,after,core,true);
             var result=Inspect(before,after,line,region,changed,core,full,measured,measured.Reference,offset);
             // The offset is fixed from the slow control. Trials never shift or shrink
@@ -46,7 +50,9 @@ public static class ProbeAnalysis
                     &&(strongest?result.CoreMeasurement.Contrast>best.CoreMeasurement.Contrast:
                         result.CoreMeasurement.Uniformity>best.CoreMeasurement.Uniformity))best=result;
         }
-        return best!;
+        if(best is not null)return best;
+        var empty=new bool[region.Length];var absent=CoverageAudit.MeasureReference(before,after,empty,true);
+        return Inspect(before,after,line,region,changed,empty,full,absent,null,0) with{Failure=ProbeFailure.ClippedCore};
     }
 
     public static ProbeAnalysisResult Trial(PixelImage before,PixelImage after,ScreenLine line,ProbeAnalysisResult control)
@@ -132,6 +138,7 @@ public static class ProbeAnalysis
         ProbeFailure.LongitudinalGap=>"Тест швидкості: у контрольній лінії є прогалини.",
         ProbeFailure.UncertainPixels=>"Тест швидкості: частину пікселів ядра не вдалося підтвердити.",
         ProbeFailure.SceneChanged=>"Тест швидкості: сцена змінилася за межами тестової лінії.",
+        ProbeFailure.ClippedCore=>"Тест швидкості: очікуване ядро обрізане межами знімка. Потрібна більша тестова ділянка.",
         _=>"Суцільне ядро лінії підтверджене."
     };
 }

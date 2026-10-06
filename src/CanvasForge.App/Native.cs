@@ -5,7 +5,7 @@ using System.Text;
 using CanvasForge.Core;
 
 namespace CanvasForge.App;
-internal static class Native
+internal static partial class Native
 {
     [StructLayout(LayoutKind.Sequential)]
     internal struct Point
@@ -384,11 +384,11 @@ internal static class Native
         return new(list.Select(c => c.R).OrderBy(x => x).ElementAt(list.Count / 2), list.Select(c => c.G).OrderBy(x => x).ElementAt(list.Count / 2), list.Select(c => c.B).OrderBy(x => x).ElementAt(list.Count / 2));
     }
 
-    private static void ClipboardOpen()
+    private static void ClipboardOpen(IntPtr owner=default)
     {
         for (var i = 0; i < 10; i++)
         {
-            if (OpenClipboard(IntPtr.Zero))
+            if (OpenClipboard(owner))
                 return;
             Thread.Sleep(10);
         }
@@ -396,11 +396,14 @@ internal static class Native
         throw new Win32Exception("Cannot open clipboard.");
     }
 
-    public static string? ClipboardRead()
+    public static string? ClipboardRead()=>ObserveClipboard().Text;
+    internal static ClipboardObservation ObserveClipboard()
     {
         ClipboardOpen();
         try
         {
+            string? ReadText()
+            {
             var handle = GetClipboardData(13);
             if (handle == IntPtr.Zero)
                 return null;
@@ -415,6 +418,8 @@ internal static class Native
             {
                 GlobalUnlock(handle);
             }
+            }
+            return new(ReadText(),ClipboardSequence(),ProcessIdOf(ClipboardOwner()));
         }
         finally
         {
@@ -422,7 +427,7 @@ internal static class Native
         }
     }
 
-    public static void ClipboardWrite(string text)
+    public static uint ClipboardWrite(string text,uint? expectedSequence=null)
     {
         var bytes = Encoding.Unicode.GetBytes(text + '\0');
         var handle = GlobalAlloc(0x42, (UIntPtr)bytes.Length);
@@ -443,12 +448,16 @@ internal static class Native
                 GlobalUnlock(handle);
             }
 
-            ClipboardOpen();
+            using var owner=new ClipboardWriteWindow();
+            ClipboardOpen(owner.Handle);
             try
             {
+                if(expectedSequence.HasValue&&ClipboardSequence()!=expectedSequence.Value)
+                    throw new InvalidOperationException("Буфер обміну змінився під час вводу. Зупини стороннє копіювання та повтори.");
                 if (!EmptyClipboard() || SetClipboardData(13, handle) == IntPtr.Zero)
                     throw new Win32Exception();
                 owned = false;
+                return ClipboardSequence();
             }
             finally
             {

@@ -34,6 +34,7 @@ internal sealed partial class Painter : IDisposable
     private readonly ICalibratedStrokeInput motionInput;
     private CheckpointJournal? checkpoint;
     private ScreenPoint? lastPaintPoint;
+    private ClipboardLease? clipboardLease;
     public bool Paused { get => paused; set => paused = value; }
     private InputDelay DelayTimer => inputDelay??=new();
     public void Dispose()=>inputDelay?.Dispose();
@@ -50,6 +51,7 @@ internal sealed partial class Painter : IDisposable
             throw new InvalidOperationException("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.");
         windowRect = r.ToScreen();
         windowProcessId = Native.ProcessIdOf(target);
+        InputIntegrity.Verify(windowProcessId);
         windowDpi = Native.DpiOf(target);
         rebase = SessionRebase();
         settings=BrushFootprints.Snapshot(settings);
@@ -92,7 +94,7 @@ internal sealed partial class Painter : IDisposable
         }
     }
 
-    private void Check()
+    private void Check(bool forceGeometry=false)
     {
         long started=Stopwatch.GetTimestamp();safetyCalls++;
         try
@@ -117,7 +119,7 @@ internal sealed partial class Painter : IDisposable
             pauseReason="focus_lost";
             Log("input_pause",new{paused=true,reason=pauseReason});
         }
-        if (Environment.TickCount64 < nextSafety)
+        if (!forceGeometry&&Environment.TickCount64 < nextSafety)
             return;
         nextSafety = Environment.TickCount64 + 75;
         if (Native.ProcessIdOf(window) != windowProcessId || !Native.IsRust(window))
@@ -183,13 +185,21 @@ internal sealed partial class Painter : IDisposable
     {
     }
 
+    private void CheckBoundary()
+    {
+        Check(true);
+        if(Paused){if(probeMode)CheckProbe();throw new InputInterrupted();}
+    }
+
     private void Click(ScreenPoint p, bool twice = false)
     {
         for (var i = 0; i < (twice ? 2 : 1); i++)
         {
             WaitReady();
+            CheckBoundary();
             Native.SetCursorPos(p.X, p.Y);
             Delay(StrokeTiming.ClickSettle(settings));
+            CheckBoundary();
             Native.Mouse(false);
             try { Delay(StrokeTiming.ClickHold(settings)); }
             finally { Native.Mouse(true); }
@@ -199,6 +209,7 @@ internal sealed partial class Painter : IDisposable
 
     private void PressKey(int key)
     {
+        CheckBoundary();
         Native.Key(key);
         try { Delay(StrokeTiming.KeyHold(settings)); }
         finally { Native.Key(key, true); }
@@ -207,6 +218,8 @@ internal sealed partial class Painter : IDisposable
 
     private void ChordKey(int modifier, int key)
     {
+        CheckBoundary();
+        if(modifier==0x11&&key==0x43)clipboardLease?.ExpectCopy();
         Native.Key(modifier);
         try { Delay(StrokeTiming.ModifierSettle(settings)); PressKey(key); }
         finally { Native.Key(modifier, true); }
@@ -219,7 +232,7 @@ internal sealed partial class Painter : IDisposable
     {
         try
         {
-            ClipboardRetry.Run(() => { Native.ClipboardWrite(text); return true; }, () => Delay(.05));
+            ClipboardRetry.Run(() => { (clipboardLease??throw new InvalidOperationException("Clipboard backup is required.")).Write(text); return true; }, () => Delay(.05));
         }
         catch (System.ComponentModel.Win32Exception)
         {
@@ -230,7 +243,7 @@ internal sealed partial class Painter : IDisposable
 
     private string? ReadClipboard()
     {
-        try { return ClipboardRetry.Run(Native.ClipboardRead, () => Delay(.05)); }
+        try { return ClipboardRetry.Run(()=> (clipboardLease??throw new InvalidOperationException("Clipboard backup is required.")).Read(), () => Delay(.05)); }
         catch (System.ComponentModel.Win32Exception)
         {
             Log("clipboard", new { status = "read_failed" });
@@ -260,7 +273,7 @@ internal sealed partial class Painter : IDisposable
     {
         var point = settings.Calibration.HexPoint ?? throw new InvalidOperationException("Захопи поле HEX.");
         var target = rgb.Hex;
-        var previous = ReadClipboard();
+        var previous = BeginClipboard();
         try
         {
             var maxAttempts = HexReadback.AttemptCount(settings.Int("hex_verify_retries", 2));
@@ -320,14 +333,7 @@ internal sealed partial class Painter : IDisposable
         }
         finally
         {
-            if (previous is not null)
-                try
-                {
-                    Native.ClipboardWrite(previous);
-                }
-                catch
-                {
-                }
+            RestoreClipboard(previous);
         }
     }
 
@@ -356,24 +362,28 @@ internal sealed partial class Painter : IDisposable
         };
     }
 
-    private double? ReadControlNumber(string kind, ScreenRect field)
+    private sealed class NumberReadbackInput(Painter owner,ScreenRect field):IControlReadbackInput
     {
-        Click(field.Center);
-        ChordKey(0x11, 0x41);
-        // Overwrite the pasted payload before Ctrl+C. A missed copy must fail.
-        WriteClipboard(ControlNumber.Marker);
-        ChordKey(0x11, 0x43);
-        Delay(StrokeTiming.CopyDelay(settings));
-        var raw = ReadClipboard();
-        var number = ControlNumber.Parse(kind, raw);
-        PressKey(0x0D);
-        Log("control_readback", new { kind, raw, number, fresh = raw != ControlNumber.Marker });
-        return number;
+        public void SelectField()=>owner.Click(field.Center);
+        public void SelectAll()=>owner.ChordKey(0x11,0x41);
+        public void WriteMarker(string marker)=>owner.WriteClipboard(marker);
+        public void Copy()=>owner.ChordKey(0x11,0x43);
+        public void Wait(double seconds)=>owner.Delay(seconds);
+        public string? Read()=>owner.ReadClipboard();
+        public void Commit()=>owner.PressKey(0x0D);
+    }
+    private double? ReadControlNumber(string kind,ScreenRect field,double expected)
+    {
+        var result=ControlReadback.Read(kind,expected,new NumberReadbackInput(this,field),StrokeTiming.CopyDelay(settings),
+            observation=>Log("control_readback_poll",new{kind,expected,observation}));
+        Log("control_readback",new{kind,raw=result.Raw,number=result.Number,fresh=result.Raw is not null&&result.Raw!=ControlNumber.Marker,
+            verified=result.Verified,attempts=result.Attempts,reads=result.Reads});
+        return result.Verified?result.Number:null;
     }
 
     private bool VerifyControlNumber(string kind, double value, SliderObservation geometry)
     {
-        var number = ReadControlNumber(kind, geometry.ValueField);
+        var number = ReadControlNumber(kind, geometry.ValueField,value);
         var original=Native.Cursor();
         var area=new ScreenRect(Math.Min(geometry.Track.Left,geometry.ValueField.Left),Math.Min(geometry.Track.Top,geometry.ValueField.Top),
             Math.Max(geometry.Track.Right,geometry.ValueField.Right),Math.Max(geometry.Track.Bottom,geometry.ValueField.Bottom));
@@ -392,7 +402,7 @@ internal sealed partial class Painter : IDisposable
 
     private bool SliderMatches(string kind, double value)
     {
-        var previous = ReadClipboard();
+        var previous = BeginClipboard();
         try { return ReadSlider(kind) is { } geometry && VerifyControlNumber(kind, value, geometry); }
         finally { RestoreClipboard(previous); }
     }
@@ -407,7 +417,7 @@ internal sealed partial class Painter : IDisposable
             Log("control_unchanged",new{kind,value,verifiedEarlier=true});return;
         }
         verifiedControls.Remove(kind);
-        var previous = ReadClipboard();
+        var previous = BeginClipboard();
         try
         {
             var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 2, 5);
@@ -430,9 +440,14 @@ internal sealed partial class Painter : IDisposable
         finally { RestoreClipboard(previous); }
     }
 
-    private static void RestoreClipboard(string? previous)
+    private ClipboardLease BeginClipboard()
     {
-        if (previous is not null) try { Native.ClipboardWrite(previous); } catch { }
+        if(clipboardLease is not null)throw new InvalidOperationException("Nested clipboard transaction.");
+        return clipboardLease=new(new WindowsClipboardStore(),windowProcessId,status=>Log("clipboard_restore",new{status}));
+    }
+    private void RestoreClipboard(ClipboardLease previous)
+    {
+        clipboardLease=null;previous.Dispose();
     }
 
     public Rgb SelectCalibrationColor(Rgb background)
@@ -789,6 +804,7 @@ internal sealed partial class Painter : IDisposable
         Native.SetCursorPos(a.X, a.Y);
         var frame = StrokeTiming.Frame(settings);
         Delay(StrokeTiming.Settle(settings, speed));
+        CheckBoundary();
         if (shift)
             Native.Key(0x10);
         Native.Mouse(false);
@@ -865,8 +881,8 @@ internal sealed partial class Painter : IDisposable
             if(owner.Paused){if(owner.probeMode)owner.CheckProbe();throw new InputInterrupted();}
             owner.MovePathMeasured(points);
         }
-        public void Button(bool up) => Native.Mouse(up);
-        public void Shift(bool up) => Native.Key(0x10,up);
+        public void Button(bool up){if(!up)owner.CheckBoundary();Native.Mouse(up);}
+        public void Shift(bool up){if(!up)owner.CheckBoundary();Native.Key(0x10,up);}
         public void Wait(double seconds) => owner.Delay(seconds);
     }
 }

@@ -11,7 +11,7 @@ public sealed record SpeedProbeProfile(string Context, DateTimeOffset Created, L
 
 public static class SpeedCalibration
 {
-    public const string Revision = "probe-local-slow-reference-v5";
+    public const string Revision = "probe-complete-core-v6";
     public static readonly int[] CandidatesMs = [32,20,12,8];
     public const int Repeats = 3;
     public static double Margin(double ms) => Math.Ceiling(ms*1.25+2);
@@ -26,7 +26,7 @@ public static class SpeedCalibration
     {
         var cal=s.Calibration;
         var masks=string.Join(";",BrushFootprints.Read(s).OrderBy(p=>p.Size).Select(p=>p.Id));
-        var text=$"{Revision}:{AdaptiveBrush.Context(s)}:{s.Data["brush_calibration_points"]}:{cal.SessionDpi}:{cal.SessionSize}";
+        var text=$"{Revision}:{AdaptiveBrush.Context(s)}:{CanonicalJson.Serialize(s.Data["brush_calibration_points"])}:{cal.SessionDpi}:{cal.SessionSize}";
         if(masks.Length>0)text=$"{Revision}:{AdaptiveBrush.Context(s)}:{cal.SessionDpi}:{cal.SessionSize}:{BrushFootprints.Revision}:{masks}";
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
     }
@@ -49,10 +49,11 @@ public static class SpeedCalibration
         catch(FormatException){return null;}
     }
     public static bool Current(Settings s) => Read(s)?.Samples.Count>0;
-    public static bool Use(Settings s) => s.Bool("calibrated_strokes")&&Current(s)
+    private static bool Allowed(Settings s) => s.Bool("calibrated_strokes")
         &&s.Text("coverage_mode","Precision")=="Precision"&&s.Bool("force_precision_controls",true)
         &&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
         &&(s.Int("brush_shape_slot",3) is 3 or 4||BrushFootprints.Read(s).Any(p=>p.SolidCore.Valid));
+    public static bool Use(Settings s)=>Allowed(s)&&Current(s);
     public static SpeedSample? Resolve(Settings s,double size,ScreenLine line,int shapeSlot=0)
     {
         if(shapeSlot>0&&shapeSlot!=s.Int("brush_shape_slot",3))
@@ -62,10 +63,11 @@ public static class SpeedCalibration
             if(s.Data["shape_speed_profiles"]?[shapeSlot.ToString()] is null)return null;
             s=BrushFootprints.ForShape(s,shapeSlot);
         }
-        if(!Use(s)||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
+        if(!Allowed(s)||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
+        var profile=Read(s);if(profile is null)return null;
         int length=TransferSchedule.Length(line);bool vertical=line.X1==line.X2&&line.Y1!=line.Y2;
         if(length<8)return null;
-        return Read(s)!.Samples.Where(x=>x.Size==size&&x.Vertical==vertical)
+        return profile.Samples.Where(x=>x.Size==size&&x.Vertical==vertical)
             .OrderBy(x=>CalibratedMotion.Estimate(line,x)).FirstOrDefault();
     }
     public static (int Outer,int Inner) Footprint(Settings s,double size)

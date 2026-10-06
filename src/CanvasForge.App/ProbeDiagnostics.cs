@@ -5,6 +5,9 @@ using CanvasForge.Core;
 
 namespace CanvasForge.App;
 
+// A protocol budget is distinct from a native input-timer failure.
+internal sealed class ProbeBudgetExceededException(string message,Exception? inner=null):TimeoutException(message,inner);
+
 internal sealed record SpatialProbeMetrics(int[] AllowedOffsets,int RequiredWidth,int Slices,int PassedSlices,AuditReference FrozenReference,
     ProbeOffsetTrajectory? Trajectory=null,ProbeGeometryInspection? Geometry=null);
 internal sealed record FrozenProbeReference(bool Vertical,AuditReference Reference);
@@ -94,7 +97,7 @@ internal sealed class ProbeDiagnosticSession
     {report=report with{State=selected.Count>0?"complete":"no_routes",Stage="complete",Selected=selected};Persist();}
     public void Failed(Exception error)
     {
-        string state=error is OperationCanceledException?"cancelled":"failed";
+        string state=error is ProbeBudgetExceededException?"timed_out":error is OperationCanceledException?"cancelled":"failed";
         if(active is not null && active.Metrics is null){active=active with{FailedAt=active.State,State=state,Error=error.Message};SaveActive();}
         report=report with{State=state,Error=error.Message};Persist();
     }

@@ -48,7 +48,7 @@ internal sealed class InputDelay : IDisposable
                     long due=-Math.Max(1,(long)Math.Ceiling(Math.Min(.005,remaining-.0004)*10_000_000));
                     if(!SetWaitableTimer(timer,ref due,0,IntPtr.Zero,IntPtr.Zero,false))throw new Win32Exception(Marshal.GetLastWin32Error());
                     uint result=WaitForSingleObject(timer,100);
-                    if(result!=0)throw new Win32Exception(result==0xFFFFFFFF?Marshal.GetLastWin32Error():1460,"Input timer wait failed.");
+                    guard();ValidateWaitResult(result,Marshal.GetLastWin32Error());
                     nextGuard=0;
                 }
                 else if(timer is null&&remaining>.002){Thread.Sleep(1);nextGuard=0;}
@@ -60,6 +60,11 @@ internal sealed class InputDelay : IDisposable
     }
 
     public void Dispose(){if(disposed)return;disposed=true;timer?.Dispose();}
+    internal static void ValidateWaitResult(uint result,int error)
+    {
+        if(result==258)throw new TimeoutException("Система не відповіла на таймер вводу за 100 мс. Зменш навантаження й повтори тест.");
+        if(result!=0)throw new Win32Exception(result==0xFFFFFFFF?error:1460,"Input timer wait failed.");
+    }
 
     [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
     private static extern SafeWaitHandle CreateWaitableTimerExW(IntPtr attributes,string? name,uint flags,uint access);

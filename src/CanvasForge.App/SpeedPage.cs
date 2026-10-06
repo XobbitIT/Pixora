@@ -120,18 +120,20 @@ internal sealed partial class MainWindow
         // Nearby controls add real slow motion. Allow the full bounded protocol
         // for wider brushes rather than hitting the old fixed eight-minute cap.
         double budgetSeconds=spatialOnly?480:Math.Max(480,tiles.Count*((TransferSchedule.Length(tiles[0].Horizontal)+4)*.106+1.6)+120);
-        var cancel=paintCancel=new CancellationTokenSource(TimeSpan.FromSeconds(budgetSeconds));
+        var cancel=paintCancel=new CancellationTokenSource();
+        using var budget=new CancellationTokenSource(TimeSpan.FromSeconds(budgetSeconds));
+        using var linked=CancellationTokenSource.CreateLinkedTokenSource(cancel.Token,budget.Token);
         Painter? restore=null,worker=null;
         var selected=new List<SpeedSample>();
         SpatialProbeProfile? measuredSpatial=null;
         speedFailure="";SetEditing(false);Hide();
         try
         {
-            worker=painter=new Painter(snapshot,target,ResumePath,LogPath,_=>{},cancel.Token);
+            worker=painter=new Painter(snapshot,target,ResumePath,LogPath,_=>{},linked.Token);
             restore=new Painter(settings,target,ResumePath,LogPath,_=>{},CancellationToken.None);
             paintTask=Task.Run(async ()=>
             {
-                await Task.Delay(1200,cancel.Token);Native.SetForegroundWindow(target);
+                await Task.Delay(1200,linked.Token);Native.SetForegroundWindow(target);
                 bool timer=Native.BeginHighResolutionTimer();
                 try
                 {
@@ -248,17 +250,30 @@ internal sealed partial class MainWindow
             File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_complete",details=new{version=BuildInfo.Version,size,selected,profileContext=SpeedCalibration.Context(settings)}})+Environment.NewLine);
             SetStatus(selected.Count>0?T("Тест завершено. Підтверджені маршрути збережено; очисти полотно перед початком малювання.","Test complete. Verified routes saved; clear Canvas before START."):T("Жоден маршрут не пройшов перевірку. Збережено звичайний ввід.","No route passed verification. Normal input remains active."));
         }
-        catch(OperationCanceledException e){RecordFailure(e);SetStatus(T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying."));}
+        catch(OperationCanceledException e)
+        {
+            if(budget.IsCancellationRequested&&!cancel.IsCancellationRequested)
+            {
+                var failure=new ProbeBudgetExceededException(T("Тест швидкості перевищив ліміт часу. Очисти полотно перед повтором.","Speed Probe exceeded its time budget. Clear Canvas before retrying."),e);
+                RecordFailure(failure);speedFailure=failure.Message;SetStatus(speedFailure);
+                File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_timeout",details=new{budgetSeconds}})+Environment.NewLine);
+            }
+            else{RecordFailure(e);SetStatus(T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying."));}
+        }
         catch(Exception e){RecordFailure(e);speedFailure=e.Message;throw;}
         finally
         {
             Native.Release();
             if(restore is not null&&!closing&&Native.GetForegroundWindow()==target)
             {
-                try{restore.RestoreAfterProbe();}
-                catch(Exception e){File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_failed",details=new{message=e.Message}})+Environment.NewLine);}
-                finally{worker?.RestoreLastStrokeCursor();}
+                await Task.Run(()=>
+                {
+                    try{restore.RestoreAfterProbe();File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_complete"})+Environment.NewLine);}
+                    catch(Exception e){File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_failed",details=new{message=e.Message}})+Environment.NewLine);}
+                    finally{worker?.RestoreLastStrokeCursor();}
+                });
             }
+            else if(restore is not null)File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_skipped",details=new{reason=closing?"closing":"focus_lost"}})+Environment.NewLine);
             worker?.Dispose();restore?.Dispose();painter=null;cancel.Dispose();paintCancel=null;Save();
             if(!closing){var message=status.Text;BuildUi();ShowSpeedSetup();SetEditing(true);SetStatus(message);Show();Activate();}
         }

@@ -1,3 +1,9 @@
+# Known issues — current beta.31
+
+No new beta.31 in-game coverage run has been performed. Recorded weak Round Size 1 and audited missing/unknown pixels remain unresolved. Numeric readback/core clipping/singleton/integrity/clipboard/timeout fixes have offline checks; they require the linked live checklist. Old speed/spatial revision is stale; thresholds remain strict. See TESTING_BETA31_UA.md and BETA31_REVIEW_RESPONSE_UA.md for confirmed fixes, review corrections and deferred work.
+
+The older sections below record historical evidence; their version-specific pending statements are not claims of new tests.
+
 # Known issues
 
 ## P1 — minimum Round Size 1 is physically faint in new live records

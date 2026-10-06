@@ -28,7 +28,7 @@ public static partial class CoverageAudit
     private static int Delta(Rgb a,Rgb b)=>RustSlider.Delta(a,b);
     public static ScreenRect? GapBounds(bool[] missing,ScreenRect canvas)
     {
-        if(missing.Length!=canvas.Width*canvas.Height)throw new ArgumentException("Invalid gap mask.");
+        if(!canvas.Valid||missing.LongLength!=(long)canvas.Width*canvas.Height)throw new ArgumentException("Invalid gap mask.");
         int left=canvas.Width,top=canvas.Height,right=-1,bottom=-1;
         for(int i=0;i<missing.Length;i++)if(missing[i])
         {int x=i%canvas.Width,y=i/canvas.Width;left=Math.Min(left,x);top=Math.Min(top,y);right=Math.Max(right,x);bottom=Math.Max(bottom,y);}

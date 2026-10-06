@@ -8,6 +8,16 @@ internal static class Program
     [STAThread]
     public static void Main()
     {
+        using var instance=SingleInstanceLease.Acquire();
+        if(instance is null)
+        {
+            bool english=false;
+            try{english=Settings.Load(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Pixora","config-csharp.json")).Text("language")=="English";}
+            catch(Exception e) when(e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException or InvalidDataException){}
+            MessageBox.Show(english?"Pixora is already running. Close the other copy before starting a new one.":
+                "Pixora вже запущена. Закрий іншу копію перед новим запуском.","Pixora",MessageBoxButton.OK,MessageBoxImage.Information);
+            return;
+        }
         var application = new Application
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose

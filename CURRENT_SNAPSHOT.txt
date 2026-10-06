@@ -1,3 +1,13 @@
+Pixora 1.0.14-beta.31 — complete probe cores and retried numeric readback.
+253 Core / 69 WPF checks; native clipboard smoke runs only on isolated Windows CI.
+Exact published DLL checks, source/docs version contract, portable packaging without PDB.
+Probe revision probe-complete-core-v6; prior spatial/speed proofs stale.
+Brush revision command-masks-color-v2 retained. Old plan checkpoints may need START.
+No new in-game result: audited Four Blocks Missing=0 / Unknown=0 is pending.
+See CHANGES_BETA31_UA.md, TESTING_BETA31_UA.md and BETA31_REVIEW_RESPONSE_UA.md.
+
+Historical snapshot follows:
+
 Pixora 1.0.14-beta.28 — independent three-dot Size transactions and per-Size Probe readiness.
 223 Core / 60 WPF checks; recorded Round Size 1 contrast 69/70 versus required 80 remains rejected.
 Partial measurements do not certify Size 1, enable adaptive, or weaken audit requirements.

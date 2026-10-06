@@ -81,7 +81,10 @@ internal static class Program
         CheckBrushSignalUi(destination,"English");
         CheckWideBrushUi(destination,"Українська");
         CheckWideBrushUi(destination,"English");
-        Console.WriteLine("ALL 64 WPF UI CHECKS PASSED");
+        RuntimeSafetyChecks.SingleInstance();RuntimeSafetyChecks.Integrity();RuntimeSafetyChecks.Clipboard();
+        CheckProbeTimeoutUi(destination,"Українська");CheckProbeTimeoutUi(destination,"English");
+        Console.WriteLine("ALL 69 WPF UI CHECKS PASSED");
+        NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
         if(args.Length>3)ReplayBeta26Failures(args[3],destination);
@@ -96,6 +99,26 @@ internal static class Program
         }
     }
 
+    private static void CheckProbeTimeoutUi(string output,string language)
+    {
+        bool english=language=="English";string name="probe-timeout-"+(english?"en":"ua"),directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        ReadySettings(language).Save(Path.Combine(directory,"config-csharp.json"));
+        var session=new ProbeDiagnosticSession(directory,"fixture",3,7,2);session.Failed(new ProbeBudgetExceededException("fixture time budget"));
+        Assert(ProbeDiagnosticSession.Read(session.DirectoryPath)!.State=="timed_out","Budget exhaustion collapsed into cancellation");
+        var timer=new ProbeDiagnosticSession(directory,"fixture",3,7,2);timer.Failed(new TimeoutException("fixture native timer"));
+        Assert(ProbeDiagnosticSession.Read(timer.DirectoryPath)!.State=="failed","Native timer failure mislabeled as protocol budget");
+        var cancelled=new ProbeDiagnosticSession(directory,"fixture",3,7,2);cancelled.Failed(new OperationCanceledException());
+        Assert(ProbeDiagnosticSession.Read(cancelled.DirectoryPath)!.State=="cancelled","User cancellation mislabeled as timeout");
+        File.WriteAllText(Path.Combine(directory,"speed-probe","latest.json"),System.Text.Json.JsonSerializer.Serialize(new{run=Path.GetFileName(session.DirectoryPath)}));
+        Window? presented=null;var window=new MainWindow(directory,w=>presented=w);window.ShowPage("speed");
+        Field<Button>(window,"probeDiagnosticButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Assert(presented is not null,"Timed out probe has no diagnostics");var root=(FrameworkElement)presented!.Content;
+        root.Measure(new Size(900,700));root.Arrange(new Rect(0,0,900,700));root.UpdateLayout();
+        string captions=string.Join("\n",Captions(root));Assert(captions.Contains(english?"Time budget exceeded":"Ліміт часу вичерпано"),"Timeout state untranslated or hidden");
+        var bitmap=new RenderTargetBitmap(900,700,96,96,PixelFormats.Pbgra32);bitmap.Render(root);var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var stream=File.Create(Path.Combine(output,name+".png"));encoder.Save(stream);
+        Console.WriteLine("PASS "+name);
+    }
     private static void CheckWideBrushUi(string output,string language)
     {
         bool english=language=="English";string name="wide-brush-"+(english?"en":"ua");string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);

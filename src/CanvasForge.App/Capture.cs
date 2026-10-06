@@ -374,10 +374,10 @@ internal sealed partial class MainWindow
         settings.SetCalibration(cal);
         Save();
         Hide();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
         try
         {
-            await Task.Delay(1500);
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            await Task.Delay(1500,timeout.Token);
             using var worker = new Painter(settings, target, ResumePath, LogPath, _ =>
             {
             }, timeout.Token);
@@ -396,6 +396,11 @@ internal sealed partial class MainWindow
             SetStatus(ok ? T("HEX підтверджено", "HEX verified") : T("Перевірка HEX не пройдена", "HEX verification failed"));
             if (!ok)
                 throw new InvalidOperationException(T("Rust не підтвердив усі тестові HEX-кольори. Перевір поле й записи hex_readback у логу.", "Rust did not confirm all test HEX colors. Check the field and hex_readback log."));
+        }
+        catch(OperationCanceledException e) when(timeout.IsCancellationRequested)
+        {
+            File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="hex_test_timeout",details=new{budgetSeconds=60}})+Environment.NewLine);
+            throw new TimeoutException(T("Тест HEX перевищив ліміт 60 секунд. Перевір фокус Rust і повтори тест.","HEX test exceeded its 60-second budget. Check Rust focus and retry."),e);
         }
         finally
         {
