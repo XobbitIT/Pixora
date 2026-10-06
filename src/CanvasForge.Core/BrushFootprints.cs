@@ -27,7 +27,7 @@ public sealed class BrushContrastException(BrushStampContrast metrics)
 
 public static class BrushFootprints
 {
-    public const string Revision = "command-masks-v1";
+    public const string Revision = "command-masks-color-v2";
     public static readonly double[] Sizes = [1,3,10,20,40,60,100];
     public const int Repeats = 3;
     private const int Limit = 256;

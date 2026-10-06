@@ -43,10 +43,10 @@ public sealed class BrushCalibrationBatch
     }
     private void CheckSequence(double size,int repeat)
     {if(!ShouldMeasure(size)||repeat!=attempts[size]+1)throw new InvalidOperationException("Invalid measurement sequence.");}
-    public void Record(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command)
+    public void Record(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,Rgb? requested=null)
     {
         CheckSequence(size,repeat);
-        var signal=BrushSignalDiagnostics.Inspect(repeat,background,before,after,command,size);
+        var signal=BrushSignalDiagnostics.Inspect(repeat,background,before,after,command,size,requested);
         // Always validate clipping/scene changes through the strict measurement
         // path; these remain fatal and abort the whole transaction.
         BrushStamp? stamp=null;BrushContrastException? weak=null;
@@ -56,6 +56,10 @@ public sealed class BrushCalibrationBatch
         if(signal.NoisePeak>12)
         {
             attempts[size]++;rejected.TryAdd(size,new(size,repeat,"Background is unstable.",signal.Contrast));return;
+        }
+        if(signal.Color is {Changed:>0,Passed:false})
+        {
+            attempts[size]++;rejected.TryAdd(size,new(size,repeat,"Dot does not match requested color direction.",signal.Contrast));return;
         }
         if(weak is not null)Reject(size,repeat,weak);else Add(size,repeat,stamp!);
     }

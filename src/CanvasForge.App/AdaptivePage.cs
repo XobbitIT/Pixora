@@ -133,11 +133,24 @@ internal sealed partial class MainWindow
                 BrushSignalState.Rejected=>T("Відхилено","Rejected"),BrushSignalState.Stale=>T("Застаріло","Stale"),
                 _=>T("Не виміряно","Not measured")},state==BrushSignalState.Verified?Success:state==BrushSignalState.Rejected?Danger:Warning);
             values.Children.Add(chip);
+            if(profile is {SolidCore.Valid:true})
+            {
+                bool wide=profile.Size>1&&profile.SolidCore.Width>=2&&profile.SolidCore.Height>=2;
+                var coreChip=new StatusChip{Tag=$"brush-wide:{size}"};
+                coreChip.Set(size==1?T("Базовий пензель","Base brush"):
+                    wide?T("Ядро придатне для широкого планування","Core eligible for wide planning"):
+                    T("Ядро надто вузьке для широкого прискорення","Core too narrow for wide acceleration"),size==1||wide?Success:Warning);
+                coreChip.ToolTip=T($"Стабільне ядро: {profile.SolidCore.Width} × {profile.SolidCore.Height} px. Для широкого планування обидва розміри мають бути ≥2 px. Швидкість руху перевіряється окремо.",
+                    $"Stable core: {profile.SolidCore.Width} × {profile.SolidCore.Height} px. Wide planning requires both dimensions ≥2 px. Motion speed is tested separately.");
+                values.Children.Add(coreChip);
+            }
             if(attempt is not null)
             {
                 string detail=T($"Контраст {attempt.Samples.Min(s=>s.Contrast.PeakDelta)}–{attempt.Samples.Max(s=>s.Contrast.PeakDelta)}/80 · шум ≤{attempt.Samples.Max(s=>s.NoisePeak)} · збіг масок {attempt.SpatialAgreement:P0}",
                     $"Contrast {attempt.Samples.Min(s=>s.Contrast.PeakDelta)}–{attempt.Samples.Max(s=>s.Contrast.PeakDelta)}/80 · noise ≤{attempt.Samples.Max(s=>s.NoisePeak)} · mask agreement {attempt.SpatialAgreement:P0}");
                 values.Children.Add(Text(detail,11,Muted));
+                if(attempt.State!=BrushSignalState.Stale&&attempt.Samples.Any(s=>s.Color is {Changed:>0,Passed:false}))
+                    values.Children.Add(Text(T("Слід не відповідає напрямку вибраного кольору.","Trace does not match the selected color direction."),11,Danger));
                 chip.ToolTip=T("Слабкий слід — діагностика, а не підтверджене суцільне покриття. Він не вмикає Adaptive чи Speed Probe.",
                     "A weak trace is diagnostic evidence, not verified solid coverage. It does not enable Adaptive or Speed Probe.");
                 if(state!=BrushSignalState.Verified&&profile is {SolidCore.Valid:true})values.Children.Add(Text(T("Попередня актуальна маска збережена.","Previous current mask retained."),11,Muted));

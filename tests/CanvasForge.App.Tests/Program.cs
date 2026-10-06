@@ -79,11 +79,14 @@ internal static class Program
         CheckPartialBrushUi(destination,"English");
         CheckBrushSignalUi(destination,"Українська");
         CheckBrushSignalUi(destination,"English");
-        Console.WriteLine("ALL 62 WPF UI CHECKS PASSED");
+        CheckWideBrushUi(destination,"Українська");
+        CheckWideBrushUi(destination,"English");
+        Console.WriteLine("ALL 64 WPF UI CHECKS PASSED");
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
         if(args.Length>3)ReplayBeta26Failures(args[3],destination);
         if(args.Length>4)ReplayBeta27WeakDots(args[4],destination);
+        if(args.Length>5)ReplayBeta29BrushColors(args[5],destination);
         // Windows are rendered without showing or invoking game/capture/input actions.
         }
         catch (Exception e)
@@ -91,6 +94,61 @@ internal static class Program
             Console.Error.WriteLine(e);
             Environment.ExitCode = 1;
         }
+    }
+
+    private static void CheckWideBrushUi(string output,string language)
+    {
+        bool english=language=="English";string name="wide-brush-"+(english?"en":"ua");string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var s=ReadySettings(language);s.Data.Remove("brush_footprints");
+        BrushSpan[] narrow=[new(0,0,1),new(1,0,1)];BrushSpan[] wide=[new(0,0,3),new(1,0,3)];
+        var small=new BrushStamp(narrow,narrow,new(20,20,20));var large=new BrushStamp(wide,wide,new(20,20,20));
+        BrushFootprints.Save(s,[BrushFootprints.Build(s,3,1,[small,small,small]),BrushFootprints.Build(s,3,3,[small,small,small]),BrushFootprints.Build(s,3,10,[large,large,large])]);
+        s.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        var root=Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"];
+        var chips=Descendants(root).OfType<Border>().Where(b=>b.Tag?.ToString()?.StartsWith("brush-wide:")==true).ToArray();
+        var thin=chips.Single(b=>b.Tag!.ToString()=="brush-wide:3");
+        Assert(((TextBlock)thin.Child).Text.Contains(english?"too narrow":"надто вузьке"),"Measured narrow core misleadingly advertised wide acceleration");
+        Assert(((SolidColorBrush)thin.BorderBrush).Color==(Color)ColorConverter.ConvertFromString("#F2C46D"),"Narrow core is not a warning");
+        Assert(thin.ToolTip.ToString()!.Contains("1 × 2 px"),"Measured dimensions missing from wide eligibility tooltip");
+        Assert(((TextBlock)chips.Single(b=>b.Tag!.ToString()=="brush-wide:10").Child).Text.Contains(english?"eligible":"придатне"),"Valid wide core not shown");
+        Assert(((TextBlock)chips.Single(b=>b.Tag!.ToString()=="brush-wide:1").Child).Text.Contains(english?"Base brush":"Базовий пензель"),"Base brush conflated with wide acceleration");
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(string.Join("\n",Captions(root)),@"[\u0400-\u04FF]"),"Wide core states untranslated");
+        Console.WriteLine("PASS "+name);
+    }
+
+    private static void ReplayBeta29BrushColors(string source,string output)
+    {
+        var rows=new List<object>();var batches=new List<object>();int incompatible=0,count=0;
+        foreach(string folder in Directory.GetDirectories(Path.Combine(source,"brush-calibration")))
+        {
+            var recordings=Directory.GetFiles(folder,"*-metrics.json").Select(path=>
+            {
+                using var json=System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));var m=json.RootElement;
+                var command=m.GetProperty("command");var area=m.GetProperty("Area");
+                Assert(m.GetProperty("requestedColor").GetString()=="000000","Replay requested color changed");
+                return (stem:path.Replace("-metrics.json",""),size:m.GetProperty("size").GetDouble(),repeat:m.GetProperty("repeat").GetInt32(),
+                    point:new ScreenPoint(command.GetProperty("X").GetInt32()-area.GetProperty("Left").GetInt32(),command.GetProperty("Y").GetInt32()-area.GetProperty("Top").GetInt32()));
+            }).ToArray();
+            foreach(var group in recordings.GroupBy(r=>r.size))
+            {
+                var batch=new BrushCalibrationBatch(ReadySettings("Українська"),3,[group.Key]);
+                foreach(var r in group.OrderBy(r=>r.repeat))
+                {
+                    var before=Images.Load(r.stem+"-before.png");var after=Images.Load(r.stem+"-after.png");var background=Images.Load(r.stem+"-background.png");
+                    var color=BrushColorGuard.Inspect(before,after,new(0,0,0));count++;if(!color.Passed)incompatible++;
+                    batch.Record(r.size,r.repeat,background,before,after,r.point,new(0,0,0));
+                    rows.Add(new{run=Path.GetFileName(folder),r.size,r.repeat,color,contrast=BrushFootprints.Contrast(before,after)});
+                }
+                if(group.Count()==3)
+                {
+                    if(group.Key==1)Assert(batch.Profiles.Count==0&&batch.Diagnostics.Single().State==BrushSignalState.Rejected,"Weak live Size 1 became verified");
+                    batches.Add(new{run=Path.GetFileName(folder),size=group.Key,profiles=batch.Profiles.Select(p=>new{p.Size,p.SolidCore}),rejected=batch.Rejected,diagnostics=batch.Diagnostics});
+                }
+            }
+        }
+        Assert(count==21&&incompatible==1,"Recorded color guard rejection changed");
+        File.WriteAllText(Path.Combine(output,"beta29-brush-color-replay.json"),System.Text.Json.JsonSerializer.Serialize(new{scope="offline recorded PNG replay",newInGameTest=false,count,incompatible,rows,batches},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+        Console.WriteLine("REPLAY beta.29: 21 dots, white artifact rejected; both complete Size 1 batches remain rejected");
     }
 
     private static void CheckBrushSignalUi(string output,string language)

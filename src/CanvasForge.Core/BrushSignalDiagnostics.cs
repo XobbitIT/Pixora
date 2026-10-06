@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace CanvasForge.Core;
 
 public enum BrushSignalState { Verified, WeakRepeatable, Rejected, Stale }
-public sealed record BrushSignalSample(int Repeat, BrushStampContrast Contrast, int NoisePeak, BrushSpan[] Support);
+public sealed record BrushSignalSample(int Repeat, BrushStampContrast Contrast, int NoisePeak, BrushSpan[] Support,BrushColorCheck? Color=null);
 public sealed record BrushSignalSummary(int ShapeSlot,double Size,string Context,DateTimeOffset Created,
     BrushSignalState State,BrushSignalSample[] Samples,double SpatialAgreement,string? ProfileId);
 
@@ -11,7 +11,7 @@ public sealed record BrushSignalSummary(int ShapeSlot,double Size,string Context
 // no amount of weak-repeat evidence creates a SolidCore or a speed proof.
 public static class BrushSignalDiagnostics
 {
-    public static BrushSignalSample Inspect(int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,double size)
+    public static BrushSignalSample Inspect(int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,double size,Rgb? requested=null)
     {
         if(background.Width!=before.Width||background.Height!=before.Height||before.Width!=after.Width||before.Height!=after.Height)
             throw new ArgumentException("Image sizes differ.");
@@ -22,7 +22,7 @@ public static class BrushSignalDiagnostics
             for(int x=Math.Max(2,command.X-extent);x<Math.Min(before.Width-2,command.X+extent+1);x++)
                 if(RustSlider.Delta(before.Color(y*before.Width+x),after.Color(y*before.Width+x))>threshold)
                     points.Add(new(x-command.X,y-command.Y));
-        return new(repeat,BrushFootprints.Contrast(before,after),noise,BrushFootprints.Spans(points));
+        return new(repeat,BrushFootprints.Contrast(before,after),noise,BrushFootprints.Spans(points),requested is { } color?BrushColorGuard.Inspect(before,after,color):null);
     }
     public static BrushSignalSummary Summarize(Settings settings,int shape,double size,IReadOnlyList<BrushSignalSample> samples,BrushFootprint? profile)
     {
@@ -38,7 +38,7 @@ public static class BrushSignalDiagnostics
                 agreement=Math.Min(agreement,union==0?0:(double)masks[i].Intersect(masks[j]).Count()/union);
             }
         }
-        bool weak=complete&&agreement>=.75&&samples.All(s=>s.NoisePeak<=12&&s.Support.Length>0
+        bool weak=complete&&agreement>=.75&&samples.All(s=>s.Color?.Passed!=false&&s.NoisePeak<=12&&s.Support.Length>0
             &&s.Contrast.PeakDelta>=Math.Max(32,s.NoisePeak*6+12)&&s.Contrast.PeakDelta<s.Contrast.RequiredDelta)
             &&samples.Max(s=>s.Contrast.PeakDelta)-samples.Min(s=>s.Contrast.PeakDelta)<=12;
         var state=profile is {SolidCore.Valid:true}?BrushSignalState.Verified:weak?BrushSignalState.WeakRepeatable:BrushSignalState.Rejected;

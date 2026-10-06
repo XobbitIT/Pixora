@@ -25,6 +25,11 @@ internal sealed partial class Painter
         try{return StableShot(area,unstableFrames,settledFrames);}
         catch(InputInterrupted){CheckProbe();throw;}
     }
+    public PixelImage RecaptureBrushShot(ScreenRect area)
+    {
+        CheckProbe();Delay(.25);CheckProbe();
+        return StableProbeShot(area,(_,_,_)=>{});
+    }
     public PixelImage StableShot(ScreenRect area,Action<PixelImage,PixelImage,int>? unstableFrames=null,Action<PixelImage,PixelImage>? settledFrames=null)
     {
         var original=Native.Cursor();

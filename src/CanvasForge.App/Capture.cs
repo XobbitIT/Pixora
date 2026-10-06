@@ -507,14 +507,27 @@ internal sealed partial class MainWindow
                     var after = worker.StableProbeShot(area,(_,_,_)=>{}); CheckFrame();
                     var stem=$"shape-{settings.Int("brush_shape_slot",3)}-size-{tile.Size}-repeat-{tile.Repeat+1}";
                     Images.Save(before,Path.Combine(diagnostic,stem+"-before.png"));Images.Save(after,Path.Combine(diagnostic,stem+"-after.png"));
+                    // Recapture must not hide a clipped footprint or scene change.
+                    // Weak contrast can be diagnosed; strict geometry errors abort.
+                    try{BrushFootprints.Measure(before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size,measurements.Reference(tile.Size));}
+                    catch(BrushContrastException){}
+                    var confirmed=BrushColorGuard.Confirm(before,after,color,()=>
+                    {
+                        Images.Save(after,Path.Combine(diagnostic,stem+"-suspect-after.png"));
+                        CheckFrame();var next=worker.RecaptureBrushShot(area);CheckFrame();return next;
+                    });
+                    after=confirmed.Image;
+                    Images.Save(after,Path.Combine(diagnostic,stem+"-after.png"));
                     if(background is null)throw new InvalidOperationException("Background measurement is unavailable.");
                     Images.Save(background,Path.Combine(diagnostic,stem+"-background.png"));
                     File.WriteAllText(Path.Combine(diagnostic,stem+"-metrics.json"),System.Text.Json.JsonSerializer.Serialize(new{
                         shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
-                        contrast=BrushFootprints.Contrast(before,after),backgroundNoise=BrushFootprints.Contrast(background,before),requestedColor=color.Hex}));
-                    measurements.Record(tile.Size,tile.Repeat+1,background,before,after,new(p.X-area.Left,p.Y-area.Top));
+                        contrast=BrushFootprints.Contrast(before,after),backgroundNoise=BrushFootprints.Contrast(background,before),requestedColor=color.Hex,
+                        colorCheck=confirmed.Final,initialColorCheck=confirmed.Initial,recaptured=confirmed.Retried}));
+                    measurements.Record(tile.Size,tile.Repeat+1,background,before,after,new(p.X-area.Left,p.Y-area.Top),color);
                     var detail=new{shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
-                        signal=BrushSignalDiagnostics.Inspect(tile.Repeat+1,background,before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size),color=color.Hex};
+                        signal=BrushSignalDiagnostics.Inspect(tile.Repeat+1,background,before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size,color),color=color.Hex,
+                        initialColorCheck=confirmed.Initial,recaptured=confirmed.Retried};
                     File.WriteAllText(Path.Combine(diagnostic,stem+".json"),System.Text.Json.JsonSerializer.Serialize(detail));
                     File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = detail }) + Environment.NewLine);
                     }
@@ -538,6 +551,9 @@ internal sealed partial class MainWindow
             settings.Set("adaptive_brush",batch.Rejected.Count==0&&AdaptiveBrush.CalibrationCurrent(settings));
             adaptiveFailure=string.Join("\n",batch.Rejected.Select(f=>f.Reason=="Background is unstable."
                 ?T($"Size {f.Size}: фон нестабільний; цей Size не збережено.",$"Size {f.Size}: background is unstable; this Size was not saved.")
+                :f.Reason=="Dot does not match requested color direction."
+                ?T($"Size {f.Size}, повтор {f.Repeat}/3: зміни пікселів не відповідають вибраному кольору. Можливий сторонній слід; цей Size не збережено.",
+                    $"Size {f.Size}, repeat {f.Repeat}/3: pixel changes do not match the selected color direction. Possible capture artifact; this Size was not saved.")
                 :f.Contrast is { } c
                 ?T($"Size {f.Size}, повтор {f.Repeat}/3: контраст {c.PeakDelta}/255, потрібно {c.RequiredDelta}; змінених пікселів {c.ChangedPixels}. Цей Size не збережено.",
                     $"Size {f.Size}, repeat {f.Repeat}/3: contrast {c.PeakDelta}/255, required {c.RequiredDelta}; changed pixels {c.ChangedPixels}. This Size was not saved.")
