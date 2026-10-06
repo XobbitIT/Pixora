@@ -14,6 +14,7 @@ public static class SpeedCalibration
     public const string Revision = "probe-collinear-slow-v7";
     public static readonly int[] CandidatesMs = [32,20,12,8];
     public const int Repeats = 3;
+    public const int RequiredTiles=2+2*2*4*Repeats+2*2*Repeats;
     public static double Margin(double ms) => Math.Ceiling(ms*1.25+2);
     public static bool BrushReady(Settings s,double size)
     {
@@ -104,7 +105,7 @@ public static class SpeedCalibration
     public static List<SpeedProbeTile> Tiles(ScreenRect canvas,int outer,IReadOnlyList<ScreenRect>? excluded=null)
     {
         if(!canvas.Valid||outer is <0 or >512)throw new ArgumentException("Invalid probe Canvas or footprint.");
-        const int needed=2+2*2*4*Repeats+2*2*Repeats;
+        const int needed=RequiredTiles;
         List<ScreenRect> Areas(int side)
         {
             int cols=canvas.Width/side,rows=canvas.Height/side;var available=new List<ScreenRect>();
@@ -124,7 +125,7 @@ public static class SpeedCalibration
         if(areas.Count<needed){tile=Math.Max(64,4*outer+48);areas=Areas(tile);}
         if(areas.Count<needed)throw new InvalidOperationException($"Для цього Size потрібно {needed} чистих ділянок {tile}×{tile} px. Збільш Canvas або вибери менший Size.");
         var result=new List<SpeedProbeTile>();
-        for(int i=0;i<needed;i++)
+        for(int i=0;i<Math.Min(areas.Count,needed+ProbeControlRetry.MaximumRetries);i++)
         {
             int x=areas[i].Left,y=areas[i].Top,edge=outer+6;
             int separation=2*outer+4,length=(tile-1-2*edge-separation)/2,far=edge+length+separation,center=tile/2;

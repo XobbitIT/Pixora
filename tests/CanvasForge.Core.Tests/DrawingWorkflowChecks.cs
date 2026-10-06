@@ -67,7 +67,7 @@ internal static class DrawingWorkflowChecks
         test("Round square spatial and speed use disjoint clean regions",()=>{
             var canvas=new ScreenRect(10,10,1058,1051);var w=new SetupWorkspace(canvas);
             var first=w.Brush([1,3,10,20]);var second=w.Brush([1,3,10,20]);var spatial=w.Spatial(7);var speed=w.Speed(7);
-            Require(first.Count==12&&second.Count==12&&spatial.Count==6&&speed.Count==62);
+            Require(first.Count==12&&second.Count==12&&spatial.Count==6&&speed.Count==70);
             for(int i=0;i<w.Used.Count;i++)for(int j=0;j<i;j++)Require(!Overlap(w.Used[i],w.Used[j]));
             Require(w.Used.All(a=>a.Left>=canvas.Left&&a.Top>=canvas.Top&&a.Right<=canvas.Right&&a.Bottom<=canvas.Bottom));
         });

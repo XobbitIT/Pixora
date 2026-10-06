@@ -189,26 +189,35 @@ internal sealed partial class MainWindow
                     catch(Exception e){diagnostics.RejectedControl(e.Message);throw;}
                 }
                 diagnostics.FreezeReferences(references);
+                var controlRetry=new ProbeControlRetry(tiles.Count-SpeedCalibration.RequiredTiles);
                 bool Trial(StrokeMethod method,bool vertical,double interval,string phase)
                 {
-                    worker.CheckProbe();var tile=tiles[slot++];var line=vertical?tile.Vertical:tile.Horizontal;
-                    var controlLine=vertical?tile.ControlVertical:tile.ControlHorizontal;
-                    diagnostics.Begin("local_control",StrokeMethod.Paced,vertical,64,tile.Area,Local(controlLine,tile.Area));
-                    var controlBefore=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.Before(controlBefore);
-                    worker.ProbeStroke(controlLine,new(size,StrokeMethod.Paced,vertical,64,64,1,TransferSchedule.Length(controlLine),3,1));
-                    diagnostics.CapturingAfter();var controlAfter=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(controlAfter);
-                    var controlResult=ProbeAnalysis.BoundControl(controlBefore,controlAfter,Local(controlLine,tile.Area),footprint.Outer,spatialModel!.Axes.Single(x=>x.Vertical==vertical));
-                    diagnostics.Analysed(controlBefore,controlAfter,controlResult);
-                    LogResult("speed_probe_local_control",StrokeMethod.Paced,vertical,64,"local_control",controlResult);
+                    worker.CheckProbe();PixelImage? controlAfter=null;
+                    var (tile,controlResult)=controlRetry.Measure(()=>tiles[slot++],current=>
+                    {
+                        worker.CheckProbe();var controlLine=vertical?current.ControlVertical:current.ControlHorizontal;
+                        diagnostics.Begin("local_control",StrokeMethod.Paced,vertical,64,current.Area,Local(controlLine,current.Area));
+                        var controlBefore=worker.StableProbeShot(current.Area,diagnostics.Unstable);diagnostics.Before(controlBefore);
+                        worker.ProbeStroke(controlLine,new(size,StrokeMethod.Paced,vertical,64,64,1,TransferSchedule.Length(controlLine),3,1));
+                        diagnostics.CapturingAfter();controlAfter=worker.StableProbeShot(current.Area,diagnostics.Unstable);diagnostics.After(controlAfter);
+                        var measured=ProbeAnalysis.BoundControl(controlBefore,controlAfter,Local(controlLine,current.Area),footprint.Outer,spatialModel!.Axes.Single(x=>x.Vertical==vertical));
+                        diagnostics.Analysed(controlBefore,controlAfter,measured);
+                        LogResult("speed_probe_local_control",StrokeMethod.Paced,vertical,64,"local_control",measured);return measured;
+                    },()=>slot<tiles.Count,failed=>
+                    {
+                        diagnostics.RejectedControl(ProbeAnalysis.Explain(failed));
+                        File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_local_control_retry",details=new{controlId=diagnostics.ActiveId,size,method,vertical,interval,phase,reason=failed.Failure.ToString(),freshTile=slot}})+Environment.NewLine);
+                    });
+                    var line=vertical?tile.Vertical:tile.Horizontal;
                     // Neither geometry nor color may be learned from the fast line.
-                    // A failed local slow control aborts without testing that trial.
+                    // A final failed local slow control aborts without testing that trial.
                     AuditReference localReference;
                     try{localReference=ProbeSpatialCalibration.Bind(spatialModel!.Axes.Single(x=>x.Vertical==vertical),controlResult);}
                     catch(Exception e){diagnostics.RejectedControl(e.Message);throw;}
                     var controlId=diagnostics.ActiveId;
                     int step=Math.Max(1,2*footprint.Inner+1);
                     diagnostics.Begin(phase,method,vertical,interval,tile.Area,Local(line,tile.Area),stepPixels:step,localControlId:controlId);
-                    var before=controlAfter;diagnostics.Before(before);
+                    var before=controlAfter!;diagnostics.Before(before);
                     worker.ProbeStroke(line,new(size,method,vertical,interval,interval,step,TransferSchedule.Length(line),3,1));
                     diagnostics.CapturingAfter();
                     var after=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(after);

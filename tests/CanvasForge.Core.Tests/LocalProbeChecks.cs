@@ -14,7 +14,7 @@ internal static class LocalProbeChecks
     public static void Run(Action<string,Action> test)
     {
         test("Paired probe lanes preserve separate physical envelopes",()=>{
-            var tiles=SpeedCalibration.Tiles(new(0,0,1200,1200),24);Require(tiles.Count==62);
+            var tiles=SpeedCalibration.Tiles(new(0,0,1200,1200),24);Require(tiles.Count==64);
             foreach(var t in tiles){Require(t.Horizontal.Y1==t.ControlHorizontal.Y1&&t.Vertical.X1==t.ControlVertical.X1);
                 Require(t.Horizontal.X1-t.ControlHorizontal.X2>48&&t.Vertical.Y1-t.ControlVertical.Y2>48);
                 Require(t.ControlHorizontal.X1-24>=t.Area.Left&&t.Horizontal.X2+24<t.Area.Right);

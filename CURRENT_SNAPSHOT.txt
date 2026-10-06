@@ -1,9 +1,10 @@
 Pixora 1.0.14-beta.36 — prioritize safety-margin verification and retain certified partial routes.
-280 Core / 79 WPF checks; beta.35 stage-017 replay remains rejected at 23/24, Missing 0, Unknown 1.
+285 Core / 79 WPF checks; beta.35 stage-017 replay remains rejected at 23/24, Missing 0, Unknown 1.
 Separate outside +4 edge observation cannot replace the failed in-envelope +2 dark core or authorize fast input.
 After a faster candidate fails, verify the last 3/3 successful candidate at its margin, with 3/3 new pairs.
 Completed candidate + margin routes survive later failure/cancellation; candidates alone are never saved.
-Untested faster intervals are not claimed as the machine limit; an invalid slow reference still stops the run.
+One fresh retry for a partly verified uncertain local control, at most 8 per run and only from reserved extra clean tiles.
+Untested faster intervals are not claimed as the machine limit; a final invalid slow reference still stops the run.
 Existing probe-collinear-slow-v7 spatial/brush proofs remain valid in unchanged context. New live test pending.
 No RGB tolerance, coverage threshold, envelope, painter transport, planner, audit or motion-timing changes.
 See CHANGES_BETA36_UA.md and TESTING_BETA36_UA.md.

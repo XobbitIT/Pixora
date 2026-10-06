@@ -1,6 +1,6 @@
 # Pixora 1.0.14-beta.36
 
-Beta.36 validates the last successful speed candidate immediately after a faster failure. Three margin repeats are still required; 20 ms candidate passes alone never certify 27 ms. Completed routes survive a later failure/cancellation, with a partial status. Failed in-envelope slow-control evidence stays authoritative; a lighter outside edge is shown separately and cannot certify a trial. 280 Core / 79 WPF checks. Existing beta.35 brush/spatial proofs remain valid in the same Rust context; run Speed Probe on a clean Canvas. See [changes](CHANGES_BETA36_UA.md) and [live checklist](TESTING_BETA36_UA.md). New in-game validation is pending.
+Beta.36 validates the last successful speed candidate immediately after a faster failure. Three margin repeats are still required; 20 ms candidate passes alone never certify 27 ms. Completed routes survive a later failure/cancellation, with a partial status. Failed in-envelope slow-control evidence stays authoritative; a lighter outside edge is shown separately and cannot certify a trial. 285 Core / 79 WPF checks. Existing beta.35 brush/spatial proofs remain valid in the same Rust context; run Speed Probe on a clean Canvas. See [changes](CHANGES_BETA36_UA.md) and [live checklist](TESTING_BETA36_UA.md). New in-game validation is pending.
 
 ## Previous beta.35
 
