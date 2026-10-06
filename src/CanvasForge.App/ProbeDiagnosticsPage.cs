@@ -51,12 +51,13 @@ internal sealed partial class MainWindow
                 string.Join(" · ",axis.Anchors.GroupBy(x=>x.Offset).OrderBy(x=>x.Key).Select(g=>$"{g.Key:+0;-0;0} px ({g.Count()}/3)")))),12,Muted));
         var selectors=new WrapPanel{Margin=new Thickness(0,8,0,8)};
         var stageChoice=new ComboBox{Tag="probe_stage",Width=390,Margin=new Thickness(0,0,8,4)};
-        string StageLabel(ProbeStageReport stage)=>$"{stage.Id[6..]} · {(stage.Phase=="spatial_control"?T("Просторовий контроль","Spatial control"):stage.Phase=="control"?T("Контроль","Control"):stage.Phase=="margin"?T("Запас","Safety margin"):T("Кандидат","Candidate"))} · {(stage.Vertical?T("вертикаль","vertical"):T("горизонталь","horizontal"))} · {Option("stroke_method",stage.Method.ToString())} · {stage.IntervalMs:0} {T("мс","ms")}";
+        string StageLabel(ProbeStageReport stage)=>$"{stage.Id[6..]} · {(stage.Phase=="spatial_control"?T("Просторовий контроль","Spatial control"):stage.Phase=="local_control"?T("Локальний повільний контроль","Local slow control"):stage.Phase=="control"?T("Контроль","Control"):stage.Phase=="margin"?T("Запас","Safety margin"):T("Кандидат","Candidate"))} · {(stage.Vertical?T("вертикаль","vertical"):T("горизонталь","horizontal"))} · {Option("stroke_method",stage.Method.ToString())} · {stage.IntervalMs:0} {T("мс","ms")}";
         stageChoice.ItemsSource=stages.Select(StageLabel).ToArray();stageChoice.SelectedIndex=stages.Length==0?-1:stages.Length-1;
         var viewChoice=new ComboBox{Tag="probe_view",Width=260,Margin=new Thickness(0,0,0,4),ItemsSource=new[]{
             T("Виявлене ядро","Detected core"),T("Після штриха","After stroke"),T("До штриха","Before stroke"),
             T("Маска змін","Changed-pixel mask"),T("Очікуване ядро","Expected core"),T("Область пензля","Brush region"),
-            T("Нестабільний кадр: до","Unstable frame: before"),T("Нестабільний кадр: після","Unstable frame: after")},SelectedIndex=0};
+            T("Нестабільний кадр: до","Unstable frame: before"),T("Нестабільний кадр: після","Unstable frame: after"),
+            T("Контрастний слід (діагностика)","Contrast trace (diagnostic)")},SelectedIndex=0};
         selectors.Children.Add(stageChoice);selectors.Children.Add(viewChoice);heading.Children.Add(selectors);
         var trajectory=Text("",12,Muted);trajectory.Tag="probe_trajectory";heading.Children.Add(trajectory);
         trajectory.ToolTip=T("Діагностика, що не змінює PASS/FAIL. Зміщення визначене лише за єдиного підтвердженого положення повного ядра. Стала серія — сусідні однозначні перерізи з однаковим зміщенням; прогалини й кілька можливих положень переривають її. Частка переходів = переходи / порівнювані пари. «—» означає відсутні дані; 0 перерізів — немає однозначних положень.",
@@ -67,7 +68,7 @@ internal sealed partial class MainWindow
         var unavailable=Text(T("Знімок цього етапу недоступний. Переглянь інший кадр або відкрий папку діагностики.",
             "This stage has no snapshot. Select another view or open the diagnostics folder."),13,Warning);
         var frame=new Grid{Background=Panel};frame.Children.Add(image);frame.Children.Add(unavailable);Grid.SetRow(frame,1);root.Children.Add(frame);
-        string[] files=["detected-core.png","after.png","before.png","mask.png","core-mask.png","expected-region.png","unstable-before.png","unstable-after.png"];
+        string[] files=["detected-core.png","after.png","before.png","mask.png","core-mask.png","expected-region.png","unstable-before.png","unstable-after.png","contrast.png"];
         var cache=new Dictionary<string,BitmapSource?>();
         string Color(Rgb? rgb)=>rgb is { } c?$"RGB {c.R}, {c.G}, {c.B} · #{c.Hex}":T("немає зразків","no samples");
         string Measurement(string label,ReferenceMeasurement m)=>$"{label}: {T("фон","background")} {Color(m.BackgroundRgb)} · {T("штрих","stroke")} {Color(m.StrokeRgb)}\n"
@@ -82,10 +83,25 @@ internal sealed partial class MainWindow
                     +(m.Spatial is null?$"{T("Зміщення ядра","Core offset")}: {m.PerpendicularOffset} px · ":"")
                     +$"{T("Зміни поза пензлем","Changes outside brush")}: {m.OutsideChanged}/{m.OutsidePixels}\n{T(ProbeAnalysis.Explain(m.Failure))}";
             else metrics.Text=stage?.Error is {Length:>0} message?T(message):T("Аналіз не завершений. Доступні кадри збережені.","Analysis incomplete. Available frames have been saved.");
+            if(stage?.LocalControlId is { } id)
+                metrics.Text+="\n"+T("Незалежний локальний контроль: ","Independent local control: ")+id;
             if(stage?.Metrics?.Spatial is { } spatial)
                 metrics.Text+=$"\n{T("Зафіксовані зміщення","Frozen offsets")}: {string.Join(", ",spatial.AllowedOffsets)} px · {T("Потрібна ширина","Required width")}: {spatial.RequiredWidth} px\n"
                     +$"{T("Підтверджені перерізи","Verified slices")}: {spatial.PassedSlices}/{spatial.Slices} · {T("Зафіксований колір","Frozen color")}: {Color(spatial.FrozenReference.Color)} · {T("Допуск","Tolerance")}: {spatial.FrozenReference.Tolerance}\n"
                     +T("Відсоток означає покриття потрібної ширини кожного перерізу, а не заповнення всієї допустимої області.","Percentage measures required width in every slice, not filling the entire allowed region.");
+            if(stage?.Metrics?.Spatial?.Geometry is { } geometry)
+            {
+                metrics.Text+="\n"+T($"Контрастний слід: {geometry.ObservedSlices}/{geometry.Slices}; у допустимій області: {geometry.InEnvelopeSlices}/{geometry.Slices}; колір не підтверджено: {geometry.ColorRejectedSlices}; без змін: {geometry.NoChangeSlices}; поза областю: {geometry.OutsideEnvelopeSlices}.",
+                    $"Contrast trace: {geometry.ObservedSlices}/{geometry.Slices}; inside envelope: {geometry.InEnvelopeSlices}/{geometry.Slices}; color unconfirmed: {geometry.ColorRejectedSlices}; unchanged: {geometry.NoChangeSlices}; outside envelope: {geometry.OutsideEnvelopeSlices}.");
+                metrics.Text+="\n"+T("RGB контрастного сліду: ","Contrast trace RGB: ")+Color(geometry.ObservedRgb)
+                    +T(" · різниця від еталона: "," · delta from reference: ")+(geometry.MedianRgbDelta?.ToString()??"—");
+                var contrastPath=geometry.Trajectory;
+                metrics.Text+="\n"+T($"Геометрія за контрастом: однозначних {contrastPath.ResolvedSlices}, неоднозначних {contrastPath.AmbiguousSlices}, без позиції {contrastPath.UnresolvedSlices}; переходи ",
+                    $"Contrast geometry: resolved {contrastPath.ResolvedSlices}, ambiguous {contrastPath.AmbiguousSlices}, unresolved {contrastPath.UnresolvedSlices}; transitions ")
+                    +(contrastPath.ComparablePairs==0?"—":$"{contrastPath.Transitions}/{contrastPath.ComparablePairs}")+"\n"
+                    +T("Контраст не підтверджує потрібний колір або PASS. На нестабільній сцені ці дані недоступні.",
+                        "Contrast does not verify the required color or PASS. Unavailable on an unstable scene.");
+            }
             trajectory.Visibility=stage?.Metrics?.Spatial is null?Visibility.Collapsed:Visibility.Visible;
             if(stage?.Metrics?.Spatial?.Trajectory is { } travel)
             {

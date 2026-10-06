@@ -1,4 +1,10 @@
-Pixora 1.0.14-beta.26 — command-relative measured brush masks and seven shape profiles.
+Pixora 1.0.14-beta.27 — guarded cursor parking and paired local slow controls.
+Spatial/speed evidence revision probe-local-slow-reference-v5; old proofs stale.
+Physical contrast and frozen-color acceptance are separate; thresholds not reduced.
+219 Core / 58 WPF checks; recorded failure replay preserves 36 rejects and weak dot 56/80.
+See CHANGES_BETA27_UA.md and TESTING_BETA27_UA.md; beta.27 live run pending.
+
+Previous beta.26 architecture — command-relative measured brush masks and seven shape profiles.
 Three independent dots: possible union / stable opaque intersection / separate safety bounds.
 Size is a Rust control value, not pixels. Calibration: 1/3/10/20 together; 40/60/100 separately.
 All seven slots selectable/calibratable; opt-in profitable measured-shape adaptive planning.

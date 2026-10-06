@@ -18,6 +18,12 @@ public sealed record BrushFootprint(string Id, string Context, int ShapeSlot, do
 }
 public sealed record BrushStamp(BrushSpan[] Possible, BrushSpan[] Solid, Rgb Reference);
 public readonly record struct BrushCalibrationTile(double Size, int Repeat, ScreenRect Area, ScreenPoint Command);
+public sealed record BrushStampContrast(int PeakDelta,int ChangedPixels,int RequiredDelta,Rgb? Before,Rgb? After);
+public sealed class BrushContrastException(BrushStampContrast metrics)
+    :InvalidOperationException("Brush dot has insufficient contrast. Clear Canvas and retry.")
+{
+    public BrushStampContrast Metrics { get; }=metrics;
+}
 
 public static class BrushFootprints
 {
@@ -160,6 +166,17 @@ public static class BrushFootprints
         }
         return best;
     }
+    public static BrushStampContrast Contrast(PixelImage before,PixelImage after)
+    {
+        if(before.Width!=after.Width||before.Height!=after.Height)throw new ArgumentException("Image sizes differ.");
+        int peak=0,changed=0,index=-1;
+        for(int i=0;i<before.Width*before.Height;i++)
+        {
+            int delta=RustSlider.Delta(before.Color(i),after.Color(i));if(delta>12)changed++;
+            if(delta>peak){peak=delta;index=i;}
+        }
+        return new(peak,changed,80,index<0?null:before.Color(index),index<0?null:after.Color(index));
+    }
     public static BrushStamp Measure(PixelImage before,PixelImage after,ScreenPoint command,double size,Rgb? frozen=null)
     {
         if(before.Width!=after.Width||before.Height!=after.Height||!Sizes.Contains(size)
@@ -176,7 +193,7 @@ public static class BrushFootprints
                 throw new InvalidOperationException("Brush capture is clipped or the scene changed. Clear Canvas and retry.");
             changed.Add(new(dx,dy));colors.Add((after.Color(i),delta));
         }
-        if(changed.Count==0||colors.Max(p=>p.Delta)<80)throw new InvalidOperationException("Brush dot has insufficient contrast. Clear Canvas and retry.");
+        if(changed.Count==0||colors.Max(p=>p.Delta)<80)throw new BrushContrastException(Contrast(before,after));
         // The strongest changed pixels establish the opaque reference once.
         // Every repeat is compared against this frozen color, including textures.
         var top=colors.OrderByDescending(p=>p.Delta).Take(Math.Max(1,colors.Count/10)).Select(p=>p.Color).ToArray();

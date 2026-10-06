@@ -374,7 +374,13 @@ internal sealed partial class Painter : IDisposable
     private bool VerifyControlNumber(string kind, double value, SliderObservation geometry)
     {
         var number = ReadControlNumber(kind, geometry.ValueField);
-        Native.SetCursorPos(geometry.Track.Left - 12, geometry.Track.Center.Y);
+        var original=Native.Cursor();
+        var area=new ScreenRect(Math.Min(geometry.Track.Left,geometry.ValueField.Left),Math.Min(geometry.Track.Top,geometry.ValueField.Top),
+            Math.Max(geometry.Track.Right,geometry.ValueField.Right),Math.Max(geometry.Track.Bottom,geometry.ValueField.Bottom));
+        var park=CaptureCursor.ParkingPoint(area,windowRect,original,(int)Math.Ceiling(48*windowDpi/96d))
+            ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
+        if(park!=original){Native.ReleaseChecked();MoveCursor(park);}
+        Log("control_cursor_park",new{kind,original,park,transport="guarded SendInput"});
         Delay(StrokeTiming.CursorPark(settings));
         var after = ReadSlider(kind);
         var ok = ControlNumber.Matches(number, value) && after is { } result

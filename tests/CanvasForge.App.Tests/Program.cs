@@ -73,9 +73,12 @@ internal static class Program
         CheckMeasuredBrushUi(destination,"Українська");
         CheckMeasuredBrushUi(destination,"English");
         CheckProgressLanguageRebuild(destination);
-        Console.WriteLine("ALL 56 WPF UI CHECKS PASSED");
+        CheckLocalProbeDiagnostics(destination,"Українська");
+        CheckLocalProbeDiagnostics(destination,"English");
+        Console.WriteLine("ALL 58 WPF UI CHECKS PASSED");
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
+        if(args.Length>3)ReplayBeta26Failures(args[3],destination);
         // Windows are rendered without showing or invoking game/capture/input actions.
         }
         catch (Exception e)
@@ -85,6 +88,58 @@ internal static class Program
         }
     }
 
+    private static void ReplayBeta26Failures(string recordingRoot,string output)
+    {
+        var rows=new List<object>();int rejected=0,observed=0;
+        foreach(string path in Directory.GetDirectories(Path.Combine(recordingRoot,"speed-probe")))
+        {
+            var report=ProbeDiagnosticSession.Read(path);if(report?.SpatialModel is not { } model)continue;
+            foreach(var stage in report.Stages.Where(s=>s.Phase is "candidate" or "margin"))
+            {
+                var before=Images.Load(Path.Combine(path,stage.Id,"before.png"));var after=Images.Load(Path.Combine(path,stage.Id,"after.png"));
+                var reference=stage.Metrics!.Spatial!.FrozenReference;
+                var result=ProbeSpatialCalibration.Trial(before,after,stage.LocalLine,report.OuterRadius,model.Axes.Single(a=>a.Vertical==stage.Vertical),reference);
+                Assert(result.Passed==(stage.State=="passed"),"Recorded acceptance changed without a new local control");
+                if(!result.Passed){rejected++;if(result.Spatial!.Geometry?.ObservedSlices==result.Spatial.Slices)observed++;}
+                rows.Add(new{stage.Id,stage.State,result.Passed,result.Failure,geometry=result.Spatial!.Geometry});
+            }
+        }
+        string dot=Directory.GetFiles(Path.Combine(recordingRoot,"brush-calibration"),"shape-3-size-1-repeat-3-before.png",SearchOption.AllDirectories).Single();
+        var b=Images.Load(dot);var a=Images.Load(dot.Replace("-before.png","-after.png"));
+        BrushStampContrast contrast;
+        try{BrushFootprints.Measure(b,a,new(b.Width/2,b.Height/2),1);throw new Exception("Recorded weak dot accepted");}
+        catch(BrushContrastException e){contrast=e.Metrics;Assert(contrast.PeakDelta==56&&contrast.RequiredDelta==80,"Live dot metrics changed");}
+        Assert(rejected>0&&observed>0,"Recorded diagnostic failures missing");
+        File.WriteAllText(Path.Combine(output,"beta26-failure-replay.json"),System.Text.Json.JsonSerializer.Serialize(new{
+            scope="offline recorded failures; no new fast routes verified",rejected,fullContrastButRejected=observed,contrast,rows},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+        Console.WriteLine($"REPLAY recorded failures: {rejected} still rejected, {observed} with full contrast trace; weak dot {contrast.PeakDelta}/{contrast.RequiredDelta} rejected");
+    }
+    private static void CheckLocalProbeDiagnostics(string output,string language)
+    {
+        bool english=language=="English";string name="local-probe-"+(english?"en":"ua");
+        string directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
+        var settings=ReadySettings(language);var model=ProbeSpatialCalibration.Read(settings,3)!;
+        var (before,after,line)=ProbeFixture();var slow=ProbeAnalysis.SpatialControl(before,after,line,7,0);
+        var axis=model.Axes.Single(x=>!x.Vertical);var reference=ProbeSpatialCalibration.Bind(axis,slow);
+        var session=new ProbeDiagnosticSession(directory,"local-test",3,7,0);session.SpatialMode(false,model);
+        session.Begin("local_control",StrokeMethod.Paced,false,64,new(100,100,196,196),line);
+        session.Before(before);session.After(after);session.Analysed(before,after,slow);string controlId=session.ActiveId!;
+        for(int i=0;i<after.Width*after.Height;i++)if(RustSlider.Delta(before.Color(i),after.Color(i))>=32)after.Set(i,new(80,80,80));
+        var result=ProbeSpatialCalibration.Trial(before,after,line,7,axis,reference);
+        Assert(!result.Passed&&result.Spatial!.Geometry!.ColorRejectedSlices==28,"Color diagnostic wrongly accepted trial");
+        session.Begin("candidate",StrokeMethod.Paced,false,12,new(100,100,196,196),line,localControlId:controlId);
+        session.Before(before);session.After(after);session.Analysed(before,after,result);session.Complete([]);
+        var stored=ProbeDiagnosticSession.Read(session.DirectoryPath)!;
+        Assert(stored.Stages[1].LocalControlId==controlId&&stored.Stages[1].Metrics!.Spatial!.Geometry!.ObservedSlices==28,"Local evidence lost");
+        settings.Save(Path.Combine(directory,"config-csharp.json"));Window? presented=null;
+        var window=new MainWindow(directory,w=>presented=w);Invoke(window,"ShowProbeDiagnostics");Assert(presented is not null,"Local diagnostic inaccessible");
+        var root=(FrameworkElement)presented!.Content;root.Measure(new(980,820));root.Arrange(new(0,0,980,820));root.UpdateLayout();
+        var views=Descendants(root).OfType<ComboBox>().Single(x=>x.Items.Count==9);views.SelectedIndex=8;root.UpdateLayout();
+        Assert(Descendants(root).OfType<System.Windows.Controls.Image>().Any(i=>i.Source is not null),"Contrast overlay missing");
+        string captions=string.Join("\n",Captions(root));Assert(captions.Contains(english?"color unconfirmed":"колір не підтверджено"),"Color distinction missing");
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"Local diagnostics untranslated");
+        Console.WriteLine("PASS "+name);
+    }
     private static void CheckMeasuredBrushUi(string output,string language)
     {
         bool english=language=="English";string name="measured-brush-"+(english?"en":"ua");
@@ -251,10 +306,12 @@ internal static class Program
             ()=>input.Cursor==parked);
         Assert(snapshot==42&&input.Cursor==original&&input.Moves.SequenceEqual(new[]{parked,original}),"Painter parking/return bypassed its guarded event transport");
         Assert(input.Releases==2,"Parking/return did not release input");
+        CaptureCursor.Snapshot(original,parked,()=>input.Button(true),move,()=>42,()=>true,returnToOriginal:false);
+        Assert(input.Cursor==parked&&input.Moves.Count==3&&input.Releases==3,"Snapshot unexpectedly returned before the next action");
         input.Blocked=true;
         try { move(parked);throw new Exception("Painter cursor move bypassed the input guard"); }
         catch(OperationCanceledException){}
-        Assert(input.Moves.Count==2,"Blocked move changed the game cursor");
+        Assert(input.Moves.Count==3,"Blocked move changed the game cursor");
         Console.WriteLine("PASS painter-cursor-event-transport");
     }
     private sealed class CaptureInput : ICalibratedStrokeInput
@@ -1006,7 +1063,7 @@ internal static class Program
     private static void CheckSmallCanvasProbePreflight(string output)
     {
         string name="spatial-small-canvas";var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
-        var settings=ReadySettings("English");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1306,901));settings.SetCalibration(cal);
+        var settings=ReadySettings("English");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1396,1068));settings.SetCalibration(cal);
         settings.Set("brush_calibration_points",new double[][]{[1,11,1],[3,15,3],[10,29,17],[20,53,29]});
         settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));settings.Data.Remove("probe_spatial_profiles");
         foreach(double size in new[]{1d,3})
@@ -1018,7 +1075,7 @@ internal static class Program
         }
         settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
         Assert(Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Size 3 speed test exceeds the real Canvas");
-        Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 68×68"),"Small Canvas requirement hidden or untranslated");
+        Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 88×88"),"Small Canvas requirement hidden or untranslated");
         Render(window,Path.Combine(output,name+".png"),900);
         var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");combo.SelectedIndex=0;
         Assert(Field<Button>(window,"probeButton").IsEnabled,"Size 1 strict probe no longer fits on the current Canvas");

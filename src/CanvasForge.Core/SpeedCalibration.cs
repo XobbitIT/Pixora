@@ -11,7 +11,7 @@ public sealed record SpeedProbeProfile(string Context, DateTimeOffset Created, L
 
 public static class SpeedCalibration
 {
-    public const string Revision = "probe-spatial-envelope-v4";
+    public const string Revision = "probe-local-slow-reference-v5";
     public static readonly int[] CandidatesMs = [32,20,12,8];
     public const int Repeats = 3;
     public static double Margin(double ms) => Math.Ceiling(ms*1.25+2);
@@ -92,20 +92,29 @@ public static class SpeedCalibration
             {double diameter=row[1]!.GetValue<double>();if(double.IsFinite(diameter)&&diameter is >=1 and <=512)return (int)Math.Floor((diameter-1)/2);}
         throw new InvalidOperationException("No physical brush measurement for this Size.");
     }
-    public static List<(ScreenRect Area,ScreenLine Horizontal,ScreenLine Vertical)> Tiles(ScreenRect canvas,int outer)
+    public static List<SpeedProbeTile> Tiles(ScreenRect canvas,int outer)
     {
-        int tile=Math.Max(64,2*outer+48),cols=canvas.Width/tile,rows=canvas.Height/tile;
+        if(!canvas.Valid||outer is <0 or >512)throw new ArgumentException("Invalid probe Canvas or footprint.");
+        int tile=Math.Max(64,4*outer+48),cols=canvas.Width/tile,rows=canvas.Height/tile;
         const int needed=2+2*2*4*Repeats+2*2*Repeats;
         if(cols*rows<needed)throw new InvalidOperationException($"Для цього Size потрібно {needed} чистих ділянок {tile}×{tile} px. Збільш Canvas або вибери менший Size.");
-        var result=new List<(ScreenRect,ScreenLine,ScreenLine)>();
+        var result=new List<SpeedProbeTile>();
         for(int i=0;i<needed;i++)
         {
             int x=canvas.Left+i%cols*tile,y=canvas.Top+i/cols*tile,edge=outer+6;
-            result.Add((new(x,y,x+tile,y+tile),new(x+edge,y+tile/2,x+tile-edge-1,y+tile/2),new(x+tile/2,y+edge,x+tile/2,y+tile-edge-1)));
+            int near=outer+12,far=tile-outer-12;
+            result.Add(new(new(x,y,x+tile,y+tile),new(x+edge,y+far,x+tile-edge-1,y+far),
+                new(x+far,y+edge,x+far,y+tile-edge-1),new(x+edge,y+near,x+tile-edge-1,y+near),
+                new(x+near,y+edge,x+near,y+tile-edge-1)));
         }
         return result;
     }
 }
+
+// Independent slow and fast lanes share a neighbourhood but never a physical
+// brush envelope. The slow reference is frozen before its paired fast stroke.
+public sealed record SpeedProbeTile(ScreenRect Area,ScreenLine Horizontal,ScreenLine Vertical,
+    ScreenLine ControlHorizontal,ScreenLine ControlVertical);
 
 public interface ICalibratedStrokeInput : IStrokeInput { void Shift(bool up); }
 public static class CalibratedMotion

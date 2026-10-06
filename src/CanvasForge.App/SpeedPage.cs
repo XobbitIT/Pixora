@@ -39,7 +39,7 @@ internal sealed partial class MainWindow
         spatial.Children.Add(Text(T("Після калібрування очисти полотно й запусти тест швидкості. Три позиції на напрямок — обмежена вибірка; аудит малювання залишається потрібним.",
             "Clear Canvas after calibration, then run Speed Probe. Three positions per direction are a limited sample; painting still needs an audit."),12,Muted));
         page.Children.Add(Card(T("2. Тест швидкості","2. Speed Probe"),out var probe));
-        probe.Children.Add(Text(T("На чистому полотні порівнює звичайний рух і лінії з Shift. Кожну затримку перевіряє тричі та додає запас.","Compares paced movement and Shift lines on a clean Canvas. Tests each delay three times and validates a safety margin."),12));
+        probe.Children.Add(Text(T("Перед кожною швидкою пробою малює незалежну повільну лінію поруч і фіксує її колір. Порівнює звичайний рух і Shift тричі, потім перевіряє запас. Тест може тривати кілька хвилин.","Draws an independent nearby slow line and freezes its color before every fast trial. Compares paced movement and Shift three times, then validates a safety margin. The test can take several minutes."),12));
         probeButton=AsyncButton(T("Запустити тест швидкості","Run Speed Probe"),RunSpeedProbe,true);probe.Children.Add(probeButton);
         speedChip=new StatusChip();probe.Children.Add(speedChip);
         speedStatus=Text("",12,Muted);probe.Children.Add(speedStatus);
@@ -107,14 +107,19 @@ internal sealed partial class MainWindow
         var spatialModel=ProbeSpatialCalibration.Read(settings,size);
         if(!spatialOnly&&spatialModel is null)throw new InvalidOperationException(ProbeSpatialCalibration.MissingMessage);
         var tiles=spatialOnly?ProbeSpatialCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer)
+                .Select(t=>new SpeedProbeTile(t.Area,t.Horizontal,t.Vertical,t.Horizontal,t.Vertical)).ToList()
             :SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer);
-        if(!ShowMessage(T($"Тест розміру {size} намалює до {tiles.Count} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {tiles.Count} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
+        int maximumLines=spatialOnly?tiles.Count:2+2*(tiles.Count-2);
+        if(!ShowMessage(T($"Тест розміру {size} намалює до {maximumLines} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {maximumLines} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
         var snapshot=AdaptiveBrush.CalibrationSettings(settings,size);snapshot.Set("coverage_audit",false);snapshot.Set("calibrated_strokes",false);
         // Never stamp unverified routes from an older detector/context as current.
         var old=SpeedCalibration.Current(settings)?SpeedCalibration.Read(settings):null;
         var diagnostics=new ProbeDiagnosticSession(folder,SpeedCalibration.Context(settings),size,footprint.Outer,footprint.Inner);
         diagnostics.SpatialMode(spatialOnly,spatialModel);
-        var cancel=paintCancel=new CancellationTokenSource(TimeSpan.FromMinutes(8));
+        // Nearby controls add real slow motion. Allow the full bounded protocol
+        // for wider brushes rather than hitting the old fixed eight-minute cap.
+        double budgetSeconds=spatialOnly?480:Math.Max(480,tiles.Count*((TransferSchedule.Length(tiles[0].Horizontal)+4)*.106+1.6)+120);
+        var cancel=paintCancel=new CancellationTokenSource(TimeSpan.FromSeconds(budgetSeconds));
         Painter? restore=null,worker=null;
         var selected=new List<SpeedSample>();
         SpatialProbeProfile? measuredSpatial=null;
@@ -142,7 +147,7 @@ internal sealed partial class MainWindow
                         size,method,vertical,intervalMs=interval,phase,scope=result.Spatial is null?"solid_core":"spatial_core_occupancy",coverage=coverage.Coverage,
                         missing=coverage.Missing,unknown=coverage.Unknown,passed=result.Passed,failure=result.Failure.ToString(),
                         core=result.CoreMeasurement,full=result.FullMeasurement,result.PerpendicularOffset,result.LongitudinalGaps,
-                        spatial=result.Spatial is { } check?new{check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory}:null,
+                        spatial=result.Spatial is { } check?new{check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry}:null,
                         diagnostics=diagnostics.DirectoryPath}})+Environment.NewLine);
                 }
                 if(spatialOnly)
@@ -182,14 +187,28 @@ internal sealed partial class MainWindow
                 bool Trial(StrokeMethod method,bool vertical,double interval,string phase)
                 {
                     worker.CheckProbe();var tile=tiles[slot++];var line=vertical?tile.Vertical:tile.Horizontal;
+                    var controlLine=vertical?tile.ControlVertical:tile.ControlHorizontal;
+                    diagnostics.Begin("local_control",StrokeMethod.Paced,vertical,64,tile.Area,Local(controlLine,tile.Area));
+                    var controlBefore=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.Before(controlBefore);
+                    worker.ProbeStroke(controlLine,new(size,StrokeMethod.Paced,vertical,64,64,1,TransferSchedule.Length(controlLine),3,1));
+                    diagnostics.CapturingAfter();var controlAfter=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(controlAfter);
+                    var controlResult=ProbeAnalysis.SpatialControl(controlBefore,controlAfter,Local(controlLine,tile.Area),footprint.Outer,footprint.Inner);
+                    diagnostics.Analysed(controlBefore,controlAfter,controlResult);
+                    LogResult("speed_probe_local_control",StrokeMethod.Paced,vertical,64,"local_control",controlResult);
+                    // Neither geometry nor color may be learned from the fast line.
+                    // A failed local slow control aborts without testing that trial.
+                    AuditReference localReference;
+                    try{localReference=ProbeSpatialCalibration.Bind(spatialModel!.Axes.Single(x=>x.Vertical==vertical),controlResult);}
+                    catch(Exception e){diagnostics.RejectedModel(e.Message);throw;}
+                    var controlId=diagnostics.ActiveId;
                     int step=Math.Max(1,2*footprint.Inner+1);
-                    diagnostics.Begin(phase,method,vertical,interval,tile.Area,Local(line,tile.Area),stepPixels:step);
-                    var before=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.Before(before);
+                    diagnostics.Begin(phase,method,vertical,interval,tile.Area,Local(line,tile.Area),stepPixels:step,localControlId:controlId);
+                    var before=controlAfter;diagnostics.Before(before);
                     worker.ProbeStroke(line,new(size,method,vertical,interval,interval,step,TransferSchedule.Length(line),3,1));
                     diagnostics.CapturingAfter();
                     var after=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(after);
                     var result=ProbeSpatialCalibration.Trial(before,after,Local(line,tile.Area),footprint.Outer,
-                        spatialModel!.Axes.Single(x=>x.Vertical==vertical),references[vertical]);
+                        spatialModel!.Axes.Single(x=>x.Vertical==vertical),localReference);
                     diagnostics.Analysed(before,after,result);LogResult("speed_probe_trial",method,vertical,interval,phase,result);
                     Dispatcher.BeginInvoke(()=>SetStatus(T("Тест швидкості: ","Speed Probe: ")+$"{slot}/{tiles.Count} · {Option("stroke_method",method.ToString())} · {interval:0} {T("мс","ms")} · {result.CoreCoverage.Coverage:P0}"));
                     return result.Passed;

@@ -1,8 +1,14 @@
 # Known issues
 
+## P1 — beta.27 local slow references and cursor behavior need a live run
+
+Recorded beta.26 speed trials had zero verified routes; many strict color failures still show a physical contrast trace. Beta.27 freezes a nearby independent 64 ms slow reference before each fast trial without changing the spatial envelope, core width, RGB tolerance or repeat/margin requirements. Lighting/material/subpixel variation remains a hypothesis, not an established cause. Nearby lanes can still differ. Old proofs are invalidated; paired tiles need more clean space and more slow motion. Diagnostics do not grant PASS. See CHANGES_BETA27_UA.md and TESTING_BETA27_UA.md.
+
+The latest recorded base brush calibration rejected Size 1 repeat 3 at contrast 56 versus required 80. The threshold is retained and metrics now persist on failure. Four Blocks had 1165 Missing / 901 Unknown after its first color and no safe legacy repairs. Neither incomplete masks nor static stamp calibration establish continuous drag coverage. These game failures remain open. Guarded parking and reduced interim cursor returns have regression coverage, but need live confirmation.
+
 ## P1 — beta.26 measured masks and shape switching need live verification
 
-The beta.24 live Four Blocks baseline completed 150 operations in 83.90 active seconds without audit. A separate audited run had 1175 missing / 893 uncertain pixels, mostly along the red block's top edge. The first spatial control failed SceneChanged. No new beta.26 game run has been performed.
+The beta.24 live Four Blocks baseline completed 150 operations in 83.90 active seconds without audit. A separate audited run had 1175 missing / 893 uncertain pixels, mostly along the red block's top edge. The first spatial control failed SceneChanged. Newer beta.26 evidence is summarized above; beta.27 game verification is pending.
 
 Beta.26 separates the old conservative safety radius from measured physical reach, saves possible-union and opaque-intersection masks from three independent commands, and supports seven shape profiles and Size up to 100. Wide safety uses the complete possible mask; fine residuals still use the existing baseline input route. Repair uses a stable mask where available and retains frozen-reference pixel re-audit. Possible-only reach is not declared fixed, Unknown is not targeted, and texture randomness cannot establish a guaranteed fill. Three samples are finite evidence, not a universal guarantee. Shape switching, large stamps, exact color edges and pause/repair recovery need live checks. Large Speed Probe tiles may not fit a normal Canvas; the protocol is not shortened or weakened.
 

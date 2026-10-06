@@ -6,14 +6,14 @@ using CanvasForge.Core;
 namespace CanvasForge.App;
 
 internal sealed record SpatialProbeMetrics(int[] AllowedOffsets,int RequiredWidth,int Slices,int PassedSlices,AuditReference FrozenReference,
-    ProbeOffsetTrajectory? Trajectory=null);
+    ProbeOffsetTrajectory? Trajectory=null,ProbeGeometryInspection? Geometry=null);
 internal sealed record FrozenProbeReference(bool Vertical,AuditReference Reference);
 internal sealed record ProbeMetrics(ReferenceMeasurement Full, ReferenceMeasurement Core,
     ProbeFailure Failure, int Expected, int Covered, int Missing, int Unknown, double Coverage,
     int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,SpatialProbeMetrics? Spatial=null);
 internal sealed record ProbeStageReport(string Id, string Phase, StrokeMethod Method, bool Vertical,
     double IntervalMs, double InitialDownWaitMs, int StepPixels, ScreenRect Area, ScreenLine LocalLine, string State, string? Error,
-    int UnstableAttempts, int LastUnstableAttempt, string? FailedAt, ProbeMetrics? Metrics);
+    int UnstableAttempts, int LastUnstableAttempt, string? FailedAt, ProbeMetrics? Metrics,string? LocalControlId=null);
 internal sealed record ProbeRunReport(string Version, string Revision, string Context, DateTimeOffset Started,
     double Size, int OuterRadius, int InnerRadius, int EndMarginPixels, string Scope, Rgb? RequestedRgb,
     string State, string Stage, string? Error, List<ProbeStageReport> Stages, List<SpeedSample> Selected,
@@ -28,6 +28,7 @@ internal sealed class ProbeDiagnosticSession
         Converters={new JsonStringEnumConverter()}
     };
     public string DirectoryPath { get; }
+    public string? ActiveId=>active?.Id;
     private ProbeRunReport report;
     private ProbeStageReport? active;
     public ProbeDiagnosticSession(string folder,string context,double size,int outer,int inner)
@@ -49,10 +50,10 @@ internal sealed class ProbeDiagnosticSession
     {report=report with{State="spatial_complete",Stage="complete",SpatialModel=model};Persist();}
     public void RejectedModel(string message)
     {active=active! with{State="rejected_model",Error=message,FailedAt="spatial_model"};SaveActive();}
-    public void Begin(string phase,StrokeMethod method,bool vertical,double interval,ScreenRect area,ScreenLine local,double? downMs=null,int stepPixels=1)
+    public void Begin(string phase,StrokeMethod method,bool vertical,double interval,ScreenRect area,ScreenLine local,double? downMs=null,int stepPixels=1,string? localControlId=null)
     {
         string id=$"stage-{report.Stages.Count+1:000}";
-        active=new(id,phase,method,vertical,interval,downMs??interval,stepPixels,area,local,"capturing_before",null,0,0,null,null);
+        active=new(id,phase,method,vertical,interval,downMs??interval,stepPixels,area,local,"capturing_before",null,0,0,null,null,localControlId);
         Directory.CreateDirectory(Path.Combine(DirectoryPath,id));report.Stages.Add(active);
         report=report with{Stage=id};SaveActive();
     }
@@ -78,11 +79,15 @@ internal sealed class ProbeDiagnosticSession
             overlay.Set(i,covered?new(98,214,154):result.CoreCoverage.MissingMask[i]?new(255,40,70):new(242,196,109));
         }
         SaveImage(overlay,"detected-core.png");
+        var contrast=after.Clone();
+        for(int i=0;i<result.RegionMask.Length;i++)if(result.RegionMask[i]&&RustSlider.Delta(before.Color(i),after.Color(i))>=32)
+            contrast.Set(i,new(118,166,242));
+        SaveImage(contrast,"contrast.png");
         var coverage=result.CoreCoverage;
         active=active! with{State=result.Passed?"passed":"rejected",Metrics=new(result.FullMeasurement,
             result.CoreMeasurement,result.Failure,coverage.Expected,coverage.Covered,coverage.Missing,coverage.Unknown,
             coverage.Coverage,result.PerpendicularOffset,result.LongitudinalGaps,result.OutsidePixels,result.OutsideChanged,
-            result.Spatial is { } check?new(check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory):null)};
+            result.Spatial is { } check?new(check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry):null)};
         SaveActive();
     }
     public void Complete(List<SpeedSample> selected)

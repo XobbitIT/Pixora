@@ -37,10 +37,10 @@ internal sealed partial class Painter
         int margin=CaptureCursor.Clearance(radius,windowDpi);
         var park=CaptureCursor.ParkingPoint(area,windowRect,original,margin)
             ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
-        Log("capture_cursor_park",new{area,original,park,shape=activeShape,brushRadius=radius,margin,dpi=windowDpi});
+        Log("capture_cursor_park",new{area,original,park,shape=activeShape,brushRadius=radius,margin,dpi=windowDpi,returnToOriginal=false});
         return CaptureCursor.Snapshot(original,park,Native.ReleaseChecked,MoveCursor,Frames,
             ()=>CanReturnCursor()&&Native.Cursor()==park,
-            error=>Log("cursor_restore_failed",new{phase="snapshot",message=error.Message}));
+            error=>Log("cursor_restore_failed",new{phase="snapshot",message=error.Message}),returnToOriginal:false);
         PixelImage Frames()
         {
         Delay(.12);

@@ -468,6 +468,7 @@ internal sealed partial class MainWindow
         SetEditing(false);
         Hide();
         double currentSize = 1;
+        int currentRepeat=0;
         try
         {
             await Task.Delay(1500);
@@ -484,10 +485,13 @@ internal sealed partial class MainWindow
                 foreach(var tile in tiles)
                 {
                     currentSize = tile.Size;
+                    currentRepeat=tile.Repeat+1;
                     CheckFrame();
                     using var worker = new Painter(AdaptiveBrush.CalibrationSettings(settings, tile.Size), target, ResumePath, LogPath, _ => { }, CancellationToken.None);
                     worker.PrepareProbe(tile.Size); CheckFrame();
                     var p=tile.Command;var area=tile.Area;
+                    try
+                    {
                     // Calibration dots use the same guarded movement and settled,
                     // cursor-free capture as spatial controls and coverage audits.
                     var before = worker.StableProbeShot(area,(_,_,_)=>{}); CheckFrame();
@@ -495,11 +499,16 @@ internal sealed partial class MainWindow
                     var after = worker.StableProbeShot(area,(_,_,_)=>{}); CheckFrame();
                     var stem=$"shape-{settings.Int("brush_shape_slot",3)}-size-{tile.Size}-repeat-{tile.Repeat+1}";
                     Images.Save(before,Path.Combine(diagnostic,stem+"-before.png"));Images.Save(after,Path.Combine(diagnostic,stem+"-after.png"));
+                    File.WriteAllText(Path.Combine(diagnostic,stem+"-metrics.json"),System.Text.Json.JsonSerializer.Serialize(new{
+                        shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
+                        contrast=BrushFootprints.Contrast(before,after),requestedColor=color.Hex}));
                     var stamp=BrushFootprints.Measure(before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size,measured[tile.Size].FirstOrDefault()?.Reference);
                     measured[tile.Size].Add(stamp);
                     var detail=new{shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,stamp,color=color.Hex};
                     File.WriteAllText(Path.Combine(diagnostic,stem+".json"),System.Text.Json.JsonSerializer.Serialize(detail));
                     File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = detail }) + Environment.NewLine);
+                    }
+                    finally {worker.RestoreLastStrokeCursor();}
                 }
                 var rows=measured.Select(row=>BrushFootprints.Build(settings,settings.Int("brush_shape_slot",3),row.Key,row.Value)).ToArray();
                 File.WriteAllText(Path.Combine(diagnostic,"profiles.json"),System.Text.Json.JsonSerializer.Serialize(rows));
@@ -523,6 +532,9 @@ internal sealed partial class MainWindow
         catch (Exception e)
         {
             adaptiveFailure = T("Не вдалося виміряти розмір", "Could not measure Size") + " " + currentSize + ": " + T(e.Message);
+            if(e is BrushContrastException low)
+                adaptiveFailure=T($"Size {currentSize}, повтор {currentRepeat}/3: контраст крапки {low.Metrics.PeakDelta}/255, потрібно {low.Metrics.RequiredDelta}/255; змінених пікселів {low.Metrics.ChangedPixels}. Знімки й вимірювання збережено. Очисти полотно й повтори. Профілі не оновлено.",
+                    $"Size {currentSize}, repeat {currentRepeat}/3: dot contrast {low.Metrics.PeakDelta}/255, required {low.Metrics.RequiredDelta}/255; changed pixels {low.Metrics.ChangedPixels}. Snapshots and measurements saved. Clear Canvas and retry. Profiles were not updated.");
             throw new InvalidOperationException(adaptiveFailure, e);
         }
         finally

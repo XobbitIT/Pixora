@@ -1492,8 +1492,8 @@ Test("Calibrated motion interruptions release both Shift and mouse",()=>
 });
 Test("Probe tiles cannot overlap and insufficient clean area is rejected",()=>
 {
-    var tiles=SpeedCalibration.Tiles(new(20,30,1020,1030),24);Assert(tiles.Count==62);
-    foreach(var t in tiles)Assert(t.Area.Left>=20&&t.Area.Top>=30&&t.Area.Right<=1020&&t.Area.Bottom<=1030);
+    var tiles=SpeedCalibration.Tiles(new(20,30,1220,1230),24);Assert(tiles.Count==62);
+    foreach(var t in tiles)Assert(t.Area.Left>=20&&t.Area.Top>=30&&t.Area.Right<=1220&&t.Area.Bottom<=1230);
     for(int i=0;i<tiles.Count;i++)for(int j=i+1;j<tiles.Count;j++)Assert(tiles[i].Area.Right<=tiles[j].Area.Left||tiles[j].Area.Right<=tiles[i].Area.Left||tiles[i].Area.Bottom<=tiles[j].Area.Top||tiles[j].Area.Bottom<=tiles[i].Area.Top);
     try{SpeedCalibration.Tiles(new(0,0,240,240),24);throw new Exception("Small area accepted");}catch(InvalidOperationException){}
 });
@@ -2346,6 +2346,7 @@ Test("Palette comparison retains current HEX adaptive calibration and counts acc
     Assert(before == cfg.Data.ToJsonString(), "Comparison modified the shared adaptive calibration");
 });
 BrushFootprintChecks.Run(Test);
+LocalProbeChecks.Run(Test);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 
 static SpatialProbeProfile SpatialFixtureProfile(Settings cfg,double size)

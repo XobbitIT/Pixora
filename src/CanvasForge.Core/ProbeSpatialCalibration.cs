@@ -18,7 +18,7 @@ public sealed record SpatialAxis(bool Vertical, int InnerRadius, List<SpatialAnc
 public sealed record SpatialProbeProfile(string Id, string Context, DateTimeOffset Created, double Size,
     int OuterRadius, List<SpatialAxis> Axes);
 public sealed record SpatialInspection(int[] AllowedOffsets, int RequiredWidth, int Slices, int PassedSlices,
-    AuditReference FrozenReference, bool[] ConfirmedMask,ProbeOffsetTrajectory? Trajectory=null);
+    AuditReference FrozenReference, bool[] ConfirmedMask,ProbeOffsetTrajectory? Trajectory=null,ProbeGeometryInspection? Geometry=null);
 
 public static class ProbeSpatialCalibration
 {
@@ -113,7 +113,7 @@ public static class ProbeSpatialCalibration
             throw new InvalidOperationException(ProbeAnalysis.Explain(slow.Failure));
         if((slow.Line.X1==slow.Line.X2)!=axis.Vertical||!axis.AllowedOffsets.Contains(slow.PerpendicularOffset))
             throw new InvalidOperationException($"{OutsideMessage}\nЗміщення: {slow.PerpendicularOffset:+0;-0;0} px; допустимі: {string.Join(", ",axis.AllowedOffsets)} px.");
-        // Colour is measured on a held-out slow line at the start of the speed run.
+        // Colour is measured on an independent slow line before its fast trial.
         // Geometry is NEVER expanded from it, and fast trials cannot learn either.
         return reference;
     }
@@ -175,6 +175,7 @@ public static class ProbeSpatialCalibration
             CoverageAudit.MeasureReference(before,after,changed,true),CoverageAudit.MeasureReference(before,after,envelope,true),
             coverage,failure,0,slices-passed,outside,outsideChanged,
             new(offsets,width,slices,unstable?0:passed,reference,confirmed,
-                unstable?null:ProbeOffsetTrajectory.Measure(supportedOffsets)));
+                unstable?null:ProbeOffsetTrajectory.Measure(supportedOffsets),
+                unstable?null:ProbeGeometryInspection.Measure(before,after,line,outer,axis.InnerRadius,offsets,reference,supportedOffsets)));
     }
 }

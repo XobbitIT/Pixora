@@ -28,7 +28,7 @@ public static class CaptureCursor
     }
 
     public static T Snapshot<T>(ScreenPoint original,ScreenPoint parked,Action release,
-        Action<ScreenPoint> move,Func<T> capture,Func<bool> mayReturn,Action<Exception>? restoreFailed=null)
+        Action<ScreenPoint> move,Func<T> capture,Func<bool> mayReturn,Action<Exception>? restoreFailed=null,bool returnToOriginal=true)
     {
         if(original==parked)return capture();
         try
@@ -36,7 +36,7 @@ public static class CaptureCursor
             release();move(parked);
             return capture();
         }
-        finally {Return(original,release,move,mayReturn,restoreFailed);}
+        finally {if(returnToOriginal)Return(original,release,move,mayReturn,restoreFailed);}
     }
 
     // Returning a cursor must never mask a capture failure or steal it after an

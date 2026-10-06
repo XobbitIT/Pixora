@@ -7,15 +7,16 @@ public sealed record ProbeOffsetTrajectory(int ResolvedSlices,int AmbiguousSlice
     int? MinimumOffset,int? MaximumOffset,int?[] OffsetsBySlice,
     int? LongestStableRun=null,double? TransitionRate=null)
 {
-    public static ProbeOffsetTrajectory Measure(IReadOnlyList<int[]> supportedOffsets)
+    public static ProbeOffsetTrajectory Measure(IReadOnlyList<int[]> supportedOffsets,int maximumOffset=ProbeSpatialCalibration.MaxOffset)
     {
         ArgumentNullException.ThrowIfNull(supportedOffsets);
+        if(maximumOffset is <0 or >512)throw new ArgumentOutOfRangeException(nameof(maximumOffset));
         var resolved=new int?[supportedOffsets.Count];int ambiguous=0,unresolved=0;
         for(int i=0;i<supportedOffsets.Count;i++)
         {
             var candidates=supportedOffsets[i];
-            if(candidates is null||candidates.Length>2*ProbeSpatialCalibration.MaxOffset+1
-                ||candidates.Any(o=>o is <-ProbeSpatialCalibration.MaxOffset or >ProbeSpatialCalibration.MaxOffset))
+            if(candidates is null||candidates.Length>2*maximumOffset+1
+                ||candidates.Any(o=>o < -maximumOffset || o > maximumOffset))
                 throw new ArgumentException("Invalid diagnostic offsets.");
             var unique=candidates.Distinct().ToArray();
             if(unique.Length==1)resolved[i]=unique[0];
