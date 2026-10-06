@@ -2347,6 +2347,7 @@ Test("Palette comparison retains current HEX adaptive calibration and counts acc
 });
 BrushFootprintChecks.Run(Test);
 LocalProbeChecks.Run(Test);
+BrushBatchChecks.Run(Test);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 
 static SpatialProbeProfile SpatialFixtureProfile(Settings cfg,double size)

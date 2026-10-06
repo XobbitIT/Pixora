@@ -746,5 +746,10 @@
   "Вибери форму пензля від 1 до 7.": "Choose brush shape 1–7.",
   "Захопи ряд із семи форм пензля.": "Capture the row of seven brush shapes.",
   "Три вимірювання збережено. Форми без стабільного ядра не використовуються для прискорення. Очисти полотно перед START.": "Three measurements saved. Shapes without a stable core are excluded from acceleration. Clear Canvas before START.",
-  "Некоректні профілі пензля.": "Invalid brush profiles."
+  "Некоректні профілі пензля.": "Invalid brush profiles.",
+  "Size {p0}, повтор {p1}/3: контраст {p2}/255, потрібно {p3}; змінених пікселів {p4}. Цей Size не збережено.": "Size {p0}, repeat {p1}/3: contrast {p2}/255, required {p3}; changed pixels {p4}. This Size was not saved.",
+  "Size {p0}: три вимірювання неузгоджені; цей Size не збережено.": "Size {p0}: three measurements are inconsistent; this Size was not saved.",
+  "Для адаптивного режиму потрібен підтверджений Size 1. Спробуй суцільний квадратний пензель №4 і калібруй лише Size 1 на чистому полотні.": "Adaptive mode requires a verified Size 1. Try solid square brush 4 and calibrate Size 1 alone on a clean Canvas.",
+  "Калібрування часткове: збережено {p0} Size, відхилено {p1}. Кожен збережений Size має 3/3 вимірювання. Переглянь причини в розділі «Пензель»; очисти полотно.": "Partial calibration: {p0} Sizes saved, {p1} rejected. Each saved Size has 3/3 measurements. See reasons on the Brush page; clear Canvas.",
+  "Спочатку відкалібруй вибраний розмір пензля.": "Calibrate the selected brush Size first."
 }

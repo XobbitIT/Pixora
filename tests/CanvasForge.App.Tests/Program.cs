@@ -75,10 +75,13 @@ internal static class Program
         CheckProgressLanguageRebuild(destination);
         CheckLocalProbeDiagnostics(destination,"Українська");
         CheckLocalProbeDiagnostics(destination,"English");
-        Console.WriteLine("ALL 58 WPF UI CHECKS PASSED");
+        CheckPartialBrushUi(destination,"Українська");
+        CheckPartialBrushUi(destination,"English");
+        Console.WriteLine("ALL 60 WPF UI CHECKS PASSED");
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
         if(args.Length>3)ReplayBeta26Failures(args[3],destination);
+        if(args.Length>4)ReplayBeta27WeakDots(args[4],destination);
         // Windows are rendered without showing or invoking game/capture/input actions.
         }
         catch (Exception e)
@@ -88,6 +91,37 @@ internal static class Program
         }
     }
 
+    private static void ReplayBeta27WeakDots(string source,string output)
+    {
+        var rows=new List<object>();
+        foreach(string beforePath in Directory.GetFiles(source,"shape-3-size-1-repeat-1-before.png",SearchOption.AllDirectories))
+        {
+            var before=Images.Load(beforePath);var after=Images.Load(beforePath.Replace("-before.png","-after.png"));
+            try{BrushFootprints.Measure(before,after,new(before.Width/2,before.Height/2),1);throw new Exception("Weak live dot accepted");}
+            catch(BrushContrastException e){Assert(e.Metrics.PeakDelta is 69 or 70&&e.Metrics.ChangedPixels==8&&e.Metrics.RequiredDelta==80,"Weak live metrics changed");rows.Add(new{file=Path.GetFileName(Path.GetDirectoryName(beforePath)),e.Metrics});}
+        }
+        Assert(rows.Count==2,"Missing two fresh calibration recordings");
+        File.WriteAllText(Path.Combine(output,"beta27-weak-dot-replay.json"),System.Text.Json.JsonSerializer.Serialize(new{scope="offline recordings; no new calibration certified",rows},new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+        Console.WriteLine("REPLAY beta.27: both recorded Size 1 dots still rejected at 69/70 versus 80");
+    }
+    private static void CheckPartialBrushUi(string output,string language)
+    {
+        bool english=language=="English";string name="partial-brush-"+(english?"en":"ua");string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
+        var s=ReadySettings(language);BrushSpan[] pixels=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(pixels,pixels,new(20,20,20));
+        BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[stamp,stamp,stamp])]);s.Set("probe_size",3);s.Set("adaptive_brush",false);s.Set("coverage_audit",false);s.Save(Path.Combine(directory,"config-csharp.json"));
+        var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        Assert(!Field<CheckBox>(window,"adaptiveEnabled").IsEnabled,"Partial masks enabled adaptive without Size 1");
+        Assert(!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Partial Size 3 incorrectly enabled audit without Size 1");
+        string failure="Size 1, повтор 1/3: контраст 69/255, потрібно 80; змінених пікселів 8. Цей Size не збережено.";
+        SetField(window,"adaptiveFailure",failure);Invoke(window,"RefreshAdaptiveStatus");
+        string displayed=Field<TextBlock>(window,"adaptiveResult").Text;
+        Assert(displayed==Translations.ForLanguage(failure,english)&&displayed.Contains(english?"This Size was not saved":"Цей Size не збережено"),"Cached partial failure untranslated");
+        string status=Field<TextBlock>(window,"adaptiveStatus").Text;Assert(status.Contains(english?"Measured Sizes: 3":"Виміряні Size: 3")&&status.Contains("Size 1"),"Partial status suggests stale coordinates");
+        window.ShowPage("speed");Assert(Field<Button>(window,"spatialButton").IsEnabled,"Size 1 unnecessarily blocked measured Size 3 spatial test");
+        string captions=string.Join("\n",Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"]));
+        if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"Partial brush UI untranslated");
+        Console.WriteLine("PASS "+name);
+    }
     private static void ReplayBeta26Failures(string recordingRoot,string output)
     {
         var rows=new List<object>();int rejected=0,observed=0;

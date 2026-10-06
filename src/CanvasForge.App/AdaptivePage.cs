@@ -45,6 +45,8 @@ internal sealed partial class MainWindow
         adaptiveCalibrate = AsyncButton(T("Калібрувати автоматично", "Calibrate automatically"), CalibrateBrush, true);
         calibration.Children.Add(adaptiveCalibrate);
         calibration.Children.Add(Text(T("Під час тесту не рухай мишу. ESC — скасувати. Після завершення очисти полотно.", "Do not move the mouse during the test. ESC cancels. Clear Canvas afterwards."), 11, Muted));
+        calibration.Children.Add(Text(T("Кожен Size зберігається лише після 3/3 узгоджених вимірювань. Слабкий Size не блокує решту. Підтверджений Size 3/10/20 можна окремо перевірити тестом швидкості; адаптивному режиму потрібен Size 1.",
+            "Each Size is saved only after 3/3 consistent measurements. A weak Size does not block the others. Verified Size 3/10/20 can be tested independently in Speed Probe; adaptive mode requires Size 1."),12,Muted));
         adaptiveResult = Text("", 12); calibration.Children.Add(adaptiveResult);
         var samples = new StackPanel();
         calibration.Children.Add(new Expander { Header = T("Виміряні розміри пензля", "Measured brush sizes"), Content = samples });
@@ -90,11 +92,14 @@ internal sealed partial class MainWindow
         adaptiveEnabled.IsEnabled = !Painting && (settings.Bool("adaptive_brush") || current && problem is null);
         adaptiveEnabled.ToolTip = current ? null : T("Спочатку натисни «Калібрувати автоматично».", "Click Calibrate automatically first.");
         var hasSamples = settings.Data["brush_calibration_points"] is JsonArray a && a.Count > 0;
+        var measured=BrushFootprints.Read(settings);
         adaptiveStatus.Text = current ? T("✓ Калібрування актуальне", "✓ Calibration is current") : hasSamples
             ? T("Параметри змінилися — потрібне нове калібрування", "Settings changed — recalibration needed")
             : T("Пензель ще не відкалібрований", "Brush is not calibrated yet");
+        if(!current&&measured.Count>0&&!measured.Any(p=>p.Size==1&&p.SolidCore.Valid))adaptiveStatus.Text=T($"Виміряні Size: {string.Join(", ",measured.Select(p=>p.Size))}. Для адаптивного режиму бракує Size 1 зі стабільним ядром.",
+            $"Measured Sizes: {string.Join(", ",measured.Select(p=>p.Size))}. Adaptive mode still needs Size 1 with a stable core.");
         adaptiveStatus.Foreground = current ? Success : Warning;
-        adaptiveResult.Text = adaptiveFailure.Length > 0 ? T(adaptiveFailure) : current
+        adaptiveResult.Text = adaptiveFailure.Length > 0 ? string.Join("\n",adaptiveFailure.Split('\n').Select(line=>T(line))) : current
             ? T("Готово. Очисти полотно перед початком малювання.", "Ready. Clear Canvas before START.") : "";
         adaptiveSummary.Text = settings.Bool("adaptive_brush") && current
             ? T("Адаптивний режим: увімкнено", "Adaptive mode: enabled")

@@ -15,6 +15,13 @@ public static class SpeedCalibration
     public static readonly int[] CandidatesMs = [32,20,12,8];
     public const int Repeats = 3;
     public static double Margin(double ms) => Math.Ceiling(ms*1.25+2);
+    public static bool BrushReady(Settings s,double size)
+    {
+        if(!BrushFootprints.Sizes.Contains(size)||s.Mode==ColorMode.HexDirect&&!s.HexControlsReady)return false;
+        if(s.Data["brush_footprints"] is not null)return BrushFootprints.Find(s,size) is {SolidCore.Valid:true};
+        if(!AdaptiveBrush.CalibrationCurrent(s))return false;
+        try{Footprint(s,size);return true;}catch(InvalidOperationException){return false;}
+    }
     public static string Context(Settings s)
     {
         var cal=s.Calibration;
@@ -28,9 +35,9 @@ public static class SpeedCalibration
         try
         {
             var profile=(s.Data["shape_speed_profiles"]?[s.Int("brush_shape_slot",3).ToString()]??s.Data["speed_probe_profile"])?.Deserialize<SpeedProbeProfile>();
-            if(profile is null||profile.Context!=Context(s)||profile.Samples is null||!AdaptiveBrush.CalibrationCurrent(s))return null;
+            if(profile is null||profile.Context!=Context(s)||profile.Samples is null)return null;
             if(profile.Samples.Count>64||profile.Samples.Any(x=>x is null||!double.IsFinite(x.Size)||!BrushFootprints.Sizes.Contains(x.Size)
-                ||!Enum.IsDefined(x.Method)||!double.IsFinite(x.TestedMs)||x.TestedMs is <8 or >64
+                ||!BrushReady(s,x.Size)||!Enum.IsDefined(x.Method)||!double.IsFinite(x.TestedMs)||x.TestedMs is <8 or >64
                 ||!double.IsFinite(x.SafeMs)||x.SafeMs<Margin(x.TestedMs)||x.SafeMs>100
                 ||x.StepPx is <1 or >64||x.StepPx>2*Footprint(s,x.Size).Inner+1
                 ||x.MaxLength is <8 or >16384||x.Repeats<Repeats||x.Coverage!=1

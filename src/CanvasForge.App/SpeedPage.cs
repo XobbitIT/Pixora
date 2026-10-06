@@ -64,7 +64,8 @@ internal sealed partial class MainWindow
     }
     private void RefreshSpeedStatus()
     {
-        bool current=SpeedCalibration.Current(settings),ready=AdaptiveBrush.SetupProblem(settings) is null&&AdaptiveBrush.CalibrationCurrent(settings);
+        bool current=SpeedCalibration.Current(settings),ready=AdaptiveBrush.SetupProblem(settings) is null&&SpeedCalibration.BrushReady(settings,settings.Number("probe_size",3));
+        bool auditReady=AdaptiveBrush.SetupProblem(settings) is null&&AdaptiveBrush.CalibrationCurrent(settings);
         var model=ProbeSpatialCalibration.Read(settings,settings.Number("probe_size",3));
         string? spatialProblem=null,speedProblem=null;
         if(ready)
@@ -89,7 +90,7 @@ internal sealed partial class MainWindow
             T("Допустимі зміщення зафіксовані. Швидкі проби не змінюють модель.","Allowed offsets are frozen. Fast trials cannot change the model.");
         calibratedMotion.IsEnabled=!Painting&&(current||settings.Bool("calibrated_strokes"));
         var canvas=settings.Calibration.Rect("canvas");
-        auditEnabled.IsEnabled=!Painting&&(settings.Bool("coverage_audit")||ready&&(long)canvas.Width*canvas.Height<=4_000_000&&settings.Number("paint_opacity_value",1)==1&&settings.Bool("use_fixed_opacity",true));
+        auditEnabled.IsEnabled=!Painting&&(settings.Bool("coverage_audit")||auditReady&&(long)canvas.Width*canvas.Height<=4_000_000&&settings.Number("paint_opacity_value",1)==1&&settings.Bool("use_fixed_opacity",true));
         auditEnabled.ToolTip=T("Потрібне поточне калібрування суцільного пензля, прозорість 1 та полотно до 4 млн px.","Requires current solid brush calibration, Opacity 1 and Canvas up to 4 million pixels.");
         SetSpeedChip(speedChip);RefreshCoverageStatus();RefreshProbeDiagnostics();
         speedStatus.Text=speedFailure.Length>0?T(speedFailure):current?T("✓ Є підтверджені маршрути. Інші розміри використовують звичайний ввід.","Verified routes are available. Other Sizes use normal input.")
@@ -102,7 +103,7 @@ internal sealed partial class MainWindow
     {
         if(Painting)return;ReadSettings();
         var problem=AdaptiveBrush.SetupProblem(settings);if(problem is not null)throw new InvalidOperationException(T(problem));
-        if(!AdaptiveBrush.CalibrationCurrent(settings))throw new InvalidOperationException(T("Спочатку відкалібруй пензель.","Calibrate the brush first."));
+        if(!SpeedCalibration.BrushReady(settings,settings.Number("probe_size",3)))throw new InvalidOperationException(T("Спочатку відкалібруй вибраний розмір пензля.","Calibrate the selected brush Size first."));
         var target=AlignRustForTest();double size=settings.Number("probe_size",3);var footprint=SpeedCalibration.Footprint(settings,size);
         var spatialModel=ProbeSpatialCalibration.Read(settings,size);
         if(!spatialOnly&&spatialModel is null)throw new InvalidOperationException(ProbeSpatialCalibration.MissingMessage);

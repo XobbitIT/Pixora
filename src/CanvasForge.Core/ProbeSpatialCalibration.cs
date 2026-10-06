@@ -41,7 +41,7 @@ public static class ProbeSpatialCalibration
             if(profiles is null||profiles.Count>7||profiles.Any(x=>x is null))return null;
             if(profiles.Count(x=>x.Size==size)!=1)return null;
             var p=profiles.Single(x=>x.Size==size);var footprint=SpeedCalibration.Footprint(s,size);
-            if(!AdaptiveBrush.CalibrationCurrent(s)||p.Context!=Context(s)||!Guid.TryParseExact(p.Id,"N",out _)
+            if(!SpeedCalibration.BrushReady(s,size)||p.Context!=Context(s)||!Guid.TryParseExact(p.Id,"N",out _)
                 ||p.OuterRadius!=footprint.Outer||p.Axes is null||p.Axes.Count!=2
                 ||p.Axes.Any(x=>x is null)||p.Axes.Select(x=>x.Vertical).Distinct().Count()!=2)return null;
             var canvas=s.Calibration.Rect("canvas");

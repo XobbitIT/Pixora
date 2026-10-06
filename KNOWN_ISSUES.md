@@ -1,5 +1,9 @@
 # Known issues
 
+## P1 — minimum Round Size 1 is physically faint in new live records
+
+Beta.27 rejected two fresh first dots at contrast 70/69 versus required 80, each with 8 changed pixels; HEX and numeric controls matched. Beta.28 retains the threshold and saves complete independent Size triples instead of aborting the whole batch. A Size 3 spatial/speed proof is now independent of Size 1 but cannot certify it or enable adaptive/audit readiness. Round Size 1 itself remains unresolved. Square 1 comparison is pending; AA/subpixel phase is a hypothesis. See CHANGES_BETA28_UA.md and TESTING_BETA28_UA.md.
+
 ## P1 — beta.27 local slow references and cursor behavior need a live run
 
 Recorded beta.26 speed trials had zero verified routes; many strict color failures still show a physical contrast trace. Beta.27 freezes a nearby independent 64 ms slow reference before each fast trial without changing the spatial envelope, core width, RGB tolerance or repeat/margin requirements. Lighting/material/subpixel variation remains a hypothesis, not an established cause. Nearby lanes can still differ. Old proofs are invalidated; paired tiles need more clean space and more slow motion. Diagnostics do not grant PASS. See CHANGES_BETA27_UA.md and TESTING_BETA27_UA.md.

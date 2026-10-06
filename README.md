@@ -1,6 +1,8 @@
 # Pixora
 
-Raster painting assistant for Rust. Development build **1.0.14-beta.27**, Windows 10/11 x64.
+Raster painting assistant for Rust. Development build **1.0.14-beta.28**, Windows 10/11 x64.
+
+Beta.28 keeps complete three-dot measurements per Size when another Size has weak contrast. Spatial/Speed Probe readiness is scoped to its measured Size; partial Size 3 does not certify Size 1 or enable adaptive painting. The recorded faint Round Size 1 remains rejected. See [changes](CHANGES_BETA28_UA.md) and [calibration checklist](TESTING_BETA28_UA.md).
 
 Beta.27 uses guarded cursor parking after numeric controls, keeps interim captures parked, and freezes an independent nearby slow-line color before every fast trial. New contrast diagnostics distinguish physical trace from verified color; strict coverage and spatial acceptance remain unchanged. Old spatial/speed proofs are stale. Weak brush stamps retain numeric failure evidence without lowering thresholds. See [changes](CHANGES_BETA27_UA.md) and [live checklist](TESTING_BETA27_UA.md); new game verification is pending.
 
