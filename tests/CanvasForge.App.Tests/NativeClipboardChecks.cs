@@ -16,6 +16,10 @@ internal static class NativeClipboardChecks
         {
             Clipboard.Clear();using(var empty=Native.ClipboardBackup.Capture())
             {Native.ClipboardWrite("temporary marker");Require(empty.Restore(Native.ClipboardSequence()));Require(!Clipboard.ContainsText());}
+            Clipboard.SetText("original text");
+            using(var lease=new ClipboardLease(new WindowsClipboardStore(),(uint)Environment.ProcessId,_=>{}))
+            {lease.Write("first marker");lease.Write("second marker");Require(lease.Read()=="second marker");}
+            Require(Clipboard.GetText()=="original text");
             var pixels=new byte[]{0,0,255,255,0,255,0,255,255,0,0,255,255,255,255,255};
             var image=BitmapSource.Create(2,2,96,96,PixelFormats.Bgra32,null,pixels,8);image.Freeze();Clipboard.SetImage(image);
             using(var saved=Native.ClipboardBackup.Capture())
@@ -28,7 +32,7 @@ internal static class NativeClipboardChecks
             var files=new StringCollection{"C:\\Pixora-fixture-one.png","C:\\Pixora-fixture-two.png"};Clipboard.SetFileDropList(files);
             using(var saved=Native.ClipboardBackup.Capture())
             {Native.ClipboardWrite("marker");Require(saved.Restore(Native.ClipboardSequence()));Require(Clipboard.GetFileDropList().Cast<string>().SequenceEqual(files.Cast<string>()));}
-            Console.WriteLine("PASS native-clipboard-smoke: empty, WPF bitmap pixels and file-drop paths restored");
+            Console.WriteLine("PASS native-clipboard-smoke: text transaction, empty, WPF bitmap pixels and file-drop paths restored");
         }
         finally{Require(original.Restore(Native.ClipboardSequence()));}
     }

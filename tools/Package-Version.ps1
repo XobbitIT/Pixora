@@ -52,7 +52,7 @@ if($PackageDirectory) {
         Set-Content -LiteralPath (Join-Path $PackageDirectory 'README_UA.txt') -Value $readme -Encoding UTF8
         $manifestPath=Join-Path $PackageDirectory 'Build_Manifest.json'
         if(!(Test-Path -LiteralPath $manifestPath)) {
-            @{version=$version;inGameTest=$false;commit=$env:GITHUB_SHA} | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+            @{version=$version;inGameTest=$false;commit=$env:PIXORA_SOURCE_SHA;buildCheckoutCommit=$env:GITHUB_SHA} | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding UTF8
         }
     }
     Test-PixoraPackageVersions $PackageDirectory $version

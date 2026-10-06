@@ -12,6 +12,7 @@ jobs:
     runs-on: windows-latest
     env:
       PIXORA_NATIVE_CLIPBOARD_SMOKE: '1'
+      PIXORA_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +44,7 @@ jobs:
           "PIXORA_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Publish win-x64 self-contained
-        run: dotnet publish src/CanvasForge.App/CanvasForge.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -o publish/windows-x64
+        run: dotnet publish src/CanvasForge.App/CanvasForge.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:SourceRevisionId=${{ env.PIXORA_SOURCE_SHA }} -o publish/windows-x64
 
       - name: Check published DLLs
         shell: pwsh
