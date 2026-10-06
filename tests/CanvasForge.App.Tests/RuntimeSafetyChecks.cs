@@ -49,6 +49,12 @@ internal static class RuntimeSafetyChecks
         store=new();using(var lease=new ClipboardLease(store,42,statuses.Add))lease.Write("marker");Require(store.Formats.Count==0);
         store=new();using(var lease=new ClipboardLease(store,42,statuses.Add)){lease.Write("marker");store.Copy("new user data",99);}
         Require(store.Formats["text"]=="new user data"&&statuses.Last()=="skipped_external_change");
+        store=new();using(var lease=new ClipboardLease(store,42,statuses.Add))
+        {
+            lease.Write("marker");store.Copy("3.00",99);lease.ExpectCopy();
+            try{lease.Read();throw new Exception("External matching numeric text accepted");}catch(InvalidOperationException){}
+        }
+        Require(store.Formats["text"]=="3.00"&&statuses.Last()=="skipped_external_change");
         store=new();using(var lease=new ClipboardLease(store,42,statuses.Add)){store.Copy("user data",99);try{lease.Write("payload");throw new Exception("External copy overwritten");}catch(InvalidOperationException){}Require(store.Writes==0);}
         store=new(){FailCapture=true};try{using var lease=new ClipboardLease(store,42,statuses.Add);throw new Exception("Unsupported capture accepted");}catch(InvalidOperationException){}Require(store.Writes==0&&store.Disposed);
         store=new(){RestoreFailures=2};using(var lease=new ClipboardLease(store,42,statuses.Add))lease.Write("payload");Require(store.Restores==3&&store.Formats.Count==0);

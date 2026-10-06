@@ -17,13 +17,19 @@ internal static class NativeClipboardChecks
             Clipboard.Clear();using(var empty=Native.ClipboardBackup.Capture())
             {Native.ClipboardWrite("temporary marker");Require(empty.Restore(Native.ClipboardSequence()));Require(!Clipboard.ContainsText());}
             Clipboard.SetText("original text");
-            using(var lease=new ClipboardLease(new WindowsClipboardStore(),(uint)Environment.ProcessId,_=>{}))
+            using(var lease=new ClipboardLease(new WindowsClipboardStore(),uint.MaxValue,_=>{}))
             {
                 lease.Write("first marker");Console.WriteLine("PASS native clipboard first transaction write");
                 lease.Write("second marker");Console.WriteLine("PASS native clipboard second transaction write");
                 Require(lease.Read()=="second marker");
             }
             Require(Clipboard.GetText()=="original text");
+            using(var lease=new ClipboardLease(new WindowsClipboardStore(),uint.MaxValue,_=>{}))
+            {
+                lease.Write("marker");Clipboard.SetText("new external copy");lease.ExpectCopy();
+                try{lease.Read();throw new Exception("External copy accepted as Rust");}catch(InvalidOperationException){}
+            }
+            Require(Clipboard.GetText()=="new external copy");
             var pixels=new byte[]{0,0,255,255,0,255,0,255,255,0,0,255,255,255,255,255};
             var image=BitmapSource.Create(2,2,96,96,PixelFormats.Bgra32,null,pixels,8);image.Freeze();Clipboard.SetImage(image);
             using(var saved=Native.ClipboardBackup.Capture())

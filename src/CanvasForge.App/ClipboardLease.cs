@@ -41,6 +41,7 @@ internal sealed class ClipboardLease:IDisposable
         // Only adopt copies made by the captured game. An unrelated clipboard
         // change must survive cleanup instead of being replaced by our backup.
         if(observation.OwnerProcess==targetProcess||copyExpected&&observation.OwnerProcess==0)expected=observation.Sequence;
+        else if(observation.Sequence!=expected)throw new InvalidOperationException("Буфер обміну змінився під час вводу. Зупини стороннє копіювання та повтори.");
         return observation.Text;
     }
     public void Dispose()
