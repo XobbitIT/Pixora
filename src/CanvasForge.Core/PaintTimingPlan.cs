@@ -42,7 +42,7 @@ public static class PaintTimingPlan
             }
             if(s.Bool("coverage_audit"))work.Add(new(Audit(group),"audit",.2,false));
         }
-        double finish=StrokeTiming.Fast(s)&&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
+        double finish=s.Bool("manual_brush_controls")?0:StrokeTiming.Fast(s)&&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
             ?StrokeTiming.ControlFrame(s):StrokeTiming.SliderChangeEstimate(s);
         work.Add(new(Finish,"finish",finish,false));return work;
     }

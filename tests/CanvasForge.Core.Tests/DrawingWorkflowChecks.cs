@@ -40,7 +40,7 @@ internal static class DrawingWorkflowChecks
             var s=DrawingWorkflow.Effective(Captured(true));var image=new PixelImage(4,4);for(int i=0;i<16;i++)image.Set(i,i%2==0?new(255,0,0):new(0,0,0));
             var p=Planner.Build(image,s);Require(p.Identity==PlanIdentity.Compute(image,s,p.Palette));
             var groups=TransferSchedule.Build(p,s);Require(groups.Count>0&&groups.Count==p.Counts.Count&&groups.Values.SelectMany(x=>x).All(x=>x.Size==0));
-            var timing=PaintTimingPlan.Build(s,groups,TransferSchedule.Order(p,groups));Require(timing[0].PlannedSeconds==0&&PaintTimingPlan.DefaultSize(s)==1);
+            var timing=PaintTimingPlan.Build(s,groups,TransferSchedule.Order(p,groups));Require(timing[0].PlannedSeconds==0&&timing.Last().PlannedSeconds==0&&PaintTimingPlan.DefaultSize(s)==1);
         });
     }
 }

@@ -69,6 +69,10 @@ internal static partial class Program
         painter.ApplyControls();
         typeof(Painter).GetMethod("ReprimeControls",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(painter,[null,null]);
         Assert((int)typeof(Painter).GetField("activeShape",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(painter)! == 4,"Manual brush not primed");
+        Painter.FinishControls(DrawingWorkflow.Effective(SimpleCaptured("English")),()=>throw new Exception("Manual finish queried native controls"),_=>throw new Exception("Manual finish clicked uncaptured opacity"));
+        var advanced=SimpleCaptured("English");advanced.Set("drawing_mode","Advanced");int writes=0;
+        Painter.FinishControls(advanced,()=>false,_=>writes++);Assert(writes==0,"Advanced finish ignored foreground guard");
+        Painter.FinishControls(advanced,()=>true,value=>{Assert(value==1,"Advanced finish changed its opacity target");writes++;});Assert(writes==1,"Advanced finish stopped restoring opacity");
         Console.WriteLine("PASS simple-painter-manual-controls");
     }
     private static void CheckSimpleStartVisible(MainWindow window, int width, int height)

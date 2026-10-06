@@ -760,8 +760,7 @@ internal sealed partial class Painter : IDisposable
 
             BeginTiming(PaintTimingPlan.Finish,PaintPhase.Finishing,"Завершую перенесення…");
             double finishStart=ActiveSeconds;
-            if (Native.GetForegroundWindow() == window)
-                Slider("opacity", 1);
+            FinishControls(settings, () => Native.GetForegroundWindow() == window, value => Slider("opacity", value));
             if (File.Exists(checkpointPath))
                 File.Delete(checkpointPath);
             RestoreLastStrokeCursor();
@@ -778,6 +777,13 @@ internal sealed partial class Painter : IDisposable
                 Native.EndHighResolutionTimer();
             if (!completed) FlushCheckpoint(token.IsCancellationRequested ? "stop" : "interruption");
         }
+    }
+
+    // Manual controls apply for the entire transfer, including its final cleanup.
+    internal static void FinishControls(Settings settings, Func<bool> foreground, Action<double> applyOpacity)
+    {
+        if (settings.Bool("manual_brush_controls")) return;
+        if (foreground()) applyOpacity(1);
     }
 
     private void FlushCheckpoint(string reason)
