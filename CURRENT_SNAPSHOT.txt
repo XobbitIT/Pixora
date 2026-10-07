@@ -1,4 +1,13 @@
-Pixora 1.0.14-beta.37 — checked stationary dots and reviewable brush failures.
+Pixora 1.0.14-beta.38 — exclusive asynchronous operations, cancellation and resilient calibration data.
+300 Core / 92 WPF checks; latest-wins image loading, stale-plan failure, repeated START/RESUME, standalone STOP/close regressions.
+Reserve START before planning; cancelled planning never reaches native input. Failed launches dispose resources and unlock editing.
+Individual capture/controls/brush/probe actions share exclusivity, cancellation and completion; automatic setup keeps its existing linked token.
+Post-probe restore honors cancellation/closing; HEX checks geometry again before committing the final capture.
+Invariant validated legacy brush parsing and malformed shape-speed status are fail-closed; no weak proof promotion.
+Bounded planning cancellation and active-run progress callbacks. Proof thresholds, revisions and motion delays unchanged.
+New live Rust validation pending. See CODE_REVIEW_BETA38_UA.md, CHANGES_BETA38_UA.md and TESTING_BETA38_UA.md.
+
+Previous beta.37 — checked stationary dots and reviewable brush failures.
 294 Core / 83 WPF checks, including recorded beta.36 weak and empty-core fixtures.
 Move/settle/check -> down/hold/check -> same-point held refresh/check -> up/check; 64 ms phases, 256 ms total.
 Allow at most 1 px initial absolute-input normalization; held drift rejects and always releases the button.

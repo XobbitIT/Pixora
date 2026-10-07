@@ -2355,6 +2355,62 @@ BrushCalibrationRegressionChecks.Run(Test);
 BrushColorChecks.Run(Test);
 ReviewRegressionChecks.Run(Test);
 DrawingWorkflowChecks.Run(Test);
+Test("Malformed legacy measurements never become brush or speed proof",()=>
+{
+    var s=ProbeConfig();s.Data["brush_calibration_points"]=JsonNode.Parse("[[1,null,1],[3,{},1],[10,21,null],[20,9,99],[40,\"NaN\",1],[],null]");
+    s.Set("brush_calibration_context",AdaptiveBrush.Context(s));
+    Assert(!AdaptiveBrush.CalibrationCurrent(s));
+    foreach(double size in BrushFootprints.Sizes)
+    {
+        Assert(!SpeedCalibration.BrushReady(s,size));
+        try{SpeedCalibration.Footprint(s,size);throw new Exception("Invalid footprint accepted");}catch(InvalidOperationException){}
+        try{SpeedCalibration.PhysicalReach(s,size);throw new Exception("Invalid reach accepted");}catch(InvalidOperationException){}
+    }
+});
+Test("Numeric legacy strings have consistent invariant brush geometry",()=>
+{
+    var culture=System.Globalization.CultureInfo.CurrentCulture;
+    try
+    {
+        System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("de-DE");
+        var s=ProbeConfig();s.Data["brush_calibration_points"]=JsonNode.Parse("[[\"1\",\"9.0\",\"1\"],[\"10\",\"21\",\"13\"]]");
+        s.Set("brush_calibration_context",AdaptiveBrush.Context(s));Assert(AdaptiveBrush.CalibrationCurrent(s));
+        Assert(SpeedCalibration.BrushReady(s,1)&&SpeedCalibration.BrushReady(s,10));
+        Assert(SpeedCalibration.Footprint(s,1)==(7,0)&&SpeedCalibration.PhysicalReach(s,1)==4);
+        Assert(SpeedCalibration.Footprint(s,10)==(13,5)&&SpeedCalibration.PhysicalReach(s,10)==10);
+    }
+    finally{System.Globalization.CultureInfo.CurrentCulture=culture;}
+});
+Test("Invalid legacy Size remains unavailable beside valid measurements",()=>
+{
+    var s=ProbeConfig();s.Data["brush_calibration_points"]=JsonNode.Parse("[[1,null,1],[3,5,3],[10,21,13]]");
+    s.Set("brush_calibration_context",AdaptiveBrush.Context(s));Assert(AdaptiveBrush.CalibrationCurrent(s));
+    Assert(!SpeedCalibration.BrushReady(s,1)&&SpeedCalibration.BrushReady(s,3));
+});
+Test("Cancelled planning also stops empty and transparent grouping phases",()=>
+{
+    using var cancel=new CancellationTokenSource();cancel.Cancel();
+    foreach(Action work in new Action[]{()=>Planner.Build(Fixture(),Config(ColorMode.HexDirect),token:cancel.Token),
+        ()=>Planner.Group(Enumerable.Repeat(-1,100).ToArray(),10,10,true,cancel.Token),
+        ()=>Planner.Cleanup(Enumerable.Repeat(-1,100).ToArray(),10,10,0,1,cancel.Token)})
+    {try{work();throw new Exception("Cancelled work completed");}catch(OperationCanceledException){}}
+});
+Test("Malformed shape speed container reports invalid proof without throwing",()=>
+{
+    foreach(var json in new[]{"\"bad\"","[]","7"})
+    {
+        var s=ProbeConfig();s.Data["shape_speed_profiles"]=JsonNode.Parse(json);
+        Assert(!SpeedCalibration.Current(s)&&SpeedCalibration.Status(s)==SpeedProfileState.InvalidProof);
+    }
+});
+Test("Alternate brush route ignores malformed shape speed container",()=>
+{
+    foreach(var json in new[]{"\"bad\"","[]","7"})
+    {
+        var s=ProbeConfig();s.Data["shape_speed_profiles"]=JsonNode.Parse(json);
+        Assert(SpeedCalibration.Resolve(s,3,new(10,10,50,10),4) is null);
+    }
+});
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 
 static SpatialProbeProfile SpatialFixtureProfile(Settings cfg,double size)

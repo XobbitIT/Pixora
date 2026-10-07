@@ -3,6 +3,7 @@ public static class Planner
 {
     public static PaintPlan Build(PixelImage source, Settings settings, IProgress<string>? progress = null, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         settings.Validate();
         var canvas = settings.Calibration.Rect("canvas");
         var cw = canvas.Valid ? canvas.Width : 512;
@@ -203,6 +204,7 @@ public static class Planner
 
     public static void Cleanup(int[] grid, int w, int h, int passes, int minRegion, CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         for (var pass = 0; pass < passes; pass++)
         {
             var source = (int[])grid.Clone();
@@ -242,6 +244,7 @@ public static class Planner
             var border = new List<int>();
             while (q.Count > 0)
             {
+                if((cells.Count&1023)==0)token.ThrowIfCancellationRequested();
                 var i = q.Dequeue();
                 cells.Add(i);
                 foreach (var j in Neighbors(i, w, h))
@@ -268,6 +271,7 @@ public static class Planner
 
     public static Dictionary<int, List<Stroke>> Group(int[] grid, int w, int h, bool hybrid, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         var result = new Dictionary<int, List<Stroke>>();
         var seen = new bool[grid.Length];
         for (var seed = 0; seed < grid.Length; seed++)
@@ -282,6 +286,7 @@ public static class Planner
             seen[seed] = true;
             while (q.Count > 0)
             {
+                if((cells.Count&1023)==0)token.ThrowIfCancellationRequested();
                 var i = q.Dequeue();
                 cells.Add(i);
                 foreach (var j in Neighbors(i, w, h))
@@ -297,6 +302,7 @@ public static class Planner
                 var strokes = new List<Stroke>();
                 foreach (var row in cells.GroupBy(i => vertical ? i % w : i / w).OrderBy(g => g.Key))
                 {
+                    token.ThrowIfCancellationRequested();
                     var coords = row.Select(i => vertical ? i / w : i % w).OrderBy(x => x).ToArray();
                     var a = coords[0];
                     var b = a;

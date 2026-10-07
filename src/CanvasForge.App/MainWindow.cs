@@ -53,7 +53,7 @@ internal sealed partial class MainWindow : Window
     {
         Interval = TimeSpan.FromMilliseconds(350)
     };
-    private bool Painting => setupRunning || paintTask is { IsCompleted: false };
+    private bool Painting => setupRunning || inputCheckRunning || startPreparing || imageLoading || paintTask is { IsCompleted: false };
     internal bool English => settings.Text("language") == "English";
 
     private string T(string uk, string? en = null) => Translations.ForLanguage(uk, English, en);
@@ -195,6 +195,7 @@ internal sealed partial class MainWindow : Window
 
     private void Error(Exception e)
     {
+        if(closing)return;
         File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="error",details=new{version=BuildInfo.Version,page=currentPage,type=e.GetType().Name,message=e.Message}})+Environment.NewLine);
         if (e is AuditFailureException audit)
         {
@@ -299,7 +300,7 @@ internal sealed partial class MainWindow : Window
         };
         DockPanel.SetDock(language, Dock.Right);
         top.Children.Add(language);
-        setupStop=Button(T("Зупинити перевірку","Stop setup"),()=>setupCancel?.Cancel());
+        setupStop=Button(T("Зупинити перевірку","Stop setup"),CancelActiveWork);
         setupStop.Background=Danger;setupStop.Visibility=setupRunning?Visibility.Visible:Visibility.Collapsed;
         DockPanel.SetDock(setupStop,Dock.Right);top.Children.Add(setupStop);
         badge = Text("", 11);
@@ -431,7 +432,7 @@ internal sealed partial class MainWindow : Window
         var paintingCard=Card(T("4. Малювання","4. Painting"),out var controls);Grid.SetRow(paintingCard,1);controlColumn.Children.Add(paintingCard);
         startButton=AsyncButton(T("Почати","Start"),()=>Start(false),true);controls.Children.Add(startButton);
         var actions=new UniformGridCompat(3);resumeButton=AsyncButton(T("Продовжити","Resume"),()=>Start(true));pauseButton=Button(T("Пауза","Pause"),()=>{if(painter is not null)painter.Paused=!painter.Paused;});
-        stopButton=Button(T("Зупинити","Stop"),()=>paintCancel?.Cancel());stopButton.Background=Danger;
+        stopButton=Button(T("Зупинити","Stop"),CancelActiveWork);stopButton.Background=Danger;
         foreach(var action in new[]{resumeButton,pauseButton,stopButton}){action.Padding=new Thickness(5,9,5,9);action.FontSize=12;actions.Add(action);}controls.Children.Add(actions.Panel);
         progressBar=new(){Height=8,Minimum=0,Maximum=100,Foreground=Accent,Background=Input,Margin=new Thickness(0,12,0,6)};controls.Children.Add(progressBar);
         progressLabel=Text("0% · "+T("Залишилось","ETA")+" —",12,Muted);controls.Children.Add(progressLabel);controls.Children.Add(Text(T("F6 — пауза · ESC — зупинити","F6 — pause · ESC — stop"),12,Muted));
@@ -668,7 +669,7 @@ internal sealed partial class MainWindow : Window
         var resumeProblem=Painting?T("Малювання вже триває.","Painting is already running."):ResumeProblem();
         resumeButton.IsEnabled=!Painting&&available&&resumeProblem is null;
         resumeButton.ToolTip=resumeProblem??T("Продовжити збережений план","Continue the saved plan");
-        pauseButton.IsEnabled=Painting&&!setupRunning;stopButton.IsEnabled=Painting;
+        pauseButton.IsEnabled=painter is not null&&paintTask is {IsCompleted:false}&&!setupRunning&&!inputCheckRunning;stopButton.IsEnabled=Painting;
         string State(bool value)=>value?T("готово","ready"):T("очікує","pending");
         UpdateWorkflow(canvas,color,controls);
         captureStatus.Text=$"{T("Полотно","Canvas")}: {(canvas?$"{cal.Rect("canvas").Width} × {cal.Rect("canvas").Height} px":T("не захоплено","not captured"))}\n{T("Кольори","Colors")}: {(color?T("готові","ready"):T("потрібне налаштування","setup needed"))}\n{T("Пензель і числові поля","Brush and numeric fields")}: {State(controls)}";
@@ -737,13 +738,16 @@ internal sealed partial class MainWindow : Window
 
     private async Task LoadImageFile(string path)
     {
-        if (Painting || closing) return;
+        if (setupRunning||inputCheckRunning||startPreparing||paintTask is {IsCompleted:false}||closing) return;
+        int request=++imageLoadGeneration;
+        imageLoading=true;planCancel?.Cancel();generation++;renderGeneration++;
+        UpdateReady();
         try
         {
             SetStatus(T("Завантаження…", "Loading…"));
-            source = await Task.Run(() => Images.Load(path));
-            if (closing)
-                return;
+            var loaded=await ImageLoader(path);
+            if(closing||request!=imageLoadGeneration)return;
+            source=loaded;imageLoading=false;
             imagePath = path;
             originalImage.Source = Images.Bitmap(source);
             Dirty();
@@ -751,20 +755,30 @@ internal sealed partial class MainWindow : Window
         }
         catch (Exception e)
         {
-            if (!closing)
+            if (!closing&&request==imageLoadGeneration)
                 Error(e);
+        }
+        finally
+        {
+            if(request==imageLoadGeneration)
+            {
+                imageLoading=false;
+                if(!closing&&!Painting)SetEditing(true);
+            }
         }
     }
 
-    private async Task BuildPlan()
+    private Task BuildPlan()=>BuildPlanCore(false);
+    private async Task BuildPlanCore(bool activeOperation)
     {
-        if (source is null || Painting || closing)
+        if (source is null || Painting&&!activeOperation || closing)
             return;
         debounce.Stop();
         ReadSettings();
         Save();
         planCancel?.Cancel();
-        var cancel = planCancel = new();
+        var cancel = planCancel = activeOperation?CancellationTokenSource.CreateLinkedTokenSource(SetupToken,startCancel?.Token??CancellationToken.None):new();
+        plan=null;resumeSchedule=null;renderGeneration++;
         var id = ++generation;
         var snapshot = EffectiveSettings;
         var src = source;
@@ -776,7 +790,8 @@ internal sealed partial class MainWindow : Window
         });
         try
         {
-            var built = await Task.Run(() => Planner.Build(src, snapshot, updates, cancel.Token), cancel.Token);
+            var built = await PlanBuilder(src, snapshot, updates, cancel.Token);
+            cancel.Token.ThrowIfCancellationRequested();
             if (id != generation || closing)
                 return;
             plan = built;
@@ -789,8 +804,13 @@ internal sealed partial class MainWindow : Window
         }
         catch (Exception e)
         {
-            if (id == generation)
+            if (id == generation&&!closing)
                 SetStatus(e.Message);
+        }
+        finally
+        {
+            if(ReferenceEquals(planCancel,cancel))planCancel=null;
+            cancel.Dispose();
         }
     }
 
@@ -833,9 +853,9 @@ internal sealed partial class MainWindow : Window
         win.Show();
     }
 
-    private async Task Start(bool resume)
+    private async Task StartTransfer(bool resume)
     {
-        if (Painting || source is null)
+        if (source is null)
             return;
         ReadSettings();
         Save();
@@ -843,8 +863,9 @@ internal sealed partial class MainWindow : Window
         try { AdaptiveBrush.Validate(execution); }
         catch (InvalidOperationException) { ShowPage("adaptive"); throw; }
         if (plan is null || plan.Identity != PlanIdentity.Compute(source, execution, plan.Palette))
-            await BuildPlan();
-        if (plan is null)
+            await BuildPlanCore(true);
+        startCancel!.Token.ThrowIfCancellationRequested();
+        if (plan is null || plan.Identity!=PlanIdentity.Compute(source,execution,plan.Palette))
             throw new InvalidOperationException(T("Не вдалося побудувати план.", "Cannot build plan."));
         var cal = settings.Calibration;
         if (!cal.Rect("canvas").Valid)
@@ -873,17 +894,20 @@ internal sealed partial class MainWindow : Window
             throw new InvalidOperationException(T("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.", "Rust window was not found. Make sure the game is open, then capture again."));
         ClearAuditDiagnostics();
         ResetPaintProgress();
-        var cancellation = paintCancel = new();
+        var cancellation = paintCancel = startCancel;
         var snapshot = execution;
         var activePlan = plan;
-        painter = new(snapshot, window, ResumePath, LogPath, p => Dispatcher.BeginInvoke(() =>ApplyPaintProgress(p)), cancellation.Token);
+        var worker=painter = new(snapshot, window, ResumePath, LogPath, p => Dispatcher.BeginInvoke(() =>
+        {
+            if(!closing&&ReferenceEquals(paintCancel,cancellation))ApplyPaintProgress(p);
+        }), cancellation.Token);
         BeginCoverageCheck(snapshot.Bool("coverage_audit"));
         SetEditing(false);
         if (settings.Bool("minimize", true))
             WindowState = WindowState.Minimized;
         if (!resume && File.Exists(ResumePath))
             File.Delete(ResumePath);
-        paintTask = Task.Run(() => painter.Run(activePlan, state));
+        paintTask = Task.Run(() => worker.Run(activePlan, state));
         UpdateReady();
         bool transferCompleted=false;
         try
@@ -919,7 +943,7 @@ internal sealed partial class MainWindow : Window
 
     internal void SetEditing(bool enabled)
     {
-        enabled &= !setupRunning;
+        enabled &= !setupRunning&&!inputCheckRunning&&!startPreparing&&!imageLoading;
         foreach (var p in pages)
             if (p.Key != "paint")
                 p.Value.IsEnabled = enabled;
@@ -931,7 +955,7 @@ internal sealed partial class MainWindow : Window
         SetPaintButtons(pages["paint"], enabled);
         startButton.IsEnabled = enabled;
         resumeButton.IsEnabled = enabled && File.Exists(ResumePath);
-        pauseButton.IsEnabled = !enabled&&!setupRunning;
+        pauseButton.IsEnabled = painter is not null&&paintTask is {IsCompleted:false}&&!setupRunning&&!inputCheckRunning;
         stopButton.IsEnabled = !enabled;
         if (enabled) UpdateReady();
     }
@@ -963,15 +987,17 @@ internal sealed partial class MainWindow : Window
         if (closing)
             return;
         closing = true;
+        imageLoadGeneration++;
         debounce.Stop();
-        planCancel?.Cancel();
+        CancelActiveWork();
         if (Painting)
         {
             e.Cancel = true;
-            paintCancel?.Cancel();
             try
             {
                 if(setupDone is not null)await setupDone.Task;
+                else if(inputCheckDone is not null)await inputCheckDone.Task;
+                else if(startDone is not null)await startDone.Task;
                 else if(paintTask is not null)await paintTask;
             }
             catch

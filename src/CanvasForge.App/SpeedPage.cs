@@ -34,13 +34,13 @@ internal sealed partial class MainWindow
         AddCombo(spatial,"probe_size",T("Розмір пензля для тестів","Test brush Size"),new[]{"1","3","10","20","40","60","100"});
         spatial.Children.Add(Text(T("Шість повільних ліній у різних місцях полотна: три горизонтальні й три вертикальні. Вимірює темне суцільне ядро та зміщення його від координат курсора.",
             "Six slow lines across Canvas: three horizontal and three vertical. Measures the dark solid core and its offset from cursor coordinates."),12));
-        spatialButton=AsyncButton(T("Виміряти просторові зміщення","Measure spatial offsets"),RunSpatialProbe,true);spatial.Children.Add(spatialButton);
+        spatialButton=CheckButton(T("Виміряти просторові зміщення","Measure spatial offsets"),RunSpatialProbe,true);spatial.Children.Add(spatialButton);
         spatialChip=new StatusChip();spatial.Children.Add(spatialChip);spatialStatus=Text("",12,Muted);spatial.Children.Add(spatialStatus);
         spatial.Children.Add(Text(T("Після калібрування очисти полотно й запусти тест швидкості. Три позиції на напрямок — обмежена вибірка; аудит малювання залишається потрібним.",
             "Clear Canvas after calibration, then run Speed Probe. Three positions per direction are a limited sample; painting still needs an audit."),12,Muted));
         page.Children.Add(Card(T("2. Тест швидкості","2. Speed Probe"),out var probe));
         probe.Children.Add(Text(T("Перед кожною швидкою пробою малює незалежну повільну лінію поруч і фіксує її колір. Порівнює звичайний рух і Shift тричі, потім перевіряє запас. Тест може тривати кілька хвилин.","Draws an independent nearby slow line and freezes its color before every fast trial. Compares paced movement and Shift three times, then validates a safety margin. The test can take several minutes."),12));
-        probeButton=AsyncButton(T("Запустити тест швидкості","Run Speed Probe"),RunSpeedProbe,true);probe.Children.Add(probeButton);
+        probeButton=CheckButton(T("Запустити тест швидкості","Run Speed Probe"),RunSpeedProbe,true);probe.Children.Add(probeButton);
         speedChip=new StatusChip();probe.Children.Add(speedChip);
         speedStatus=Text("",12,Muted);probe.Children.Add(speedStatus);
         probeDiagnosticButton=Button(T("Відкрити діагностику","Open diagnostics"),ShowProbeDiagnostics);
@@ -120,7 +120,7 @@ internal sealed partial class MainWindow
     private Task RunSpatialProbe()=>RunProbe(true);
     private async Task RunProbe(bool spatialOnly)
     {
-        if(Painting&&!setupRunning)return;lastProbeSucceeded=false;ReadSettings();
+        if(Painting&&!setupRunning&&!inputCheckRunning)return;lastProbeSucceeded=false;ReadSettings();
         var problem=AdaptiveBrush.SetupProblem(settings);if(problem is not null)throw new InvalidOperationException(T(problem));
         if(!SpeedCalibration.BrushReady(settings,settings.Number("probe_size",3)))throw new InvalidOperationException(T("Спочатку відкалібруй вибраний розмір пензля.","Calibrate the selected brush Size first."));
         var target=AlignRustForTest();double size=settings.Number("probe_size",3);var footprint=SpeedCalibration.Footprint(settings,size);
@@ -140,17 +140,19 @@ internal sealed partial class MainWindow
         // Nearby controls add real slow motion. Allow the full bounded protocol
         // for wider brushes rather than hitting the old fixed eight-minute cap.
         double budgetSeconds=spatialOnly?480:Math.Max(480,tiles.Count*((TransferSchedule.Length(tiles[0].Horizontal)+4)*.106+1.6)+120);
-        var cancel=setupRunning?setupCancel!:paintCancel=new CancellationTokenSource();
+        bool ownsCancel=setupCancel is null&&inputCheckCancel is null;
+        var cancel=paintCancel=setupCancel??inputCheckCancel??new CancellationTokenSource();
         using var budget=new CancellationTokenSource(TimeSpan.FromSeconds(budgetSeconds));
         using var linked=CancellationTokenSource.CreateLinkedTokenSource(cancel.Token,budget.Token);
         Painter? restore=null,worker=null;
         var selected=new List<SpeedSample>();
         SpatialProbeProfile? measuredSpatial=null;
+        bool interrupted=false;
         speedFailure="";SetEditing(false);Hide();
         try
         {
             worker=painter=new Painter(snapshot,target,ResumePath,LogPath,_=>{},linked.Token);
-            restore=new Painter(settings,target,ResumePath,LogPath,_=>{},CancellationToken.None);
+            restore=new Painter(settings,target,ResumePath,LogPath,_=>{},cancel.Token);
             paintTask=Task.Run(async ()=>
             {
                 await Task.Delay(1200,linked.Token);Native.SetForegroundWindow(target);
@@ -274,6 +276,7 @@ internal sealed partial class MainWindow
         }
         catch(OperationCanceledException e)
         {
+            interrupted=true;
             if(budget.IsCancellationRequested&&!cancel.IsCancellationRequested)
             {
                 var failure=new ProbeBudgetExceededException(T("Тест швидкості перевищив ліміт часу. Очисти полотно перед повтором.","Speed Probe exceeded its time budget. Clear Canvas before retrying."),e);
@@ -287,7 +290,7 @@ internal sealed partial class MainWindow
         finally
         {
             Native.Release();
-            if(restore is not null&&!closing&&Native.GetForegroundWindow()==target)
+            if(restore is not null&&!closing&&!interrupted&&!cancel.IsCancellationRequested&&Native.GetForegroundWindow()==target)
             {
                 await Task.Run(()=>
                 {
@@ -296,8 +299,8 @@ internal sealed partial class MainWindow
                     finally{worker?.RestoreLastStrokeCursor();}
                 });
             }
-            else if(restore is not null)File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_skipped",details=new{reason=closing?"closing":"focus_lost"}})+Environment.NewLine);
-            worker?.Dispose();restore?.Dispose();painter=null;if(!setupRunning){cancel.Dispose();paintCancel=null;}Save();
+            else if(restore is not null)File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_skipped",details=new{reason=closing?"closing":interrupted||cancel.IsCancellationRequested?"cancelled":"focus_lost"}})+Environment.NewLine);
+            worker?.Dispose();restore?.Dispose();painter=null;if(ownsCancel)cancel.Dispose();if(!setupRunning)paintCancel=null;Save();
             if(!closing){var message=status.Text;BuildUi();ShowSpeedSetup();SetEditing(true);SetStatus(message);Show();Activate();}
         }
         void RecordFailure(Exception e)

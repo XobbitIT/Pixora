@@ -30,10 +30,16 @@ internal static class MeasuredAdaptive
                 distance[i]=edge?0:Math.Min(w,h);
             }
         }
-        for(int y=1;y<h-1;y++)for(int x=1;x<w-1;x++)
-        {int i=y*w+x;distance[i]=Math.Min(distance[i],1+Math.Min(distance[i-1],Math.Min(distance[i-w],Math.Min(distance[i-w-1],distance[i-w+1]))));}
-        for(int y=h-2;y>0;y--)for(int x=w-2;x>0;x--)
-        {int i=y*w+x;distance[i]=Math.Min(distance[i],1+Math.Min(distance[i+1],Math.Min(distance[i+w],Math.Min(distance[i+w-1],distance[i+w+1]))));}
+        for(int y=1;y<h-1;y++)
+        {
+            token.ThrowIfCancellationRequested();for(int x=1;x<w-1;x++)
+            {int i=y*w+x;distance[i]=Math.Min(distance[i],1+Math.Min(distance[i-1],Math.Min(distance[i-w],Math.Min(distance[i-w-1],distance[i-w+1]))));}
+        }
+        for(int y=h-2;y>0;y--)
+        {
+            token.ThrowIfCancellationRequested();for(int x=w-2;x>0;x--)
+            {int i=y*w+x;distance[i]=Math.Min(distance[i],1+Math.Min(distance[i+1],Math.Min(distance[i+w],Math.Min(distance[i+w-1],distance[i+w+1]))));}
+        }
         var covered=new bool[labels.Length];var wide=basic.ToDictionary(p=>p.Key,_=>new List<BrushStroke>());
         foreach(var p in profiles)
         {

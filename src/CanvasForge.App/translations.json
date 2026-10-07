@@ -1,4 +1,7 @@
 {
+  "Завантаження скасовано.": "Image loading cancelled.",
+  "Перевірку скасовано. Очисти тестові сліди перед повтором.": "Check cancelled. Clear the test traces before retrying.",
+  "Запуск скасовано до вводу в Rust.": "Start cancelled before input to Rust.",
   "Курсор калібрування не зупинився біля заданої точки.": "Calibration cursor did not settle at the requested point.",
   "Курсор калібрування змістився під час малювання крапки.": "Calibration cursor moved while drawing the dot.",
   "Size {p0}: слід виміряно, але стабільного ядра немає. Непрозорі частини трьох крапок не збігаються; ці Size не вмикають адаптивне прискорення.": "Size {p0}: trace measured, but no stable core. The opaque parts of the three dots do not overlap; these Sizes do not enable adaptive acceleration.",

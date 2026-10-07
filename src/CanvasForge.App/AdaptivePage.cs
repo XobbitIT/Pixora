@@ -44,9 +44,9 @@ internal sealed partial class MainWindow
         adaptiveStatus = Text("", 13); calibration.Children.Add(adaptiveStatus);
         calibration.Children.Add(Text(T("Size — значення в Rust, а не діаметр у пікселях. Три незалежні крапки визначають можливий слід та стабільне суцільне ядро від координати миші.", "Size is the Rust control value, not a diameter in pixels. Three independent dots measure the possible footprint and stable solid core relative to the mouse command."), 12, Muted));
         AddCombo(calibration,"brush_calibration_size",T("Розміри для калібрування","Sizes to calibrate"),new[]{"1/3/10/20","1","3","10","20","40","60","100"});
-        adaptiveCalibrate = AsyncButton(T("Калібрувати автоматично", "Calibrate automatically"), BeginBrushCalibration, true);
+        adaptiveCalibrate = CheckButton(T("Калібрувати автоматично", "Calibrate automatically"), BeginBrushCalibration, true);
         calibration.Children.Add(adaptiveCalibrate);
-        adaptiveRetry=AsyncButton(T("Повторити лише невдалі вибрані Size","Retry only failed selected Sizes"),CalibrateFailedBrush);
+        adaptiveRetry=CheckButton(T("Повторити лише невдалі вибрані Size","Retry only failed selected Sizes"),CalibrateFailedBrush);
         adaptiveRetry.Tag="brush-retry-failed";calibration.Children.Add(adaptiveRetry);
         calibration.Children.Add(Text(T("Під час тесту не рухай мишу. ESC — скасувати. Після завершення очисти полотно.", "Do not move the mouse during the test. ESC cancels. Clear Canvas afterwards."), 11, Muted));
         calibration.Children.Add(Text(T("Кожен Size зберігається лише після 3/3 узгоджених вимірювань. Слабкий Size не блокує решту. Підтверджений Size 3/10/20 можна окремо перевірити тестом швидкості; адаптивному режиму потрібен Size 1.",

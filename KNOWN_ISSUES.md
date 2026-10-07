@@ -1,4 +1,8 @@
-# Known issues — current beta.36
+# Known issues — current beta.38
+
+Code review fixes cover asynchronous lifecycle and malformed calibration data; see CODE_REVIEW_BETA38_UA.md. Fresh Rust validation remains pending: stable three-dot Square Size 1 core, spatial/speed proofs, actual Palette/HEX adaptive coverage, STOP and closing during each standalone check. Strong/weak beta.36 failures are still not certified by offline replay. No reduced RGB/coverage thresholds, proof revisions or input delays are introduced. Current-context proofs remain usable; a static stamp is not proof of continuous swept coverage.
+
+Previous beta.36 issues follow:
 
 The latest beta.35 live run confirmed all six spatial controls and horizontal paced candidates at 32/20 ms (three repeats each). The first 12 ms trial was 22/24 with two uncertain samples; the next local 64 ms control had a dark in-envelope +2 core at 23/24, Missing 0, Unknown 1. Its fallback incorrectly substituted a complete lighter +4 edge outside the model. Beta.36 preserves the failed bounded evidence and prioritizes validating the earlier successful candidate's margin. The captured uncertain pixel remains unverified: no tolerance or envelope expansion or fabricated 27 ms certification is introduced. A partly verified uncertain local control may be measured once on a fresh reserved tile; up to eight such retries per run, bounded by available spares. An unverified control never permits fast input.
 

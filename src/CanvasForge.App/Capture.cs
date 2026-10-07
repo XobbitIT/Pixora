@@ -13,24 +13,24 @@ internal sealed partial class MainWindow
         page.Children.Add(Card("Налаштування Rust", out var hero));
         hero.Children.Add(Text(T("Відкрий редактор картини Rust. Далі Одна кнопка виконає всі перевірки. Якщо області ще не захоплені, виділи їх у семи кроках.", "Open the Rust painting editor. One button runs all checks. If regions are missing, select them in seven steps."), 12, Muted));
         AddAutomaticSetup(hero,true);
-        hero.Children.Add(AsyncButton(T("Лише захопити області", "Capture regions only"), CaptureWizard));
-        hero.Children.Add(AsyncButton(T("Лише змінити полотно", "Change Canvas only"), () => Capture("canvas", T("ПОЛОТНО", "CANVAS"))));
+        hero.Children.Add(CheckButton(T("Лише захопити області", "Capture regions only"), CaptureWizard));
+        hero.Children.Add(CheckButton(T("Лише змінити полотно", "Change Canvas only"), () => Capture("canvas", T("ПОЛОТНО", "CANVAS"))));
         page.Children.Add(Card(T("Полотно / палітра", "Canvas / palette"), out var info));
         captureStatus = Text("—", 11, Muted);
         info.Children.Add(captureStatus);
         page.Children.Add(Card("Числові поля розміру, інтервалу й прозорості", out var controls));
         page.Children.Add(Card(Option("color_mode","HEX Direct"), out var hex));
         hex.Children.Add(Text(T("Захопи поле з шістьма HEX-цифрами, потім виконай тест. Символ # вводити не потрібно.", "Capture the field with six HEX digits, then run the test. Do not include #."), 12, Muted));
-        hex.Children.Add(AsyncButton(T("1. Захопити HEX", "1. Capture HEX"), () => Capture("hex", T("HEX — 6 цифр", "HEX — 6 digits"))));
-        hex.Children.Add(AsyncButton(T("2. Тест HEX (3 кольори)", "2. Test HEX (3 colors)"), TestHex));
-        hex.Children.Add(AsyncButton(T("3. Пензель і повзунки HEX", "3. HEX brush and sliders"), CaptureHexControls));
+        hex.Children.Add(CheckButton(T("1. Захопити HEX", "1. Capture HEX"), () => Capture("hex", T("HEX — 6 цифр", "HEX — 6 digits"))));
+        hex.Children.Add(CheckButton(T("2. Тест HEX (3 кольори)", "2. Test HEX (3 colors)"), TestHex));
+        hex.Children.Add(CheckButton(T("3. Пензель і повзунки HEX", "3. HEX brush and sliders"), CaptureHexControls));
         hex.Children.Add(Text(T("Відкрий HEX-палітру Rust і захопи форми пензля та кожну зелену смугу разом із числовим полем справа. Робочі межі визначаються автоматично.", "Open the HEX palette in Rust and capture brush shapes and each complete green bar including its numeric field. Interactive boundaries are detected automatically."), 12, Muted));
         var manual = new StackPanel();
         page.Children.Add(new Expander { Header = T("Ручне калібрування", "Manual calibration"), Content = manual });
         manual.Children.Add(Card("Палітра і прев’ю", out var pal));
-        pal.Children.Add(AsyncButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", T("ПАЛІТРА 4×16", "PALETTE 4×16"))));
-        pal.Children.Add(AsyncButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("ШВИДКІ КОЛЬОРИ — 1×10", "QUICK COLORS — 1×10"))));
-        pal.Children.Add(AsyncButton(T("Зразок активного кольору (необов’язково)", "Active color swatch (optional)"),
+        pal.Children.Add(CheckButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", T("ПАЛІТРА 4×16", "PALETTE 4×16"))));
+        pal.Children.Add(CheckButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("ШВИДКІ КОЛЬОРИ — 1×10", "QUICK COLORS — 1×10"))));
+        pal.Children.Add(CheckButton(T("Зразок активного кольору (необов’язково)", "Active color swatch (optional)"),
             () => Capture(settings.Mode == ColorMode.HexDirect ? "swatch" : "palette_swatch", T("ЗРАЗОК КОЛЬОРУ", "COLOR SWATCH"))));
         pal.Children.Add(Button(T("Показати вставку", "Show insertion"), ShowInsertion));
         manual.Children.Add(Card("Додаткові області", out var extra));
@@ -44,7 +44,7 @@ internal sealed partial class MainWindow
         }
 
         )
-            extra.Children.Add(AsyncButton(T(title), () => Capture(key, T(title))));
+            extra.Children.Add(CheckButton(T(title), () => Capture(key, T(title))));
         foreach (var(key, title)in new[]
         {
             ("hard_brush", "Круглий"),
@@ -52,7 +52,7 @@ internal sealed partial class MainWindow
         }
 
         )
-            extra.Children.Add(AsyncButton(T(title), () => CapturePoint(key, T(title))));
+            extra.Children.Add(CheckButton(T(title), () => CapturePoint(key, T(title))));
         foreach (var kind in new[]
         {
             "size",
@@ -61,9 +61,9 @@ internal sealed partial class MainWindow
         }
 
         )
-            controls.Children.Add(AsyncButton(Option("control",kind), () => Capture(kind + "_track", Option("control",kind) + " — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))));
+            controls.Children.Add(CheckButton(Option("control",kind), () => Capture(kind + "_track", Option("control",kind) + " — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))));
         controls.Children.Add(Text(T("Числа вводяться напряму. Ручні опорні точки розміру більше не потрібні.", "Values are entered directly. Manual Size anchors are no longer needed."), 11, Muted));
-        controls.Children.Add(AsyncButton(T("Перевірити керування Rust", "Test Rust controls"), TestControls));
+        controls.Children.Add(CheckButton(T("Перевірити керування Rust", "Test Rust controls"), TestControls));
         controls.Children.Add(Button(T("Калібрування пензля", "Brush calibration"), () => ShowPage("adaptive")));
     }
 
@@ -75,7 +75,7 @@ internal sealed partial class MainWindow
 
     private async Task<(ScreenRect Screen, PixelImage Shot)> CaptureShot()
     {
-        if (Painting && !setupRunning)
+        if (Painting && !setupRunning && !inputCheckRunning)
             throw new InvalidOperationException("STOP before capture.");
         ReadSettings();
         Hide();
@@ -112,8 +112,12 @@ internal sealed partial class MainWindow
 
     private ScreenRect? Select(PixelImage shot, ScreenRect screen, string title, bool point = false, bool live = false, bool slider = false)
     {
+        SetupToken.ThrowIfCancellationRequested();
         var selector = new CaptureWindow(shot, screen, T(title), point, live ? plan?.Preview : null, English, slider);
-        return selector.ShowDialog() == true ? selector.Selected : null;
+        using var cancellation=SetupToken.Register(()=>selector.Dispatcher.BeginInvoke(()=>{if(selector.IsVisible)selector.Close();}));
+        bool accepted=selector.ShowDialog()==true;
+        SetupToken.ThrowIfCancellationRequested();
+        return accepted?selector.Selected:null;
     }
 
     private async Task Capture(string key, string title)
@@ -140,12 +144,10 @@ internal sealed partial class MainWindow
         }
         finally
         {
-            Show();
-            Activate();
-            UpdateReady();
+            if(!closing){Show();Activate();UpdateReady();}
         }
 
-        await BuildPlan();
+        await BuildPlanCore(inputCheckRunning);
         if (key == "canvas" && settings.Bool("auto_insert_preview", true) && plan is not null)
             ShowInsertion();
     }
@@ -166,9 +168,7 @@ internal sealed partial class MainWindow
         }
         finally
         {
-            Show();
-            Activate();
-            UpdateReady();
+            if(!closing){Show();Activate();UpdateReady();}
         }
     }
 
@@ -250,11 +250,12 @@ internal sealed partial class MainWindow
                 cal.SetRect(key, rect.Value);
                 PostCapture(cal, key, shot, screen);
             }
+            PrepareCaptureFrame();
             settings.Data["hex_controls"] = cal!.Data.DeepClone();
             Dirty();
             Save();
         }
-        finally { Show(); Activate(); UpdateReady(); }
+        finally { if(!closing){Show(); Activate(); UpdateReady();} }
     }
 
     private async Task CaptureWizard()
@@ -295,7 +296,7 @@ internal sealed partial class MainWindow
             Dirty();Save();
         }
         finally {if(!closing){Show();Activate();UpdateReady();}}
-        if(!setupRunning)await BuildPlan();
+        if(!setupRunning)await BuildPlanCore(inputCheckRunning);
     }
 
     private void RefreshPalette(PixelImage shot, ScreenRect screen)
@@ -438,7 +439,7 @@ internal sealed partial class MainWindow
     private Task CalibrateFailedBrush()=>CalibrateBrushSizes(true);
     private async Task CalibrateBrushSizes(bool retryOnly)
     {
-        if (Painting && !setupRunning) return;
+        if (Painting && !setupRunning && !inputCheckRunning) return;
         lastBrushProfiles=null;
         ReadSettings();
         var problem = AdaptiveBrush.SetupProblem(settings);

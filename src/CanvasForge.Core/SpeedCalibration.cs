@@ -54,10 +54,10 @@ public static class SpeedCalibration
     public static SpeedProfileState Status(Settings s)
     {
         if(Current(s))return SpeedProfileState.Current;
-        var node=s.Data["shape_speed_profiles"]?[s.Int("brush_shape_slot",3).ToString()]??s.Data["speed_probe_profile"];
-        if(node is null)return SpeedProfileState.NotTested;
         try
         {
+            var node=s.Data["shape_speed_profiles"]?[s.Int("brush_shape_slot",3).ToString()]??s.Data["speed_probe_profile"];
+            if(node is null)return SpeedProfileState.NotTested;
             var p=node.Deserialize<SpeedProbeProfile>();
             if(p?.Samples is null||p.Samples.Count>64||p.Samples.Any(x=>x is null))return SpeedProfileState.InvalidProof;
             if(p.Samples.Any(x=>!BrushReady(s,x.Size)))return SpeedProfileState.BrushUnavailable;
@@ -78,7 +78,7 @@ public static class SpeedCalibration
         {
             // Most alternative shapes have no evidence yet. Avoid cloning all
             // measured masks for every estimated operation in that common case.
-            if(s.Data["shape_speed_profiles"]?[shapeSlot.ToString()] is null)return null;
+            if(s.Data["shape_speed_profiles"] is not System.Text.Json.Nodes.JsonObject profiles||profiles[shapeSlot.ToString()] is null)return null;
             s=BrushFootprints.ForShape(s,shapeSlot);
         }
         if(!Allowed(s)||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
@@ -102,11 +102,8 @@ public static class SpeedCalibration
             return (p.Reach,inner);
         }
         foreach(var point in (s.Data["brush_calibration_points"] as System.Text.Json.Nodes.JsonArray??[]).OfType<System.Text.Json.Nodes.JsonArray>())
-            if(point.Count>=3&&double.TryParse(point[0]?.ToString(),out var value)&&value==size)
+            if(AdaptiveBrush.TryLegacySample(point,out var value,out var outer,out var inner)&&value==size)
             {
-                double outer=point[1]!.GetValue<double>(),inner=point[2]!.GetValue<double>();
-                if(!double.IsFinite(outer)||!double.IsFinite(inner)||outer is <1 or >512||inner<1||inner>outer)
-                    throw new InvalidOperationException("Некоректне вимірювання пензля. Повтори калібрування.");
                 return ((int)Math.Ceiling(outer/2)+2,Math.Max(0,(int)Math.Floor((inner-1)/2)-1));
             }
         throw new InvalidOperationException("Немає вимірювання для цього Size. Повтори калібрування пензля.");
@@ -115,8 +112,8 @@ public static class SpeedCalibration
     {
         if(BrushFootprints.Find(s,size) is { } p)return p.Reach;
         foreach(var row in (s.Data["brush_calibration_points"] as System.Text.Json.Nodes.JsonArray??[]).OfType<System.Text.Json.Nodes.JsonArray>())
-            if(row.Count>=3&&double.TryParse(row[0]?.ToString(),out var value)&&value==size)
-            {double diameter=row[1]!.GetValue<double>();if(double.IsFinite(diameter)&&diameter is >=1 and <=512)return (int)Math.Floor((diameter-1)/2);}
+            if(AdaptiveBrush.TryLegacySample(row,out var value,out var diameter,out _)&&value==size)
+                return (int)Math.Floor((diameter-1)/2);
         throw new InvalidOperationException("No physical brush measurement for this Size.");
     }
     public static List<SpeedProbeTile> Tiles(ScreenRect canvas,int outer,IReadOnlyList<ScreenRect>? excluded=null)

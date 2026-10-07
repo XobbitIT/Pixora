@@ -86,15 +86,22 @@ public static class AdaptiveBrush
         var result = new List<(double Size, int Outer, int Inner)>();
         foreach (var row in a.OfType<JsonArray>())
         {
-            if (row.Count < 3) continue;
-            var size = row[0]!.GetValue<double>();
-            var outer = row[1]!.GetValue<double>();
-            var inner = row[2]!.GetValue<double>();
-            if (!double.IsFinite(size) || !double.IsFinite(outer) || !double.IsFinite(inner)
-                || size < 1 || size > 100 || outer < 1 || outer > 512 || inner < 1 || inner > outer) continue;
+            if (!TryLegacySample(row,out var size,out var outer,out var inner)) continue;
             result.Add((size, (int)Math.Ceiling(outer / 2) + 2, Math.Max(0, (int)Math.Floor((inner - 1) / 2) - 1)));
         }
         return result.OrderByDescending(x => x.Item2).ThenByDescending(x => x.Item1).ToArray();
+    }
+
+    internal static bool TryLegacySample(JsonArray row,out double size,out double outer,out double inner)
+    {
+        size=outer=inner=0;
+        bool Number(int index,out double value)
+        {
+            value=0;return row[index] is JsonValue&&double.TryParse(row[index]!.ToString(),
+                System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out value)&&double.IsFinite(value);
+        }
+        return row.Count>=3&&Number(0,out size)&&Number(1,out outer)&&Number(2,out inner)
+            &&size is >=1 and <=100&&outer is >=1 and <=512&&inner>=1&&inner<=outer;
     }
 
     public static Dictionary<int, List<BrushStroke>> Build(PaintPlan plan, Settings s, CancellationToken token=default)

@@ -9,7 +9,7 @@ internal sealed partial class MainWindow
     private bool setupRunning;
     private TaskCompletionSource? setupDone;
     private CancellationTokenSource? setupCancel;
-    private CancellationToken SetupToken => setupCancel?.Token ?? CancellationToken.None;
+    private CancellationToken SetupToken => setupCancel?.Token ?? inputCheckCancel?.Token ?? CancellationToken.None;
     private SetupWorkspace? setupWorkspace;
     private IReadOnlyList<BrushFootprint>? lastBrushProfiles;
     private bool lastProbeSucceeded;
@@ -42,7 +42,7 @@ internal sealed partial class MainWindow
     }
     private void RefreshSetupStatus()
     {
-        setupStop.Visibility=setupRunning?Visibility.Visible:Visibility.Collapsed;
+        setupStop.Visibility=setupRunning||inputCheckRunning?Visibility.Visible:Visibility.Collapsed;
         foreach(var button in allSetupButtons)button.IsEnabled=!Painting;
         foreach(var summary in setupSummaries)summary.Text=setupOutcome.Length>0?T(setupOutcome):
             T("Одна послідовність: області → кольори → керування → пензель → зміщення → швидкість. Окремі дії залишаються нижче.",
@@ -63,7 +63,7 @@ internal sealed partial class MainWindow
     }
     private async Task RunAutomaticSetup()
     {
-        if(Painting)return;ReadSettings();
+        if(Painting||closing)return;ReadSettings();
         if(!ShowMessage(T("Відкрий чисте тестове полотно Rust. Програма перевірить керування, виміряє вибрані розміри та перевірить швидкість для одного Size. Якщо круглий пензель не підтвердиться, спробує квадратний. Тестові крапки й лінії залишаться на полотні; після завершення очисти його. Не рухай мишу. ESC або «Зупинити» — скасувати. Почати?",
             "Open a clean test Canvas in Rust. Pixora will verify controls, measure selected Sizes and test speed for one Size. If the round brush cannot be verified, it will try square. Test dots and lines will remain; clear Canvas afterwards. Do not move the mouse. ESC or Stop cancels. Begin?"),T("Повна перевірка","Full setup"),true))return;
         setupRunning=true;setupDone=new(TaskCreationOptions.RunContinuationsAsynchronously);setupCancel=new();paintCancel=setupCancel;setupOutcome="";setupResults.Clear();SetEditing(false);
