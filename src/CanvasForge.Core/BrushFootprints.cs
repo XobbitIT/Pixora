@@ -16,7 +16,10 @@ public sealed record BrushFootprint(string Id, string Context, int ShapeSlot, do
         Math.Max(Math.Abs(SafetyBounds.Top), Math.Abs(SafetyBounds.Bottom-1)));
     public int SolidPixels => Solid.Sum(x=>x.Right-x.Left);
 }
-public sealed record BrushStamp(BrushSpan[] Possible, BrushSpan[] Solid, Rgb Reference);
+public sealed record BrushStamp(BrushSpan[] Possible, BrushSpan[] Solid, Rgb Reference)
+{
+    public BrushLocalColorProof? LocalColor { get; init; }
+}
 public readonly record struct BrushCalibrationTile(double Size, int Repeat, ScreenRect Area, ScreenPoint Command);
 public sealed record BrushStampContrast(int PeakDelta,int ChangedPixels,int RequiredDelta,Rgb? Before,Rgb? After);
 public sealed class BrushContrastException(BrushStampContrast metrics)
@@ -27,7 +30,7 @@ public sealed class BrushContrastException(BrushStampContrast metrics)
 
 public static class BrushFootprints
 {
-    public const string Revision = "command-masks-color-v2";
+    public const string Revision = "command-masks-local-saturation-v3";
     public static readonly double[] Sizes = [1,3,10,20,40,60,100];
     public const int Repeats = 3;
     private const int Limit = 256;
@@ -205,7 +208,13 @@ public static class BrushFootprints
     public static BrushFootprint Build(Settings s,int shape,double size,IReadOnlyList<BrushStamp> stamps)
     {
         if(stamps.Count!=Repeats||!Sizes.Contains(size)||shape is <1 or >7
-            ||stamps.Any(p=>!SpansValid(p.Possible)||!SpansValid(p.Solid,true)||RustSlider.Delta(p.Reference,stamps[0].Reference)>12))
+            ||stamps.Any(p=>!SpansValid(p.Possible)||!SpansValid(p.Solid,true)))
+            throw new InvalidDataException("Three consistent brush measurements are required.");
+        // Independently saturated local colors may differ with the Canvas
+        // rendering. Unconfirmed observations retain the old frozen-color rule.
+        bool local=stamps.All(p=>p.LocalColor is {Passed:true} proof&&proof.Reference==p.Reference
+            &&proof.Requested==stamps[0].LocalColor?.Requested);
+        if(!local&&stamps.Any(p=>RustSlider.Delta(p.Reference,stamps[0].Reference)>12))
             throw new InvalidDataException("Three consistent brush measurements are required.");
         var possible=Spans(stamps.SelectMany(p=>Points(p.Possible)));
         var core=Points(stamps[0].Solid).ToHashSet();

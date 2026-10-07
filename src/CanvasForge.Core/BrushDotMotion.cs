@@ -3,7 +3,7 @@ namespace CanvasForge.Core;
 public sealed record BrushDotStep(string Phase,double Seconds,ScreenPoint Cursor);
 public sealed record BrushDotTrace(string Revision,ScreenPoint Command,BrushDotStep[] Steps);
 
-// A stationary footprint must never include a swept path or several paint layers.
+// One stationary input application must never include a swept path.
 // Refresh the same movement event while held; do not nudge or recenter the stamp.
 public static class BrushDotMotion
 {
@@ -11,6 +11,12 @@ public static class BrushDotMotion
     public const double Interval=.064;
     public const string PositionError="Calibration cursor did not settle at the requested point.";
     public const string DriftError="Calibration cursor moved while drawing the dot.";
+    public static void CheckSamePoint(BrushDotTrace first,BrushDotTrace repeated)
+    {
+        if(first.Command!=repeated.Command||first.Steps.Length!=4||repeated.Steps.Length!=4
+            ||first.Steps.Any(s=>s.Cursor!=first.Steps[0].Cursor)||repeated.Steps.Any(s=>s.Cursor!=first.Steps[0].Cursor))
+            throw new InvalidOperationException("Saturation check did not repeat the original cursor position.");
+    }
     public static BrushDotTrace Draw(ScreenPoint command,IStrokeInput input,Func<ScreenPoint> cursor,Action<BrushDotStep>? observe=null)
     {
         var steps=new List<BrushDotStep>();double started=input.Seconds;

@@ -42,7 +42,7 @@ internal sealed partial class MainWindow
 
         page.Children.Add(Card(T("2. Автоматичне калібрування", "2. Automatic calibration"), out var calibration));
         adaptiveStatus = Text("", 13); calibration.Children.Add(adaptiveStatus);
-        calibration.Children.Add(Text(T("Size — значення в Rust, а не діаметр у пікселях. Три незалежні крапки визначають можливий слід та стабільне суцільне ядро від координати миші.", "Size is the Rust control value, not a diameter in pixels. Three independent dots measure the possible footprint and stable solid core relative to the mouse command."), 12, Muted));
+        calibration.Children.Add(Text(T("Size — значення в Rust, а не діаметр у пікселях. Три незалежні крапки визначають слід від координати миші. Контрольне нанесення в ту саму точку перевіряє насичення; ядро береться лише з першого відбитка.", "Size is the Rust control value, not a diameter in pixels. Three independent dots measure the footprint relative to the mouse command. Another application at the same point checks saturation; the core uses only the first imprint."), 12, Muted));
         AddCombo(calibration,"brush_calibration_size",T("Розміри для калібрування","Sizes to calibrate"),new[]{"1/3/10/20","1","3","10","20","40","60","100"});
         adaptiveCalibrate = CheckButton(T("Калібрувати автоматично", "Calibrate automatically"), BeginBrushCalibration, true);
         calibration.Children.Add(adaptiveCalibrate);
@@ -190,8 +190,8 @@ internal sealed partial class MainWindow
                     if(state==BrushSignalState.Verified)values.Children.Add(new Expander{Header=T("Три вимірювання","Three measurements"),Content=repeats});
                     else values.Children.Add(repeats);
                 }
-                if(state==BrushSignalState.NoSolidCore)values.Children.Add(Text(T("Непрозорі частини трьох крапок не мають спільного ядра. Цей слід не вмикає Adaptive або прискорення.",
-                    "The opaque parts of the three dots have no shared core. This trace does not enable Adaptive or acceleration."),11,Warning));
+                if(state==BrushSignalState.NoSolidCore)values.Children.Add(Text(T("Не підтверджено насичення першого відбитка або спільне ядро трьох крапок. Цей слід не вмикає Adaptive або прискорення.",
+                    "First-stamp saturation or a shared core across three dots was not confirmed. This trace does not enable Adaptive or acceleration."),11,Warning));
                 if(attempt.State!=BrushSignalState.Stale&&attempt.Samples.Any(s=>s.Color is {Changed:>0,Passed:false}))
                     values.Children.Add(Text(T("Слід не відповідає напрямку вибраного кольору.","Trace does not match the selected color direction."),11,Danger));
                 chip.ToolTip=T("Слабкий слід — діагностика, а не підтверджене суцільне покриття. Він не вмикає Adaptive чи Speed Probe.",

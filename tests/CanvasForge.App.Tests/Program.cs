@@ -83,6 +83,7 @@ internal static partial class Program
         CheckBrushSignalUi(destination,"English");
         CheckCalibrationReasonsUi(destination,"Українська");CheckCalibrationReasonsUi(destination,"English");
         CheckBrushSnapshotsUi(destination,"Українська");CheckBrushSnapshotsUi(destination,"English");
+        CheckBrushLocalColorUi(destination,"Українська");CheckBrushLocalColorUi(destination,"English");
         CheckWideBrushUi(destination,"Українська");
         CheckWideBrushUi(destination,"English");
         RuntimeSafetyChecks.SingleInstance();RuntimeSafetyChecks.Integrity();RuntimeSafetyChecks.Clipboard();
@@ -93,7 +94,7 @@ internal static partial class Program
         CheckPreviewSurvivesEstimateFailure(destination);
         CheckInputCheckExclusive(destination);CheckStandaloneStop(destination);CheckClosingWaitsForCheck(destination);CheckCaptureCanRebuildPlan(destination);CheckMalformedLegacyWindow(destination);
         CheckSetupSize3WithoutBase(destination);CheckSetupFallbackSize3(destination);CheckSetupFailedFallback(destination);
-        Console.WriteLine("ALL 98 WPF UI CHECKS PASSED");
+        Console.WriteLine("ALL 100 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);

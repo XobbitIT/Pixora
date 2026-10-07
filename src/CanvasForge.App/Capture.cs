@@ -456,7 +456,7 @@ internal sealed partial class MainWindow
         if(retryOnly)sizes=BrushSignalDiagnostics.RetrySizes(settings,sizes);
         if(sizes.Length==0){SetStatus(T("Усі вибрані Size вже підтверджені.","All selected Sizes are already verified."));return;}
         var tiles=setupWorkspace?.Brush(sizes)??BrushFootprints.Tiles(r,sizes); // Reject insufficient space before any input.
-        if (!setupRunning && !ShowMessage(T($"Відкрий чисте полотно. Буде {tiles.Count} крапок: по три незалежні вимірювання кожного Size. Не рухай мишу; ESC — скасувати. Після калібрування очисти полотно. Почати?", $"Open a clean Canvas. {tiles.Count} dots will be drawn: three independent measurements per Size. Do not move the mouse; ESC cancels. Clear Canvas afterwards. Start?"), T("Автоматичне калібрування", "Automatic calibration"), true)) return;
+        if (!setupRunning && !ShowMessage(T($"Відкрий чисте полотно. Буде {tiles.Count} крапок: по три незалежні вимірювання кожного Size. Кожна придатна крапка отримує контрольне нанесення в ту саму точку для перевірки насичення. Не рухай мишу; ESC — скасувати. Після калібрування очисти полотно. Почати?", $"Open a clean Canvas. {tiles.Count} dots will be drawn: three independent measurements per Size. Each eligible dot gets another application at the same point to check saturation. Do not move the mouse; ESC cancels. Clear Canvas afterwards. Start?"), T("Автоматичне калібрування", "Automatic calibration"), true)) return;
         if (Native.FindRustAt(r.Center) != target) throw new InvalidOperationException("Canvas is outside Rust.");
         void CheckFrame()
         {
@@ -518,7 +518,7 @@ internal sealed partial class MainWindow
                     Images.Save(after,Path.Combine(diagnostic,stem+"-after.png"));
                     // Recapture must not hide a clipped footprint or scene change.
                     // Weak contrast can be diagnosed; strict geometry errors abort.
-                    try{BrushFootprints.Measure(before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size,measurements.Reference(tile.Size));}
+                    try{BrushFootprints.Measure(before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size);}
                     catch(BrushContrastException){}
                     var confirmed=BrushColorGuard.Confirm(before,after,color,()=>
                     {
@@ -529,13 +529,33 @@ internal sealed partial class MainWindow
                     Images.Save(after,Path.Combine(diagnostic,stem+"-after.png"));
                     if(background is null)throw new InvalidOperationException("Background measurement is unavailable.");
                     Images.Save(background,Path.Combine(diagnostic,stem+"-background.png"));
-                    var signal=measurements.Record(tile.Size,tile.Repeat+1,background,before,after,new(p.X-area.Left,p.Y-area.Top),color);
+                    BrushDotTrace? saturationMotion=null;
+                    PixelImage? saturation;
+                    try
+                    {
+                        saturation=BrushLocalColor.Confirm(before,after,new(p.X-area.Left,p.Y-area.Top),tile.Size,color,
+                            BrushFootprints.Contrast(background,before).PeakDelta,()=>
+                        {
+                            CheckFrame();saturationMotion=worker.ProbeDot(p);CheckFrame();
+                            BrushDotMotion.CheckSamePoint(motion,saturationMotion);
+                            var shot=worker.StableProbeShot(area,(_,_,_)=>{});CheckFrame();
+                            Images.Save(shot,Path.Combine(diagnostic,stem+"-saturation.png"));return shot;
+                        });
+                    }
+                    catch(Exception e)
+                    {
+                        File.WriteAllText(Path.Combine(diagnostic,stem+"-metrics.json"),System.Text.Json.JsonSerializer.Serialize(new{
+                            shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
+                            inputFailure=e.Message,phase="saturation",motion,saturationMotion}));throw;
+                    }
+                    var signal=measurements.RecordLocal(tile.Size,tile.Repeat+1,background,before,after,saturation,new(p.X-area.Left,p.Y-area.Top),color);
                     File.WriteAllText(Path.Combine(diagnostic,stem+"-metrics.json"),System.Text.Json.JsonSerializer.Serialize(new{
                         shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
                         contrast=BrushFootprints.Contrast(before,after),backgroundNoise=BrushFootprints.Contrast(background,before),requestedColor=color.Hex,
-                        colorCheck=confirmed.Final,initialColorCheck=confirmed.Initial,recaptured=confirmed.Retried,motion,geometry=signal.Geometry}));
+                        colorCheck=confirmed.Final,initialColorCheck=confirmed.Initial,recaptured=confirmed.Retried,motion,saturationMotion,
+                        geometry=signal.Geometry,localColor=signal.LocalColor}));
                     var detail=new{shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
-                        signal,motion,color=color.Hex,
+                        signal,motion,saturationMotion,color=color.Hex,
                         initialColorCheck=confirmed.Initial,recaptured=confirmed.Retried};
                     File.WriteAllText(Path.Combine(diagnostic,stem+".json"),System.Text.Json.JsonSerializer.Serialize(detail));
                     File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = detail }) + Environment.NewLine);
@@ -575,8 +595,8 @@ internal sealed partial class MainWindow
                 :T("Ця форма не підтвердила Size 1. Переглянь знімки й вимірювання; інші збережені Size можна перевіряти окремо.",
                     "This shape did not verify Size 1. Review its snapshots and measurements; other saved Sizes can be tested separately."));
             var noCore=batch.Profiles.Where(p=>!p.SolidCore.Valid).Select(p=>p.Size).ToArray();
-            if(noCore.Length>0)adaptiveFailure+="\n"+T($"Size {string.Join(", ",noCore)}: слід виміряно, але стабільного ядра немає. Непрозорі частини трьох крапок не збігаються; ці Size не вмикають адаптивне прискорення.",
-                $"Size {string.Join(", ",noCore)}: trace measured, but no stable core. The opaque parts of the three dots do not overlap; these Sizes do not enable adaptive acceleration.");
+            if(noCore.Length>0)adaptiveFailure+="\n"+T($"Size {string.Join(", ",noCore)}: слід виміряно, але стабільного ядра немає. Не підтверджено насичення першого відбитка або спільне ядро трьох крапок; ці Size не вмикають адаптивне прискорення.",
+                $"Size {string.Join(", ",noCore)}: trace measured, but no stable core. First-stamp saturation or a shared core across three dots was not confirmed; these Sizes do not enable adaptive acceleration.");
             File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="brush_calibration_complete",details=new{
                 version=BuildInfo.Version,shape=settings.Int("brush_shape_slot",3),savedSizes=batch.Profiles.Select(p=>p.Size),rejected=batch.Rejected,signals=batch.Diagnostics,
                 noSolidCoreSizes=noCore,adaptiveReady=AdaptiveBrush.CalibrationCurrent(settings),diagnostics=diagnosticPath}})+Environment.NewLine);

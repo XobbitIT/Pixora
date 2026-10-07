@@ -1,3 +1,11 @@
+Pixora 1.0.14-beta.42 — locally saturated first-imprint brush core.
+329 Core / 100 WPF checks. Fresh live Rust validation required.
+Per-dot local RGB is accepted only with a same-point saturation observation; solid coverage uses first-imprint pixels only.
+Contrast 80 and RGB tolerance 12 remain. Masks intersect at command coordinates without recentering.
+Old brush masks/speed proofs are stale; captures and user settings remain. Weak Size 1 is still unverified.
+See CHANGES_BETA42_UA.md and TESTING_BETA42_UA.md.
+
+Previous beta.41:
 Pixora 1.0.14-beta.41 — independent verified Size and moving-stroke scene guard.
 314 Core / 98 WPF checks passed. New live Rust validation required.
 Slow spatial controls measure connected paint reach before candidates, within the existing offset search cap.

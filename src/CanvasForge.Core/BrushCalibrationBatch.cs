@@ -43,19 +43,28 @@ public sealed class BrushCalibrationBatch
     }
     private void CheckSequence(double size,int repeat)
     {if(!ShouldMeasure(size)||repeat!=attempts[size]+1)throw new InvalidOperationException("Invalid measurement sequence.");}
+    // Historical two-frame replay retains frozen RGB acceptance. Live capture
+    // must use RecordLocal with an independently acquired saturation frame.
     public BrushSignalSample Record(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,Rgb? requested=null)
+        =>Record(size,repeat,background,before,after,command,requested,null,false);
+    public BrushSignalSample RecordLocal(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,
+        PixelImage? confirmed,ScreenPoint command,Rgb requested)
+        =>Record(size,repeat,background,before,after,command,requested,confirmed,true);
+    private BrushSignalSample Record(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,
+        Rgb? requested,PixelImage? confirmed,bool local)
     {
         CheckSequence(size,repeat);
         var signal=BrushSignalDiagnostics.Inspect(repeat,background,before,after,command,size,requested);
         // Always validate clipping/scene changes through the strict measurement
         // path; these remain fatal and abort the whole transaction.
         BrushStamp? stamp=null;BrushContrastException? weak=null;
-        try{stamp=BrushFootprints.Measure(before,after,command,size,Reference(size));}
+        try{stamp=local?BrushLocalColor.Measure(before,after,confirmed,command,size,requested!.Value)
+            :BrushFootprints.Measure(before,after,command,size,Reference(size));}
         catch(BrushContrastException e){weak=e;}
         if(stamp is not null)
         {
             var solid=BrushFootprints.Points(stamp.Solid).ToArray();
-            signal=signal with{Geometry=new(solid.Length,BrushFootprints.Bounds(stamp.Possible),BrushFootprints.Bounds(stamp.Solid),
+            signal=signal with{LocalColor=stamp.LocalColor,Geometry=new(solid.Length,BrushFootprints.Bounds(stamp.Possible),BrushFootprints.Bounds(stamp.Solid),
                 solid.Length==0?null:solid.Average(p=>p.X),solid.Length==0?null:solid.Average(p=>p.Y))};
         }
         signals[size].Add(signal);

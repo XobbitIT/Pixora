@@ -2354,6 +2354,7 @@ BrushBatchChecks.Run(Test);
 BrushSignalChecks.Run(Test);
 BrushCalibrationRegressionChecks.Run(Test);
 BrushColorChecks.Run(Test);
+BrushLocalColorChecks.Run(Test);
 ReviewRegressionChecks.Run(Test);
 DrawingWorkflowChecks.Run(Test);
 Test("Malformed legacy measurements never become brush or speed proof",()=>

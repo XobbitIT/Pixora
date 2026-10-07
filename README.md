@@ -1,4 +1,8 @@
-# Pixora 1.0.14-beta.41
+# Pixora 1.0.14-beta.42
+
+Beta.42 measures a locally saturated color for each brush dot instead of reusing the first dot RGB. One same-point application checks saturation; only stable pixels of the first imprint can form the command-relative core. Old masks/speed proofs require recalibration. 329 Core / 100 WPF checks. See [changes](CHANGES_BETA42_UA.md) and [live checklist](TESTING_BETA42_UA.md). Fresh Rust validation is required.
+
+## Previous beta.41
 
 Beta.41 lets automatic setup test freshly verified Size 3/10/20 independently of missing Size 1. Six slow controls measure and freeze a moving-stroke scene guard separately from core offsets. Clipboard recovery, RGB/coverage acceptance and planner are unchanged. 314 Core / 98 WPF checks. See [changes](CHANGES_BETA41_UA.md) and [live checklist](TESTING_BETA41_UA.md). A new Rust test is required.
 

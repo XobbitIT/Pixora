@@ -805,5 +805,7 @@
   "Межа рухомого мазка: ": "Moving stroke boundary: ",
   "не розширює допустимі зміщення ядра": "does not expand allowed core offsets",
   "Межа мазка": "Stroke boundary",
-  "Швидкість перевіряється для Size {p0}. Size 1 не підтверджений: Adaptive й ремонт країв недоступні.": "Speed is tested for Size {p0}. Size 1 is unverified: Adaptive and edge repair are unavailable."
+  "Швидкість перевіряється для Size {p0}. Size 1 не підтверджений: Adaptive й ремонт країв недоступні.": "Speed is tested for Size {p0}. Size 1 is unverified: Adaptive and edge repair are unavailable.",
+  "Контроль насичення не повторив початкову позицію курсора.": "Saturation check did not repeat the original cursor position.",
+  "Size {p0}: слід виміряно, але стабільного ядра немає. Не підтверджено насичення першого відбитка або спільне ядро трьох крапок; ці Size не вмикають адаптивне прискорення.": "Size {p0}: trace measured, but no stable core. First-stamp saturation or a shared core across three dots was not confirmed; these Sizes do not enable adaptive acceleration."
 }

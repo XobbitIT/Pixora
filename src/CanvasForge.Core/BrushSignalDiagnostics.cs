@@ -4,7 +4,7 @@ namespace CanvasForge.Core;
 
 public enum BrushSignalState { Verified, WeakRepeatable, Rejected, Stale, NoSolidCore }
 public sealed record BrushStampGeometry(int SolidPixels,ScreenRect PossibleBounds,ScreenRect SolidBounds,double? CenterX,double? CenterY);
-public sealed record BrushSignalSample(int Repeat, BrushStampContrast Contrast, int NoisePeak, BrushSpan[] Support,BrushColorCheck? Color=null,BrushStampGeometry? Geometry=null);
+public sealed record BrushSignalSample(int Repeat, BrushStampContrast Contrast, int NoisePeak, BrushSpan[] Support,BrushColorCheck? Color=null,BrushStampGeometry? Geometry=null,BrushLocalColorProof? LocalColor=null);
 public sealed record BrushSignalSummary(int ShapeSlot,double Size,string Context,DateTimeOffset Created,
     BrushSignalState State,BrushSignalSample[] Samples,double SpatialAgreement,string? ProfileId);
 
