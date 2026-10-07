@@ -1,4 +1,8 @@
-# Pixora 1.0.14-beta.42
+# Pixora 1.0.14-beta.43
+
+Beta.43 selects saturation references only from pixels that already meet contrast 80. A stable weaker neighbour no longer rejects a valid strong anchor. Offline replay of the latest beta.42 Square Size 1 gives a 1×2 px command-relative core; older displaced cores and weak Round dots remain unverified. 331 Core / 100 WPF checks. See [changes](CHANGES_BETA43_UA.md) and [live checklist](TESTING_BETA43_UA.md). New Rust validation is required.
+
+## Previous beta.42
 
 Beta.42 measures a locally saturated color for each brush dot instead of reusing the first dot RGB. One same-point application checks saturation; only stable pixels of the first imprint can form the command-relative core. Old masks/speed proofs require recalibration. 329 Core / 100 WPF checks. See [changes](CHANGES_BETA42_UA.md) and [live checklist](TESTING_BETA42_UA.md). Fresh Rust validation is required.
 

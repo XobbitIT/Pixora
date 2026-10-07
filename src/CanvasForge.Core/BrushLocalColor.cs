@@ -45,7 +45,11 @@ public static class BrushLocalColor
         catch(BrushContrastException){}
         var changed=BrushFootprints.Points(initial.Possible).ToArray();
         int Index(ScreenPoint p)=>(command.Y+p.Y)*first.Width+command.X+p.X;
-        var anchors=changed.OrderByDescending(p=>RustSlider.Delta(before.Color(Index(p)),first.Color(Index(p))))
+        // Select references from pixels that already satisfy the contrast gate.
+        // A weaker neighbour is not evidence that a strong, unchanged anchor
+        // failed saturation. Keep the same 80 threshold and first-imprint mask.
+        var anchors=changed.Where(p=>RustSlider.Delta(before.Color(Index(p)),first.Color(Index(p)))>=80)
+            .OrderByDescending(p=>RustSlider.Delta(before.Color(Index(p)),first.Color(Index(p))))
             .Take(Math.Max(1,changed.Length/10)).ToArray();
         Rgb Median(PixelImage frame)=>new(anchors.Select(p=>frame.Color(Index(p)).R).Order().ElementAt(anchors.Length/2),
             anchors.Select(p=>frame.Color(Index(p)).G).Order().ElementAt(anchors.Length/2),
