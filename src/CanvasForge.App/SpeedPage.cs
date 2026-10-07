@@ -20,7 +20,7 @@ internal sealed partial class MainWindow
     {
         if(speedFailure.Length>0)chip.Set(SpeedCalibration.Current(settings)?T("Частково перевірено","Partially verified"):T("Помилка","Error"),SpeedCalibration.Current(settings)?Warning:Danger);
         else if(SpeedCalibration.Current(settings))chip.Set(T("Перевірено","Verified"),Success);
-        else chip.Set(settings.Data["speed_probe_profile"] is null?T("Очікує","Pending"):T("Застаріло","Stale"),Warning);
+        else chip.Set(SpeedCalibration.Status(settings)==SpeedProfileState.NotTested?T("Очікує","Pending"):T("Застаріло","Stale"),Warning);
     }
     private Button probeButton=new();
     private Button spatialButton=new();
@@ -94,9 +94,27 @@ internal sealed partial class MainWindow
         auditEnabled.ToolTip=T("Потрібне поточне калібрування суцільного пензля, прозорість 1 та полотно до 4 млн px.","Requires current solid brush calibration, Opacity 1 and Canvas up to 4 million pixels.");
         SetSpeedChip(speedChip);RefreshCoverageStatus();RefreshProbeDiagnostics();
         speedStatus.Text=speedFailure.Length>0?T(speedFailure):current?T("✓ Є підтверджені маршрути. Інші розміри використовують звичайний ввід.","Verified routes are available. Other Sizes use normal input.")
-            :settings.Data["speed_probe_profile"] is null&&settings.Data["shape_speed_profiles"]?[settings.Int("brush_shape_slot",3).ToString()] is null?T("Швидкість ще не перевірена.","Speed has not been tested yet."):T("Результат тесту застарів — повтори тест швидкості.","Probe results are stale — run Speed Probe again.");
+            :SpeedCalibration.Status(settings) switch
+            {
+                SpeedProfileState.NotTested=>T("Швидкість ще не перевірена.","Speed has not been tested yet."),
+                SpeedProfileState.BrushUnavailable=>T("Попередній маршрут застарів і не використовується: для його Size немає актуального стабільного ядра. Спершу калібруй пензель, потім просторові зміщення й швидкість.",
+                    "The previous route is stale and inactive: its Size has no current stable core. Calibrate the brush first, then spatial offsets and speed."),
+                SpeedProfileState.MeasurementsChanged=>T("Вимірювання пензля або захоплення змінилися. Попередній маршрут не відповідає новим маскам; повтори просторове калібрування, потім тест швидкості.",
+                    "Brush measurements or capture changed. The previous route does not match the new masks; repeat spatial calibration, then Speed Probe."),
+                SpeedProfileState.SpatialChanged=>T("Просторовий профіль змінився або застарів. Підтверди просторові зміщення, потім повтори тест швидкості.",
+                    "The spatial profile changed or is stale. Verify spatial offsets, then repeat Speed Probe."),
+                _=>T("Збережений маршрут не має повного підтвердження. Повтори тест швидкості.","The saved route lacks complete verification. Repeat Speed Probe.")
+            };
         if(speedProblem is not null)speedStatus.Text+="\n"+T(speedProblem);
         if(speedFailure.Length>0&&current)speedStatus.Text+="\n"+T("Збережені підтверджені маршрути доступні; решта використовує звичайний ввід.","Saved verified routes are available; other routes use normal input.");
+        if(current)
+        {
+            double size=settings.Number("probe_size",3);
+            var routes=SpeedCalibration.Read(settings)!.Samples.Where(s=>s.Size==size).ToArray();
+            foreach(bool vertical in new[]{false,true})
+                if(!routes.Any(s=>s.Vertical==vertical))speedStatus.Text+="\n"+T($"Size {size}: {(vertical?"вертикаль":"горизонталь")} не підтверджена; використовується звичайний ввід.",
+                    $"Size {size}: {(vertical?"vertical":"horizontal")} is unverified; normal input is used.");
+        }
     }
     private Task RunSpeedProbe()=>RunProbe(false);
     private Task RunSpatialProbe()=>RunProbe(true);

@@ -5,6 +5,7 @@ using System.Text.Json;
 namespace CanvasForge.Core;
 
 public enum StrokeMethod { Paced, Shift }
+public enum SpeedProfileState { NotTested, Current, BrushUnavailable, MeasurementsChanged, SpatialChanged, InvalidProof }
 public sealed record SpeedSample(double Size, StrokeMethod Method, bool Vertical, double TestedMs,
     double SafeMs, int StepPx, int MaxLength, int Repeats, double Coverage, string? SpatialId=null);
 public sealed record SpeedProbeProfile(string Context, DateTimeOffset Created, List<SpeedSample> Samples);
@@ -50,6 +51,22 @@ public static class SpeedCalibration
         catch(FormatException){return null;}
     }
     public static bool Current(Settings s) => Read(s)?.Samples.Count>0;
+    public static SpeedProfileState Status(Settings s)
+    {
+        if(Current(s))return SpeedProfileState.Current;
+        var node=s.Data["shape_speed_profiles"]?[s.Int("brush_shape_slot",3).ToString()]??s.Data["speed_probe_profile"];
+        if(node is null)return SpeedProfileState.NotTested;
+        try
+        {
+            var p=node.Deserialize<SpeedProbeProfile>();
+            if(p?.Samples is null||p.Samples.Count>64||p.Samples.Any(x=>x is null))return SpeedProfileState.InvalidProof;
+            if(p.Samples.Any(x=>!BrushReady(s,x.Size)))return SpeedProfileState.BrushUnavailable;
+            if(p.Context!=Context(s))return SpeedProfileState.MeasurementsChanged;
+            if(p.Samples.Any(x=>ProbeSpatialCalibration.Read(s,x.Size) is not { } spatial||x.SpatialId!=spatial.Id))return SpeedProfileState.SpatialChanged;
+            return SpeedProfileState.InvalidProof;
+        }
+        catch(Exception e) when(e is JsonException or InvalidOperationException or FormatException){return SpeedProfileState.InvalidProof;}
+    }
     private static bool Allowed(Settings s) => s.Bool("calibrated_strokes")
         &&s.Text("coverage_mode","Precision")=="Precision"&&s.Bool("force_precision_controls",true)
         &&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1

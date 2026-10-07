@@ -1,4 +1,8 @@
-# Pixora 1.0.14-beta.36
+# Pixora 1.0.14-beta.37
+
+Beta.37 makes brush calibration failures reviewable: all three observations, empty solid-core status, command-relative geometry and retained before/after snapshots are shown in Ukrainian and English. A checked stationary dot refreshes the same coordinate while held and records actual cursor positions; numeric controls are reused only after verification in the same calibration run. Speed status explains stale brush/spatial evidence and unverified direction fallback. 294 Core / 83 WPF checks, including recorded beta.36 regressions; weak traces and empty solid cores still cannot enable acceleration. See [changes](CHANGES_BETA37_UA.md) and [live checklist](TESTING_BETA37_UA.md). The new dot protocol still needs an in-game test.
+
+## Previous beta.36
 
 Beta.36 validates the last successful speed candidate immediately after a faster failure. Three margin repeats are still required; 20 ms candidate passes alone never certify 27 ms. Completed routes survive a later failure/cancellation, with a partial status. Failed in-envelope slow-control evidence stays authoritative; a lighter outside edge is shown separately and cannot certify a trial. 285 Core / 79 WPF checks. Existing beta.35 brush/spatial proofs remain valid in the same Rust context; run Speed Probe on a clean Canvas. See [changes](CHANGES_BETA36_UA.md) and [live checklist](TESTING_BETA36_UA.md). New in-game validation is pending.
 
@@ -38,7 +42,7 @@ See [changes](CHANGES_BETA22_UA.md) and [Rust test checklist](TESTING_BETA22_UA.
 - [Release changes](CHANGES_1.0.14_UA.md)
 - [Rust testing guide](TESTING_1.0.14_UA.md)
 
-The Windows workflow runs 230 Core tests and 62 WPF checks before publishing a self-contained portable build. After a successful workflow run, download the artifact named `Pixora_<version>_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
+The Windows workflow runs 294 Core tests and 83 WPF checks before publishing a self-contained portable build. After a successful workflow run, download the artifact named `Pixora_<version>_Windows_x64`, extract the entire archive, and run `Pixora.exe`.
 
 Size, Interval and Opacity use verified numeric entry. Brush calibration and values have a dedicated page; Speed Probe and coverage audit have a separate sidebar entry. Speed Probe compares paced SendInput movement and Shift lines on separate clean areas with three repeated trials and a validated timing margin. A current per-Size/axis profile selects verified routes in Precision and adaptive painting; untested cases retain normal input. Long Shift strokes are split at tested spans.
 

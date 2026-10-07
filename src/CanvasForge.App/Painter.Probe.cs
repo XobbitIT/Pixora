@@ -8,6 +8,30 @@ internal sealed partial class Painter
     {
         probeMode=true;clock.Start();CheckProbe();ApplyControls(size);CheckProbe();
     }
+    public void PrepareBrushCalibration(double size)
+    {
+        probeMode=true;clock.Start();Check(true);CheckProbe();VerifyControlLayout();
+        int shape=settings.Int("brush_shape_slot",3);
+        var desired=DesiredControls(size);
+        var required=BrushControlReuse.Required(activeShape==shape&&!needsReprime,verifiedControls,
+            desired.Size,desired.Interval,desired.Opacity,
+            (kind,value)=>ReadSlider(kind) is { } observed&&observed.Matches(ControlCurve.Fraction(kind,value)));
+        if(activeShape!=shape||needsReprime)ApplyBrushShape();
+        foreach(string kind in required)Slider(kind,kind=="size"?desired.Size:kind=="interval"?desired.Interval:desired.Opacity);
+        activeAdaptiveSize=desired.Size;needsReprime=false;CheckProbe();
+        Log("brush_controls",new{shape,size,verifiedNow=required,reused=new[]{"size","interval","opacity"}.Except(required).ToArray()});
+    }
+    public BrushDotTrace ProbeDot(ScreenPoint command)
+    {
+        CheckProbe();var steps=new List<BrushDotStep>();BrushDotTrace? trace=null;string? failure=null;
+        try
+        {
+            trace=BrushDotMotion.Draw(command,motionInput,Native.Cursor,step=>steps.Add(step));
+            CheckProbe();lastPaintPoint=Native.Cursor();return trace;
+        }
+        catch(Exception e){failure=e.Message;lastPaintPoint=null;throw;}
+        finally{Log("brush_dot_input",new{revision=BrushDotMotion.Revision,command,steps,complete=trace is not null&&failure is null,failure});}
+    }
     public void CheckProbe()
     {
         Check();

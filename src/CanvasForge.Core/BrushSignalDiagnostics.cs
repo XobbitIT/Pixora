@@ -2,8 +2,9 @@ using System.Text.Json;
 
 namespace CanvasForge.Core;
 
-public enum BrushSignalState { Verified, WeakRepeatable, Rejected, Stale }
-public sealed record BrushSignalSample(int Repeat, BrushStampContrast Contrast, int NoisePeak, BrushSpan[] Support,BrushColorCheck? Color=null);
+public enum BrushSignalState { Verified, WeakRepeatable, Rejected, Stale, NoSolidCore }
+public sealed record BrushStampGeometry(int SolidPixels,ScreenRect PossibleBounds,ScreenRect SolidBounds,double? CenterX,double? CenterY);
+public sealed record BrushSignalSample(int Repeat, BrushStampContrast Contrast, int NoisePeak, BrushSpan[] Support,BrushColorCheck? Color=null,BrushStampGeometry? Geometry=null);
 public sealed record BrushSignalSummary(int ShapeSlot,double Size,string Context,DateTimeOffset Created,
     BrushSignalState State,BrushSignalSample[] Samples,double SpatialAgreement,string? ProfileId);
 
@@ -41,7 +42,8 @@ public static class BrushSignalDiagnostics
         bool weak=complete&&agreement>=.75&&samples.All(s=>s.Color?.Passed!=false&&s.NoisePeak<=12&&s.Support.Length>0
             &&s.Contrast.PeakDelta>=Math.Max(32,s.NoisePeak*6+12)&&s.Contrast.PeakDelta<s.Contrast.RequiredDelta)
             &&samples.Max(s=>s.Contrast.PeakDelta)-samples.Min(s=>s.Contrast.PeakDelta)<=12;
-        var state=profile is {SolidCore.Valid:true}?BrushSignalState.Verified:weak?BrushSignalState.WeakRepeatable:BrushSignalState.Rejected;
+        var state=profile is {SolidCore.Valid:true}?BrushSignalState.Verified:profile is not null?BrushSignalState.NoSolidCore
+            :weak?BrushSignalState.WeakRepeatable:BrushSignalState.Rejected;
         return new(shape,size,BrushFootprints.Context(settings,shape),DateTimeOffset.UtcNow,state,samples.ToArray(),agreement,profile?.Id);
     }
     public static IReadOnlyList<BrushSignalSummary> Read(Settings s,bool allShapes=false)
@@ -53,9 +55,15 @@ public static class BrushSignalDiagnostics
             return rows.Where(r=>r.ShapeSlot is >=1 and <=7&&BrushFootprints.Sizes.Contains(r.Size)&&Enum.IsDefined(r.State)
                 &&r.Samples is {Length:3}&&r.Samples.All(p=>p is not null&&p.Contrast is not null&&p.Support is not null)
                 &&(allShapes||r.ShapeSlot==s.Int("brush_shape_slot",3)))
-                .Select(r=>r.Context!=BrushFootprints.Context(s,r.ShapeSlot)
-                    ||r.State==BrushSignalState.Verified&&BrushFootprints.Find(s,r.Size,r.ShapeSlot)?.Id!=r.ProfileId
-                    ?r with{State=BrushSignalState.Stale}:r).OrderBy(r=>r.ShapeSlot).ThenBy(r=>r.Size).ToArray();
+                .Select(r=>
+                {
+                    var profile=BrushFootprints.Find(s,r.Size,r.ShapeSlot);
+                    if(r.Context!=BrushFootprints.Context(s,r.ShapeSlot)
+                        ||(r.State is BrushSignalState.Verified or BrushSignalState.NoSolidCore)&&profile?.Id!=r.ProfileId)
+                        return r with{State=BrushSignalState.Stale};
+                    // Older diagnostics called a measured, empty core Rejected.
+                    return profile is {SolidCore.Valid:false}&&profile.Id==r.ProfileId?r with{State=BrushSignalState.NoSolidCore}:r;
+                }).OrderBy(r=>r.ShapeSlot).ThenBy(r=>r.Size).ToArray();
         }
         catch(Exception e) when(e is JsonException or InvalidOperationException or FormatException){return [];}
     }

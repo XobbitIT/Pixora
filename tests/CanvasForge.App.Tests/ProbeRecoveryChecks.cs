@@ -38,6 +38,7 @@ internal static partial class Program
         Render(window,Path.Combine(output,name+".png"),1280);
         typeof(MainWindow).GetField("speedFailure",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(window,error);
         Invoke(window,"RefreshSpeedStatus");
+        Assert(Field<System.Windows.Controls.TextBlock>(window,"speedStatus").Text.Contains(english?"vertical is unverified":"вертикаль не підтверджена"),"Untested direction fallback hidden behind verified global status");
         var chip=Field<System.Windows.Controls.Border>(window,"speedChip");
         Assert(((System.Windows.Controls.TextBlock)chip.Child).Text==(english?"Partially verified":"Частково перевірено"),"Partial verified routes labeled fully failed or complete");
         Console.WriteLine("PASS "+name);

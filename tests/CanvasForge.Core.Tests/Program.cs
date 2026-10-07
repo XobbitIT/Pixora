@@ -2351,6 +2351,7 @@ ProbeSpeedSearchChecks.Run(Test);
 ProbeControlRetryChecks.Run(Test);
 BrushBatchChecks.Run(Test);
 BrushSignalChecks.Run(Test);
+BrushCalibrationRegressionChecks.Run(Test);
 BrushColorChecks.Run(Test);
 ReviewRegressionChecks.Run(Test);
 DrawingWorkflowChecks.Run(Test);

@@ -1,4 +1,16 @@
-Pixora 1.0.14-beta.36 — prioritize safety-margin verification and retain certified partial routes.
+Pixora 1.0.14-beta.37 — checked stationary dots and reviewable brush failures.
+294 Core / 83 WPF checks, including recorded beta.36 weak and empty-core fixtures.
+Move/settle/check -> down/hold/check -> same-point held refresh/check -> up/check; 64 ms phases, 256 ms total.
+Allow at most 1 px initial absolute-input normalization; held drift rejects and always releases the button.
+One worker per calibration; controls reused only after numeric proof plus matching visual slider state and shape.
+All repeats remain visible; measured trace without opaque intersection is NoSolidCore, never Adaptive-ready.
+Before/after diagnostic viewer survives restart and includes command-relative geometry and cursor telemetry.
+Speed status separates missing brush core, changed measurements, spatial mismatch and untested axis fallback.
+No recentering, tolerance relaxation, planner/audit changes or old failure promotion.
+Existing same-context proofs remain valid; changed measured masks still invalidate their dependent proofs.
+The new dot protocol needs live Rust validation. See CHANGES_BETA37_UA.md and TESTING_BETA37_UA.md.
+
+Previous beta.36 — prioritize safety-margin verification and retain certified partial routes.
 285 Core / 79 WPF checks; beta.35 stage-017 replay remains rejected at 23/24, Missing 0, Unknown 1.
 Separate outside +4 edge observation cannot replace the failed in-envelope +2 dark core or authorize fast input.
 After a faster candidate fails, verify the last 3/3 successful candidate at its margin, with 3/3 new pairs.

@@ -1,4 +1,8 @@
 {
+  "Курсор калібрування не зупинився біля заданої точки.": "Calibration cursor did not settle at the requested point.",
+  "Курсор калібрування змістився під час малювання крапки.": "Calibration cursor moved while drawing the dot.",
+  "Size {p0}: слід виміряно, але стабільного ядра немає. Непрозорі частини трьох крапок не збігаються; ці Size не вмикають адаптивне прискорення.": "Size {p0}: trace measured, but no stable core. The opaque parts of the three dots do not overlap; these Sizes do not enable adaptive acceleration.",
+  "Виміряно {p0} Size; без стабільного ядра: {p1}. Переглянь три крапки в розділі «Пензель». Очисти полотно.": "Measured {p0} Sizes; no stable core: {p1}. Review the three dots on the Brush page. Clear Canvas.",
   "Масштаб DPI вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.": "Rust window DPI changed. Capture the Canvas, palette and sliders again.",
   "Розмір вікна Rust змінився. Повтори захоплення Canvas, палітри та повзунків.": "Rust window size changed. Capture the Canvas, palette and sliders again.",
   "Speed Engine: {p0}. Профіль застосовано до наступного START.": "Speed Engine: {p0}. Profile applied for the next START.",
