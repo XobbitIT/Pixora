@@ -614,13 +614,13 @@ public sealed class HexReadback
     {
         if(!double.IsFinite(copyDelay)||copyDelay is <0 or >1)throw new ArgumentException("Invalid control readback request.");
         LastValid=null;string? raw=null;int reads=0;
-        for(int attempt=0;attempt<3;attempt++)
+        for(int attempt=0;attempt<ReadbackPolling.Attempts;attempt++)
         {
             input.SelectField(attempt);input.SelectAll();input.WriteMarker(Marker);input.Copy();
             input.Wait(copyDelay+attempt*.05);
-            for(int poll=0;poll<=6;poll++)
+            for(int poll=0;poll<ReadbackPolling.Polls;poll++)
             {
-                if(poll>0)input.Wait(.025);
+                if(poll>0)input.Wait(ReadbackPolling.Delay(poll));
                 raw=input.Read();reads++;
                 observe?.Invoke(new(attempt,poll,raw,Normalize(raw),Status(raw)));
                 if(Observe(raw))return new(LastValid,raw,attempt+1,reads,true);
@@ -629,7 +629,7 @@ public sealed class HexReadback
                 if(Normalize(raw) is not null)break;
             }
         }
-        return new(LastValid,raw,3,reads,false);
+        return new(LastValid,raw,ReadbackPolling.Attempts,reads,false);
     }
 }
 public sealed record HexReadbackObservation(int Attempt,int Poll,string? Raw,string? Value,string Status);

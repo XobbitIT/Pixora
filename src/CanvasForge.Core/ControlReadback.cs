@@ -24,13 +24,13 @@ public static class ControlReadback
         if(!ControlNumber.InRange(kind,expected)||!double.IsFinite(copyDelay)||copyDelay is <0 or >1)
             throw new ArgumentException("Invalid control readback request.");
         double? last=null;string? raw=null;int reads=0;
-        for(int attempt=0;attempt<3;attempt++)
+        for(int attempt=0;attempt<ReadbackPolling.Attempts;attempt++)
         {
             input.SelectField(attempt);input.SelectAll();input.WriteMarker(ControlNumber.Marker);input.Copy();
             input.Wait(copyDelay+attempt*.05);
-            for(int poll=0;poll<=6;poll++)
+            for(int poll=0;poll<ReadbackPolling.Polls;poll++)
             {
-                if(poll>0)input.Wait(.025);
+                if(poll>0)input.Wait(ReadbackPolling.Delay(poll));
                 raw=input.Read();reads++;var number=ControlNumber.Parse(kind,raw);
                 string status=raw==ControlNumber.Marker?"copy_pending":raw is null?"no_text":number is null?"invalid_text":
                     ControlNumber.Matches(number,expected)?"match":"mismatch";
@@ -44,6 +44,6 @@ public static class ControlReadback
                 break;
             }
         }
-        input.Commit();return new(last,raw,3,reads,false);
+        input.Commit();return new(last,raw,ReadbackPolling.Attempts,reads,false);
     }
 }

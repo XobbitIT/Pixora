@@ -184,6 +184,8 @@ internal sealed partial class Painter : IDisposable
 
     private sealed class InputInterrupted : Exception
     {
+        internal const string MessageText="Ввід призупинено: Rust втратив фокус або натиснуто F6. Повернись у Rust і повтори перевірку; під час малювання натисни F6 для продовження.";
+        public InputInterrupted():base(MessageText){}
     }
 
     private void CheckBoundary()
@@ -198,7 +200,7 @@ internal sealed partial class Painter : IDisposable
         {
             WaitReady();
             CheckBoundary();
-            Native.SetCursorPos(p.X, p.Y);
+            MoveCursor(p);
             Delay(TextDelay(StrokeTiming.ClickSettle(settings)));
             CheckBoundary();
             Native.Mouse(false);
@@ -214,6 +216,8 @@ internal sealed partial class Painter : IDisposable
         textRecovery=attempt>0;
         Click(point,twice:textRecovery);
         if(textRecovery)Delay(.12);
+        Log("text_field_selection",new{requested=point,observed=Native.Cursor(),attempt,recovery=textRecovery,
+            transport="guarded SendInput",dpi=windowDpi});
     }
 
     private void PressKey(int key)
@@ -389,6 +393,14 @@ internal sealed partial class Painter : IDisposable
                 observation=>Log("control_readback_poll",new{kind,expected,observation}));
             Log("control_readback",new{kind,raw=result.Raw,number=result.Number,fresh=result.Raw is not null&&result.Raw!=ControlNumber.Marker,
                 verified=result.Verified,attempts=result.Attempts,reads=result.Reads});
+            if(!result.Verified&&result.Number is null)
+            {
+                Log("control_copy_unavailable",new{kind,expected,field,attempts=result.Attempts,reads=result.Reads,
+                    markerPending=result.Raw==ControlNumber.Marker,dpi=windowDpi,foreground=Native.GetForegroundWindow()==window});
+                // The reader already reselected/copied three times. Do not
+                // start a new paste while the final response is still pending.
+                throw new InvalidOperationException(ControlCopyProblem(kind));
+            }
             return result.Verified?result.Number:null;
         }
         finally{textRecovery=previousRecovery;}
@@ -460,6 +472,14 @@ internal sealed partial class Painter : IDisposable
         return clipboardLease=new(new WindowsClipboardStore(detail=>Log("clipboard_capture",detail)),windowProcessId,
             status=>Log("clipboard_restore",new{status}),detail=>Log("clipboard_sequence",detail));
     }
+
+    internal static string ControlCopyProblem(string kind)=>kind switch
+    {
+        "size"=>"Rust не повернув число Розмір (Size). Захопи цю смугу разом із числом справа й повтори перевірку. Залиш Rust на передньому плані; для віддаленого підключення вимкни синхронізацію буфера обміну.",
+        "interval"=>"Rust не повернув число Інтервал (Interval). Захопи цю смугу разом із числом справа й повтори перевірку. Залиш Rust на передньому плані; для віддаленого підключення вимкни синхронізацію буфера обміну.",
+        "opacity"=>"Rust не повернув число Прозорість (Opacity). Захопи цю смугу разом із числом справа й повтори перевірку. Залиш Rust на передньому плані; для віддаленого підключення вимкни синхронізацію буфера обміну.",
+        _=>throw new ArgumentException("Invalid control kind.",nameof(kind))
+    };
     private void RestoreClipboard(ClipboardLease previous)
     {
         clipboardLease=null;previous.Dispose();

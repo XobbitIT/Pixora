@@ -1,5 +1,8 @@
-# Pixora 1.0.14-beta.44
+# Pixora 1.0.14-beta.45
 
+Beta.45 keeps late numeric and HEX copies in the read phase for up to one extra second, uses guarded SendInput for UI clicks, and reports the unreadable control explicitly. The laptop log stops at Interval/HEX before brush measurement: it is not evidence of a rejected Size 1 imprint. Clipboard ownership guards and brush acceptance remain unchanged. 343 Core / 104 WPF checks. See [changes](CHANGES_BETA45_UA.md) and [live checklist](TESTING_BETA45_UA.md). Fresh laptop Rust validation is required.
+
+Previous beta.44:
 Beta.44 fixes slow START preparation, uses an explicit working Size consistently in input/ETA/probe routes, and adds one-click selection of a measured Size 3. A stale speed proof falls back to normal stable input. Size 1 remains unverified in the latest recording; Adaptive/audit requirements remain. 339 Core / 103 WPF checks. See [changes](CHANGES_BETA44_UA.md) and [live checklist](TESTING_BETA44_UA.md). Fresh Rust validation is required.
 
 Previous beta.43:

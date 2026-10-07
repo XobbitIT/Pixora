@@ -6,7 +6,7 @@ internal static class ReviewRegressionChecks
     private static void Require(bool value){if(!value)throw new Exception("Beta.31 review regression");}
     private sealed class CopyInput:IControlReadbackInput
     {
-        public double Time,Latency;public int Copies,Commits,Reads;public bool FailWrite,Cancel;
+        public double Time,Latency;public int Copies,Commits,Reads;public bool FailWrite,Cancel;public double? CancelAt;
         public string? Text="3";public Func<int,string?> Result=_=>"3.00";
         public string Marker=ControlNumber.Marker;public List<int> Selections=[];
         private double copiedAt;
@@ -15,7 +15,7 @@ internal static class ReviewRegressionChecks
         public void SelectAll(){}
         public void WriteMarker(string marker){if(FailWrite)throw new System.ComponentModel.Win32Exception();Text=marker;}
         public void Copy(){Require(Text==Marker);Copies++;copiedAt=Time;}
-        public void Wait(double seconds){if(Cancel)throw new OperationCanceledException();Time+=seconds;}
+        public void Wait(double seconds){if(Cancel||CancelAt is {} stop&&Time+seconds>=stop)throw new OperationCanceledException();Time+=seconds;}
         public string? Read(){Reads++;if(Time-copiedAt+1e-9>=Latency)Text=Result(Copies);return Text;}
         public void Commit()=>Commits++;
     }
@@ -28,12 +28,12 @@ internal static class ReviewRegressionChecks
             Require(result.Verified&&input.Copies==1&&input.Reads>1&&input.Commits==1);
         });
         test("Numeric copy timing escalates while keeping bounded attempts",()=>{
-            var input=new CopyInput{Latency=.26};var result=ControlReadback.Read("size",3,input,.05);
-            Require(result.Verified&&input.Copies==3&&result.Attempts==3&&input.Reads<=21);
+            var input=new CopyInput{Latency=1.12};var result=ControlReadback.Read("size",3,input,.05);
+            Require(result.Verified&&input.Copies==3&&result.Attempts==3&&input.Reads<=72);
         });
         test("Missed numeric copies never accept the old pasted payload",()=>{
             var input=new CopyInput{Latency=100};var result=ControlReadback.Read("size",3,input,.05);
-            Require(!result.Verified&&result.Number is null&&input.Copies==3&&input.Reads==21);
+            Require(!result.Verified&&result.Number is null&&input.Copies==3&&input.Reads==72&&input.Time<3.5);
         });
         test("Fresh wrong and malformed numbers cannot verify controls",()=>{
             foreach(string? value in new string?[]{"2.00","not a number",null})
@@ -63,7 +63,7 @@ internal static class ReviewRegressionChecks
         test("Missing HEX copies cannot certify the pasted target and remain bounded",()=>{
             var input=new CopyInput{Marker=HexReadback.Marker,Latency=100,Text="FF3333",Result=_=>"FF3333"};
             var result=new HexReadback(new(255,51,51)).Read(input,.06);
-            Require(!result.Verified&&result.Value is null&&input.Copies==3&&result.Reads==21&&input.Commits==0);
+            Require(!result.Verified&&result.Value is null&&input.Copies==3&&result.Reads==72&&input.Commits==0&&input.Time<3.5);
             Require(input.Selections.SequenceEqual(new[]{0,1,2}));
         });
         test("Fresh wrong HEX color requires a new copy and exact color match",()=>{
@@ -81,6 +81,29 @@ internal static class ReviewRegressionChecks
             input=new(){Marker=HexReadback.Marker,Cancel=true};
             try{new HexReadback(new(255,51,51)).Read(input,.06);throw new Exception("HEX cancellation ignored");}catch(OperationCanceledException){}
             Require(input.Copies==1&&input.Commits==0);
+        });
+        test("Laptop numeric copy can arrive after the old polling deadline",()=>{
+            var input=new CopyInput{Latency=.65,Result=_=>"0.01"};var result=ControlReadback.Read("interval",.01,input,.06);
+            Require(result.Verified&&result.Number==.01&&input.Copies==1&&input.Selections.SequenceEqual(new[]{0})&&input.Time<1.1);
+        });
+        test("Laptop HEX copy stays pending without reselecting or rewriting",()=>{
+            var input=new CopyInput{Marker=HexReadback.Marker,Latency=.95,Result=_=>"#FF3333"};
+            var result=new HexReadback(new(255,51,51)).Read(input,.06);
+            Require(result.Verified&&input.Copies==1&&result.Value=="FF3333"&&input.Time<1.1);
+        });
+        test("Healthy copies still need only the original first wait",()=>{
+            var input=new CopyInput();Require(ControlReadback.Read("size",3,input,.06).Verified&&input.Time==.06&&input.Reads==1);
+            input=new(){Marker=HexReadback.Marker,Result=_=>"FF3333"};
+            Require(new HexReadback(new(255,51,51)).Read(input,.06).Verified&&input.Time==.06&&input.Reads==1);
+        });
+        test("Cancellation interrupts an extended copy wait before retries",()=>{
+            foreach(bool hex in new[]{false,true})
+            {
+                var input=new CopyInput{Latency=100,CancelAt=.4,Marker=hex?HexReadback.Marker:ControlNumber.Marker};
+                try{if(hex)new HexReadback(new(255,51,51)).Read(input,.06);else ControlReadback.Read("size",3,input,.06);
+                    throw new Exception("Late wait ignored cancellation");}catch(OperationCanceledException){}
+                Require(input.Copies==1&&input.Commits==0&&input.Time<.4);
+            }
         });
         foreach(bool vertical in new[]{false,true})test($"Offset core cannot be cropped to PASS ({vertical})",()=>{
             var before=Frame();var after=before.Clone();var line=vertical?new ScreenLine(20,14,20,39):new ScreenLine(14,20,39,20);

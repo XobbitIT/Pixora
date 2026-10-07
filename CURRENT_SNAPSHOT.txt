@@ -1,3 +1,10 @@
+Pixora 1.0.14-beta.45 — bounded late clipboard readback and guarded UI clicks.
+343 Core / 104 WPF checks. New live laptop validation is required.
+No laptop brush imprints were measured in the attached beta.44 log; Interval/HEX copy failed first.
+Clipboard conflict policy, brush contrast/core and speed acceptance are unchanged.
+See CHANGES_BETA45_UA.md and TESTING_BETA45_UA.md.
+
+Previous beta.44:
 Pixora 1.0.14-beta.44 — fast cancellable START preparation and consistent working Size.
 339 Core / 103 WPF checks. Fresh live Rust validation required.
 1000 timing operations: 12.037 s -> 0.020 s on the recorded config; preparation only, no measured in-game speedup.
