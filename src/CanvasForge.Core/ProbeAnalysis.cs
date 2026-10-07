@@ -9,6 +9,7 @@ public sealed record ProbeAnalysisResult(int Width, int Height, ScreenLine Line,
     SpatialInspection? Spatial=null,OutsideProbeCore? OutsideCore=null)
 {
     public bool Passed => Failure==ProbeFailure.None && CoreCoverage.Passed;
+    public int SceneRadius { get; init; }
 }
 
 public static class ProbeAnalysis
@@ -18,9 +19,9 @@ public static class ProbeAnalysis
     public static ProbeAnalysisResult Control(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner)
         => Control(before,after,line,outer,inner,[0,-1,1,-2,2],false);
 
-    public static ProbeAnalysisResult SpatialControl(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner)
+    public static ProbeAnalysisResult SpatialControl(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner,int? sceneRadius=null)
         => Control(before,after,line,outer,inner,Enumerable.Range(-ProbeSpatialCalibration.MaxOffset,2*ProbeSpatialCalibration.MaxOffset+1)
-            .Where(x=>Math.Abs(x)+inner<=outer),true);
+            .Where(x=>Math.Abs(x)+inner<=outer),true,sceneRadius);
 
     public static ProbeAnalysisResult BoundControl(PixelImage before,PixelImage after,ScreenLine line,int outer,SpatialAxis axis)
     {
@@ -30,20 +31,22 @@ public static class ProbeAnalysis
         // A broad rendered stripe may have its darkest row just outside the frozen
         // envelope while still containing a complete core inside it. Select the
         // independent slow reference within that envelope, before drawing a trial.
-        var bounded=Control(before,after,line,outer,axis.InnerRadius,offsets,true);
+        var bounded=Control(before,after,line,outer,axis.InnerRadius,offsets,true,axis.SceneGuard(outer));
         if(bounded.Passed)return bounded;
         // Keep the failed in-envelope measurements authoritative. A lighter edge
         // outside the model must never hide an uncertain dark core inside it.
-        var outside=SpatialControl(before,after,line,outer,axis.InnerRadius);
+        var outside=SpatialControl(before,after,line,outer,axis.InnerRadius,axis.SceneGuard(outer));
         return bounded with{OutsideCore=outside.Passed&&!offsets.Contains(outside.PerpendicularOffset)
             &&outside.CoreCoverage.Reference is { } reference
             ?new(outside.PerpendicularOffset,reference.Color,reference.Tolerance,outside.CoreCoverage.Expected,outside.CoreCoverage.Covered):null};
     }
 
-    private static ProbeAnalysisResult Control(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner,IEnumerable<int> offsets,bool strongest)
+    private static ProbeAnalysisResult Control(PixelImage before,PixelImage after,ScreenLine line,int outer,int inner,IEnumerable<int> offsets,bool strongest,int? sceneRadius=null)
     {
         Check(before,after,line,outer,inner);
-        var region=Region(before,line,outer);var changed=new bool[region.Length];
+        int scene=sceneRadius??outer;
+        if(scene<outer||scene>ProbeStrokeEnvelope.MeasurementRadius(outer))throw new ArgumentOutOfRangeException(nameof(sceneRadius));
+        var region=Region(before,line,scene);var changed=new bool[region.Length];
         for(int i=0;i<region.Length;i++)changed[i]=region[i]&&RustSlider.Delta(before.Color(i),after.Color(i))>=32;
         var full=CoverageAudit.MeasureReference(before,after,changed,true);
         ProbeAnalysisResult? best=null;
@@ -61,7 +64,7 @@ public static class ProbeAnalysis
             }
             if(!complete)continue;
             var measured=CoverageAudit.MeasureReference(before,after,core,true);
-            var result=Inspect(before,after,line,region,changed,core,full,measured,measured.Reference,offset);
+            var result=Inspect(before,after,line,region,changed,core,full,measured,measured.Reference,offset) with{SceneRadius=scene};
             // The offset is fixed from the slow control. Trials never shift or shrink
             // their expected mask to fit a failed stroke.
             if(best is null || result.Passed&&!best.Passed
@@ -72,7 +75,7 @@ public static class ProbeAnalysis
         }
         if(best is not null)return best;
         var empty=new bool[region.Length];var absent=CoverageAudit.MeasureReference(before,after,empty,true);
-        return Inspect(before,after,line,region,changed,empty,full,absent,null,0) with{Failure=ProbeFailure.ClippedCore};
+        return Inspect(before,after,line,region,changed,empty,full,absent,null,0) with{Failure=ProbeFailure.ClippedCore,SceneRadius=scene};
     }
 
     public static ProbeAnalysisResult Trial(PixelImage before,PixelImage after,ScreenLine line,ProbeAnalysisResult control)
@@ -86,7 +89,7 @@ public static class ProbeAnalysis
         for(int i=0;i<changed.Length;i++)changed[i]=control.RegionMask[i]&&RustSlider.Delta(before.Color(i),after.Color(i))>=32;
         return Inspect(before,after,line,control.RegionMask,changed,control.CoreMask,
             CoverageAudit.MeasureReference(before,after,changed,true),
-            CoverageAudit.MeasureReference(before,after,control.CoreMask,true),reference,control.PerpendicularOffset);
+            CoverageAudit.MeasureReference(before,after,control.CoreMask,true),reference,control.PerpendicularOffset) with{SceneRadius=control.SceneRadius};
     }
 
     private static ProbeAnalysisResult Inspect(PixelImage before,PixelImage after,ScreenLine line,bool[] region,

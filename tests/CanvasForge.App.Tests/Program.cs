@@ -92,7 +92,8 @@ internal static partial class Program
         CheckLatestImageWins(destination);CheckCancelledImageDiscarded(destination);CheckStartPreparationExclusive(destination);CheckFailedPlanClearsStaleResult(destination);
         CheckPreviewSurvivesEstimateFailure(destination);
         CheckInputCheckExclusive(destination);CheckStandaloneStop(destination);CheckClosingWaitsForCheck(destination);CheckCaptureCanRebuildPlan(destination);CheckMalformedLegacyWindow(destination);
-        Console.WriteLine("ALL 95 WPF UI CHECKS PASSED");
+        CheckSetupSize3WithoutBase(destination);CheckSetupFallbackSize3(destination);CheckSetupFailedFallback(destination);
+        Console.WriteLine("ALL 98 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);

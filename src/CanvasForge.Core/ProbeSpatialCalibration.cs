@@ -5,8 +5,14 @@ using System.Text.Json;
 namespace CanvasForge.Core;
 
 public sealed record SpatialAnchor(ScreenLine Requested, int Offset, Rgb Color, int Tolerance);
-public sealed record SpatialAxis(bool Vertical, int InnerRadius, List<SpatialAnchor> Anchors)
+public sealed record SpatialAxis(bool Vertical, int InnerRadius, List<SpatialAnchor> Anchors, int SceneRadius=0)
 {
+    public int SceneGuard(int outer)
+    {
+        int value=SceneRadius==0?outer:SceneRadius;
+        if(value<outer||value>ProbeStrokeEnvelope.MeasurementRadius(outer))throw new ArgumentException("Invalid moving stroke envelope.");
+        return value;
+    }
     public int[] Offsets => Anchors.Select(x=>x.Offset).Distinct().Order().ToArray();
     // Quantisation can produce an intermediate integer offset on a new tile.
     // Freeze the bounded envelope from the spatial controls BEFORE any speed trial;
@@ -30,7 +36,7 @@ public static class ProbeSpatialCalibration
     {
         // Absolute origin matters for input quantisation too. Moving Rust invalidates
         // this evidence rather than assuming that only Canvas dimensions matter.
-        string value=$"spatial-v2-bounded-envelope:{SpeedCalibration.Context(s)}:{s.Calibration.Rect("canvas")}:{s.Calibration.SessionClient}";
+        string value=$"spatial-v3-moving-scene-guard:{SpeedCalibration.Context(s)}:{s.Calibration.Rect("canvas")}:{s.Calibration.SessionClient}";
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     }
     public static SpatialProbeProfile? Read(Settings s,double size)
@@ -48,6 +54,7 @@ public static class ProbeSpatialCalibration
             foreach(var axis in p.Axes)
             {
                 if(axis.InnerRadius!=footprint.Inner||axis.Anchors is null||axis.Anchors.Count!=ControlsPerAxis)return null;
+                if(axis.SceneRadius<0||axis.SceneRadius>0&&(axis.SceneRadius<footprint.Outer||axis.SceneRadius>ProbeStrokeEnvelope.MeasurementRadius(footprint.Outer)))return null;
                 if(axis.Anchors.Any(x=>x is null||Math.Abs(x.Offset)>MaxOffset||Math.Abs(x.Offset)+axis.InnerRadius>p.OuterRadius
                     ||x.Tolerance is <12 or >28||!ValidLine(x.Requested,canvas,axis.Vertical)))return null;
                 if(axis.Anchors.Select(x=>axis.Vertical?x.Requested.X1:x.Requested.Y1).Distinct().Count()!=ControlsPerAxis)return null;
@@ -71,7 +78,8 @@ public static class ProbeSpatialCalibration
             var rows=controls.Where(x=>(x.Requested.X1==x.Requested.X2)==vertical).ToArray();
             if(rows.Length!=ControlsPerAxis)throw new InvalidOperationException("Просторове калібрування потребує трьох позицій для кожного напрямку.");
             axes.Add(new(vertical,footprint.Inner,rows.Select(x=>new SpatialAnchor(x.Requested,x.Result.PerpendicularOffset,
-                x.Result.CoreCoverage.Reference!.Color,x.Result.CoreCoverage.Reference.Tolerance)).ToList()));
+                x.Result.CoreCoverage.Reference!.Color,x.Result.CoreCoverage.Reference.Tolerance)).ToList(),
+                rows.Max(x=>Math.Max(footprint.Outer,x.Result.SceneRadius))));
         }
         var p=new SpatialProbeProfile(Guid.NewGuid().ToString("N"),Context(s),DateTimeOffset.UtcNow,size,footprint.Outer,axes);
         var check=s.Clone();Save(check,p);
@@ -126,7 +134,7 @@ public static class ProbeSpatialCalibration
         ProbeAnalysis.Check(before,after,line,outer,axis.InnerRadius);
         if((line.X1==line.X2)!=axis.Vertical||axis.Anchors.Count!=ControlsPerAxis||axis.Offsets.Any(x=>Math.Abs(x)>MaxOffset||Math.Abs(x)+axis.InnerRadius>outer)
             ||reference.Tolerance is <12 or >28)throw new ArgumentException("Invalid spatial probe model.");
-        var region=ProbeAnalysis.Region(before,line,outer);var envelope=new bool[region.Length];var changed=new bool[region.Length];
+        var region=ProbeAnalysis.Region(before,line,axis.SceneGuard(outer));var envelope=new bool[region.Length];var changed=new bool[region.Length];
         var confirmed=new bool[region.Length];var gaps=new bool[region.Length];
         int length=TransferSchedule.Length(line),dx=Math.Sign(line.X2-line.X1),dy=Math.Sign(line.Y2-line.Y1);
         int width=2*axis.InnerRadius+1,slices=length-2*ProbeAnalysis.EndMargin+1,passed=0,covered=0,missing=0,unknown=0,outside=0,outsideChanged=0;
@@ -178,11 +186,11 @@ public static class ProbeSpatialCalibration
         // covered/missing/unknown counts, references or acceptance thresholds.
         if(failure==ProbeFailure.UncertainPixels&&geometry is { } trace
             &&trace.InEnvelopeSlices==slices&&trace.ColorRejectedSlices==slices)failure=ProbeFailure.ColorMismatch;
-        return new(before.Width,before.Height,line,region,changed,envelope,
+        return new ProbeAnalysisResult(before.Width,before.Height,line,region,changed,envelope,
             CoverageAudit.MeasureReference(before,after,changed,true),CoverageAudit.MeasureReference(before,after,envelope,true),
             coverage,failure,0,slices-passed,outside,outsideChanged,
             new(offsets,width,slices,unstable?0:passed,reference,confirmed,
                 unstable?null:ProbeOffsetTrajectory.Measure(supportedOffsets),
-                geometry));
+                geometry)) with{SceneRadius=axis.SceneGuard(outer)};
     }
 }

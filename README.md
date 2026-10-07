@@ -1,4 +1,8 @@
-# Pixora 1.0.14-beta.40
+# Pixora 1.0.14-beta.41
+
+Beta.41 lets automatic setup test freshly verified Size 3/10/20 independently of missing Size 1. Six slow controls measure and freeze a moving-stroke scene guard separately from core offsets. Clipboard recovery, RGB/coverage acceptance and planner are unchanged. 314 Core / 98 WPF checks. See [changes](CHANGES_BETA41_UA.md) and [live checklist](TESTING_BETA41_UA.md). A new Rust test is required.
+
+## Previous beta.40
 
 Beta.40 handles late expected Rust clipboard copies before retry writes and cleanup, polls HEX readback without repeatedly replacing pending copies, and refocuses text fields with slower keyboard input only after a failed read. Clipboard conflicts now log ownership/sequence metadata without clipboard contents. Fatal WPF allocation failures stop instead of opening repeated dialogs. See [changes](CHANGES_BETA40_UA.md) and [live checklist](TESTING_BETA40_UA.md). The laptop's Interval failure still needs live validation.
 

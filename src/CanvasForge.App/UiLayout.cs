@@ -64,8 +64,17 @@ internal sealed partial class MainWindow
         void Ready(string key, bool value) => workflowChips[key].Set(value ? T("Готово", "Ready") : T("Очікує", "Pending"), value ? Success : Warning);
         Ready("image", source is not null);
         Ready("rust", canvas && colors && controls);
-        if (adaptiveFailure.Length > 0) workflowChips["brush"].Set(T("Помилка", "Error"), Danger);
-        else Ready("brush", AdaptiveBrush.CalibrationCurrent(settings));
+        var brush=workflowChips["brush"];double size=settings.Number("probe_size",3);
+        brush.ToolTip=null;
+        if(AdaptiveBrush.CalibrationCurrent(settings))Ready("brush",true);
+        else if(SpeedCalibration.BrushReady(settings,size))
+        {
+            brush.Set("Size "+size,Warning);
+            brush.ToolTip=T("Цей Size підтверджений для тесту швидкості. Adaptive й ремонт країв потребують окремого підтвердження Size 1.",
+                "This Size is verified for Speed Probe. Adaptive and edge repair need a separate Size 1 proof.");
+        }
+        else if(adaptiveFailure.Length>0)brush.Set(T("Помилка", "Error"),Danger);
+        else Ready("brush",false);
         SetSpeedChip(workflowChips["speed"]);
         RefreshCoverageStatus();
     }

@@ -86,6 +86,8 @@ internal sealed partial class MainWindow
                     +(m.Spatial is null?$"{T("Зміщення ядра","Core offset")}: {m.PerpendicularOffset} px · ":"")
                     +$"{T("Зміни поза пензлем","Changes outside brush")}: {m.OutsideChanged}/{m.OutsidePixels}\n{T(ProbeAnalysis.Explain(m.Failure))}";
             else metrics.Text=stage?.Error is {Length:>0} message?T(message):T("Аналіз не завершений. Доступні кадри збережені.","Analysis incomplete. Available frames have been saved.");
+            if(stage?.Metrics is {SceneRadius:>0} guard)
+                metrics.Text+="\n"+T("Межа рухомого мазка: ","Moving stroke boundary: ")+guard.SceneRadius+" px · "+T("не розширює допустимі зміщення ядра","does not expand allowed core offsets");
             if(stage?.Metrics?.OutsideCore is { } outside)
                 metrics.Text+="\n"+T($"Окреме ядро поза моделлю: {outside.Offset:+0;-0;0} px · {Color(outside.Color)} · {outside.Covered}/{outside.Expected}. Лише діагностика; не замінює результат усередині моделі.",
                     $"Separate core outside model: {outside.Offset:+0;-0;0} px · {Color(outside.Color)} · {outside.Covered}/{outside.Expected}. Diagnostic only; does not replace the in-model result.");

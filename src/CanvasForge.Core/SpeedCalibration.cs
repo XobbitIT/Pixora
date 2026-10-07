@@ -12,7 +12,7 @@ public sealed record SpeedProbeProfile(string Context, DateTimeOffset Created, L
 
 public static class SpeedCalibration
 {
-    public const string Revision = "probe-collinear-slow-v7";
+    public const string Revision = "probe-moving-scene-guard-v8";
     public static readonly int[] CandidatesMs = [32,20,12,8];
     public const int Repeats = 3;
     public const int RequiredTiles=2+2*2*4*Repeats+2*2*Repeats;

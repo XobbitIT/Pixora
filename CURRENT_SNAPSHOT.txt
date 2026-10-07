@@ -1,3 +1,11 @@
+Pixora 1.0.14-beta.41 — independent verified Size and moving-stroke scene guard.
+314 Core / 98 WPF checks passed. New live Rust validation required.
+Slow spatial controls measure connected paint reach before candidates, within the existing offset search cap.
+Core offsets/width, RGB tolerance, brush contrast, coverage acceptance, clipboard recovery and planner remain unchanged.
+Older spatial/speed profiles are stale; captures and dot masks remain. Size 1 is still required by Adaptive and edge repair.
+See CHANGES_BETA41_UA.md and TESTING_BETA41_UA.md. CI packages exact source and published DLL checks.
+
+Previous beta.40:
 Pixora 1.0.14-beta.40 — late clipboard responses, bounded HEX polling and text-field recovery.
 Expected Rust copies are reconciled before writes/restore; unrelated changes are preserved.
 Retry-only double-click focus and slower keys; successful first pass and motion timings unchanged.

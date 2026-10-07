@@ -13,7 +13,7 @@ internal sealed record SpatialProbeMetrics(int[] AllowedOffsets,int RequiredWidt
 internal sealed record FrozenProbeReference(bool Vertical,AuditReference Reference);
 internal sealed record ProbeMetrics(ReferenceMeasurement Full, ReferenceMeasurement Core,
     ProbeFailure Failure, int Expected, int Covered, int Missing, int Unknown, double Coverage,
-    int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,SpatialProbeMetrics? Spatial=null,OutsideProbeCore? OutsideCore=null);
+    int PerpendicularOffset, int LongitudinalGaps, int OutsidePixels, int OutsideChanged,SpatialProbeMetrics? Spatial=null,OutsideProbeCore? OutsideCore=null,int SceneRadius=0);
 internal sealed record ProbeStageReport(string Id, string Phase, StrokeMethod Method, bool Vertical,
     double IntervalMs, double InitialDownWaitMs, int StepPixels, ScreenRect Area, ScreenLine LocalLine, string State, string? Error,
     int UnstableAttempts, int LastUnstableAttempt, string? FailedAt, ProbeMetrics? Metrics,string? LocalControlId=null);
@@ -93,7 +93,7 @@ internal sealed class ProbeDiagnosticSession
         active=active! with{State=result.Passed?"passed":"rejected",Metrics=new(result.FullMeasurement,
             result.CoreMeasurement,result.Failure,coverage.Expected,coverage.Covered,coverage.Missing,coverage.Unknown,
             coverage.Coverage,result.PerpendicularOffset,result.LongitudinalGaps,result.OutsidePixels,result.OutsideChanged,
-            result.Spatial is { } check?new(check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry):null,result.OutsideCore)};
+            result.Spatial is { } check?new(check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry):null,result.OutsideCore,result.SceneRadius)};
         SaveActive();
     }
     public void Complete(List<SpeedSample> selected)

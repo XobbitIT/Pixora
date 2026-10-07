@@ -2347,6 +2347,7 @@ Test("Palette comparison retains current HEX adaptive calibration and counts acc
 });
 BrushFootprintChecks.Run(Test);
 LocalProbeChecks.Run(Test);
+MovingEnvelopeChecks.Run(Test);
 ProbeSpeedSearchChecks.Run(Test);
 ProbeControlRetryChecks.Run(Test);
 BrushBatchChecks.Run(Test);

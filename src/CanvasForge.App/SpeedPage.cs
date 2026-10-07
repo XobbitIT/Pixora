@@ -70,11 +70,11 @@ internal sealed partial class MainWindow
         string? spatialProblem=null,speedProblem=null;
         if(ready)
         {
-            try{ProbeSpatialCalibration.Tiles(settings.Calibration.Rect("canvas"),SpeedCalibration.Footprint(settings,settings.Number("probe_size",3)).Outer);}
+            try{ProbeSpatialCalibration.Tiles(settings.Calibration.Rect("canvas"),ProbeStrokeEnvelope.MeasurementRadius(SpeedCalibration.Footprint(settings,settings.Number("probe_size",3)).Outer));}
             catch(InvalidOperationException e){spatialProblem=e.Message;}
             if(model is not null)
             {
-                try{SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),model.OuterRadius);}
+                try{SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),model.Axes.Max(axis=>axis.SceneGuard(model.OuterRadius)));}
                 catch(InvalidOperationException e){speedProblem=e.Message;}
             }
         }
@@ -86,7 +86,7 @@ internal sealed partial class MainWindow
         spatialStatus.Text=spatialProblem is not null?T(spatialProblem):model is null?T(ProbeSpatialCalibration.MissingMessage):string.Join("\n",model.Axes.Select(axis=>
             (axis.Vertical?T("Вертикаль","Vertical"):T("Горизонталь","Horizontal"))+": "+string.Join(" · ",axis.Anchors.GroupBy(x=>x.Offset).OrderBy(x=>x.Key)
                 .Select(g=>$"{g.Key:+0;-0;0} px: {g.Count()}/{ProbeSpatialCalibration.ControlsPerAxis}"))+
-                $" · {T("Діапазон","Envelope")}: {string.Join(", ",axis.AllowedOffsets)} px"))+"\n"+
+                $" · {T("Діапазон","Envelope")}: {string.Join(", ",axis.AllowedOffsets)} px · {T("Межа мазка","Stroke boundary")}: {axis.SceneGuard(model.OuterRadius)} px"))+"\n"+
             T("Допустимі зміщення зафіксовані. Швидкі проби не змінюють модель.","Allowed offsets are frozen. Fast trials cannot change the model.");
         calibratedMotion.IsEnabled=!Painting&&(current||settings.Bool("calibrated_strokes"));
         var canvas=settings.Calibration.Rect("canvas");
@@ -126,9 +126,10 @@ internal sealed partial class MainWindow
         var target=AlignRustForTest();double size=settings.Number("probe_size",3);var footprint=SpeedCalibration.Footprint(settings,size);
         var spatialModel=ProbeSpatialCalibration.Read(settings,size);
         if(!spatialOnly&&spatialModel is null)throw new InvalidOperationException(ProbeSpatialCalibration.MissingMessage);
-        var tiles=spatialOnly?(setupWorkspace?.Spatial(footprint.Outer)??ProbeSpatialCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer))
+        int tileRadius=spatialOnly?ProbeStrokeEnvelope.MeasurementRadius(footprint.Outer):spatialModel!.Axes.Max(axis=>axis.SceneGuard(footprint.Outer));
+        var tiles=spatialOnly?(setupWorkspace?.Spatial(tileRadius)??ProbeSpatialCalibration.Tiles(settings.Calibration.Rect("canvas"),tileRadius))
                 .Select(t=>new SpeedProbeTile(t.Area,t.Horizontal,t.Vertical,t.Horizontal,t.Vertical)).ToList()
-            :setupWorkspace?.Speed(footprint.Outer)??SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),footprint.Outer);
+            :setupWorkspace?.Speed(tileRadius)??SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),tileRadius);
         int maximumLines=spatialOnly?tiles.Count:2+2*(tiles.Count-2);
         if(!setupRunning&&!ShowMessage(T($"Тест розміру {size} намалює до {maximumLines} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {maximumLines} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
         var snapshot=AdaptiveBrush.CalibrationSettings(settings,size);snapshot.Set("coverage_audit",false);snapshot.Set("calibrated_strokes",false);
@@ -172,7 +173,7 @@ internal sealed partial class MainWindow
                         size,method,vertical,intervalMs=interval,phase,scope=result.Spatial is null?"solid_core":"spatial_core_occupancy",coverage=coverage.Coverage,
                         missing=coverage.Missing,unknown=coverage.Unknown,passed=result.Passed,failure=result.Failure.ToString(),
                         core=result.CoreMeasurement,full=result.FullMeasurement,result.PerpendicularOffset,result.LongitudinalGaps,
-                        result.OutsideCore,
+                        result.OutsideCore,result.SceneRadius,
                         spatial=result.Spatial is { } check?new{check.AllowedOffsets,check.RequiredWidth,check.Slices,check.PassedSlices,check.FrozenReference,check.Trajectory,check.Geometry}:null,
                         diagnostics=diagnostics.DirectoryPath}})+Environment.NewLine);
                 }
@@ -186,7 +187,7 @@ internal sealed partial class MainWindow
                         var before=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.Before(before);
                         worker.ProbeStroke(line,new(size,StrokeMethod.Paced,vertical,64,64,1,TransferSchedule.Length(line),3,1));
                         diagnostics.CapturingAfter();var after=worker.StableProbeShot(tile.Area,diagnostics.Unstable);diagnostics.After(after);
-                        var result=ProbeAnalysis.SpatialControl(before,after,Local(line,tile.Area),footprint.Outer,footprint.Inner);
+                        var result=ProbeStrokeEnvelope.Measure(before,after,Local(line,tile.Area),footprint.Outer,footprint.Inner);
                         diagnostics.Analysed(before,after,result);LogResult("probe_spatial_control",StrokeMethod.Paced,vertical,64,"spatial_control",result);
                         if(!result.Passed)throw new InvalidOperationException(ProbeAnalysis.Explain(result.Failure));
                         controls.Add((line,result));
