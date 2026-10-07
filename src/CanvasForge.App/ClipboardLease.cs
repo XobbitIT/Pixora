@@ -57,7 +57,18 @@ internal sealed class ClipboardLease:IDisposable
             return;
         }
         bool knownTarget=targetProcess!=0&&observation.OwnerProcess==targetProcess;
-        bool adopted=copyExpected&&(knownTarget||allowUnknownOwner&&observation.OwnerProcess==0);
+        bool sourceAllowed=knownTarget||allowUnknownOwner&&observation.OwnerProcess==0;
+        // EmptyClipboard and SetClipboardData are separate operations. During
+        // reads an empty intermediate state is still pending, not a completed
+        // copy. Do not advance the trusted sequence: if no text ever arrives,
+        // the next write/restore must preserve this unconfirmed change.
+        if(copyExpected&&allowUnknownOwner&&sourceAllowed&&observation.Text is null)
+        {
+            diagnostic?.Invoke(new{operation,status="copy_empty_pending",expectedSequence=expected,
+                observedSequence=observation.Sequence,ownerProcess=observation.OwnerProcess,targetProcess,copyExpected});
+            return;
+        }
+        bool adopted=copyExpected&&observation.Text is not null&&sourceAllowed;
         diagnostic?.Invoke(new{operation,status=adopted?"expected_copy":"sequence_conflict",expectedSequence=expected,
             observedSequence=observation.Sequence,ownerProcess=observation.OwnerProcess,targetProcess,copyExpected});
         if(!adopted)throw new InvalidOperationException(ChangedMessage);
@@ -118,8 +129,21 @@ internal sealed class WindowsClipboardStore(Action<object>? report=null):IClipbo
             report?.Invoke(new{status="format_unavailable",format=e.Format,formatName=e.FormatName,error=e.NativeErrorCode});throw;
         }
     }
-    public ClipboardObservation Read()=>Native.ObserveClipboard();
-    public uint Write(string text,uint expectedSequence)=>Native.ClipboardWrite(text,expectedSequence,(owner??=new()).Handle);
+    private void ReportMessages()=>owner?.DrainMessages(message=>report?.Invoke(new
+        {status="owner_message",message=message.Message,time=message.Time,window=owner.Handle.ToInt64(),thread=owner.OwnerThreadId}));
+    public ClipboardObservation Read()
+    {
+        var observation=Native.ObserveClipboard();ReportMessages();return observation;
+    }
+    public uint Write(string text,uint expectedSequence)
+    {
+        if(owner is null)
+        {
+            owner=new();report?.Invoke(new{status="owner_created",window=owner.Handle.ToInt64(),
+                ownerThread=owner.OwnerThreadId,inputThread=Environment.CurrentManagedThreadId,messageLoop="dedicated STA"});
+        }
+        var sequence=Native.ClipboardWrite(text,expectedSequence,owner.Handle);ReportMessages();return sequence;
+    }
     public bool Restore(IClipboardBackup backup,uint expectedSequence)=>((Native.ClipboardBackup)backup).Restore(expectedSequence);
-    public void Dispose(){owner?.Dispose();owner=null;}
+    public void Dispose(){if(owner is null)return;ReportMessages();owner.Dispose();ReportMessages();owner=null;}
 }

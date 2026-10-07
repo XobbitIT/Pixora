@@ -93,7 +93,9 @@ internal static partial class Program
         CheckWideBrushUi(destination,"English");
         RuntimeSafetyChecks.SingleInstance();RuntimeSafetyChecks.Integrity();RuntimeSafetyChecks.Clipboard();
         RuntimeSafetyChecks.ClipboardLateCopies();RuntimeSafetyChecks.FatalErrors();
+        RuntimeSafetyChecks.ClipboardIntermediateEmpty();
         CheckControlCopyFailures();
+        CheckClipboardOwnerMessages();CheckSliderDiagnosticStorage(destination);
         CheckProbeTimeoutUi(destination,"Українська");CheckProbeTimeoutUi(destination,"English");
         CheckUnifiedSetup(destination,"Українська",900); CheckUnifiedSetup(destination,"English",1280); CheckUnifiedFreshWindow(destination); CheckUnifiedHexWindow(destination); CheckUnifiedFinish(); CheckUnifiedImageImport(destination);
         CheckLatestImageWins(destination);CheckCancelledImageDiscarded(destination);CheckStartPreparationExclusive(destination);CheckFailedPlanClearsStaleResult(destination);
@@ -101,7 +103,7 @@ internal static partial class Program
         CheckInputCheckExclusive(destination);CheckStandaloneStop(destination);CheckClosingWaitsForCheck(destination);CheckCaptureCanRebuildPlan(destination);CheckMalformedLegacyWindow(destination);
         CheckSetupSize3WithoutBase(destination);CheckSetupFallbackSize3(destination);CheckSetupFailedFallback(destination);
         CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
-        Console.WriteLine("ALL 104 WPF UI CHECKS PASSED");
+        Console.WriteLine("ALL 107 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);

@@ -1,5 +1,8 @@
-# Pixora 1.0.14-beta.45
+# Pixora 1.0.14-beta.46
 
+Beta.46 gives the clipboard owner its own responsive message loop, keeps transient empty copy states pending without authorizing overwrites, and saves slider rejection screenshots with the exact failed criterion. It addresses defects exposed by the live laptop beta.45 diagnosis. 346 Core / 107 WPF checks; fresh laptop HEX/Controls validation is still required. See [changes](CHANGES_BETA46_UA.md) and [live checklist](TESTING_BETA46_UA.md).
+
+Previous beta.45:
 Beta.45 keeps late numeric and HEX copies in the read phase for up to one extra second, uses guarded SendInput for UI clicks, and reports the unreadable control explicitly. The laptop log stops at Interval/HEX before brush measurement: it is not evidence of a rejected Size 1 imprint. Clipboard ownership guards and brush acceptance remain unchanged. 343 Core / 104 WPF checks. See [changes](CHANGES_BETA45_UA.md) and [live checklist](TESTING_BETA45_UA.md). Fresh laptop Rust validation is required.
 
 Previous beta.44:

@@ -362,8 +362,17 @@ internal sealed partial class Painter : IDisposable
         if (!bounds.Valid) return null;
         var local = new ScreenRect(hint.Left - bounds.Left, hint.Top - bounds.Top,
             hint.Right - bounds.Left, hint.Bottom - bounds.Top);
-        var read = RustSlider.Read(Native.Screenshot(bounds), local);
-        if (read is not { } observation) return null;
+        var screenshot=Native.Screenshot(bounds);
+        var read = RustSlider.Read(screenshot, local);
+        if (read is not { } observation)
+        {
+            var diagnosis=RustSlider.Diagnose(screenshot,local);
+            string? folder=null;
+            try{folder=SliderDiagnostics.Save(Path.GetDirectoryName(Path.GetFullPath(logPath))!,kind,screenshot,bounds,local,diagnosis);}
+            catch(Exception error){Log("slider_diagnostics_error",new{kind,error=error.GetType().Name});}
+            Log("slider_read_failed",new{kind,bounds,hint,reason=diagnosis.Reason,diagnosis,folder,dpi=windowDpi});
+            return null;
+        }
         var r = observation.Track;
         var field = observation.ValueField;
         return observation with

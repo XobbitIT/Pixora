@@ -1,3 +1,10 @@
+Pixora 1.0.14-beta.46 — responsive clipboard owner and slider rejection evidence.
+346 Core / 107 WPF checks; fresh laptop Rust validation required.
+Live beta.45 copied Size correctly, then failed visual slider recognition before Interval.
+HEX owner-message pumping and empty intermediate-state handling fixed; slider acceptance unchanged.
+See CHANGES_BETA46_UA.md and TESTING_BETA46_UA.md.
+
+Previous beta.45:
 Pixora 1.0.14-beta.45 — bounded late clipboard readback and guarded UI clicks.
 343 Core / 104 WPF checks. New live laptop validation is required.
 No laptop brush imprints were measured in the attached beta.44 log; Interval/HEX copy failed first.

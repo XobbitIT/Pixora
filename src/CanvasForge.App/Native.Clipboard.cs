@@ -17,16 +17,6 @@ internal static partial class Native
     [DllImport("gdi32.dll")]private static extern bool DeleteEnhMetaFile(IntPtr handle);
     [DllImport("gdi32.dll")]private static extern bool DeleteMetaFile(IntPtr handle);
     [DllImport("kernel32.dll")]private static extern void SetLastError(uint error);
-    [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
-    private static extern IntPtr CreateWindowExW(uint exStyle,string className,string name,uint style,int x,int y,int width,int height,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr parameter);
-    [DllImport("user32.dll")]private static extern bool DestroyWindow(IntPtr window);
-
-    internal sealed class ClipboardWriteWindow:IDisposable
-    {
-        internal IntPtr Handle { get; }=CreateWindowExW(0,"STATIC","Pixora clipboard",0,0,0,0,0,new IntPtr(-3),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);
-        internal ClipboardWriteWindow(){if(Handle==IntPtr.Zero)throw new Win32Exception(Marshal.GetLastWin32Error());}
-        public void Dispose()=>DestroyWindow(Handle);
-    }
     [StructLayout(LayoutKind.Sequential)]private struct MetafilePicture {public int Mode,X,Y;public IntPtr Metafile;}
     internal sealed class ClipboardFormatException(uint format,string name,int error):Win32Exception(error,"Cannot preserve clipboard format.")
     {

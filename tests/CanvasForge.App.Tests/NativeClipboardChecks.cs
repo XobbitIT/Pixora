@@ -43,6 +43,17 @@ internal static class NativeClipboardChecks
             Require(Clipboard.GetText()=="original text");
             using(var lease=new ClipboardLease(new WindowsClipboardStore(),uint.MaxValue,_=>{}))
             {
+                lease.Write("copy marker");lease.ExpectCopy();
+                // Exercise real EmptyClipboard ownership notification from a
+                // different worker while the calling thread is waiting.
+                var copy=Task.Run(()=>Native.ClipboardWrite("copied field response"));
+                Require(copy.Wait(TimeSpan.FromSeconds(2)));copy.GetAwaiter().GetResult();
+                Require(lease.Read()=="copied field response");
+            }
+            Require(Clipboard.GetText()=="original text");
+            Console.WriteLine("PASS native clipboard cross-thread copy and guarded restore");
+            using(var lease=new ClipboardLease(new WindowsClipboardStore(),uint.MaxValue,_=>{}))
+            {
                 lease.Write("marker");Clipboard.SetText("new external copy");lease.ExpectCopy();
                 try{lease.Read();throw new Exception("External copy accepted as Rust");}catch(InvalidOperationException){}
             }

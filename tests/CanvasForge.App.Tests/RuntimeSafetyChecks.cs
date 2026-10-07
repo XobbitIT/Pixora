@@ -21,6 +21,7 @@ internal static class RuntimeSafetyChecks
         public uint Write(string text,uint expected)
         {BeforeWrite?.Invoke(this);if(Sequence!=expected)throw new InvalidOperationException("Clipboard changed during write");Writes++;Formats=new(){{"text",text}};OwnerProcess=1;return ++Sequence;}
         public void Copy(string text,uint owner){Formats=new(){{"text",text}};OwnerProcess=owner;Sequence++;}
+        public void Empty(uint owner){Formats=[];OwnerProcess=owner;Sequence++;}
         public bool Restore(IClipboardBackup backup,uint expected)
         {
             Restores++;if(RestoreFailures-->0)throw new Win32Exception(5);
@@ -124,6 +125,40 @@ internal static class RuntimeSafetyChecks
         Require(json.Contains("ownerProcess")&&json.Contains("observedSequence")&&!json.Contains("private user data")&&!json.Contains("private race data"));
         Require(!System.Text.RegularExpressions.Regex.IsMatch(Translations.ForLanguage(ClipboardLease.ChangedMessage,true),@"[\u0400-\u04ff]"));
         Console.WriteLine("PASS clipboard-late-copy-reconciliation");
+    }
+
+    public static void ClipboardIntermediateEmpty()
+    {
+        var statuses=new List<string>();var diagnostics=new List<object>();
+        foreach(uint owner in new uint[]{0,42})
+        {
+            var store=new Store{Formats=new(){{"text","original"}}};
+            using(var lease=new ClipboardLease(store,42,statuses.Add,diagnostics.Add))
+            {
+                lease.Write("marker");lease.ExpectCopy();store.Empty(owner);
+                Require(lease.Read() is null);Require(lease.Read() is null);
+                store.Copy("#FF3333",owner);Require(lease.Read()=="#FF3333");
+            }
+            Require(store.Formats["text"]=="original"&&statuses.Last()=="restored");
+            store=new Store{Formats=new(){{"text","original"}}};
+            using(var lease=new ClipboardLease(store,42,statuses.Add,diagnostics.Add))
+            {
+                lease.Write("marker");lease.ExpectCopy();store.Empty(owner);Require(lease.Read() is null);
+                try{lease.Write("retry");throw new Exception("Incomplete copy authorized a write");}
+                catch(InvalidOperationException e){Require(e.Message==ClipboardLease.ChangedMessage);}
+                Require(store.Writes==1);
+            }
+            Require(store.Formats.Count==0&&statuses.Last()=="skipped_external_change");
+        }
+        var external=new Store();
+        using(var lease=new ClipboardLease(external,42,statuses.Add))
+        {
+            lease.Write("marker");lease.ExpectCopy();external.Empty(99);
+            try{lease.Read();throw new Exception("Unrelated empty clipboard accepted");}catch(InvalidOperationException){}
+        }
+        Require(external.Formats.Count==0);
+        Require(System.Text.Json.JsonSerializer.Serialize(diagnostics).Contains("copy_empty_pending"));
+        Console.WriteLine("PASS clipboard-intermediate-empty-keeps-copy-pending-and-preserves-conflicts");
     }
 
     public static void FatalErrors()

@@ -10,6 +10,10 @@ public readonly record struct SliderObservation(ScreenRect Track, double Fractio
         Track.Left + (int)Math.Round(Math.Clamp(fraction, 0, 1) * (Track.Width - 1)), Track.Center.Y);
 }
 
+public sealed record SliderRowRejection(int Row,int Seed,string Reason,ScreenRect? Band=null,double? Observed=null);
+public sealed record SliderReadDiagnosis(ScreenRect Area,IReadOnlyList<SliderObservation> Found,
+    IReadOnlyList<SliderRowRejection> Rejections,string Reason);
+
 public static class RustSlider
 {
     public static SliderObservation Capture(PixelImage image, ScreenRect selection)
@@ -25,6 +29,8 @@ public static class RustSlider
     // Scan the whole selection: its centre may be a label or blank padding.
     // Require complete bars inside the selection, and ignore clipped neighbours.
     public static IReadOnlyList<SliderObservation> Find(PixelImage image, ScreenRect selection)
+        =>Find(image,selection,null);
+    private static IReadOnlyList<SliderObservation> Find(PixelImage image, ScreenRect selection,Action<SliderRowRejection>? reject)
     {
         if (!selection.Valid || selection.Left < 0 || selection.Top < 0
             || selection.Right > image.Width || selection.Bottom > image.Height) return [];
@@ -41,11 +47,11 @@ public static class RustSlider
                 if (found.Any(old => y >= old.Track.Top && y < old.Track.Bottom
                     && Math.Abs(left - old.Track.Left) <= 3)) continue;
                 var seed = (left + x) / 2;
-                var read = ReadRow(image, selection, y, seed);
+                var read = ReadRow(image, selection, y, seed,reject);
                 if (read is not { } observation) continue;
                 // Read a consistent central row after locating the bar. The
                 // user's padding must not change sampling at compressed edges.
-                var centred = ReadRow(image, selection, observation.Track.Center.Y, seed);
+                var centred = ReadRow(image, selection, observation.Track.Center.Y, seed,reject);
                 if (centred is { } stable) observation = stable;
                 if (found.Any(old => Math.Abs(old.Track.Left - observation.Track.Left) <= 3
                     && Math.Abs(old.Track.Top - observation.Track.Top) <= 3)) continue;
@@ -62,18 +68,39 @@ public static class RustSlider
     {
         if (!hint.Valid) return null;
         // Runtime/legacy hints may contain only the interactive track.
-        var area = new ScreenRect(Math.Max(0, hint.Left - 48), Math.Max(0, hint.Top - 12),
-            Math.Min(image.Width, hint.Right + 120), Math.Min(image.Height, hint.Bottom + 12));
+        var area = ReadArea(image,hint);
         var found = Find(image, area);
         return found.Count == 1 ? found[0] : null;
     }
 
-    private static SliderObservation? ReadRow(PixelImage image, ScreenRect area, int cy, int seed)
+    private static ScreenRect ReadArea(PixelImage image,ScreenRect hint)=>new(
+        Math.Max(0,hint.Left-48),Math.Max(0,hint.Top-12),
+        Math.Min(image.Width,hint.Right+120),Math.Min(image.Height,hint.Bottom+12));
+
+    // Diagnostics run against the same screenshot and predicates as Read.
+    // They explain rejection without broadening which bars can be accepted.
+    public static SliderReadDiagnosis Diagnose(PixelImage image,ScreenRect hint)
     {
+        var area=ReadArea(image,hint);
+        if(!hint.Valid||!area.Valid)return new(area,[],[],"invalid_hint");
+        var rejected=new List<SliderRowRejection>();
+        var found=Find(image,area,r=>
+        {
+            if(rejected.Count<32&&!rejected.Any(old=>old.Reason==r.Reason&&old.Band==r.Band))rejected.Add(r);
+        });
+        string reason=found.Count>1?"ambiguous_bands":found.Count==1?"accepted":
+            rejected.Count==0?"no_green_band":rejected[0].Reason;
+        return new(area,found,rejected,reason);
+    }
+
+    private static SliderObservation? ReadRow(PixelImage image, ScreenRect area, int cy, int seed,Action<SliderRowRejection>? reject=null)
+    {
+        SliderObservation? Reject(string reason,ScreenRect? band=null,double? observed=null)
+        {reject?.Invoke(new(cy,seed,reason,band,observed));return null;}
         var columns = new Rgb[image.Width];
         for (var x = area.Left; x < area.Right; x++)
             columns[x] = Median(Enumerable.Range(cy - 2, 5).Select(y => image.Color(y * image.Width + x)));
-        if (!Green(columns[seed])) return null;
+        if (!Green(columns[seed])) return Reject("seed_not_green");
         var left = seed;
         while (left > area.Left && Green(columns[left - 1])) left--;
         var right = seed + 1;
@@ -83,8 +110,11 @@ public static class RustSlider
         var bottom = cy + 1;
         while (bottom < image.Height && Green(image.Color(bottom * image.Width + seed))) bottom++;
         // A clipped capture cannot establish endpoints safely.
-        if (left <= area.Left || right >= area.Right || top <= area.Top || bottom >= area.Bottom
-            || right - left < 80 || bottom - top < 8 || bottom - top > 96) return null;
+        var bounds=new ScreenRect(left,top,right,bottom);
+        if (left <= area.Left || right >= area.Right || top <= area.Top || bottom >= area.Bottom)
+            return Reject("clipped_endpoints",bounds);
+        if(right-left<80)return Reject("band_too_narrow",bounds,right-left);
+        if(bottom-top<8||bottom-top>96)return Reject("band_height",bounds,bottom-top);
         var band = Math.Max(3, (bottom - top) / 5);
         var rows = Enumerable.Range(top + 2, band - 2)
             .Concat(Enumerable.Range(bottom - band, band - 2)).ToArray();
@@ -101,7 +131,8 @@ public static class RustSlider
         }
         var end = left + edge + 4;
         var fieldFraction = (right - end) / (double)(right - left);
-        if (fieldFraction is < .10 or > .40 || end - left < 40) return null;
+        if (fieldFraction is < .10 or > .40)return Reject("numeric_field_fraction",bounds,fieldFraction);
+        if(end-left<40)return Reject("track_too_short",bounds,end-left);
         var filled = 0;
         for (var x = 0; x < end - left; x++)
         {
@@ -109,7 +140,8 @@ public static class RustSlider
             filled++;
         }
         // A second bright run is not a valid left-to-right slider fill.
-        if (colors.Skip(filled + 3).Take(end - left - filled - 3).Any(c => c.G > field.G * 1.45)) return null;
+        if (colors.Skip(filled + 3).Take(end - left - filled - 3).Any(c => c.G > field.G * 1.45))
+            return Reject("noncontiguous_fill",bounds,filled);
         return new(new(left, top, end, bottom), filled / (double)(end - left))
             { ValueField = new(end, top, right, bottom) };
     }

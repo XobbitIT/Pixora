@@ -1321,6 +1321,37 @@ Test("Fast motion packet validation rejects unsupported values",()=>
     }
     foreach(int value in new[]{1,8,16}){var cfg=Settings.Defaults();cfg.Set("fast_path_batch_points",value);cfg.Validate();}
 });
+Test("Slider diagnostics preserve acceptance and geometry on captured fixtures",()=>
+{
+    foreach(string name in new[]{"palette-size","palette-interval","palette-opacity","hex-size","hex-opacity","beta2-controls"})
+    {
+        var (image,hint)=SliderFixture(name);var read=RustSlider.Read(image,hint);var diagnosis=RustSlider.Diagnose(image,hint);
+        Assert(read.HasValue==(diagnosis.Found.Count==1),name);
+        if(read is {} accepted)Assert(diagnosis.Found[0]==accepted&&diagnosis.Reason=="accepted",name);
+        else Assert(diagnosis.Reason=="ambiguous_bands",name);
+    }
+});
+Test("Slider rejection diagnostics distinguish clipping, missing field and blank selection",()=>
+{
+    var (image,_)=SliderFixture("beta2-controls");
+    Assert(RustSlider.Diagnose(image,new(250,119,438,159)).Reason=="clipped_endpoints");
+    var flat=new PixelImage(360,80);
+    for(int y=25;y<55;y++)for(int x=20;x<350;x++)flat.Set(y*360+x,new(79,88,53));
+    var hint=new ScreenRect(20,25,270,55);
+    var rejected=RustSlider.Diagnose(flat,hint);
+    Assert(rejected.Reason=="numeric_field_fraction"&&rejected.Rejections.Any(r=>r.Observed is >.4));
+    Assert(RustSlider.Read(flat,hint) is null);
+    Assert(RustSlider.Diagnose(new PixelImage(360,80),hint).Reason=="no_green_band");
+    Assert(RustSlider.Diagnose(flat,default).Reason=="invalid_hint");
+});
+Test("Slider diagnostics reject separated bright fills without weakening the detector",()=>
+{
+    var image=new PixelImage(360,80);var hint=new ScreenRect(20,25,270,55);
+    for(int y=25;y<55;y++)for(int x=20;x<350;x++)image.Set(y*360+x,
+        x>=270?new(58,65,34):x<80||x>=180&&x<230?new(120,143,80):new(79,88,53));
+    Assert(RustSlider.Read(image,hint) is null);
+    Assert(RustSlider.Diagnose(image,hint).Reason=="noncontiguous_fill");
+});
 Test("Synthetic transfer estimates improve without changing image detail",()=>
 {
     foreach(string name in new[]{"solid","four-colors","detail-and-holes"})
