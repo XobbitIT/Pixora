@@ -8,11 +8,13 @@ internal static class ReviewRegressionChecks
     {
         public double Time,Latency;public int Copies,Commits,Reads;public bool FailWrite,Cancel;
         public string? Text="3";public Func<int,string?> Result=_=>"3.00";
+        public string Marker=ControlNumber.Marker;public List<int> Selections=[];
         private double copiedAt;
         public void SelectField(){}
+        public void SelectField(int attempt)=>Selections.Add(attempt);
         public void SelectAll(){}
         public void WriteMarker(string marker){if(FailWrite)throw new System.ComponentModel.Win32Exception();Text=marker;}
-        public void Copy(){Require(Text==ControlNumber.Marker);Copies++;copiedAt=Time;}
+        public void Copy(){Require(Text==Marker);Copies++;copiedAt=Time;}
         public void Wait(double seconds){if(Cancel)throw new OperationCanceledException();Time+=seconds;}
         public string? Read(){Reads++;if(Time-copiedAt+1e-9>=Latency)Text=Result(Copies);return Text;}
         public void Commit()=>Commits++;
@@ -47,6 +49,38 @@ internal static class ReviewRegressionChecks
         test("Invalid numeric readback requests emit no input",()=>{
             var input=new CopyInput();try{ControlReadback.Read("size",0,input,.05);throw new Exception("Invalid request accepted");}catch(ArgumentException){}
             Require(input.Copies==0);
+        });
+        test("Numeric recovery requests a new field selection after a missed copy",()=>{
+            var input=new CopyInput{Result=i=>i==1?ControlNumber.Marker:"0.01"};
+            var result=ControlReadback.Read("interval",.01,input,.06);
+            Require(result.Verified&&input.Selections.SequenceEqual(new[]{0,1})&&input.Commits==1);
+        });
+        test("A delayed HEX copy is polled without replacing its marker",()=>{
+            var input=new CopyInput{Marker=HexReadback.Marker,Latency=.18,Result=_=>"#ff3333"};
+            var result=new HexReadback(new(255,51,51)).Read(input,.06);
+            Require(result.Verified&&result.Value=="FF3333"&&input.Copies==1&&result.Reads>1&&input.Commits==0);
+        });
+        test("Missing HEX copies cannot certify the pasted target and remain bounded",()=>{
+            var input=new CopyInput{Marker=HexReadback.Marker,Latency=100,Text="FF3333",Result=_=>"FF3333"};
+            var result=new HexReadback(new(255,51,51)).Read(input,.06);
+            Require(!result.Verified&&result.Value is null&&input.Copies==3&&result.Reads==21&&input.Commits==0);
+            Require(input.Selections.SequenceEqual(new[]{0,1,2}));
+        });
+        test("Fresh wrong HEX color requires a new copy and exact color match",()=>{
+            var input=new CopyInput{Marker=HexReadback.Marker,Result=i=>i==1?"#89FF33":"#FF3333"};
+            var result=new HexReadback(new(255,51,51)).Read(input,.06);
+            Require(result.Verified&&input.Copies==2&&result.Value=="FF3333");
+            input=new(){Marker=HexReadback.Marker,Result=_=>"#89FF33"};
+            result=new HexReadback(new(255,51,51)).Read(input,.06);
+            Require(!result.Verified&&result.Value=="89FF33"&&input.Copies==3);
+        });
+        test("HEX marker failure and cancellation stop further input",()=>{
+            var input=new CopyInput{Marker=HexReadback.Marker,FailWrite=true};
+            try{new HexReadback(new(255,51,51)).Read(input,.06);throw new Exception("HEX write failure ignored");}catch(System.ComponentModel.Win32Exception){}
+            Require(input.Copies==0);
+            input=new(){Marker=HexReadback.Marker,Cancel=true};
+            try{new HexReadback(new(255,51,51)).Read(input,.06);throw new Exception("HEX cancellation ignored");}catch(OperationCanceledException){}
+            Require(input.Copies==1&&input.Commits==0);
         });
         foreach(bool vertical in new[]{false,true})test($"Offset core cannot be cropped to PASS ({vertical})",()=>{
             var before=Frame();var after=before.Clone();var line=vertical?new ScreenLine(20,14,20,39):new ScreenLine(14,20,39,20);

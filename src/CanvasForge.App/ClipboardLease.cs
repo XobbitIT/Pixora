@@ -16,32 +16,67 @@ internal interface IClipboardStore
 
 internal sealed class ClipboardLease:IDisposable
 {
+    internal const string ChangedMessage="Буфер обміну змінився до завершення перевірки. Повтори тест поля; якщо помилка повториться, перевір синхронізацію буфера обміну.";
     private readonly IClipboardStore store;
     private readonly IClipboardBackup backup;
     private readonly uint targetProcess;
     private readonly Action<string> report;
+    private readonly Action<object>? diagnostic;
     private uint expected;
     private bool disposed;
     private bool copyExpected;
-    internal ClipboardLease(IClipboardStore store,uint targetProcess,Action<string> report)
+    private bool pendingReported;
+    internal ClipboardLease(IClipboardStore store,uint targetProcess,Action<string> report,Action<object>? diagnostic=null)
     {
-        this.store=store;this.targetProcess=targetProcess;this.report=report;
+        this.store=store;this.targetProcess=targetProcess;this.report=report;this.diagnostic=diagnostic;
         try{backup=ClipboardRetry.Run(store.Capture,()=>Thread.Sleep(25));expected=backup.Sequence;}
         catch{(store as IDisposable)?.Dispose();throw;}
     }
     internal void Write(string text)
     {
-        if(store.Sequence!=expected)throw new InvalidOperationException("Буфер обміну змінився під час вводу. Зупини стороннє копіювання та повтори.");
-        expected=store.Write(text,expected);copyExpected=false;
+        ReconcileLateCopy("before_write");
+        try{expected=store.Write(text,expected);copyExpected=false;pendingReported=false;}
+        catch(InvalidOperationException)
+        {
+            diagnostic?.Invoke(new{operation="write",status="sequence_conflict",expectedSequence=expected,
+                observedSequence=store.Sequence,ownerProcess=store.OwnerProcess,targetProcess,copyExpected});
+            throw new InvalidOperationException(ChangedMessage);
+        }
     }
-    internal void ExpectCopy()=>copyExpected=true;
+    internal void ExpectCopy(){copyExpected=true;pendingReported=false;}
+    private void Observe(string operation,ClipboardObservation observation,bool allowUnknownOwner)
+    {
+        if(observation.Sequence==expected)
+        {
+            if(copyExpected&&!pendingReported)
+            {
+                pendingReported=true;
+                diagnostic?.Invoke(new{operation,status="copy_pending",expectedSequence=expected,
+                    observedSequence=observation.Sequence,ownerProcess=observation.OwnerProcess,targetProcess,copyExpected});
+            }
+            return;
+        }
+        bool knownTarget=targetProcess!=0&&observation.OwnerProcess==targetProcess;
+        bool adopted=copyExpected&&(knownTarget||allowUnknownOwner&&observation.OwnerProcess==0);
+        diagnostic?.Invoke(new{operation,status=adopted?"expected_copy":"sequence_conflict",expectedSequence=expected,
+            observedSequence=observation.Sequence,ownerProcess=observation.OwnerProcess,targetProcess,copyExpected});
+        if(!adopted)throw new InvalidOperationException(ChangedMessage);
+        expected=observation.Sequence;copyExpected=false;
+    }
+    private void ReconcileLateCopy(string operation)
+    {
+        if(store.Sequence==expected)return;
+        // A Ctrl+C response may arrive after the final poll but before the next
+        // edit. Only a pending copy from the known game process may authorize
+        // a new write or cleanup. Never adopt unrelated or anonymous data here.
+        Observe(operation,ClipboardRetry.Run(store.Read,()=>Thread.Sleep(25)),false);
+    }
     internal string? Read()
     {
         var observation=store.Read();
         // Only adopt copies made by the captured game. An unrelated clipboard
         // change must survive cleanup instead of being replaced by our backup.
-        if(observation.OwnerProcess==targetProcess||copyExpected&&observation.OwnerProcess==0)expected=observation.Sequence;
-        else if(observation.Sequence!=expected)throw new InvalidOperationException("Буфер обміну змінився під час вводу. Зупини стороннє копіювання та повтори.");
+        Observe("read",observation,true);
         return observation.Text;
     }
     public void Dispose()
@@ -49,6 +84,8 @@ internal sealed class ClipboardLease:IDisposable
         if(disposed)return;disposed=true;
         try
         {
+            try{ReconcileLateCopy("before_restore");}
+            catch(InvalidOperationException){} // Preserve the external data.
             bool restored=ClipboardRetry.Run(()=>store.Restore(backup,expected),()=>Thread.Sleep(25));
             report(restored?"restored":"skipped_external_change");
         }

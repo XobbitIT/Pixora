@@ -438,8 +438,13 @@ public static class Coverage
         var copy = s.Clone();
         if (speedName is not null)
             copy.Set("speed_profile", speedName);
+        // This estimate is read-only. Parse and validate measured masks once,
+        // rather than repeating that work for every stroke and speed preset.
+        copy = BrushFootprints.Snapshot(copy);
         var speed = SpeedProfile.Get(copy.Text("speed_profile"));
         var groups = TransferSchedule.Build(plan, copy);
+        var resolve = SpeedCalibration.CreateEstimateResolver(copy);
+        bool fast = TransferSchedule.Fast(copy);
         double seconds = copy.Int("start_delay", 5)+3*StrokeTiming.SliderChangeEstimate(copy)+StrokeTiming.ClickEstimate(copy);
         if(!StrokeTiming.Fast(copy) || copy.Bool("use_fixed_opacity",true)&&copy.Number("paint_opacity_value",1)!=1)
             seconds+=StrokeTiming.SliderChangeEstimate(copy); // Final restore to Opacity 1.
@@ -454,7 +459,7 @@ public static class Coverage
                 double size=op.Size>0?op.Size:speed.BrushSize;
                 if(copy.Bool("adaptive_brush")&&size!=previousSize)seconds+=StrokeTiming.SliderChangeEstimate(copy);
                 previousSize=size;
-                seconds += TransferSchedule.EstimateBatch(copy,speed,op);
+                seconds += TransferSchedule.EstimateBatch(copy,speed,op,resolve,fast);
             }
         }
 

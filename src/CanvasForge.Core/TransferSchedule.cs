@@ -119,16 +119,19 @@ public static class TransferSchedule
         return output;
     }
 
-    public static double EstimateBatch(Settings s,SpeedProfile speed,PaintBatch batch)
+    public static double EstimateBatch(Settings s,SpeedProfile speed,PaintBatch batch,
+        Func<double,ScreenLine,int,SpeedSample?>? resolve=null,bool? fast=null)
     {
         double size=batch.Size>0?batch.Size:speed.BrushSize;
-        if(batch.Segments.Count==1&&SpeedCalibration.Resolve(s,size,batch.Segments[0],batch.ShapeSlot) is { } sample)
+        if(batch.Segments.Count==1&&(resolve is null
+            ?SpeedCalibration.Resolve(s,size,batch.Segments[0],batch.ShapeSlot)
+            :resolve(size,batch.Segments[0],batch.ShapeSlot)) is { } sample)
             return CalibratedMotion.Estimate(batch.Segments[0],sample);
-        if(!Fast(s))
+        if(!(fast??Fast(s)))
         {
             int length=Length(batch.Segments[0]);
             bool shift=s.Bool("line_mode")&&s.Text("coverage_mode")=="Fast"&&length>=s.Int("min_line_width",4)*s.Int("cell_px",3);
-            return StrokeTiming.Estimate(s,speed,length,shift);
+            return StrokeTiming.Estimate(s,speed,length,shift,false);
         }
         double travel=batch.Segments.Sum(l=>StrokeMotion.TravelSeconds(s,speed,Length(l))+StrokeTiming.EndHold(s,speed));
         return StrokeTiming.Settle(s,speed)+Math.Max(.04,StrokeTiming.Frame(s)+travel)+StrokeTiming.Release(s);

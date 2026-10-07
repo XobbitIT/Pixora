@@ -82,11 +82,35 @@ public static class SpeedCalibration
             s=BrushFootprints.ForShape(s,shapeSlot);
         }
         if(!Allowed(s)||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
-        var profile=Read(s);if(profile is null)return null;
+        return Select(Read(s),size,line);
+    }
+    private static SpeedSample? Select(SpeedProbeProfile? profile,double size,ScreenLine line)
+    {
+        if(profile is null||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
         int length=TransferSchedule.Length(line);bool vertical=line.X1==line.X2&&line.Y1!=line.Y2;
         if(length<8)return null;
         return profile.Samples.Where(x=>x.Size==size&&x.Vertical==vertical)
             .OrderBy(x=>CalibratedMotion.Estimate(line,x)).FirstOrDefault();
+    }
+    // Only estimates use this frozen copy. Live input still validates current
+    // measurements through Resolve, so moving Rust cannot reuse cached proof.
+    internal static Func<double,ScreenLine,int,SpeedSample?> CreateEstimateResolver(Settings source)
+    {
+        var snapshot=BrushFootprints.Snapshot(source.Clone());
+        int selected=snapshot.Int("brush_shape_slot",3);
+        var profiles=new Dictionary<int,SpeedProbeProfile?>();
+        return (size,line,shape)=>
+        {
+            if(line.X1!=line.X2&&line.Y1!=line.Y2||TransferSchedule.Length(line)<8)return null;
+            int slot=shape>0?shape:selected;
+            if(!profiles.TryGetValue(slot,out var profile))
+            {
+                var config=BrushFootprints.ForShape(snapshot,slot);
+                profile=Allowed(config)?Read(config):null;
+                profiles[slot]=profile;
+            }
+            return Select(profile,size,line);
+        };
     }
     public static (int Outer,int Inner) Footprint(Settings s,double size)
     {

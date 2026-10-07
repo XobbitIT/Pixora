@@ -473,7 +473,7 @@ internal sealed partial class MainWindow
         BuildUi();
         SetEditing(false);
         Hide();
-        double currentSize = 1;
+        double currentSize = sizes[0];
         int currentRepeat=0;
         string diagnosticPath="";
         try
@@ -597,7 +597,10 @@ internal sealed partial class MainWindow
         }
         catch (Exception e)
         {
-            adaptiveFailure = T("Не вдалося виміряти розмір", "Could not measure Size") + " " + currentSize + ": " + T(e.Message);
+            // Before the first dot, a control/layout failure is not a failed
+            // measurement of Size 1 (or of any selected Size).
+            adaptiveFailure = currentRepeat == 0 ? T(e.Message)
+                : T("Не вдалося виміряти розмір", "Could not measure Size") + " " + currentSize + ": " + T(e.Message);
             if(e is BrushContrastException low)
                 adaptiveFailure=T($"Size {currentSize}, повтор {currentRepeat}/3: контраст крапки {low.Metrics.PeakDelta}/255, потрібно {low.Metrics.RequiredDelta}/255; змінених пікселів {low.Metrics.ChangedPixels}. Знімки й вимірювання збережено. Очисти полотно й повтори. Профілі не оновлено.",
                     $"Size {currentSize}, repeat {currentRepeat}/3: dot contrast {low.Metrics.PeakDelta}/255, required {low.Metrics.RequiredDelta}/255; changed pixels {low.Metrics.ChangedPixels}. Snapshots and measurements saved. Clear Canvas and retry. Profiles were not updated.");

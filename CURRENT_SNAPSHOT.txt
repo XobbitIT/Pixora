@@ -1,4 +1,18 @@
-Pixora 1.0.14-beta.38 — exclusive asynchronous operations, cancellation and resilient calibration data.
+Pixora 1.0.14-beta.40 — late clipboard responses, bounded HEX polling and text-field recovery.
+Expected Rust copies are reconciled before writes/restore; unrelated changes are preserved.
+Retry-only double-click focus and slower keys; successful first pass and motion timings unchanged.
+Clipboard sequence/owner diagnostics contain no clipboard payload.
+Fatal renderer allocation failures release input and stop, without repeated error rendering.
+See CHANGES_BETA40_UA.md and TESTING_BETA40_UA.md. Live laptop Interval validation is pending.
+305 Core / 95 WPF checks passed; build: 0 warnings, 0 errors. Native clipboard/game smoke not run locally.
+
+Previous beta.39:
+Preview is displayed before estimates. Read-only estimates validate routes once per shape.
+Recorded fixture: four calculations 157.70 s -> 0.194 s, unchanged drawing estimates.
+300 Core / 93 WPF checks passed, including packaged .NET 8.0.31 binaries.
+See CHANGES_BETA39_UA.md and TESTING_BETA39_UA.md. New in-game test required.
+
+Previous beta.38:
 300 Core / 92 WPF checks; latest-wins image loading, stale-plan failure, repeated START/RESUME, standalone STOP/close regressions.
 Reserve START before planning; cancelled planning never reaches native input. Failed launches dispose resources and unlock editing.
 Individual capture/controls/brush/probe actions share exclusivity, cancellation and completion; automatic setup keeps its existing linked token.

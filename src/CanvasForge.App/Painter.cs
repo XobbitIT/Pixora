@@ -35,6 +35,7 @@ internal sealed partial class Painter : IDisposable
     private CheckpointJournal? checkpoint;
     private ScreenPoint? lastPaintPoint;
     private ClipboardLease? clipboardLease;
+    private bool textRecovery;
     public bool Paused { get => paused; set => paused = value; }
     private InputDelay DelayTimer => inputDelay??=new();
     public void Dispose()=>inputDelay?.Dispose();
@@ -198,22 +199,30 @@ internal sealed partial class Painter : IDisposable
             WaitReady();
             CheckBoundary();
             Native.SetCursorPos(p.X, p.Y);
-            Delay(StrokeTiming.ClickSettle(settings));
+            Delay(TextDelay(StrokeTiming.ClickSettle(settings)));
             CheckBoundary();
             Native.Mouse(false);
-            try { Delay(StrokeTiming.ClickHold(settings)); }
+            try { Delay(TextDelay(StrokeTiming.ClickHold(settings))); }
             finally { Native.Mouse(true); }
-            Delay(StrokeTiming.ClickRelease(settings,twice));
+            Delay(TextDelay(StrokeTiming.ClickRelease(settings,twice)));
         }
+    }
+
+    private double TextDelay(double seconds)=>textRecovery?Math.Max(.08,seconds):seconds;
+    private void SelectTextField(ScreenPoint point,int attempt)
+    {
+        textRecovery=attempt>0;
+        Click(point,twice:textRecovery);
+        if(textRecovery)Delay(.12);
     }
 
     private void PressKey(int key)
     {
         CheckBoundary();
         Native.Key(key);
-        try { Delay(StrokeTiming.KeyHold(settings)); }
+        try { Delay(TextDelay(StrokeTiming.KeyHold(settings))); }
         finally { Native.Key(key, true); }
-        Delay(StrokeTiming.KeyRelease(settings));
+        Delay(TextDelay(StrokeTiming.KeyRelease(settings)));
     }
 
     private void ChordKey(int modifier, int key)
@@ -221,9 +230,9 @@ internal sealed partial class Painter : IDisposable
         CheckBoundary();
         if(modifier==0x11&&key==0x43)clipboardLease?.ExpectCopy();
         Native.Key(modifier);
-        try { Delay(StrokeTiming.ModifierSettle(settings)); PressKey(key); }
+        try { Delay(TextDelay(StrokeTiming.ModifierSettle(settings))); PressKey(key); }
         finally { Native.Key(modifier, true); }
-        Delay(StrokeTiming.ModifierRelease(settings));
+        Delay(TextDelay(StrokeTiming.ModifierRelease(settings)));
     }
 
 
@@ -254,19 +263,15 @@ internal sealed partial class Painter : IDisposable
     private string? ReadHex(ScreenPoint p, Rgb expected)
     {
         var readback = new HexReadback(expected);
-        for (var attempt = 0; attempt < 3; attempt++)
+        bool previousRecovery=textRecovery;
+        try
         {
-            Click(p);
-            ChordKey(0x11, 0x41);
-            WriteClipboard(HexReadback.Marker);
-            ChordKey(0x11, 0x43);
-            Delay(StrokeTiming.CopyDelay(settings) + attempt * .05);
-            var raw = ReadClipboard();
-            var value = HexReadback.Normalize(raw);
-            Log("hex_readback", new { strategy = "select_all", attempt, status = readback.Status(raw), raw, value });
-            if (readback.Observe(raw)) return value;
+            var result=readback.Read(new NumberReadbackInput(this,new(p.X,p.Y,p.X+1,p.Y+1),textRecovery),StrokeTiming.CopyDelay(settings),
+                observation=>Log("hex_readback",new{strategy="select_all",attempt=observation.Attempt,poll=observation.Poll,
+                    status=observation.Status,raw=observation.Raw,value=observation.Value}));
+            return result.Value;
         }
-        return readback.LastValid;
+        finally{textRecovery=previousRecovery;}
     }
 
     public bool ApplyHex(Rgb rgb, bool forceVerify = false)
@@ -274,13 +279,14 @@ internal sealed partial class Painter : IDisposable
         var point = settings.Calibration.HexPoint ?? throw new InvalidOperationException("Захопи поле HEX.");
         var target = rgb.Hex;
         var previous = BeginClipboard();
+        bool previousRecovery=textRecovery;
         try
         {
             var maxAttempts = HexReadback.AttemptCount(settings.Int("hex_verify_retries", 2));
             for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
                 WaitReady();
-                Click(point);
+                SelectTextField(point,attempt);
                 Delay(StrokeTiming.Fast(settings)?StrokeTiming.ControlFrame(settings):.05);
                 ChordKey(0x11, 0x41);
                 var payload = settings.Bool("hex_include_hash", false) ? "#" + target : target;
@@ -333,6 +339,7 @@ internal sealed partial class Painter : IDisposable
         }
         finally
         {
+            textRecovery=previousRecovery;
             RestoreClipboard(previous);
         }
     }
@@ -362,9 +369,10 @@ internal sealed partial class Painter : IDisposable
         };
     }
 
-    private sealed class NumberReadbackInput(Painter owner,ScreenRect field):IControlReadbackInput
+    private sealed class NumberReadbackInput(Painter owner,ScreenRect field,bool recovery=false):IControlReadbackInput
     {
         public void SelectField()=>owner.Click(field.Center);
+        public void SelectField(int attempt)=>owner.SelectTextField(field.Center,recovery?Math.Max(1,attempt):attempt);
         public void SelectAll()=>owner.ChordKey(0x11,0x41);
         public void WriteMarker(string marker)=>owner.WriteClipboard(marker);
         public void Copy()=>owner.ChordKey(0x11,0x43);
@@ -374,11 +382,16 @@ internal sealed partial class Painter : IDisposable
     }
     private double? ReadControlNumber(string kind,ScreenRect field,double expected)
     {
-        var result=ControlReadback.Read(kind,expected,new NumberReadbackInput(this,field),StrokeTiming.CopyDelay(settings),
-            observation=>Log("control_readback_poll",new{kind,expected,observation}));
-        Log("control_readback",new{kind,raw=result.Raw,number=result.Number,fresh=result.Raw is not null&&result.Raw!=ControlNumber.Marker,
-            verified=result.Verified,attempts=result.Attempts,reads=result.Reads});
-        return result.Verified?result.Number:null;
+        bool previousRecovery=textRecovery;
+        try
+        {
+            var result=ControlReadback.Read(kind,expected,new NumberReadbackInput(this,field,textRecovery),StrokeTiming.CopyDelay(settings),
+                observation=>Log("control_readback_poll",new{kind,expected,observation}));
+            Log("control_readback",new{kind,raw=result.Raw,number=result.Number,fresh=result.Raw is not null&&result.Raw!=ControlNumber.Marker,
+                verified=result.Verified,attempts=result.Attempts,reads=result.Reads});
+            return result.Verified?result.Number:null;
+        }
+        finally{textRecovery=previousRecovery;}
     }
 
     private bool VerifyControlNumber(string kind, double value, SliderObservation geometry)
@@ -418,6 +431,7 @@ internal sealed partial class Painter : IDisposable
         }
         verifiedControls.Remove(kind);
         var previous = BeginClipboard();
+        bool previousRecovery=textRecovery;
         try
         {
             var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 2, 5);
@@ -425,7 +439,7 @@ internal sealed partial class Painter : IDisposable
             {
                 var geometry = ReadSlider(kind) ?? throw new InvalidOperationException(ControlLayoutProblem(kind));
                 Log("control_target", new { kind, value, point = geometry.ValueField.Center, field = geometry.ValueField, strategy = "numeric_field", attempt });
-                Click(geometry.ValueField.Center);
+                SelectTextField(geometry.ValueField.Center,attempt);
                 ChordKey(0x11, 0x41);
                 WriteClipboard(payload);
                 ChordKey(0x11, 0x56);
@@ -437,13 +451,14 @@ internal sealed partial class Painter : IDisposable
             }
             throw new InvalidOperationException($"Не підтверджено число {kind}. Перевір числове поле справа й повтори тест controls.");
         }
-        finally { RestoreClipboard(previous); }
+        finally { textRecovery=previousRecovery;RestoreClipboard(previous); }
     }
 
     private ClipboardLease BeginClipboard()
     {
         if(clipboardLease is not null)throw new InvalidOperationException("Nested clipboard transaction.");
-        return clipboardLease=new(new WindowsClipboardStore(detail=>Log("clipboard_capture",detail)),windowProcessId,status=>Log("clipboard_restore",new{status}));
+        return clipboardLease=new(new WindowsClipboardStore(detail=>Log("clipboard_capture",detail)),windowProcessId,
+            status=>Log("clipboard_restore",new{status}),detail=>Log("clipboard_sequence",detail));
     }
     private void RestoreClipboard(ClipboardLease previous)
     {

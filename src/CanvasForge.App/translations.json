@@ -777,6 +777,7 @@
   "Налаштування має бути цілим числом: {p0}": "Setting must be an integer: {p0}",
   "Потрібна резервна копія буфера обміну.": "Clipboard backup is required.",
   "Вкладена операція буфера обміну.": "Nested clipboard transaction.",
+  "Буфер обміну змінився до завершення перевірки. Повтори тест поля; якщо помилка повториться, перевір синхронізацію буфера обміну.": "The clipboard changed before verification finished. Retry the field test; if it happens again, check clipboard synchronization.",
   "Неприпустимий запит числової перевірки.": "Invalid control readback request.",
 "Спочатку захопи коректне полотно.": "Capture a valid Canvas first.",
   "Недостатньо чистого місця для вимірювання пензля. Калібруй менше розмірів окремо.": "Not enough clean space for brush measurements. Calibrate fewer Sizes separately.",

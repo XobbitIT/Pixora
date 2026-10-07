@@ -687,24 +687,33 @@ internal sealed partial class MainWindow : Window
         }
 
         var active = plan;
-        var snapshot = EffectiveSettings;
+        var snapshot = BrushFootprints.Snapshot(EffectiveSettings);
         var canvas = capturedCanvas;
+        bool previewReady = false;
         try
         {
-            var result = await Task.Run(() =>
+            var bitmap = await Task.Run(() =>
             {
                 var image = snapshot.Bool("transfer_simulator", true) && canvas is not null ? Images.MaterialPreview(canvas, active) : active.Preview;
-                var bitmap = Images.Bitmap(image);
-                var groups = TransferSchedule.Build(active, snapshot);
-                var text = $"{Option("color_mode", snapshot.Text("color_mode"))}\n{active.Width}×{active.Height} • {T("Кольорів","Colors")}: {active.ColorCount}\n{T("Штрихів","Strokes")}: {groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0}\n{T("Протягувань миші","Mouse drags")}: {groups.Values.Sum(x => x.Count):N0}\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{Option("speed_profile",s.Name)}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name))}"));
-                return (Bitmap: bitmap, Stats: text, Eta: Coverage.EstimateSeconds(active, snapshot), GroupCounts: TransferSchedule.Order(active,groups).Select(color=>groups[color].Count).ToArray());
+                return Images.Bitmap(image);
             });
             if (closing || rid != renderGeneration || active != plan)
                 return;
-            previewImage.Source = result.Bitmap;
+            previewImage.Source = bitmap;
+            previewReady = true;
+            System.Windows.Media.RenderOptions.SetBitmapScalingMode(previewImage, snapshot.Bool("smooth_preview", true) ? BitmapScalingMode.HighQuality : BitmapScalingMode.NearestNeighbor);
+            if (!Painting && lastPaintProgress is null)
+                eta.Text = T("Обчислюю час…", "Calculating time…");
+            var result = await Task.Run(() =>
+            {
+                var groups = TransferSchedule.Build(active, snapshot);
+                var text = $"{Option("color_mode", snapshot.Text("color_mode"))}\n{active.Width}×{active.Height} • {T("Кольорів","Colors")}: {active.ColorCount}\n{T("Штрихів","Strokes")}: {groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0}\n{T("Протягувань миші","Mouse drags")}: {groups.Values.Sum(x => x.Count):N0}\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{Option("speed_profile",s.Name)}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name))}"));
+                return (Stats: text, Eta: Coverage.EstimateSeconds(active, snapshot), GroupCounts: TransferSchedule.Order(active,groups).Select(color=>groups[color].Count).ToArray());
+            });
+            if (closing || rid != renderGeneration || active != plan)
+                return;
             resumeSchedule = (active,result.GroupCounts);
             stats.Text = result.Stats;
-            System.Windows.Media.RenderOptions.SetBitmapScalingMode(previewImage, snapshot.Bool("smooth_preview", true) ? BitmapScalingMode.HighQuality : BitmapScalingMode.NearestNeighbor);
             if(!Painting&&lastPaintProgress is null)
             {
                 eta.Text=T("Попередній розрахунок: ","Planned estimate: ")+Duration(result.Eta);
@@ -719,7 +728,13 @@ internal sealed partial class MainWindow : Window
         catch (Exception e)
         {
             if (!closing && rid == renderGeneration)
-                SetStatus(e.Message);
+            {
+                if (previewReady && !Painting && lastPaintProgress is null)
+                    eta.Text = T("Час недоступний", "Time unavailable");
+                SetStatus((previewReady
+                    ? T("Прев’ю готове, але розрахунок часу не завершився: ", "Preview is ready, but timing calculation failed: ")
+                    : T("Не вдалося побудувати прев’ю: ", "Could not render preview: ")) + T(e.Message));
+            }
         }
     }
 

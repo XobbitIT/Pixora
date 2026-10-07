@@ -14,11 +14,12 @@ internal static class RuntimeSafetyChecks
         public int Writes,Restores,RestoreFailures;
         public bool FailCapture;
         public bool Disposed;
+        public Action<Store>? BeforeWrite;
         public void Dispose()=>Disposed=true;
         public IClipboardBackup Capture(){if(FailCapture)throw new InvalidOperationException("Unsupported format");return new Backup(Sequence,Formats);}
         public ClipboardObservation Read()=>new(Formats.GetValueOrDefault("text"),Sequence,OwnerProcess);
         public uint Write(string text,uint expected)
-        {Require(Sequence==expected);Writes++;Formats=new(){{"text",text}};OwnerProcess=1;return ++Sequence;}
+        {BeforeWrite?.Invoke(this);if(Sequence!=expected)throw new InvalidOperationException("Clipboard changed during write");Writes++;Formats=new(){{"text",text}};OwnerProcess=1;return ++Sequence;}
         public void Copy(string text,uint owner){Formats=new(){{"text",text}};OwnerProcess=owner;Sequence++;}
         public bool Restore(IClipboardBackup backup,uint expected)
         {
@@ -74,5 +75,63 @@ internal static class RuntimeSafetyChecks
         Require(Translations.ForLanguage("Invalid numeric setting: stroke_speed",false).Contains("Некоректне числове"));
         Console.WriteLine("PASS clipboard-transaction-and-wait-errors");
         Console.WriteLine("PASS physical-file-drop-clipboard-policy");
+    }
+
+    public static void ClipboardLateCopies()
+    {
+        var statuses=new List<string>();var diagnostics=new List<object>();
+        var store=new Store{Formats=new(){{"text","original"},{"image","bitmap"}}};
+        using(var lease=new ClipboardLease(store,42,statuses.Add,diagnostics.Add))
+        {
+            lease.Write("marker");lease.ExpectCopy();store.Copy("0.01",42);
+            lease.Write("retry payload");Require(store.Writes==2);
+        }
+        Require(store.Formats["text"]=="original"&&store.Formats["image"]=="bitmap"&&statuses.Last()=="restored");
+        Require(diagnostics.Any(d=>System.Text.Json.JsonSerializer.Serialize(d).Contains("expected_copy")));
+
+        store=new(){Formats=new(){{"text","original"}}};
+        using(var lease=new ClipboardLease(store,42,statuses.Add,diagnostics.Add))
+        {lease.Write("marker");lease.ExpectCopy();store.Copy("0.01",42);}
+        Require(store.Formats["text"]=="original"&&statuses.Last()=="restored");
+
+        foreach(uint owner in new uint[]{99,0})
+        {
+            store=new();using(var lease=new ClipboardLease(store,42,statuses.Add,diagnostics.Add))
+            {
+                lease.Write("marker");lease.ExpectCopy();store.Copy("private user data",owner);
+                try{lease.Write("retry");throw new Exception("Untrusted late copy overwritten");}
+                catch(InvalidOperationException e){Require(e.Message==ClipboardLease.ChangedMessage);}
+                Require(store.Writes==1);
+            }
+            Require(store.Formats["text"]=="private user data"&&statuses.Last()=="skipped_external_change");
+        }
+        store=new();using(var lease=new ClipboardLease(store,42,statuses.Add,diagnostics.Add))
+        {
+            lease.Write("marker");store.Copy("unexpected game copy",42);
+            try{lease.Read();throw new Exception("Unrequested game copy adopted");}catch(InvalidOperationException){}
+        }
+        Require(store.Formats["text"]=="unexpected game copy");
+
+        store=new();using(var lease=new ClipboardLease(store,42,statuses.Add,diagnostics.Add))
+        {
+            lease.Write("marker");lease.ExpectCopy();store.Copy("3.00",42);Require(lease.Read()=="3.00");
+            store.BeforeWrite=s=>{s.BeforeWrite=null;s.Copy("private race data",99);};
+            try{lease.Write("payload");throw new Exception("Clipboard race overwritten");}catch(InvalidOperationException){}
+            Require(store.Writes==1);
+        }
+        Require(store.Formats["text"]=="private race data"&&statuses.Last()=="skipped_external_change");
+        string json=System.Text.Json.JsonSerializer.Serialize(diagnostics);
+        Require(json.Contains("ownerProcess")&&json.Contains("observedSequence")&&!json.Contains("private user data")&&!json.Contains("private race data"));
+        Require(!System.Text.RegularExpressions.Regex.IsMatch(Translations.ForLanguage(ClipboardLease.ChangedMessage,true),@"[\u0400-\u04ff]"));
+        Console.WriteLine("PASS clipboard-late-copy-reconciliation");
+    }
+
+    public static void FatalErrors()
+    {
+        Require(FatalErrorPolicy.MustStop(new OutOfMemoryException()));
+        Require(FatalErrorPolicy.MustStop(new InvalidOperationException("renderer",new OutOfMemoryException())));
+        Require(!FatalErrorPolicy.MustStop(new InvalidOperationException(ClipboardLease.ChangedMessage)));
+        Require(!FatalErrorPolicy.MustStop(new OperationCanceledException()));
+        Console.WriteLine("PASS fatal-renderer-error-policy");
     }
 }

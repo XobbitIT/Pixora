@@ -5,6 +5,7 @@ namespace CanvasForge.Core;
 public interface IControlReadbackInput
 {
     void SelectField();
+    void SelectField(int attempt)=>SelectField();
     void SelectAll();
     void WriteMarker(string marker);
     void Copy();
@@ -25,7 +26,7 @@ public static class ControlReadback
         double? last=null;string? raw=null;int reads=0;
         for(int attempt=0;attempt<3;attempt++)
         {
-            input.SelectField();input.SelectAll();input.WriteMarker(ControlNumber.Marker);input.Copy();
+            input.SelectField(attempt);input.SelectAll();input.WriteMarker(ControlNumber.Marker);input.Copy();
             input.Wait(copyDelay+attempt*.05);
             for(int poll=0;poll<=6;poll++)
             {

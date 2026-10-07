@@ -22,8 +22,11 @@ internal static class Program
         {
             ShutdownMode = ShutdownMode.OnMainWindowClose
         };
+        bool fatalShutdown=false;
         application.DispatcherUnhandledException += (_, e) =>
         {
+            if(fatalShutdown){e.Handled=true;return;}
+            fatalShutdown=FatalErrorPolicy.MustStop(e.Exception);
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Pixora", "crash.log");
             try
             {
@@ -32,7 +35,11 @@ internal static class Program
             }
             catch (IOException) { }
             catch (UnauthorizedAccessException) { }
+            catch (OutOfMemoryException) when(fatalShutdown) { }
             Native.Release();
+            // A renderer allocation failure cannot be recovered by rendering
+            // another error dialog. Release input and stop after one log entry.
+            if(fatalShutdown){e.Handled=true;application.Shutdown(1);return;}
             if (application.MainWindow is MainWindow window) window.ShowMessage(e.Exception.Message);
             else MessageBox.Show(Translations.ForLanguage(e.Exception.Message, false), "Pixora", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;

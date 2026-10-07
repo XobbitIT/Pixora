@@ -1,4 +1,12 @@
-# Pixora 1.0.14-beta.38
+# Pixora 1.0.14-beta.40
+
+Beta.40 handles late expected Rust clipboard copies before retry writes and cleanup, polls HEX readback without repeatedly replacing pending copies, and refocuses text fields with slower keyboard input only after a failed read. Clipboard conflicts now log ownership/sequence metadata without clipboard contents. Fatal WPF allocation failures stop instead of opening repeated dialogs. See [changes](CHANGES_BETA40_UA.md) and [live checklist](TESTING_BETA40_UA.md). The laptop's Interval failure still needs live validation.
+
+## Previous beta.39
+
+Beta.39 displays the preview before timing calculations and validates measured routes once per shape in a private estimation snapshot. Four estimates on the recorded fixture dropped from 158 s to 0.2 s with identical results. 300 Core / 93 WPF checks passed, including checks against the packaged binaries. See [changes](CHANGES_BETA39_UA.md) and [live checklist](TESTING_BETA39_UA.md). A fresh in-game drawing test is still needed.
+
+## Previous beta.38
 
 Beta.38 fixes overlapping asynchronous input operations, stale plans after failed builds, out-of-order image loading, standalone check cancellation/closing, and malformed legacy brush/speed data. START reserves the operation before planning; STOP cancels preparation before Rust input. 300 Core / 92 WPF checks. See the [code review](CODE_REVIEW_BETA38_UA.md), [changes](CHANGES_BETA38_UA.md) and [live checklist](TESTING_BETA38_UA.md). Fresh in-game brush, speed and coverage validation remains required.
 

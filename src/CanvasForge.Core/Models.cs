@@ -573,9 +573,9 @@ public static class StrokeTiming
         return apply+read/(swatch?Math.Clamp(settings.Int("hex_readback_every",8),1,64):1);
     }
 
-    public static double Estimate(Settings settings, SpeedProfile speed, int length, bool shift)
+    public static double Estimate(Settings settings, SpeedProfile speed, int length, bool shift,bool? fast=null)
     {
-        if(TransferSchedule.Fast(settings)&&!shift)
+        if((fast??TransferSchedule.Fast(settings))&&!shift)
             return TransferSchedule.EstimateBatch(settings,speed,new(0,new[]{new ScreenLine(0,0,length,0)},1));
         var travel = shift ? settings.Number("stroke_speed", .028) * Math.Max(1, length) / 100
             : Math.Ceiling(length / (double)speed.Pitch) * speed.PointDelay;
@@ -606,7 +606,31 @@ public sealed class HexReadback
         LastValid = text;
         return text == expected;
     }
+
+    public HexReadbackResult Read(IControlReadbackInput input,double copyDelay,Action<HexReadbackObservation>? observe=null)
+    {
+        if(!double.IsFinite(copyDelay)||copyDelay is <0 or >1)throw new ArgumentException("Invalid control readback request.");
+        LastValid=null;string? raw=null;int reads=0;
+        for(int attempt=0;attempt<3;attempt++)
+        {
+            input.SelectField(attempt);input.SelectAll();input.WriteMarker(Marker);input.Copy();
+            input.Wait(copyDelay+attempt*.05);
+            for(int poll=0;poll<=6;poll++)
+            {
+                if(poll>0)input.Wait(.025);
+                raw=input.Read();reads++;
+                observe?.Invoke(new(attempt,poll,raw,Normalize(raw),Status(raw)));
+                if(Observe(raw))return new(LastValid,raw,attempt+1,reads,true);
+                // Do not replace a still pending copy with a new marker. A
+                // fresh wrong color needs another selection/copy transaction.
+                if(Normalize(raw) is not null)break;
+            }
+        }
+        return new(LastValid,raw,3,reads,false);
+    }
 }
+public sealed record HexReadbackObservation(int Attempt,int Poll,string? Raw,string? Value,string Status);
+public sealed record HexReadbackResult(string? Value,string? Raw,int Attempts,int Reads,bool Verified);
 
 public static class ClipboardRetry
 {
