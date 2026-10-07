@@ -18,6 +18,11 @@ internal static partial class Program
         var destination = Path.GetFullPath(args.Length > 0 ? args[0] : Path.Combine(AppContext.BaseDirectory, "ui-verification"));
         Directory.CreateDirectory(destination);
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        if(args.Contains("--startup-only"))
+        {
+            CheckLanguageSwitch(destination);CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
+            Console.WriteLine("STARTUP CHECKS PASSED");return;
+        }
         CheckWindow(destination, false, false, "Українська", "adaptive-missing", 1280);
         CheckWindow(destination, true, false, "Українська", "adaptive-ready", 1280);
         CheckWindow(destination, true, true, "Українська", "adaptive-stale", 900);
@@ -94,7 +99,8 @@ internal static partial class Program
         CheckPreviewSurvivesEstimateFailure(destination);
         CheckInputCheckExclusive(destination);CheckStandaloneStop(destination);CheckClosingWaitsForCheck(destination);CheckCaptureCanRebuildPlan(destination);CheckMalformedLegacyWindow(destination);
         CheckSetupSize3WithoutBase(destination);CheckSetupFallbackSize3(destination);CheckSetupFailedFallback(destination);
-        Console.WriteLine("ALL 100 WPF UI CHECKS PASSED");
+        CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
+        Console.WriteLine("ALL 103 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -1032,7 +1038,8 @@ internal static partial class Program
             Render(window,Path.Combine(output,name+".png"),900);
             foreach(var expander in Descendants((FrameworkElement)window.Content).OfType<Expander>().ToArray())expander.IsExpanded=true;
             ((FrameworkElement)window.Content).UpdateLayout();
-            var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Tag?.ToString()==key);
+            var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().SingleOrDefault(x=>x.Tag?.ToString()==key)
+                ??throw new Exception("Missing localized control "+key+"; visible controls: "+string.Join(",",Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Select(x=>x.Tag)));
             combo.SelectedIndex=Array.FindIndex(combo.Items.Cast<object>().ToArray(),v=>v.ToString()==Translations.Option(key,value,false));
             Assert(Field<Dictionary<string,Func<object>>>(window,"readers")[key]().ToString()==value,"Localized option altered canonical value: "+key);
         }

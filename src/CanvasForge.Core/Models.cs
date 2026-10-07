@@ -176,6 +176,8 @@ public sealed class Settings
         if(!double.IsFinite(motionPacket)||motionPacket is <1 or >16||motionPacket!=Math.Truncate(motionPacket))
             throw new InvalidDataException("Fast movement packet must be an integer from 1 to 16.");
         if(!BrushFootprints.Sizes.Contains(Number("probe_size",3)))throw new InvalidDataException("Probe Size must be 1, 3, 10, 20, 40, 60 or 100.");
+        if(Text("precision_brush_size","Profile")!="Profile"&&!BrushFootprints.Sizes.Contains(Number("precision_brush_size",double.NaN)))
+            throw new InvalidDataException("Working brush Size must be Profile, 1, 3, 10, 20, 40, 60 or 100.");
         if(Number("audit_repair_passes",1) is not (1 or 2))throw new InvalidDataException("Repair passes must be 1 or 2.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
@@ -278,6 +280,7 @@ public sealed class Settings
             ["audit_repair"] = false,
             ["audit_repair_passes"] = 1,
             ["probe_size"] = 3,
+            ["precision_brush_size"] = "Profile",
             ["adaptive_max_size"] = 20
         }
 

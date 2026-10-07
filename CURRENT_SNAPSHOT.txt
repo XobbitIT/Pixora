@@ -1,3 +1,10 @@
+Pixora 1.0.14-beta.44 — fast cancellable START preparation and consistent working Size.
+339 Core / 103 WPF checks. Fresh live Rust validation required.
+1000 timing operations: 12.037 s -> 0.020 s on the recorded config; preparation only, no measured in-game speedup.
+Measured Size 3 can be selected without retesting Size 1. Adaptive/audit proof is unchanged.
+See CHANGES_BETA44_UA.md and TESTING_BETA44_UA.md.
+
+Previous beta.43:
 Pixora 1.0.14-beta.43 — select strong saturation anchors before validating stability.
 331 Core / 100 WPF checks. Fresh live Rust validation required.
 Recorded beta.42 Square Size 1 replay yields a 1x2 px command-relative core; old displaced or weak traces remain unverified.

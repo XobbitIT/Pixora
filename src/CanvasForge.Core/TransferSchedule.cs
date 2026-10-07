@@ -122,7 +122,7 @@ public static class TransferSchedule
     public static double EstimateBatch(Settings s,SpeedProfile speed,PaintBatch batch,
         Func<double,ScreenLine,int,SpeedSample?>? resolve=null,bool? fast=null)
     {
-        double size=batch.Size>0?batch.Size:speed.BrushSize;
+        double size=batch.Size>0?batch.Size:PaintTimingPlan.DefaultSize(s,speed);
         if(batch.Segments.Count==1&&(resolve is null
             ?SpeedCalibration.Resolve(s,size,batch.Segments[0],batch.ShapeSlot)
             :resolve(size,batch.Segments[0],batch.ShapeSlot)) is { } sample)

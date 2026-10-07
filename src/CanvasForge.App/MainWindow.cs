@@ -399,6 +399,7 @@ internal sealed partial class MainWindow : Window
         var controlColumn=new Grid();controlColumn.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
         controlColumn.RowDefinitions.Add(new(){Height=GridLength.Auto});Grid.SetColumn(controlColumn,1);contentArea.Children.Add(controlColumn);controlColumn.Children.Add(scroll);
         right.Children.Add(Card(T("1. Підготовка","1. Preparation"),out var preparation));ready=Text("",13);preparation.Children.Add(ready);
+        AddWorkingBrushRecovery(preparation);
         AddAutomaticSetup(preparation);
         preparation.Children.Add(Button(T("Окремі налаштування Rust","Individual Rust settings"),()=>ShowPage("capture")));
         right.Children.Add(Card(T("2. Кольори","2. Colors"),out var colors));
@@ -417,6 +418,7 @@ internal sealed partial class MainWindow : Window
         quality.Children.Add(presets.Panel);
         detailInput=AddNumber(quality,"cell_px",T("Деталізація, px","Detail, px"),true);
         detailState=Text("",12,Muted);quality.Children.Add(detailState);
+        AddWorkingBrush(quality);
         AddCheck(quality,"fast_transfer",T("Максимальна швидкість перенесення","Maximum transfer speed"),true);
         adaptiveSummary=Text("",12,Muted);quality.Children.Add(adaptiveSummary);
         quality.Children.Add(Button(T("Тест швидкості й аудит","Speed Probe and audit"),ShowSpeedSetup));
@@ -658,14 +660,15 @@ internal sealed partial class MainWindow : Window
         string? missing=source is null?T("Відкрий зображення.","Open an image."):!canvas?T("Захопи полотно.","Capture Canvas."):!color?T("Захопи палітру або перевір HEX.","Capture the palette or verify HEX."):!controls?T("Захопи пензель і три числові поля Rust.","Capture the brush and three Rust numeric fields."):null;
         if(numberErrors.Count>0)missing=numberErrors.Values.First();
         if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)missing=T(auditProblem);
-        if(settings.Bool("calibrated_strokes")&&!SpeedCalibration.Use(settings))missing=T("Повтори тест швидкості або вимкни підтверджений маршрут. Потрібні точне покриття та прозорість 1.","Repeat Speed Probe or disable the verified route. Precision and Opacity 1 are required.");
+        RefreshWorkingBrush();
         UpdateDetailPreset();
         RefreshAdaptiveStatus();
         if(settings.Bool("adaptive_brush"))try{AdaptiveBrush.Validate(settings);}catch(InvalidOperationException e){missing=T(e.Message);}
         bool available=missing is null;
         ready.Text=missing??T("Усе готово. Можна починати.","Everything is ready. You can start.");ready.Foreground=available?Success:Warning;
         badge.Text=available?T("ГОТОВО","READY"):T("ПОТРІБНА ПІДГОТОВКА","SETUP REQUIRED");badge.Foreground=available?Success:Warning;badge.ToolTip=ready.Text;
-        startButton.IsEnabled=!Painting&&available;startButton.ToolTip=available?T("Почати з нуля","Start from the beginning"):missing;
+        startButton.IsEnabled=!Painting&&available;startButton.ToolTip=available?T("Почати з нуля","Start from the beginning")+" · Size "+PaintTimingPlan.DefaultSize(settings):missing;
+        startButton.Content=startPreparing?T("Готую малювання…","Preparing painting…"):T("Почати","Start");
         var resumeProblem=Painting?T("Малювання вже триває.","Painting is already running."):ResumeProblem();
         resumeButton.IsEnabled=!Painting&&available&&resumeProblem is null;
         resumeButton.ToolTip=resumeProblem??T("Продовжити збережений план","Continue the saved plan");
@@ -914,12 +917,15 @@ internal sealed partial class MainWindow : Window
         var activePlan = plan;
         var worker=painter = new(snapshot, window, ResumePath, LogPath, p => Dispatcher.BeginInvoke(() =>
         {
-            if(!closing&&ReferenceEquals(paintCancel,cancellation))ApplyPaintProgress(p);
+            if(!closing&&ReferenceEquals(paintCancel,cancellation))
+            {
+                ApplyPaintProgress(p);
+                if(snapshot.Bool("minimize",true)&&p.Phase==PaintPhase.Countdown)WindowState=WindowState.Minimized;
+            }
         }), cancellation.Token);
         BeginCoverageCheck(snapshot.Bool("coverage_audit"));
         SetEditing(false);
-        if (settings.Bool("minimize", true))
-            WindowState = WindowState.Minimized;
+        SetStatus(T("Готую штрихи та час. Можна зупинити підготовку.","Preparing strokes and timing. You can stop preparation."));
         if (!resume && File.Exists(ResumePath))
             File.Delete(ResumePath);
         paintTask = Task.Run(() => worker.Run(activePlan, state));

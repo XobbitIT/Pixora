@@ -26,7 +26,7 @@ internal static partial class Program
             var p=SetupStamp(settings,3,3);BrushFootprints.Save(settings,[p]);SetField(window,"lastBrushProfiles",new[]{p});SetField(window,"adaptiveFailure","Size 1 unavailable");return Task.CompletedTask;
         };
         CompleteUiTask(()=>SetupSelectionTask(window));
-        Assert(measurements==1&&settings.Number("probe_size")==3&&settings.Int("brush_shape_slot")==3,"Size 1 blocked Size 3 setup");
+        Assert(measurements==1&&settings.Number("probe_size")==3&&settings.Int("brush_shape_slot")==3&&PaintTimingPlan.DefaultSize(settings)==3,"Size 1 blocked Size 3 setup or painting returned to Size 1");
         Assert(!AdaptiveBrush.CalibrationCurrent(settings)&&!settings.Bool("adaptive_brush"),"Speed-only Size 3 authorized Adaptive");
         Assert(Field<Button>(window,"spatialButton").IsEnabled,"Measured Size 3 cannot start spatial checks");
         var brush=(Border)Field<System.Collections.IDictionary>(window,"workflowChips")["brush"]!;

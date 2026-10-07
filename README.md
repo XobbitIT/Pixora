@@ -1,5 +1,8 @@
-# Pixora 1.0.14-beta.43
+# Pixora 1.0.14-beta.44
 
+Beta.44 fixes slow START preparation, uses an explicit working Size consistently in input/ETA/probe routes, and adds one-click selection of a measured Size 3. A stale speed proof falls back to normal stable input. Size 1 remains unverified in the latest recording; Adaptive/audit requirements remain. 339 Core / 103 WPF checks. See [changes](CHANGES_BETA44_UA.md) and [live checklist](TESTING_BETA44_UA.md). Fresh Rust validation is required.
+
+Previous beta.43:
 Beta.43 selects saturation references only from pixels that already meet contrast 80. A stable weaker neighbour no longer rejects a valid strong anchor. Offline replay of the latest beta.42 Square Size 1 gives a 1×2 px command-relative core; older displaced cores and weak Round dots remain unverified. 331 Core / 100 WPF checks. See [changes](CHANGES_BETA43_UA.md) and [live checklist](TESTING_BETA43_UA.md). New Rust validation is required.
 
 ## Previous beta.42

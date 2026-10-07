@@ -85,6 +85,7 @@ internal static class Translations
     {
         (string Uk, string En)? label = (key, value) switch
         {
+            ("precision_brush_size", "Profile") => ("За профілем руху", "Movement profile default"),
             ("input_engine", "Stable") => ("Стабільний", "Stable"),
             ("input_engine", "Experimental 1 ms") => ("Експериментальний (8–16 мс)", "Experimental (8–16 ms)"),
             ("speed_profile", "Safe") => ("Безпечний", "Safe"),

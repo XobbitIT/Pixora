@@ -448,7 +448,7 @@ public static class Coverage
         double seconds = copy.Int("start_delay", 5)+3*StrokeTiming.SliderChangeEstimate(copy)+StrokeTiming.ClickEstimate(copy);
         if(!StrokeTiming.Fast(copy) || copy.Bool("use_fixed_opacity",true)&&copy.Number("paint_opacity_value",1)!=1)
             seconds+=StrokeTiming.SliderChangeEstimate(copy); // Final restore to Opacity 1.
-        double previousSize=speed.BrushSize;
+        double previousSize=PaintTimingPlan.DefaultSize(copy,speed);
         var order=groups.Keys.OrderByDescending(i=>plan.Counts.GetValueOrDefault(i)).ToList();
         if(plan.BackgroundColor is int bg){order.Remove(bg);order.Insert(0,bg);}
         foreach (var color in order)
@@ -456,7 +456,7 @@ public static class Coverage
             seconds += copy.Mode == ColorMode.HexDirect ? StrokeTiming.HexChangeEstimate(copy)+StrokeTiming.ColorDelay(copy) : StrokeTiming.ColorDelay(copy) + StrokeTiming.ClickEstimate(copy);
             foreach (var op in groups[color])
             {
-                double size=op.Size>0?op.Size:speed.BrushSize;
+                double size=op.Size>0?op.Size:PaintTimingPlan.DefaultSize(copy,speed);
                 if(copy.Bool("adaptive_brush")&&size!=previousSize)seconds+=StrokeTiming.SliderChangeEstimate(copy);
                 previousSize=size;
                 seconds += TransferSchedule.EstimateBatch(copy,speed,op,resolve,fast);

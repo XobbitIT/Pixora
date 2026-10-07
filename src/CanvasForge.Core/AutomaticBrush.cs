@@ -11,6 +11,9 @@ public static class AutomaticBrush
     {
         if (!double.IsFinite(pixels) || pixels <= 0) throw new ArgumentOutOfRangeException(nameof(pixels));
         double fallback = Math.Clamp(pixels, 1, 100);
+        // Before HEX controls are captured, neither their geometry nor the old
+        // palette-layout measurements can determine an automatic Size.
+        if(settings.Mode==ColorMode.HexDirect&&!settings.HexControlsReady)return fallback;
         var context = settings.Text("brush_calibration_context");
         if (context.Length > 0 && context != AdaptiveBrush.Context(settings)) return fallback;
         if (settings.Data["brush_calibration_points"] is not JsonArray points) return fallback;

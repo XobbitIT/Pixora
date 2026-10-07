@@ -155,6 +155,7 @@ internal sealed partial class MainWindow
         if(Selected() is not { } selected)throw new InvalidOperationException(T("Жоден вибраний Size не має підтвердженого суцільного ядра. Відкрий «Пензель» і переглянь причини; швидкі проби не запускалися.",
             "No selected Size has a verified solid core. Open Brush to review the reasons; speed trials were not run.")+"\n"+adaptiveFailure);
         settings.Set("probe_size",selected);
+        settings.Set("precision_brush_size",selected.ToString(System.Globalization.CultureInfo.InvariantCulture));
         if(!AdaptiveBrush.CalibrationCurrent(settings))settings.Set("adaptive_brush",false);
         File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_brush_selected",details=new{shape=settings.Int("brush_shape_slot",3),size=selected,baseVerified=AdaptiveBrush.CalibrationCurrent(settings)}})+Environment.NewLine);
         BuildUi();SetEditing(false);

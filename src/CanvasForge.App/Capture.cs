@@ -451,8 +451,7 @@ internal sealed partial class MainWindow
         var size = cal.SessionSize!.Value;
         var dpi = cal.SessionDpi;
         var selection=settings.Text("brush_calibration_size","1/3/10/20");
-        double[] sizes=selection=="1/3/10/20"?[1,3,10,20]:[double.Parse(selection,System.Globalization.CultureInfo.InvariantCulture)];
-        if(setupRunning&&!sizes.Contains(1))sizes=[1,..sizes];
+        double[] sizes=SetupBrushSelection.Sizes(selection,setupRunning);
         if(retryOnly)sizes=BrushSignalDiagnostics.RetrySizes(settings,sizes);
         if(sizes.Length==0){SetStatus(T("Усі вибрані Size вже підтверджені.","All selected Sizes are already verified."));return;}
         var tiles=setupWorkspace?.Brush(sizes)??BrushFootprints.Tiles(r,sizes); // Reject insufficient space before any input.

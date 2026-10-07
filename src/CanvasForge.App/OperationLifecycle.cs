@@ -50,6 +50,9 @@ internal sealed partial class MainWindow
 
     private async Task Start(bool resume)
     {
+        System.IO.File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="start_requested",details=new{
+            version=BuildInfo.Version,resume,accepted=!Painting&&source is not null&&!closing,
+            busy=Painting,hasImage=source is not null,closing,workingSize=PaintTimingPlan.DefaultSize(settings)}})+Environment.NewLine);
         if(Painting||source is null||closing)return;
         startPreparing=true;startCancel=new();
         var completion=startDone=new(TaskCreationOptions.RunContinuationsAsynchronously);

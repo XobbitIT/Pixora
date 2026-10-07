@@ -529,7 +529,7 @@ internal sealed partial class Painter : IDisposable
     {
         var speed = SpeedProfile.Get(settings.Text("speed_profile", "Rapid"));
         var precision = settings.Text("coverage_mode", "Precision") == "Precision" && settings.Bool("force_precision_controls", true);
-        var size = precision ? speed.BrushSize : settings.Number("brush_size_value", 3);
+        var size = precision ? PaintTimingPlan.DefaultSize(settings) : settings.Number("brush_size_value", 3);
         if (!precision && settings.Bool("auto_brush_size", true))
             size = BrushValue(Math.Max(1, settings.Int("cell_px", 3)));
         if (sizeOverride.HasValue)
@@ -572,6 +572,9 @@ internal sealed partial class Painter : IDisposable
 
     public void Run(PaintPlan plan, ResumeCheckpoint? resume = null)
     {
+        token.ThrowIfCancellationRequested();
+        Log("start_preparing",new{version=BuildInfo.Version,workingSize=PaintTimingPlan.DefaultSize(settings)});
+        report(new(0,0,0,0,"Готую штрихи та час. Можна зупинити підготовку.",Phase:PaintPhase.Preparing));
         settings.Validate();
         if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)
             throw new InvalidOperationException(auditProblem);
@@ -587,7 +590,7 @@ internal sealed partial class Painter : IDisposable
         var speed = SpeedProfile.Get(settings.Text("speed_profile", "Rapid"));
         double nextReport=0;
         clock.Start();
-        timing=new(PaintTimingPlan.Build(settings,groups,order,resume?.Group??0,resume?.Line??0));
+        timing=new(PaintTimingPlan.Build(settings,groups,order,resume?.Group??0,resume?.Line??0,token));
         timingDone=done;timingTotal=total;timingPhase=PaintPhase.Countdown;
         checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0));
         FlushCheckpoint("start");
@@ -676,7 +679,7 @@ internal sealed partial class Painter : IDisposable
                         {
                             WaitReady();
                             var op = lines[line];
-                            var targetSize = settings.Bool("adaptive_brush") ? (op.Size > 0 ? op.Size : speed.BrushSize) : (double?)null;
+                            var targetSize = settings.Bool("adaptive_brush") ? (op.Size > 0 ? op.Size : PaintTimingPlan.DefaultSize(settings)) : (double?)null;
                             int targetShape=op.ShapeSlot>0?op.ShapeSlot:settings.Int("brush_shape_slot",3);
 
                             if (needsReprime)
