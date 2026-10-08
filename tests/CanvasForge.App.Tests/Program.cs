@@ -18,6 +18,14 @@ internal static partial class Program
         var destination = Path.GetFullPath(args.Length > 0 ? args[0] : Path.Combine(AppContext.BaseDirectory, "ui-verification"));
         Directory.CreateDirectory(destination);
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        if(args.Contains("--calibration-only"))
+        {
+            CheckCompactCapture(destination,"Українська");CheckCompactCapture(destination,"English");
+            CheckSlowLaptopPreset(destination,"Українська");CheckSlowLaptopPreset(destination,"English");
+            CheckVisualStartGate(destination,"Українська");CheckVisualStartGate(destination,"English");CheckQuickBrushIsolation(destination);
+            CheckWorkingSizePolicy(destination,"Українська");CheckWorkingSizePolicy(destination,"English");
+            Console.WriteLine("CALIBRATION CHECKS PASSED");return;
+        }
         if(args.Contains("--startup-only"))
         {
             CheckLanguageSwitch(destination);CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
@@ -103,7 +111,15 @@ internal static partial class Program
         CheckInputCheckExclusive(destination);CheckStandaloneStop(destination);CheckClosingWaitsForCheck(destination);CheckCaptureCanRebuildPlan(destination);CheckMalformedLegacyWindow(destination);
         CheckSetupSize3WithoutBase(destination);CheckSetupFallbackSize3(destination);CheckSetupFailedFallback(destination);
         CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
-        Console.WriteLine("ALL 107 WPF UI CHECKS PASSED");
+        CheckCompactCapture(destination,"Українська");CheckCompactCapture(destination,"English");
+        CheckSlowLaptopPreset(destination,"Українська");CheckSlowLaptopPreset(destination,"English");
+        CheckVisualStartGate(destination,"Українська");CheckVisualStartGate(destination,"English");CheckQuickBrushIsolation(destination);
+        CheckWorkingSizePolicy(destination,"Українська");CheckWorkingSizePolicy(destination,"English");
+        CheckExecutionTimingUi(destination,"Українська");CheckExecutionTimingUi(destination,"English");
+        CheckMixedReadiness(destination,"Українська");CheckMixedReadiness(destination,"English");
+        CheckSynchronizedEditors(destination,"Українська");CheckSynchronizedEditors(destination,"English");
+        CheckColorChoice(destination,"Українська");CheckColorChoice(destination,"English");CheckMeasuredPlanOverlay(destination);
+        Console.WriteLine("ALL 125 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -236,13 +252,12 @@ internal static partial class Program
         var s=ReadySettings(language);BrushSpan[] pixels=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(pixels,pixels,new(20,20,20));
         BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[stamp,stamp,stamp])]);s.Set("probe_size",3);s.Set("adaptive_brush",false);s.Set("coverage_audit",false);s.Save(Path.Combine(directory,"config-csharp.json"));
         var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
-        CheckUnmeasuredAdaptiveClick(window);
-        Assert(!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Partial Size 3 incorrectly enabled audit without Size 1");
+        Assert(AdaptiveBrush.CalibrationCurrent(Field<Settings>(window,"settings"))&&Field<CheckBox>(window,"auditEnabled").IsEnabled,"Verified Size 3 cannot use mask-based audit repair");
         string failure="Size 1, повтор 1/3: контраст 69/255, потрібно 80; змінених пікселів 8. Цей Size не збережено.";
         SetField(window,"adaptiveFailure",failure);Invoke(window,"RefreshAdaptiveStatus");
         string displayed=Field<TextBlock>(window,"adaptiveResult").Text;
         Assert(displayed==Translations.ForLanguage(failure,english)&&displayed.Contains(english?"This Size was not saved":"Цей Size не збережено"),"Cached partial failure untranslated");
-        string status=Field<TextBlock>(window,"adaptiveStatus").Text;Assert(status.Contains(english?"Measured Sizes: 3":"Виміряні Size: 3")&&status.Contains("Size 1"),"Partial status suggests stale coordinates");
+        string status=Field<TextBlock>(window,"adaptiveStatus").Text;Assert(status.Contains(english?"Ready Sizes: 3":"Готові Size: 3"),"Size 1 failure hid current Size 3");
         window.ShowPage("speed");Assert(Field<Button>(window,"spatialButton").IsEnabled,"Size 1 unnecessarily blocked measured Size 3 spatial test");
         string captions=string.Join("\n",Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"]));
         if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"Partial brush UI untranslated");
@@ -314,7 +329,7 @@ internal static partial class Program
         var size=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="adaptive_max_size");
         Assert(size.Items.Cast<object>().Any(v=>v.ToString()=="100"),"Large adaptive Size missing");
         var calibration=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="brush_calibration_size");
-        Assert(calibration.Items.Count==8,"Individual calibration Sizes missing");
+        Assert(calibration.Items.Cast<object>().Select(v=>v.ToString()).SequenceEqual(new[]{"3","3/10/20","1","1/3/10/20","10","20","40","60","100"}),"Optional calibration Sizes missing");
         var toggle=Descendants(root).OfType<CheckBox>().Single(b=>b.Content?.ToString()==(english?"Automatically choose measured shapes":"Автоматично вибирати виміряні форми"));
         Assert(toggle.IsChecked==false,"Automatic shape choice enabled without explicit selection");
         foreach(var expander in Descendants(root).OfType<Expander>().ToArray())expander.IsExpanded=true;
@@ -949,7 +964,7 @@ internal static partial class Program
         settings.Set("auto_brush_size",false);settings.Set("brush_size_value",7);
         actual=((double,double,double))method.Invoke(worker,[null])!;Assert(actual.Size==7,"Auto fix changed manual Size");
         settings.Set("coverage_mode","Precision");
-        actual=((double,double,double))method.Invoke(worker,[null])!;Assert(actual.Size==SpeedProfile.Get(settings.Text("speed_profile")).BrushSize,"Auto fix changed Precision Size");
+        actual=((double,double,double))method.Invoke(worker,[null])!;Assert(actual.Size==3,"Precision executor ignored the default working Size 3");
         actual=((double,double,double))method.Invoke(worker,[20d])!;Assert(actual.Size==20,"Adaptive override was ignored");
         Console.WriteLine("PASS auto-brush-executor");
     }
@@ -1072,9 +1087,9 @@ internal static partial class Program
         Assert(Field<Button>(window,"probeButton").IsEnabled,"Spatial model did not unlock the speed test");
         Assert(Field<TextBlock>(window,"spatialStatus").Text.Contains("3/3"),"Offset distribution missing");
         var root=(FrameworkElement)window.Content;
-        var size=Descendants(root).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");size.SelectedIndex=0;
+        var size=Descendants(root).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");size.SelectedItem="10";
         Assert(!Field<Button>(window,"probeButton").IsEnabled&&Field<Button>(window,"spatialButton").IsEnabled,"Unmeasured Size reused another spatial model");
-        size.SelectedIndex=1;Assert(Field<Button>(window,"probeButton").IsEnabled,"Measured Size cannot be restored");
+        size.SelectedItem="3";Assert(Field<Button>(window,"probeButton").IsEnabled,"Measured Size cannot be restored");
         window.SetEditing(false);Assert(!Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Calibration buttons live during painting");
         window.SetEditing(true);Assert(Field<Button>(window,"spatialButton").IsEnabled&&Field<Button>(window,"probeButton").IsEnabled,"Restoring UI lost calibration gate");
         ProbeSpatialCalibration.Save(actual,model with{Id=Guid.NewGuid().ToString("N")});Invoke(window,"UpdateReady");
@@ -1243,7 +1258,9 @@ internal static partial class Program
         Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 88×88"),"Small Canvas requirement hidden or untranslated");
         Render(window,Path.Combine(output,name+".png"),900);
         var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");combo.SelectedIndex=0;
-        Assert(Field<Button>(window,"probeButton").IsEnabled,"Size 1 strict probe no longer fits on the current Canvas");
+        var live=Field<Settings>(window,"settings");var model=ProbeSpatialCalibration.Read(live,1)!;bool fits=true;
+        try{SpeedCalibration.Tiles(live.Calibration.Rect("canvas"),model.Axes.Max(a=>a.SceneGuard(model.OuterRadius)));}catch(InvalidOperationException){fits=false;}
+        Assert(combo.Items.Cast<object>().Any(item=>item.ToString()=="1")&&Field<Button>(window,"probeButton").IsEnabled==fits,"Optional Size 1 lost its unchanged clean-area requirement");
         Console.WriteLine("PASS "+name);
     }
     private static void CheckMeasuredEtaUi(string output,string language)
@@ -1319,10 +1336,10 @@ internal static partial class Program
         Put("report",(Action<PaintProgress>)(p=>seen.Add(p)));Put("logPath",Path.Combine(directory,"session.jsonl"));Put("timingStatus","#000000");
         typeof(Painter).GetMethod("ReportTiming",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(worker,new object?[]{null,0d});
         Assert(seen[^1].Done==3904&&seen[^1].Estimate!.MotionSamples==0&&seen[^1].Estimate!.Basis==EtaBasis.Planned,"Production callback used saved Done as samples");
-        for(int i=0;i<20;i++)timer.Complete($"m{i}",.2);Put("timingDone",3924);
+        for(int i=0;i<20;i++){timer.Complete($"m{i}",.2);timer.RecordOperationOverhead($"m{i}",.01);}Put("timingDone",3924);
         typeof(Painter).GetMethod("ReportTiming",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(worker,new object?[]{null,0d});
-        Assert(seen[^1].Estimate!.Basis==EtaBasis.Measured&&Math.Abs(seen[^1].Eta-2)<1e-9,"Production callback ignored measured timing");
-        var rows=File.ReadAllLines(Path.Combine(directory,"session.jsonl"));Assert(rows.Length==2&&rows.All(x=>x.Contains("eta_update")&&x.Contains("rolling-timing-v1")),"ETA evidence not logged");
+        Assert(seen[^1].Estimate!.Basis==EtaBasis.Measured&&Math.Abs(seen[^1].Eta-2.1)<1e-9&&seen[^1].Estimate!.OperationOverheadSamples==20,"Production callback ignored measured cycle overhead");
+        var rows=File.ReadAllLines(Path.Combine(directory,"session.jsonl"));Assert(rows.Length==2&&rows.All(x=>x.Contains("eta_update")&&x.Contains("rolling-timing-v2-operation-overhead")),"ETA evidence not logged");
         Console.WriteLine("PASS painter-timing-publisher");
     }
     private static (PixelImage Before,PixelImage After,ScreenLine Line) ProbeFixture()

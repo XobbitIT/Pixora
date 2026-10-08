@@ -4,7 +4,7 @@ using CanvasForge.Core;
 internal static class StartPreparationChecks
 {
     private static void Require(bool value){if(!value)throw new Exception("Start preparation regression");}
-    private static Settings VerifiedSize3()
+    internal static Settings VerifiedSize3()
     {
         var s=Settings.Defaults();s.Set("adaptive_brush",false);s.Set("calibrated_strokes",true);s.Set("precision_brush_size","3");
         var c=s.Calibration;c.SetRect("canvas",new(0,0,256,256));c.SetSession(new(0,0),96,new(500,400));
@@ -18,7 +18,7 @@ internal static class StartPreparationChecks
         ProbeSpatialCalibration.Save(s,spatial);
         s.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,
             [new(3,StrokeMethod.Paced,false,8,SpeedCalibration.Margin(8),1,20,3,1,spatial.Id)]));
-        Require(SpeedCalibration.Use(s)&&!AdaptiveBrush.CalibrationCurrent(s));return s;
+        Require(SpeedCalibration.Use(s)&&AdaptiveBrush.CalibrationCurrent(s)&&!s.Bool("adaptive_brush"));return s;
     }
     public static void Run(Action<string,Action> test)
     {
@@ -30,14 +30,14 @@ internal static class StartPreparationChecks
         test("Full setup includes Size 3 after a manual Size 1 selection",()=>{
             Require(SetupBrushSelection.Sizes("1",true).SequenceEqual(new double[]{1,3}));
             Require(SetupBrushSelection.Sizes("1",false).SequenceEqual(new double[]{1}));
-            Require(SetupBrushSelection.Sizes("20",true).SequenceEqual(new double[]{1,3,20}));
+            Require(SetupBrushSelection.Sizes("20",true).SequenceEqual(new double[]{3,20}));
         });
         test("Working Size remains independent of movement presets and image grid",()=>{
             var s=VerifiedSize3();
             foreach(var profile in SpeedProfile.All){s.Set("speed_profile",profile.Name);s.Set("cell_px",8);Require(PaintTimingPlan.DefaultSize(s)==3);}
             s.Set("precision_brush_size","1");Require(PaintTimingPlan.DefaultSize(s)==1&&!SpeedCalibration.BrushReady(s,1));
-            s.Set("precision_brush_size","3");s.Set("adaptive_brush",true);s.Set("speed_profile","Rapid");Require(PaintTimingPlan.DefaultSize(s)==1);
-            bool rejected=false;try{AdaptiveBrush.Validate(s);}catch(InvalidOperationException){rejected=true;}Require(rejected);
+            s.Set("precision_brush_size","3");s.Set("adaptive_brush",true);s.Set("speed_profile","Rapid");Require(PaintTimingPlan.DefaultSize(s)==3&&!SpeedCalibration.BrushReady(s,1));
+            AdaptiveBrush.Validate(s);
         });
         test("Timing and preview estimate use the actual Size 3 route",()=>{
             var s=VerifiedSize3();var batch=new PaintBatch(0,[new(40,40,60,40)],1);var speed=SpeedProfile.Get("Rapid");

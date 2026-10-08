@@ -2289,7 +2289,7 @@ Test("Timing schedule and route keys preserve settings and reflect verified moti
 });
 Test("Timing default Size agrees with precision, manual and calibrated automatic controls",()=>
 {
-    var cfg=ProbeConfig();Assert(PaintTimingPlan.DefaultSize(cfg)==SpeedProfile.Get(cfg.Text("speed_profile","Rapid")).BrushSize);
+    var cfg=ProbeConfig();Assert(PaintTimingPlan.DefaultSize(cfg)==3);
     cfg.Set("force_precision_controls",false);cfg.Set("auto_brush_size",false);cfg.Set("brush_size_value",10);Assert(PaintTimingPlan.DefaultSize(cfg)==10);
     cfg.Set("auto_brush_size",true);Assert(PaintTimingPlan.DefaultSize(cfg)==AutomaticBrush.Value(cfg,Math.Max(1,cfg.Int("cell_px",3))));
 });
@@ -2389,6 +2389,10 @@ BrushLocalColorChecks.Run(Test);
 BrushAnchorSelectionChecks.Run(Test);
 StartPreparationChecks.Run(Test);
 ReviewRegressionChecks.Run(Test);
+CalibrationReliabilityChecks.Run(Test);
+WorkingSizePolicyChecks.Run(Test);
+ExecutionTimingChecks.Run(Test);
+MeasuredColorChecks.Run(Test);
 DrawingWorkflowChecks.Run(Test);
 Test("Malformed legacy measurements never become brush or speed proof",()=>
 {

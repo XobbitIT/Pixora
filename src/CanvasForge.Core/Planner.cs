@@ -433,7 +433,7 @@ public static class Coverage
         return groups;
     }
 
-    public static double EstimateSeconds(PaintPlan plan, Settings s, string? speedName = null)
+    public static double EstimateSeconds(PaintPlan plan, Settings s, string? speedName = null,Dictionary<int,List<PaintBatch>>? preparedGroups=null)
     {
         var copy = s.Clone();
         if (speedName is not null)
@@ -442,7 +442,7 @@ public static class Coverage
         // rather than repeating that work for every stroke and speed preset.
         copy = BrushFootprints.Snapshot(copy);
         var speed = SpeedProfile.Get(copy.Text("speed_profile"));
-        var groups = TransferSchedule.Build(plan, copy);
+        var groups = preparedGroups??TransferSchedule.Build(plan, copy);
         var resolve = SpeedCalibration.CreateEstimateResolver(copy);
         bool fast = TransferSchedule.Fast(copy);
         double seconds = copy.Int("start_delay", 5)+3*StrokeTiming.SliderChangeEstimate(copy)+StrokeTiming.ClickEstimate(copy);

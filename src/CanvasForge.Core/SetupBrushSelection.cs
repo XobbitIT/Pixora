@@ -6,14 +6,13 @@ public static class SetupBrushSelection
 {
     public static double[] Sizes(string selection,bool automatic)
     {
-        double[] sizes=selection=="1/3/10/20"?[1,3,10,20]:[double.Parse(selection,System.Globalization.CultureInfo.InvariantCulture)];
-        // A previous manual Size 1 retry must not turn full setup into a Size 1
-        // gate. Always measure an independent Size 3 fallback on fresh tiles.
-        return automatic?sizes.Concat(new double[]{1,3}).Distinct().Order().ToArray():sizes;
+        double[] sizes=selection=="1/3/10/20"?[1,3,10,20]:selection=="3/10/20"?[3,10,20]:[double.Parse(selection,System.Globalization.CultureInfo.InvariantCulture)];
+        // Size 1 has its own Adaptive measurement; full setup never adds it.
+        return automatic?sizes.Concat(new double[]{3}).Distinct().Order().ToArray():sizes;
     }
     public static double? Select(IReadOnlyList<BrushFootprint>? profiles,int shape,double preferred)
     {
-        var sizes=(profiles??[]).Where(p=>p.ShapeSlot==shape&&p.SolidCore.Valid)
+        var sizes=(profiles??[]).Where(p=>p.Size>=3&&p.ShapeSlot==shape&&p.SolidCore.Valid)
             .Select(p=>p.Size).Distinct().Order().ToArray();
         return sizes.Contains(preferred)?preferred:sizes.Length>0?sizes[0]:null;
     }

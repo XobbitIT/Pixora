@@ -48,8 +48,8 @@ internal sealed partial class MainWindow
                 else if(estimate.Basis is EtaBasis.Measured or EtaBasis.Mixed)
                     eta.Text+=$" · {T("Зразків","Samples")}: {estimate.WindowSamples}";
                 eta.Foreground=estimate.Basis is EtaBasis.Measured or EtaBasis.Complete?Success:Warning;
-                eta.ToolTip=T("Після 20 завершених операцій оцінка враховує останні вимірювання руху. Розміри й маршрути вимірюються окремо; 1–4 локальні зразки поступово уточнюють розрахунок, від 5 — виміряний темп. Пауза виключена. Повторні спроби й дофарбування можуть змінити час.",
-                    "After 20 completed operations, ETA uses recent movement measurements. Sizes and routes are separate: 1–4 local samples gradually refine the planned estimate; 5 or more establish measured pace. Pauses are excluded. Retries and repairs can change the duration.");
+                eta.ToolTip=T("Після 20 завершених операцій оцінка враховує рух та виміряні витрати між штрихами. Маршрути й розміри вимірюються окремо. Пауза, зміни кольорів і керування не додаються вдруге. Повторні спроби й дофарбування можуть змінити час.",
+                    "After 20 completed operations, ETA includes motion and measured work between strokes. Routes and Sizes are measured separately. Pauses, color changes and controls are not counted twice. Retries and repairs can change the duration.");
             }
         }
     }

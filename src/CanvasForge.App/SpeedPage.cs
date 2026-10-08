@@ -18,8 +18,11 @@ internal sealed partial class MainWindow
     }
     private void SetSpeedChip(StatusChip chip)
     {
-        if(speedFailure.Length>0)chip.Set(SpeedCalibration.Current(settings)?T("Частково перевірено","Partially verified"):T("Помилка","Error"),SpeedCalibration.Current(settings)?Warning:Danger);
-        else if(SpeedCalibration.Current(settings))chip.Set(T("Перевірено","Verified"),Success);
+        bool selected=SpeedCalibration.Read(settings)?.Samples.Any(p=>p.Size==settings.Number("probe_size",3))==true;
+        chip.ToolTip="Size "+settings.Number("probe_size",3);
+        if(speedFailure.Length>0)chip.Set(selected?T("Частково перевірено","Partially verified"):T("Помилка","Error"),selected?Warning:Danger);
+        else if(selected)chip.Set(T("Перевірено","Verified"),Success);
+        else if(SpeedCalibration.Current(settings))chip.Set(T("Очікує","Pending"),Warning);
         else chip.Set(SpeedCalibration.Status(settings)==SpeedProfileState.NotTested?T("Очікує","Pending"):T("Застаріло","Stale"),Warning);
     }
     private Button probeButton=new();
@@ -79,9 +82,10 @@ internal sealed partial class MainWindow
             }
         }
         spatialButton.IsEnabled=ready&&spatialProblem is null&&!Painting;
-        spatialButton.ToolTip=spatialProblem is null?null:T(spatialProblem);
+        var brushProblem=AdaptiveBrush.SetupProblem(settings)??(!ready?T("Вибраний Size не має актуального стабільного сліду. Перевір захоплення, режим кольору та калібрування цього Size.","The selected Size has no current stable footprint. Check capture, color mode and calibration for this Size."):null);
+        spatialButton.ToolTip=brushProblem??(spatialProblem is null?null:T(spatialProblem));ToolTipService.SetShowOnDisabled(spatialButton,true);
         probeButton.IsEnabled=ready&&model is not null&&speedProblem is null&&!Painting;
-        probeButton.ToolTip=model is null?T(ProbeSpatialCalibration.MissingMessage):speedProblem is not null?T(speedProblem):T("Очисти полотно після просторового калібрування.","Clear Canvas after spatial calibration.");
+        probeButton.ToolTip=brushProblem??(model is null?T(ProbeSpatialCalibration.MissingMessage):speedProblem is not null?T(speedProblem):T("Очисти полотно після просторового калібрування.","Clear Canvas after spatial calibration."));ToolTipService.SetShowOnDisabled(probeButton,true);
         spatialChip.Set(model is null?T("Очікує","Pending"):T("Виміряно","Measured"),model is null?Warning:Success);
         spatialStatus.Text=spatialProblem is not null?T(spatialProblem):model is null?T(ProbeSpatialCalibration.MissingMessage):string.Join("\n",model.Axes.Select(axis=>
             (axis.Vertical?T("Вертикаль","Vertical"):T("Горизонталь","Horizontal"))+": "+string.Join(" · ",axis.Anchors.GroupBy(x=>x.Offset).OrderBy(x=>x.Key)

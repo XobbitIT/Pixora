@@ -3,7 +3,8 @@ namespace CanvasForge.Core;
 public enum EtaBasis { Planned, Measured, Mixed, Complete }
 public sealed record TimedWork(string Id,string RateKey,double PlannedSeconds,bool Motion);
 public sealed record EtaEstimate(double Seconds,EtaBasis Basis,int MotionSamples,int WindowSamples,
-    int RemainingOperations,int UnmeasuredOperations,double MeanMotionMs,double MotionRatio);
+    int RemainingOperations,int UnmeasuredOperations,double MeanMotionMs,double MotionRatio,
+    double OperationOverheadMs=0,int OperationOverheadSamples=0);
 public sealed record EtaRate(string Key,bool Motion,int WindowSamples,double MeanSeconds,double Ratio);
 
 // Forecasts remaining work, not elapsed / lifetime Done. A fresh instance is used
@@ -32,6 +33,9 @@ public sealed class RemainingTime
     private readonly Dictionary<string,Bucket> buckets=new();
     private readonly Bucket recentMotion=new(true);
     private int motionSamples;
+    private readonly Queue<double> operationOverhead=new();
+    private double overheadSum;
+    private string? completedMotion;
     private (string Id,double Started)? active;
     public RemainingTime(IEnumerable<TimedWork> work)
     {
@@ -56,7 +60,17 @@ public sealed class RemainingTime
         CheckSeconds(actualSeconds);
         if(!pending.Remove(id,out var work))return false;
         Remove(work);var bucket=buckets[work.RateKey];bucket.Observe(work.PlannedSeconds,actualSeconds);
-        if(work.Motion){motionSamples++;recentMotion.Observe(work.PlannedSeconds,actualSeconds);}
+        if(work.Motion){motionSamples++;recentMotion.Observe(work.PlannedSeconds,actualSeconds);completedMotion=id;}
+        return true;
+    }
+    // Called once after the completed stroke's checkpoint/report work. Controls,
+    // color changes, Draw, pauses and failed attempts are excluded by the caller.
+    public bool RecordOperationOverhead(string id,double seconds)
+    {
+        CheckSeconds(seconds);
+        if(completedMotion!=id)return false;
+        completedMotion=null;operationOverhead.Enqueue(seconds);overheadSum+=seconds;
+        if(operationOverhead.Count>MotionWindow)overheadSum-=operationOverhead.Dequeue();
         return true;
     }
     public bool Skip(string id)
@@ -91,10 +105,13 @@ public sealed class RemainingTime
         }
         if(active is { } running&&pending.TryGetValue(running.Id,out var current))
             seconds-=Math.Min(Cost(buckets[current.RateKey],current.PlannedSeconds,1),Math.Max(0,activeSeconds-running.Started));
+        double overheadMean=operationOverhead.Count==0?0:overheadSum/operationOverhead.Count;
+        if(motionSamples>=Warmup)seconds+=operations*overheadMean;
         var basis=pending.Count==0?EtaBasis.Complete:motionSamples<Warmup?EtaBasis.Planned:unknown>0?EtaBasis.Mixed:EtaBasis.Measured;
         return new(Math.Max(0,seconds),basis,motionSamples,recentMotion.Samples.Count,operations,unknown,
             recentMotion.Samples.Count==0?0:recentMotion.SampleActual*1000/recentMotion.Samples.Count,
-            recentMotion.SamplePlanned==0?1:recentMotion.SampleActual/recentMotion.SamplePlanned);
+            recentMotion.SamplePlanned==0?1:recentMotion.SampleActual/recentMotion.SamplePlanned,
+            overheadMean*1000,operationOverhead.Count);
     }
     public List<EtaRate> Rates()=>buckets.Select(x=>new EtaRate(x.Key,x.Value.Motion,x.Value.Samples.Count,
         x.Value.Samples.Count==0?0:x.Value.SampleActual/x.Value.Samples.Count,

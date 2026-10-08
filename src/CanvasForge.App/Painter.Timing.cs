@@ -28,7 +28,7 @@ internal sealed partial class Painter
         if(ActiveSeconds>=nextEtaLog||lastEtaBasis!=estimate.Basis||timingPhase==PaintPhase.Completed)
         {
             nextEtaLog=ActiveSeconds+2;lastEtaBasis=estimate.Basis;
-            Log("eta_update",new{revision="rolling-timing-v1",done=timingDone,total=timingTotal,
+            Log("eta_update",new{revision="rolling-timing-v2-operation-overhead",done=timingDone,total=timingTotal,
                 phase=timingPhase.ToString(),activeSeconds=ActiveSeconds,estimate,rates=timing.Rates(),
                 warmup=RemainingTime.Warmup,motionWindow=RemainingTime.MotionWindow});
         }

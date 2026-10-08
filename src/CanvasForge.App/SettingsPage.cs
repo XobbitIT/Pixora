@@ -16,6 +16,25 @@ internal sealed partial class MainWindow
         applyProfile.HorizontalAlignment = HorizontalAlignment.Left; basic.Children.Add(applyProfile);
         basic.Children.Add(Text(T("Профіль застосовується кнопкою: змінює деталізацію, розмиття, очищення та інші параметри обробки. Пресети на сторінці «Малювання» змінюють деталізацію та профіль руху. Ручні зміни мають пріоритет до наступного застосування профілю.", "Apply profile changes detail, blur, cleanup and other image processing settings. Painting presets change detail and movement profile. Manual edits remain in effect until you apply a profile again."), 11, Muted));
         basic.Children.Add(Text(T("Режим кольорів, ліміт кольорів, деталізація та режим вводу — на сторінці «Малювання».", "Color mode, color limit, detail, and Speed Engine are on the Painting page."), 11, Muted));
+        page.Children.Add(Card(T("Надійність налаштування","Setup reliability"),out var reliability));
+        var presets=new UniformGridCompat(2);
+        void Preset(bool slow){ReadSettings();CalibrationReliability.ApplyPreset(settings,slow);Dirty();BuildUi();ShowPage("settings");}
+        presets.Add(Button(T("Звичайний ПК","Standard PC"),()=>Preset(false)));
+        var slowPreset=Button(T("Повільний ноутбук","Slow laptop"),()=>Preset(true));slowPreset.Tag="slow-laptop-preset";presets.Add(slowPreset);
+        reliability.Children.Add(presets.Panel);
+        AddCombo(reliability,"control_confirmation",T("Підтвердження керування","Control confirmation"),new[]{"Clipboard","Visual"});
+        reliability.Children.Add(Text(CalibrationReliability.Visual(settings)
+            ?T("Числа не зчитуються з Rust. Смуги перевіряються на двох знімках; для малювання потрібен підтверджений відбиток пензля. Відбиток сам по собі не доводить точне число Interval або Opacity.",
+                "Numbers are not copied from Rust. Slider positions are checked in two captures; painting requires a verified brush imprint. An imprint alone does not prove an exact Interval or Opacity number.")
+            :T("Значення підтверджуються копіюванням числа та знімком смуги.","Values are confirmed by copying the number and capturing the slider."),12,
+            CalibrationReliability.Visual(settings)?Warning:Muted));
+        var budgets=new StackPanel();reliability.Children.Add(new Expander{Header=T("Бюджети очікування","Wait budgets"),Content=budgets});
+        foreach(var (key,uk,en) in new[]{("readback_polls","Опитування копіювання (24–120)","Copy polls (24–120)"),
+            ("readback_attempts","Спроби копіювання (1–5)","Copy attempts (1–5)"),
+            ("readback_retry_pause_ms","Пауза наступної спроби, мс","Next-attempt pause, ms"),
+            ("capture_stable_attempts","Спроби стабільного кадру (5–20)","Stable-frame attempts (5–20)"),
+            ("capture_stable_interval_ms","Інтервал кадрів, мс (40–1000)","Capture interval, ms (40–1000)")})
+            AddNumber(budgets,key,T(uk,en));
         var advanced = new StackPanel();
         page.Children.Add(new Expander { Header = T("Обробка зображення й сумісність", "Image processing and compatibility"), Content = advanced });
         advanced.Children.Add(Card(T("Якість зображення", "Image quality"), out var quality));

@@ -26,13 +26,15 @@ internal static partial class Program
         results[SetupStage.Capture]=(SetupStageState.Passed,"");results[SetupStage.Brush]=(SetupStageState.Failed,"Size 1");Invoke(w,"RefreshSetupStatus");
         var rows=Field<List<Dictionary<SetupStage,TextBlock>>>(w,"setupRows").Single();
         Assert(rows[SetupStage.Brush].Text.Contains(en?"failed":"помилка")&&Equals(rows[SetupStage.Brush].ToolTip,"Size 1"),"Failed stage has no explanation");
-        Assert(rows[SetupStage.Speed].Text.Contains(en?"pending":"очікує"),"Unexecuted Speed is shown as passed");
+        Assert(!rows.ContainsKey(SetupStage.Speed)&&!rows.ContainsKey(SetupStage.Spatial),"Optional speed stages still block the main setup UI");
         Invoke(w,"BuildUi");Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults")[SetupStage.Brush].State==SetupStageState.Failed,"UI rebuild lost partial results");
         string failure="Вимірювання пензля: Size 1 не має підтвердженого суцільного ядра. Відкрий «Пензель» і переглянь причини; швидкі проби не запускалися.";
         SetField(w,"setupOutcome",failure);results=Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults");
         results[SetupStage.Controls]=(SetupStageState.Passed,"Форма 4 · Нові підтверджені Size: 1, 3");Invoke(w,"RefreshSetupStatus");
         if(en)Assert(Field<List<TextBlock>>(w,"setupSummaries").All(t=>t.Text.Contains("Brush measurement")&&t.Text.Contains("no verified solid core")),"Cached setup error did not translate");
         w.ShowPage("capture");Render(w,Path.Combine(output,name+".png"),width,780);
+        var individual=Descendants(pages["capture"]).OfType<Expander>().Single();individual.IsExpanded=true;
+        Render(w,Path.Combine(output,name+"-individual.png"),width,780);
         Assert(Captions(Field<Dictionary<string,FrameworkElement>>(w,"pages")["capture"]).Any(c=>c.Contains(en?"Test Rust controls":"Перевірити керування Rust")),"Individual controls disappeared");
         SetField(w,"setupRunning",true);w.SetEditing(true);
         Assert(!Field<Button>(w,"startButton").IsEnabled&&Field<Button>(w,"stopButton").IsEnabled&&!Field<Dictionary<string,FrameworkElement>>(w,"pages")["capture"].IsEnabled,"An inner check re-enabled editing during setup");

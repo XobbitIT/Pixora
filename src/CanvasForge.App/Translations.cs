@@ -116,6 +116,8 @@ internal static class Translations
             ("control", "size") => ("Розмір (Size)", "Size"),
             ("control", "interval") => ("Інтервал (Interval)", "Interval"),
             ("control", "opacity") => ("Прозорість (Opacity)", "Opacity"),
+            ("control_confirmation", "Clipboard") => ("Зчитування числа", "Number readback"),
+            ("control_confirmation", "Visual") => ("За смугою та відбитком", "Slider and imprint"),
             _ => null
         };
         return label is { } pair ? english ? pair.En : pair.Uk : value;

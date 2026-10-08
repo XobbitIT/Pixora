@@ -21,7 +21,7 @@ public static class AdaptiveBrush
         if (cal.SessionClient is null || cal.SessionSize is null) return "Повтори налаштування Rust для поточного вікна.";
         if (new[] { "size_track", "interval_track", "opacity_track" }.Any(k => !cal.Rect(k).Valid))
             return "Захопи Size, Interval та Opacity разом із числами справа.";
-        if (cal.Point("brush_tool") is null) return "Захопи інструмент пензля через налаштування Rust.";
+        if (s.Mode==ColorMode.RustPalette&&cal.Point("brush_tool") is null) return "Захопи інструмент пензля через налаштування Rust.";
         if (!cal.Rect("brush_shapes").Valid && cal.Point(s.Text("brush_shape", "Round") == "Square" ? "square_brush" : "hard_brush") is null)
             return "Захопи ряд форм пензля через налаштування Rust.";
         if (s.Mode == ColorMode.RustPalette && s.Palette().Count == 0) return "Захопи палітру Rust.";
@@ -32,7 +32,7 @@ public static class AdaptiveBrush
     }
 
     public static bool CalibrationCurrent(Settings s) => (s.Mode != ColorMode.HexDirect || s.HexControlsReady)
-        && (s.Data["brush_footprints"] is not null?BrushFootprints.Read(s).Any(p=>p.Size==1&&p.SolidCore.Valid)
+        && (s.Data["brush_footprints"] is not null?BrushFootprints.Read(s,s.Bool("adaptive_auto_shape")).Any(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20))
             :s.Int("brush_shape_slot",3) is 3 or 4&&s.Text("brush_calibration_context") == Context(s) && Samples(s).Length >= 2);
 
     public static void Prepare(Settings s)
@@ -108,6 +108,8 @@ public static class AdaptiveBrush
     {
         token.ThrowIfCancellationRequested();
         s=BrushFootprints.Snapshot(s);
+        if(s.Bool("adaptive_brush"))Validate(s);
+        if(MeasuredColorPlan.TryBuild(plan,s,token) is { } measured)return measured.Groups;
         var basic = Coverage.Build(plan, s);
         var output = basic.ToDictionary(x => x.Key, x => x.Value.Select(l => new BrushStroke(l, 0)).ToList());
         if (!s.Bool("adaptive_brush")) return output;

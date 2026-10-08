@@ -73,15 +73,9 @@ internal sealed partial class Painter
         PixelImage Frames()
         {
         Delay(.12);
-        var previous=Native.Screenshot(area);
-        for(int i=0;i<5;i++)
-        {
-            Delay(.08);Check();if(Paused)throw new InputInterrupted();var next=Native.Screenshot(area);
-            if(CoverageAudit.Stable(previous,next)){settledFrames?.Invoke(previous,next);return next;}
-            unstableFrames?.Invoke(previous,next,i+1);
-            previous=next;
-        }
-        throw new InvalidOperationException("Canvas змінюється між кадрами. Зупини рух камери й повтори тест.");
+        return StableCapture.Read(()=>Native.Screenshot(area),seconds=>
+            {Delay(seconds);Check();if(Paused)throw new InputInterrupted();},
+            CalibrationReliability.StableAttempts(settings),CalibrationReliability.StableInterval(settings),unstableFrames,settledFrames);
         }
     }
     public void RestoreAfterProbe() {CheckProbe();ApplyControls();}
@@ -99,9 +93,13 @@ internal sealed partial class Painter
             report(new(0,0,0,0,$"Покриття: {result.Coverage:P1}; пропуски {result.Missing}; невпевнено {result.Unknown}."));
             if(result.Passed)return;
             if(!settings.Bool("audit_repair")||pass>=settings.Int("audit_repair_passes",1)||result.Missing==0)break;
-            var footprint=SpeedCalibration.Footprint(settings,1);
-            var profiles=BrushFootprints.Read(settings,settings.Bool("adaptive_auto_shape")).Where(p=>p.Size==1).ToArray();
-            int physicalReach=SpeedCalibration.PhysicalReach(settings,1);
+            var profiles=BrushFootprints.Read(settings,settings.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid&&p.Possible.Sum(r=>r.Right-r.Left)<=4096)
+                .GroupBy(p=>p.ShapeSlot).Select(g=>g.OrderBy(p=>p.Size).First()).ToArray();
+            double repairSize=profiles.Length>0?profiles.Min(p=>p.Size):1;
+            var baseProfile=profiles.OrderBy(p=>p.Size).FirstOrDefault();
+            var repairSettings=BrushFootprints.ForShape(settings,baseProfile?.ShapeSlot??settings.Int("brush_shape_slot",3));
+            var footprint=SpeedCalibration.Footprint(repairSettings,repairSize);
+            int physicalReach=SpeedCalibration.PhysicalReach(repairSettings,repairSize);
             var repairPlan=profiles.Length>0?CoverageAudit.PlanRepair(result.MissingMask,expected,canvas,profiles,token:token)
                 :CoverageAudit.PlanRepair(result.MissingMask,expected,canvas,footprint.Outer,physicalReach:physicalReach);
             var repairs=repairPlan.Strokes;
@@ -113,7 +111,8 @@ internal sealed partial class Painter
                 break;
             }
             var operations=repairPlan.Operations.Count>0?repairPlan.Operations:repairs.Select(l=>new BrushStroke(l,1,ShapeSlot:settings.Int("brush_shape_slot",3))).ToList();
-            ApplyBrushShape(operations[0].ShapeSlot);ApplyControls(1);
+            double restoreSize=activeAdaptiveSize??DesiredControls().Size;int restoreShape=activeShape;
+            ApplyBrushShape(operations[0].ShapeSlot);ApplyControls(operations[0].Size);
             if(plan.Mode==ColorMode.HexDirect)
             {if(!ApplyHex(plan.Palette[color].Color,true))throw new InvalidOperationException("HEX verification failed before repair.");}
             else ApplyPalette(plan.Palette[color]);
@@ -122,10 +121,13 @@ internal sealed partial class Painter
             {
                 Check();if(Paused)throw new InputInterrupted();
                 if(activeShape!=operation.ShapeSlot)ApplyBrushShape(operation.ShapeSlot);
-                CalibratedMotion.Draw(operation.Line,slow,motionInput);
+                if(activeAdaptiveSize!=operation.Size){Slider("size",operation.Size);activeAdaptiveSize=operation.Size;}
+                CalibratedMotion.Draw(operation.Line,slow with{Size=operation.Size},motionInput);
                 lastPaintPoint=Native.Cursor();
             }
-            Log("coverage_repair",new{group,pass=pass+1,strokes=repairs.Count,size=1,intervalMs=64,shapes=operations.Select(op=>op.ShapeSlot).Distinct()});
+            Log("coverage_repair",new{group,pass=pass+1,strokes=repairs.Count,sizes=operations.Select(op=>op.Size).Distinct(),intervalMs=64,shapes=operations.Select(op=>op.ShapeSlot).Distinct()});
+            if(activeShape!=restoreShape)ApplyBrushShape(restoreShape);
+            ApplyControls(restoreSize);activeAdaptiveSize=null;
             after=StableShot(canvas);Images.Save(after,Path.Combine(directory,$"group-{group}-repair-{pass+1}.png"));
             result=CoverageAudit.Read(before,after,expected,result.Reference);
         }

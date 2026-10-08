@@ -148,6 +148,7 @@ public sealed class Settings
 
     public void Validate()
     {
+        CalibrationReliability.Validate(this);
         foreach(var key in Defaults().Data.Where(p=>p.Value is JsonValue v&&v.GetValueKind()==JsonValueKind.Number).Select(p=>p.Key))
             if(Data.ContainsKey(key)&&(Data[key] is not JsonValue
                 ||!double.TryParse(Data[key]!.ToString(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var number)||!double.IsFinite(number)))
@@ -219,6 +220,12 @@ public sealed class Settings
             ["input_frame_delay_ms"] = 20,
             ["input_experimental_delay_ms"] = 12,
             ["input_engine"] = "Stable",
+            ["control_confirmation"] = "Clipboard",
+            ["readback_polls"] = 24,
+            ["readback_attempts"] = 3,
+            ["readback_retry_pause_ms"] = 50,
+            ["capture_stable_attempts"] = 5,
+            ["capture_stable_interval_ms"] = 80,
             ["color_mode"] = "Rust Palette",
             ["cell_px"] = 3,
             ["max_colors"] = "Auto",
@@ -256,7 +263,7 @@ public sealed class Settings
             ["use_fixed_opacity"] = true,
             ["brush_shape"] = "Round",
             ["brush_shape_slot"] = 3,
-            ["brush_calibration_size"] = "1/3/10/20",
+            ["brush_calibration_size"] = "3",
             ["adaptive_auto_shape"] = false,
             ["background_mode"] = "preserve",
             ["profile"] = "Anime / Line Art",
@@ -280,7 +287,7 @@ public sealed class Settings
             ["audit_repair"] = false,
             ["audit_repair_passes"] = 1,
             ["probe_size"] = 3,
-            ["precision_brush_size"] = "Profile",
+            ["precision_brush_size"] = "3",
             ["adaptive_max_size"] = 20
         }
 
@@ -510,6 +517,7 @@ public static class PlanIdentity
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeTiming.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(BrushFootprints.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(MeasuredColorPlan.Revision));
         if (settings.Bool("auto_brush_size", true)
             && (settings.Text("coverage_mode", "Precision") != "Precision" || !settings.Bool("force_precision_controls", true)))
             hash.AppendData(System.Text.Encoding.UTF8.GetBytes(AutomaticBrush.Revision));
@@ -610,15 +618,15 @@ public sealed class HexReadback
         return text == expected;
     }
 
-    public HexReadbackResult Read(IControlReadbackInput input,double copyDelay,Action<HexReadbackObservation>? observe=null)
+    public HexReadbackResult Read(IControlReadbackInput input,double copyDelay,Action<HexReadbackObservation>? observe=null,ReadbackOptions? options=null)
     {
         if(!double.IsFinite(copyDelay)||copyDelay is <0 or >1)throw new ArgumentException("Invalid control readback request.");
-        LastValid=null;string? raw=null;int reads=0;
-        for(int attempt=0;attempt<ReadbackPolling.Attempts;attempt++)
+        options??=new();options.Validate();LastValid=null;string? raw=null;int reads=0;
+        for(int attempt=0;attempt<options.Attempts;attempt++)
         {
             input.SelectField(attempt);input.SelectAll();input.WriteMarker(Marker);input.Copy();
-            input.Wait(copyDelay+attempt*.05);
-            for(int poll=0;poll<ReadbackPolling.Polls;poll++)
+            input.Wait(copyDelay+attempt*options.RetryPause);
+            for(int poll=0;poll<options.Polls;poll++)
             {
                 if(poll>0)input.Wait(ReadbackPolling.Delay(poll));
                 raw=input.Read();reads++;
@@ -629,7 +637,7 @@ public sealed class HexReadback
                 if(Normalize(raw) is not null)break;
             }
         }
-        return new(LastValid,raw,ReadbackPolling.Attempts,reads,false);
+        return new(LastValid,raw,options.Attempts,reads,false);
     }
 }
 public sealed record HexReadbackObservation(int Attempt,int Poll,string? Raw,string? Value,string Status);

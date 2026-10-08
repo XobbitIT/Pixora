@@ -27,10 +27,10 @@ internal static partial class Program
         };
         CompleteUiTask(()=>SetupSelectionTask(window));
         Assert(measurements==1&&settings.Number("probe_size")==3&&settings.Int("brush_shape_slot")==3&&PaintTimingPlan.DefaultSize(settings)==3,"Size 1 blocked Size 3 setup or painting returned to Size 1");
-        Assert(!AdaptiveBrush.CalibrationCurrent(settings)&&!settings.Bool("adaptive_brush"),"Speed-only Size 3 authorized Adaptive");
+        Assert(AdaptiveBrush.CalibrationCurrent(settings)&&!settings.Bool("adaptive_brush"),"Size 3 was blocked or Adaptive enabled without selection");
         Assert(Field<Button>(window,"spatialButton").IsEnabled,"Measured Size 3 cannot start spatial checks");
         var brush=(Border)Field<System.Collections.IDictionary>(window,"workflowChips")["brush"]!;
-        Assert(Captions(brush).Contains("Size 3")&&brush.ToolTip?.ToString()?.Contains("separate Size 1 proof")==true,"Usable Size 3 still shown as a generic brush error");
+        Assert(Captions(brush).Contains("Size 3")&&brush.ToolTip?.ToString()?.Contains("Size 1 is optional")==true,"Usable Size 3 still shown as a generic brush error");
         Console.WriteLine("PASS setup-size3-without-base");
     }
     private static void CheckSetupFallbackSize3(string output)
@@ -44,7 +44,7 @@ internal static partial class Program
         };
         CompleteUiTask(()=>SetupSelectionTask(window));
         Assert(measurements==2&&settings.Int("brush_shape_slot")==4&&settings.Number("probe_size")==3,"Verified fallback Size 3 was rejected");
-        Assert(!AdaptiveBrush.CalibrationCurrent(settings)&&!settings.Bool("adaptive_brush"),"Fallback bypassed Size 1 proof");
+        Assert(AdaptiveBrush.CalibrationCurrent(settings)&&!settings.Bool("adaptive_brush"),"Fallback Size 3 was blocked or Adaptive enabled without selection");
         Console.WriteLine("PASS setup-square-fallback-size3");
     }
     private static void CheckSetupFailedFallback(string output)

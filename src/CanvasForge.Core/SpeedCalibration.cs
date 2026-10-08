@@ -92,8 +92,8 @@ public static class SpeedCalibration
         return profile.Samples.Where(x=>x.Size==size&&x.Vertical==vertical)
             .OrderBy(x=>CalibratedMotion.Estimate(line,x)).FirstOrDefault();
     }
-    // Only estimates use this frozen copy. Live input still validates current
-    // measurements through Resolve, so moving Rust cannot reuse cached proof.
+    // Private estimate/execution copies cannot be edited by UI settings. The
+    // execution owner separately checks the live Rust geometry before input.
     internal static Func<double,ScreenLine,int,SpeedSample?> CreateEstimateResolver(Settings source)
     {
         var snapshot=BrushFootprints.Snapshot(source.Clone());

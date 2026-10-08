@@ -36,6 +36,9 @@ internal sealed partial class Painter : IDisposable
     private ScreenPoint? lastPaintPoint;
     private ClipboardLease? clipboardLease;
     private bool textRecovery;
+    private StrokeExecutionPlan? executionPlan;
+    private StrokeExecutionPlan Execution=>executionPlan??=new(settings);
+    private ScreenPoint? lastFieldRequested,lastFieldObserved;
     public bool Paused { get => paused; set => paused = value; }
     private InputDelay DelayTimer => inputDelay??=new();
     public void Dispose()=>inputDelay?.Dispose();
@@ -216,7 +219,8 @@ internal sealed partial class Painter : IDisposable
         textRecovery=attempt>0;
         Click(point,twice:textRecovery);
         if(textRecovery)Delay(.12);
-        Log("text_field_selection",new{requested=point,observed=Native.Cursor(),attempt,recovery=textRecovery,
+        lastFieldRequested=point;lastFieldObserved=Native.Cursor();
+        Log("text_field_selection",new{requested=point,observed=lastFieldObserved,attempt,recovery=textRecovery,
             transport="guarded SendInput",dpi=windowDpi});
     }
 
@@ -272,7 +276,7 @@ internal sealed partial class Painter : IDisposable
         {
             var result=readback.Read(new NumberReadbackInput(this,new(p.X,p.Y,p.X+1,p.Y+1),textRecovery),StrokeTiming.CopyDelay(settings),
                 observation=>Log("hex_readback",new{strategy="select_all",attempt=observation.Attempt,poll=observation.Poll,
-                    status=observation.Status,raw=observation.Raw,value=observation.Value}));
+                    status=observation.Status,raw=ReadbackDiagnostics.SafeText(observation.Raw),value=observation.Value}),CalibrationReliability.Readback(settings));
             return result.Value;
         }
         finally{textRecovery=previousRecovery;}
@@ -399,13 +403,15 @@ internal sealed partial class Painter : IDisposable
         try
         {
             var result=ControlReadback.Read(kind,expected,new NumberReadbackInput(this,field,textRecovery),StrokeTiming.CopyDelay(settings),
-                observation=>Log("control_readback_poll",new{kind,expected,observation}));
-            Log("control_readback",new{kind,raw=result.Raw,number=result.Number,fresh=result.Raw is not null&&result.Raw!=ControlNumber.Marker,
+                observation=>Log("control_readback_poll",new{kind,expected,observation=observation with{Raw=ReadbackDiagnostics.SafeText(observation.Raw,kind)}}),CalibrationReliability.Readback(settings));
+            Log("control_readback",new{kind,raw=ReadbackDiagnostics.SafeText(result.Raw,kind),number=result.Number,fresh=result.Raw is not null&&result.Raw!=ControlNumber.Marker,
                 verified=result.Verified,attempts=result.Attempts,reads=result.Reads});
             if(!result.Verified&&result.Number is null)
             {
                 Log("control_copy_unavailable",new{kind,expected,field,attempts=result.Attempts,reads=result.Reads,
-                    markerPending=result.Raw==ControlNumber.Marker,dpi=windowDpi,foreground=Native.GetForegroundWindow()==window});
+                    markerPending=result.Raw==ControlNumber.Marker,raw=ReadbackDiagnostics.SafeText(result.Raw,kind),
+                    requested=lastFieldRequested,observed=lastFieldObserved,clickMatched=lastFieldRequested is not null&&lastFieldRequested==lastFieldObserved,
+                    budget=CalibrationReliability.Readback(settings),dpi=windowDpi,foreground=Native.GetForegroundWindow()==window});
                 // The reader already reselected/copied three times. Do not
                 // start a new paste while the final response is still pending.
                 throw new InvalidOperationException(ControlCopyProblem(kind));
@@ -417,7 +423,8 @@ internal sealed partial class Painter : IDisposable
 
     private bool VerifyControlNumber(string kind, double value, SliderObservation geometry)
     {
-        var number = ReadControlNumber(kind, geometry.ValueField,value);
+        bool visual=CalibrationReliability.Visual(settings);
+        var number = VisualControlVerification.ReadNumber(settings,()=>ReadControlNumber(kind,geometry.ValueField,value));
         var original=Native.Cursor();
         var area=new ScreenRect(Math.Min(geometry.Track.Left,geometry.ValueField.Left),Math.Min(geometry.Track.Top,geometry.ValueField.Top),
             Math.Max(geometry.Track.Right,geometry.ValueField.Right),Math.Max(geometry.Track.Bottom,geometry.ValueField.Bottom));
@@ -426,10 +433,12 @@ internal sealed partial class Painter : IDisposable
         if(park!=original){Native.ReleaseChecked();MoveCursor(park);}
         Log("control_cursor_park",new{kind,original,park,transport="guarded SendInput"});
         Delay(StrokeTiming.CursorPark(settings));
-        var after = ReadSlider(kind);
-        var ok = ControlNumber.Matches(number, value) && after is { } result
+        VisualControlEvidence? evidence=visual?VisualControlVerification.Read(kind,value,()=>ReadSlider(kind),Delay,CalibrationReliability.StableInterval(settings)):null;
+        var after = visual?evidence!.Second:ReadSlider(kind);
+        var ok = visual?evidence!.Verified:ControlNumber.Matches(number, value) && after is { } result
             && result.Matches(ControlCurve.Fraction(kind, value));
-        Log("slider_check", new { kind, value, number, actual = after?.Fraction, ok, strategy = "numeric_field" });
+        Log("slider_check", new { kind, value, number, actual = after?.Fraction, ok,
+            strategy = visual?"visual_slider":"numeric_field",numericReadback=!visual,evidence,physicalFootprintRequired=visual });
         if(ok)verifiedControls[kind]=value;else verifiedControls.Remove(kind);
         return ok;
     }
@@ -497,7 +506,8 @@ internal sealed partial class Painter : IDisposable
     public Rgb SelectCalibrationColor(Rgb background)
     {
         var cal = settings.PaintCalibration();
-        Click(cal.Point("brush_tool") ?? throw new InvalidOperationException("Захопи інструмент пензля через налаштування Rust."));
+        if(settings.Mode==ColorMode.RustPalette)
+            Click(cal.Point("brush_tool") ?? throw new InvalidOperationException("Захопи інструмент пензля через налаштування Rust."));
         ApplyBrushShape();
         if (settings.Mode == ColorMode.HexDirect)
         {
@@ -601,6 +611,7 @@ internal sealed partial class Painter : IDisposable
 
     public void Run(PaintPlan plan, ResumeCheckpoint? resume = null)
     {
+        if(CalibrationReliability.PaintingProblem(settings) is {} calibrationProblem)throw new InvalidOperationException(calibrationProblem);
         token.ThrowIfCancellationRequested();
         Log("start_preparing",new{version=BuildInfo.Version,workingSize=PaintTimingPlan.DefaultSize(settings)});
         report(new(0,0,0,0,"Готую штрихи та час. Можна зупинити підготовку.",Phase:PaintPhase.Preparing));
@@ -609,7 +620,12 @@ internal sealed partial class Painter : IDisposable
             throw new InvalidOperationException(auditProblem);
         if(settings.Bool("coverage_audit")&&resume is not null)
             throw new InvalidOperationException("Аудит потребує початкового кадру Canvas. Виконай новий START; RESUME доступний без аудиту.");
-        var groups = TransferSchedule.Build(plan, settings,token);
+        var measuredPlan=MeasuredColorPlan.TryBuild(plan,settings,token);
+        var groups = measuredPlan is null?TransferSchedule.Build(plan,settings,token):TransferSchedule.Build(plan,settings,measuredPlan.Groups,token);
+        if(measuredPlan is not null)
+            Log("measured_color_plan",new{revision=MeasuredColorPlan.Revision,measuredPlan.TargetPixels,measuredPlan.CoveredPixels,measuredPlan.UnplannedPixels,
+                sizes=measuredPlan.Groups.Values.SelectMany(x=>x).Select(x=>x.Size).Distinct().Order().ToArray(),physicalResultVerified=false});
+        if(groups.Values.All(x=>x.Count==0))throw new InvalidOperationException("Жоден підтверджений пензель не поміщається у кольорові ділянки. Виміряй менший Size або зменш кількість кольорів.");
         var order = TransferSchedule.Order(plan, groups);
 
         var total = groups.Values.Sum(x => x.Count);
@@ -699,13 +715,17 @@ internal sealed partial class Painter : IDisposable
                     timing.Complete(PaintTimingPlan.BeforeAudit(group),ActiveSeconds-captureStart);
                 }
                 var lines = groups[color];
-                double motionSeconds=0,plannedMotionSeconds=0;int motionBatches=0;
+                double motionSeconds=0,plannedMotionSeconds=0,operationOverheadSeconds=0;
+                double resolutionSeconds=0,estimateSeconds=0,etaModelSeconds=0,checkpointSeconds=0,reportSeconds=0;int motionBatches=0,shiftParts=0;
+                var routes=new Dictionary<string,int>();var lengthHistogram=new int[6];
                 InputCosts costs=default;
                 for (var line = group == (resume?.Group ?? -1) ? resume!.Line : 0; line < lines.Count; line++)
                 {
+                    double cycleStart=0,excludedSeconds=0,actualMotion=0;
                     while (true)
                         try
                         {
+                            cycleStart=ActiveSeconds;excludedSeconds=0;
                             WaitReady();
                             var op = lines[line];
                             var targetSize = settings.Bool("adaptive_brush") ? (op.Size > 0 ? op.Size : PaintTimingPlan.DefaultSize(settings)) : (double?)null;
@@ -713,6 +733,7 @@ internal sealed partial class Painter : IDisposable
 
                             if (needsReprime)
                             {
+                                double reprimeStart=ActiveSeconds;
                                 ReprimeControls(targetSize,targetShape);
                                 if (plan.Mode == ColorMode.HexDirect)
                                 {
@@ -723,13 +744,15 @@ internal sealed partial class Painter : IDisposable
                                 else
                                     ApplyPalette(entry);
                                 needsReprime = false;
+                                excludedSeconds+=ActiveSeconds-reprimeStart;
                             }
 
                             if(activeShape!=targetShape)
                             {
                                 BeginTiming(PaintTimingPlan.Shape(group,line),PaintPhase.Preparing,"Змінюю форму пензля…");
                                 double shapeStart=ActiveSeconds;ApplyBrushShape(targetShape);
-                                timing.Complete(PaintTimingPlan.Shape(group,line),ActiveSeconds-shapeStart);
+                                double shapeSeconds=ActiveSeconds-shapeStart;excludedSeconds+=shapeSeconds;
+                                timing.Complete(PaintTimingPlan.Shape(group,line),shapeSeconds);
                                 Log("adaptive_shape",new{group,line,shape=targetShape,op.ProfileId});
                             }
                             timing.Skip(PaintTimingPlan.Shape(group,line));
@@ -741,7 +764,8 @@ internal sealed partial class Painter : IDisposable
                                     BeginTiming(PaintTimingPlan.Size(group,line),PaintPhase.Preparing,"Змінюю розмір пензля…");
                                     double sizeStart=ActiveSeconds;
                                     Slider("size", size);
-                                    timing.Complete(PaintTimingPlan.Size(group,line),ActiveSeconds-sizeStart);
+                                    double sizeSeconds=ActiveSeconds-sizeStart;excludedSeconds+=sizeSeconds;
+                                    timing.Complete(PaintTimingPlan.Size(group,line),sizeSeconds);
                                     activeAdaptiveSize = size;
                                     Log("adaptive_size", new { group, line, size, wide = op.Size > 0 });
                                 }
@@ -751,13 +775,27 @@ internal sealed partial class Painter : IDisposable
                             BeginTiming(PaintTimingPlan.Motion(group,line),PaintPhase.Drawing,$"#{entry.Color.Hex}");
                             long motionStart=Stopwatch.GetTimestamp();
                             var inputStart=InputSnapshot();
-                            if(TransferSchedule.FastBatch(settings,op))DrawBatch(op,speed);
-                            else Draw(op.Segments[0], speed, line % 2 == 1);
-                            double actualMotion=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;
+                            long resolutionStart=Stopwatch.GetTimestamp();
+                            bool fastBatch=Execution.FastBatch(op);
+                            var sample=op.Segments.Count==1?Execution.Resolve(activeAdaptiveSize??DesiredControls().Size,op.Segments[0],activeShape):null;
+                            resolutionSeconds+=Stopwatch.GetElapsedTime(resolutionStart).TotalSeconds;
+                            if(fastBatch)DrawBatch(op,speed);
+                            else Draw(op.Segments[0], speed, line % 2 == 1,sample);
+                            actualMotion=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;
+                            string route=fastBatch?"dense_path":sample is not null?$"probe_{sample.Method}":
+                                settings.Bool("line_mode")&&settings.Text("coverage_mode")=="Fast"&&TransferSchedule.Length(op.Segments[0])>=settings.Int("min_line_width",4)*settings.Int("cell_px",3)?"legacy_shift":"drag";
+                            var first=op.Segments[0];route+=op.Segments.Count>1?":mixed":first.X1==first.X2&&first.Y1!=first.Y2?":V":":H";
+                            routes[route]=routes.GetValueOrDefault(route)+1;
+                            foreach(var segment in op.Segments){int n=TransferSchedule.Length(segment);lengthHistogram[n<8?0:n<16?1:n<32?2:n<64?3:n<128?4:5]++;}
+                            if(sample?.Method==StrokeMethod.Shift)shiftParts+=Math.Max(1,(TransferSchedule.Length(first)+sample.MaxLength-1)/sample.MaxLength);
                             costs+=InputSnapshot()-inputStart;
+                            long etaStart=Stopwatch.GetTimestamp();
                             timing.Complete(PaintTimingPlan.Motion(group,line),actualMotion);
+                            etaModelSeconds+=Stopwatch.GetElapsedTime(etaStart).TotalSeconds;
                             motionSeconds+=actualMotion;
-                            plannedMotionSeconds+=TransferSchedule.EstimateBatch(settings,speed,op);motionBatches++;
+                            long estimateStart=Stopwatch.GetTimestamp();
+                            plannedMotionSeconds+=Execution.Estimate(op);motionBatches++;
+                            estimateSeconds+=Stopwatch.GetElapsedTime(estimateStart).TotalSeconds;
                             break;
                         }
                         catch (InputInterrupted)
@@ -775,16 +813,25 @@ internal sealed partial class Painter : IDisposable
                             Group = group + 1,
                             Line = 0
                         };
-                    checkpoint.Update(state);
+                    long checkpointStart=Stopwatch.GetTimestamp();checkpoint.Update(state);
                     if (done % 50 == 0 || line + 1 == lines.Count)
                         FlushCheckpoint("periodic");
+                    checkpointSeconds+=Stopwatch.GetElapsedTime(checkpointStart).TotalSeconds;
                     if (clock.Elapsed.TotalSeconds>=nextReport || done == total)
                     {
+                        long reportStart=Stopwatch.GetTimestamp();
                         nextReport=clock.Elapsed.TotalSeconds+.25;
                         ReportTiming($"#{entry.Color.Hex}");
+                        reportSeconds+=Stopwatch.GetElapsedTime(reportStart).TotalSeconds;
                     }
+                    double overhead=Math.Max(0,ActiveSeconds-cycleStart-excludedSeconds-actualMotion);
+                    timing.RecordOperationOverhead(PaintTimingPlan.Motion(group,line),overhead);
+                    operationOverheadSeconds+=overhead;
                 }
-                Log("motion_group",new{group,motionBatches,motionSeconds,plannedMotionSeconds,delayTransport=DelayTimer.Transport,inputCosts=costs,meanStrokeMs=motionBatches>0?motionSeconds*1000/motionBatches:0,plannedMeanStrokeMs=motionBatches>0?plannedMotionSeconds*1000/motionBatches:0});
+                Log("motion_group",new{group,motionBatches,motionSeconds,plannedMotionSeconds,operationOverheadSeconds,
+                    resolutionSeconds,estimateSeconds,etaModelSeconds,checkpointSeconds,reportSeconds,executionRevision=StrokeExecutionPlan.Revision,
+                    routes,shiftParts,lengthHistogram, lengthHistogramRanges=new[]{"0-7","8-15","16-31","32-63","64-127","128+"},
+                    delayTransport=DelayTimer.Transport,inputCosts=costs,meanStrokeMs=motionBatches>0?motionSeconds*1000/motionBatches:0,plannedMeanStrokeMs=motionBatches>0?plannedMotionSeconds*1000/motionBatches:0});
                 if(auditBefore is not null)
                 {
                     BeginTiming(PaintTimingPlan.Audit(group),PaintPhase.Auditing,"Перевіряю покриття…");
@@ -838,10 +885,9 @@ internal sealed partial class Painter : IDisposable
         }
     }
 
-    private void Draw(ScreenLine line, SpeedProfile speed, bool reverse)
+    private void Draw(ScreenLine line, SpeedProfile speed, bool reverse,SpeedSample? sample)
     {
-        double size=activeAdaptiveSize??DesiredControls().Size;
-        if(SpeedCalibration.Resolve(settings,size,line,activeShape) is { } sample)
+        if(sample is not null)
         {
             // Probe validates left-to-right / top-to-bottom. Preserve that direction.
             var tested=line.X2<line.X1||line.Y2<line.Y1?TransferSchedule.Reverse(line):line;

@@ -10,10 +10,15 @@ public sealed class SetupStageException(SetupStage stage, Exception error) : Exc
 public static class SetupSequence
 {
     public static readonly SetupStage[] Stages = Enum.GetValues<SetupStage>();
+    public static readonly SetupStage[] DrawingStages=[SetupStage.Capture,SetupStage.Colors,SetupStage.Controls,SetupStage.Brush];
+    public static string[] CaptureKeys(Settings s)=>s.Mode==ColorMode.HexDirect
+        ?["canvas","hex","brush_shapes","size_track","interval_track","opacity_track"]
+        :["canvas","palette","brush_tool","brush_shapes","size_track","interval_track","opacity_track"];
+    public static double DrawingSize(Settings s)=>PaintTimingPlan.DefaultSize(s) is 3 or 10 or 20?PaintTimingPlan.DefaultSize(s):3;
     public static async Task Run(Func<SetupStage, CancellationToken, Task> execute,
-        Action<SetupStage, SetupStageState, string> report, CancellationToken token)
+        Action<SetupStage, SetupStageState, string> report, CancellationToken token,IReadOnlyList<SetupStage>? stages=null)
     {
-        foreach (var stage in Stages)
+        foreach (var stage in stages??Stages)
         {
             try
             {
@@ -28,7 +33,8 @@ public static class SetupSequence
     public static bool CaptureReady(Settings s)
     {
         var c=s.Calibration;
-        if (!c.Rect("canvas").Valid || c.SessionClient is null || c.SessionSize is null || c.Point("brush_tool") is null) return false;
+        if (!c.Rect("canvas").Valid || c.SessionClient is null || c.SessionSize is null
+            ||s.Mode==ColorMode.RustPalette&&c.Point("brush_tool") is null) return false;
         if (s.Mode==ColorMode.HexDirect && (c.HexPoint is null || !s.HexControlsReady)) return false;
         if (s.Mode==ColorMode.RustPalette && (!c.Rect("palette").Valid || s.Palette().Count==0)) return false;
         var paint=s.PaintCalibration();

@@ -1,5 +1,17 @@
-# Pixora 1.0.14-beta.46
+# Pixora 1.0.14-beta.50 — normal working Size 3
 
+Beta.50 adds explicit Rust Palette / HEX choice, synchronized setting editors, mixed painting with verified Sizes 3/10/20 without mandatory Size 1, and command planning constrained by measured physical color boundaries. Size 1 remains optional and requires its own proof. Model gaps are shown before START. 388 Core / 125 WPF offline checks; no new live Rust test. Source is published in [PR #2](https://github.com/XobbitIT/Pixora/pull/2); GitHub Actions builds the portable archive. The previously delivered local ZIP retains its original pre-commit manifest. See [changes](CHANGES_BETA50_UA.md) and [checklist](TESTING_BETA50_UA.md).
+
+Previous beta.49:
+Beta.49 removes repeated calibration proof processing in the private execution snapshot and adds measured work between strokes to ETA. Input commands, calibrated waits, planner, masks and accuracy thresholds are unchanged. 375 Core / 118 WPF offline checks; live Rust acceleration is not yet measured. Local snapshot without a new GitHub push. See [changes](CHANGES_BETA49_UA.md) and [checklist](TESTING_BETA49_UA.md).
+
+Previous beta.48:
+Beta.48 makes normal working Size 3 the minimum/default; legacy Size 1/Profile values migrate to 3. Size 1 remains a dedicated Adaptive measurement and its proof is preserved. Image detail at 1 px is separate from Rust Size. Compact setup and slow-laptop transport from beta.47 are retained. Painting formulas and acceptance thresholds are unchanged. 365 Core / 116 WPF offline checks; live Rust test pending. Local snapshot without a new GitHub push. See [changes](CHANGES_BETA48_UA.md) and [checklist](TESTING_BETA48_UA.md).
+
+Previous beta.47:
+Beta.47 simplifies preparation to Capture / Colors / Controls / one measured Size (3 by default). Spatial, Speed Probe and Adaptive are separate advanced actions. HEX no longer requires Tools capture. The optional Slow laptop preset uses two slider captures plus a mandatory current brush imprint for painting, without numeric Ctrl+C; it cannot prove the exact Interval/Opacity text from an imprint alone. Readback and stable-capture budgets are configurable. Painting formulas and acceptance thresholds are unchanged. 361 Core / 114 WPF offline checks; a fresh user-run Rust test is required. This is a local snapshot, not a new GitHub commit. See [changes](CHANGES_BETA47_UA.md) and [live checklist](TESTING_BETA47_UA.md).
+
+Previous beta.46:
 Beta.46 gives the clipboard owner its own responsive message loop, keeps transient empty copy states pending without authorizing overwrites, and saves slider rejection screenshots with the exact failed criterion. It addresses defects exposed by the live laptop beta.45 diagnosis. 346 Core / 107 WPF checks; fresh laptop HEX/Controls validation is still required. See [changes](CHANGES_BETA46_UA.md) and [live checklist](TESTING_BETA46_UA.md).
 
 Previous beta.45:

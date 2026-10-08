@@ -6,7 +6,7 @@ public static partial class CoverageAudit
         IReadOnlyList<BrushFootprint> profiles,int limit=2000,CancellationToken token=default)
     {
         if(!canvas.Valid||(long)canvas.Width*canvas.Height>4_000_000||missing.Length!=canvas.Width*canvas.Height
-            ||expected.Length!=missing.Length||limit<1||profiles.Count>7||profiles.Any(p=>!BrushFootprints.Valid(p)||p.Size!=1
+            ||expected.Length!=missing.Length||limit<1||profiles.Count>7||profiles.Any(p=>!BrushFootprints.Valid(p)
             ||p.Possible.Sum(r=>r.Right-r.Left)>4096))throw new ArgumentException("Invalid footprint repair.");
         int w=canvas.Width,h=canvas.Height,targets=0,unreachable=0,possibleOnly=0;
         var planned=new bool[missing.Length];var commands=new Dictionary<string,HashSet<ScreenPoint>>();
@@ -57,7 +57,7 @@ public static partial class CoverageAudit
                     if(next<0)break;
                     pending.Remove(new(next,point.Y));end=next;
                 }
-                ops.Add(new(new(canvas.Left+point.X,canvas.Top+point.Y,canvas.Left+end,canvas.Top+point.Y),1,p.Reach,0,p.ShapeSlot,p.Id));
+                ops.Add(new(new(canvas.Left+point.X,canvas.Top+point.Y,canvas.Left+end,canvas.Top+point.Y),p.Size,p.Reach,0,p.ShapeSlot,p.Id));
                 if(ops.Count>limit)throw new InvalidOperationException("Too many safe repair operations. Run a new Speed Probe.");
             }
         }

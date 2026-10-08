@@ -11,13 +11,13 @@ internal static partial class Program
     private static void CheckWorkingBrush(string output,string language)
     {
         bool en=language=="English";string directory=Path.Combine(output,"working-brush-"+(en?"en":"ua"));Directory.CreateDirectory(directory);
-        var s=ReadySettings(language);s.Set("adaptive_brush",false);s.Set("precision_brush_size","Profile");s.Set("speed_profile","Rapid");
+        var s=ReadySettings(language);s.Set("adaptive_brush",false);s.Set("precision_brush_size","10");s.Set("speed_profile","Rapid");
         s.Set("calibrated_strokes",true);s.Set("coverage_audit",false);BrushFootprints.Save(s,[SetupStamp(s,3,3)]);s.Save(Path.Combine(directory,"config-csharp.json"));
         var w=new MainWindow(directory);SetField(w,"source",new PixelImage(8,8));Invoke(w,"UpdateReady");
         Assert(Field<Button>(w,"startButton").IsEnabled,"Unavailable Size 1/speed blocked normal START");
         var use=Field<Button>(w,"useMeasuredBrush");Assert(use.Visibility==Visibility.Visible&&use.Content.ToString()!.Contains("Size 3"),"No single-click recovery to measured Size 3");
         use.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
-        var live=Field<Settings>(w,"settings");Assert(PaintTimingPlan.DefaultSize(live)==3&&!AdaptiveBrush.CalibrationCurrent(live),"Recovery reused unverified Size 1");
+        var live=Field<Settings>(w,"settings");Assert(PaintTimingPlan.DefaultSize(live)==3&&AdaptiveBrush.CalibrationCurrent(live)&&!live.Bool("adaptive_brush"),"Recovery changed Size or enabled Adaptive without selection");
         Assert(Field<TextBlock>(w,"workingBrushSummary").Text.Contains(en?"footprint verified":"слід підтверджений"),"Actual working Size is not explained");
         var worker=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
         typeof(Painter).GetField("settings",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(worker,live);

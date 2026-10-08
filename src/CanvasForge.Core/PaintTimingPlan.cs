@@ -16,11 +16,12 @@ public static class PaintTimingPlan
         speed??=SpeedProfile.Get(s.Text("speed_profile","Rapid"));
         if(s.Text("coverage_mode","Precision")=="Precision"&&s.Bool("force_precision_controls",true))
         {
-            // An explicit working Size survives movement/detail presets. Adaptive
-            // retains its existing fine brush and separate Size 1 proof.
+            // An explicit working Size survives movement/detail presets. Mixed
+            // painting uses its smallest verified Size, including 1 if available.
             if(!s.Bool("adaptive_brush")&&s.Text("precision_brush_size","Profile")!="Profile")
                 return s.Number("precision_brush_size",speed.BrushSize);
-            return speed.BrushSize;
+            return BrushFootprints.Read(s,s.Bool("adaptive_brush")&&s.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20))
+                .Select(p=>p.Size).DefaultIfEmpty(speed.BrushSize).Min();
         }
         return s.Bool("auto_brush_size",true)?AutomaticBrush.Value(s,Math.Max(1,s.Int("cell_px",3))):s.Number("brush_size_value",3);
     }

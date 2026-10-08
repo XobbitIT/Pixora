@@ -27,10 +27,10 @@ internal static class BrushBatchChecks
             Require(batch.Profiles.Count==0&&batch.Rejected.Single().Size==3);
             try{batch.Add(1,2,Stamp());throw new Exception("Repeat accepted twice");}catch(InvalidOperationException){}
         });
-        test("Partial saving preserves previous masks and does not enable adaptive without Size 1",()=>{
+        test("Partial saving preserves previous masks and allows verified Size 3 without certifying Size 1",()=>{
             var s=Config();var batch=new BrushCalibrationBatch(s,3,[3]);for(int repeat=1;repeat<=3;repeat++)batch.Add(3,repeat,Stamp());
             var old=BrushFootprints.Build(s,3,10,[Stamp(),Stamp(),Stamp()]);BrushFootprints.Save(s,[old]);BrushFootprints.Save(s,batch.Profiles);
-            Require(BrushFootprints.Find(s,10)!.Id==old.Id&&!AdaptiveBrush.CalibrationCurrent(s));
+            Require(BrushFootprints.Find(s,10)!.Id==old.Id&&AdaptiveBrush.CalibrationCurrent(s));
             Require(SpeedCalibration.BrushReady(s,3)&&!SpeedCalibration.BrushReady(s,1));
             var moved=s.Clone();var c=moved.Calibration;c.SetSession(new(1,0),96,new(1920,1440));moved.SetCalibration(c);Require(!SpeedCalibration.BrushReady(moved,3));
         });
@@ -42,7 +42,7 @@ internal static class BrushBatchChecks
             ProbeSpatialCalibration.Save(s,model);Require(ProbeSpatialCalibration.Read(s,3) is not null);
             s.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Paced,false,8,12,1,40,3,1,model.Id)]));
             Require(SpeedCalibration.Resolve(s,3,new(20,20,60,20)) is not null&&SpeedCalibration.Resolve(s,1,new(20,20,60,20)) is null);
-            Require(!AdaptiveBrush.CalibrationCurrent(s));
+            Require(AdaptiveBrush.CalibrationCurrent(s)&&!SpeedCalibration.BrushReady(s,1));
         });
     }
 }

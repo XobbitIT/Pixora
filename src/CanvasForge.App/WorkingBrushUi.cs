@@ -9,7 +9,7 @@ internal sealed partial class MainWindow
     private void AddWorkingBrush(StackPanel parent)
     {
         AddCombo(parent,"precision_brush_size",T("Робочий розмір пензля (Size)","Working brush Size"),
-            new[]{"Profile","1","3","10","20","40","60","100"},true);
+            new[]{"1","3","10","20","40","60","100"},true);
         workingBrushSummary=Text("",12,Muted);parent.Children.Add(workingBrushSummary);
     }
     private void AddWorkingBrushRecovery(StackPanel parent)
@@ -32,6 +32,13 @@ internal sealed partial class MainWindow
         else workingBrushSummary.Text+="\n"+T("Це значення в Rust. Деталізація, px — окрема сітка зображення.","This is the Rust control value. Detail, px is the separate image grid.");
         if(settings.Bool("calibrated_strokes")&&!SpeedCalibration.Use(settings))
             workingBrushSummary.Text+="\n"+T("Маршрут швидкості неактуальний: малювання піде звичайним стабільним вводом.","The speed route is stale: painting will use normal stable input.");
+        if(SpeedCalibration.Use(settings))
+        {
+            var routes=(SpeedCalibration.Read(settings)?.Samples??[]).Where(p=>p.Size==size).Select(p=>$"{(p.Vertical?"V":"H")} {Option("stroke_method",p.Method.ToString())} · {p.SafeMs:0} {T("мс","ms")} · {p.MaxLength} px").ToArray();
+            if(routes.Length>0)workingBrushSummary.Text+="\n"+T("Перевірені маршрути: ","Verified routes: ")+string.Join("; ",routes);
+            workingBrushSummary.ToolTip=T("Короткі штрихи до 8 px використовують звичайний рух. Калібровані лінії діляться за перевіреною довжиною; об'єднання штрихів у пакети вимкнене.","Strokes shorter than 8 px use normal movement. Calibrated lines are split at the tested span; batch joining is disabled.");
+        }
+        else workingBrushSummary.ToolTip=null;
         workingBrushSummary.Foreground=verified?Success:Warning;
         double? replacement=SetupBrushSelection.Select(BrushFootprints.Read(settings),settings.Int("brush_shape_slot",3),settings.Number("probe_size",3));
         useMeasuredBrush.Visibility=!settings.Bool("adaptive_brush")&&!verified&&replacement is not null

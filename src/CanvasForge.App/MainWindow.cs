@@ -239,7 +239,7 @@ internal sealed partial class MainWindow : Window
     private void BuildUi()
     {
         buildingUi = true;
-        readers.Clear();allSetupButtons.Clear();setupSummaries.Clear();setupRows.Clear();
+        readers.Clear();settingWriters.Clear();allSetupButtons.Clear();setupSummaries.Clear();setupRows.Clear();
         navigation.Clear();numberErrors.Clear();detailPresets.Clear();
         pages.Clear();
         var root = new Grid
@@ -403,7 +403,16 @@ internal sealed partial class MainWindow : Window
         AddAutomaticSetup(preparation);
         preparation.Children.Add(Button(T("Окремі налаштування Rust","Individual Rust settings"),()=>ShowPage("capture")));
         right.Children.Add(Card(T("2. Кольори","2. Colors"),out var colors));
+        var modes=new UniformGridCompat(2);
+        foreach(var mode in new[]{"Rust Palette","HEX Direct"})
+        {
+            var choice=Button(Option("color_mode",mode),()=>SwitchColorMode(mode),settings.Text("color_mode")==mode);
+            choice.Tag="color-choice:"+mode;modes.Add(choice);
+        }
+        colors.Children.Add(modes.Panel);
         AddCombo(colors,"color_mode",T("Спосіб вибору кольору","Color selection"),new[]{"Rust Palette","HEX Direct"},true);
+        colors.Children.Add(Text(settings.Mode==ColorMode.HexDirect?T("HEX вводить точний колір. Для палітри Rust натисни кнопку поруч.","HEX enters an exact color. Use the adjacent Rust Palette button for palette painting."):
+            T("Малювання палітрою Rust. Якщо статус Rust очікує, захопи палітру й керування для цього режиму.","Rust palette painting. If Rust is Pending, capture the palette and controls for this mode."),12,Muted));
         AddCombo(colors,settings.Mode==ColorMode.HexDirect?"hex_max_colors":"max_colors",T("Кількість кольорів","Color count"),settings.Mode==ColorMode.HexDirect?new[]{"Auto","64","96","128","192","256"}:new[]{"Auto","16","32","64","96"},true);
         paletteCompareButton = Button(T("Порівняти 64 / 96 / 128 / 256", "Compare 64 / 96 / 128 / 256"), CompareHexPalettes);
         paletteCompareButton.ToolTip = T("Чотири прев’ю, операції, ΔE і плановий час для відкритого зображення.", "Four previews, operations, ΔE and planned time for the loaded image.");
@@ -412,7 +421,7 @@ internal sealed partial class MainWindow : Window
         var presets=new UniformGridCompat(2);
         foreach(var (label,cell,speed) in new[]{(T("Чітко · 1 px","Detail · 1 px"),1,"Rapid"),(T("Баланс · 3 px","Balanced · 3 px"),3,"Rapid"),(T("Швидко · 5 px","Fast · 5 px"),5,"Turbo"),(T("Чернетка · 8 px","Draft · 8 px"),8,"Max Speed")})
         {
-            var preset=Button(label,()=>Preset(cell,speed));preset.ToolTip=T("Менше px — більше деталей. Пресет змінює деталізацію й профіль руху.","Fewer px preserves more detail. A preset changes detail and movement profile.");
+            var preset=Button(label,()=>Preset(cell,speed));preset.ToolTip=T("px — деталізація зображення, а не Size пензля Rust. Пресет змінює сітку й профіль руху; звичайний робочий Size починається з 3.","px is image detail, not Rust brush Size. A preset changes the grid and movement profile; normal working Size starts at 3.");
             detailPresets[cell]=preset;presets.Add(preset);
         }
         quality.Children.Add(presets.Panel);
@@ -421,6 +430,8 @@ internal sealed partial class MainWindow : Window
         AddWorkingBrush(quality);
         AddCheck(quality,"fast_transfer",T("Максимальна швидкість перенесення","Maximum transfer speed"),true);
         adaptiveSummary=Text("",12,Muted);quality.Children.Add(adaptiveSummary);
+        measuredPlanStatus=Text("",12,Warning);quality.Children.Add(measuredPlanStatus);
+        measuredPlanDetails=Button(T("Показати ділянки без команд","Show areas without commands"),ShowMeasuredPlan);measuredPlanDetails.Tag="measured-plan-details";quality.Children.Add(measuredPlanDetails);
         quality.Children.Add(Button(T("Тест швидкості й аудит","Speed Probe and audit"),ShowSpeedSetup));
         var timing=new StackPanel();quality.Children.Add(new Expander{Header=T("Точні параметри швидкості","Movement timing"),Content=timing});
         AddCombo(timing,"speed_profile",T("Профіль руху","Movement profile"),SpeedProfile.All.Select(x=>x.Name).ToArray(),true);
@@ -476,18 +487,19 @@ internal sealed partial class MainWindow : Window
         System.Windows.Automation.AutomationProperties.SetName(combo, T(title));
         System.Windows.Automation.AutomationProperties.SetAutomationId(combo, key);
         parent.Children.Add(combo);
-        readers[key] = () => values[Math.Max(0, combo.SelectedIndex)];
+        BindSetting(key,()=>values[Math.Max(0,combo.SelectedIndex)],value=>combo.SelectedIndex=Math.Max(0,Array.IndexOf(values,value.ToString())));
         combo.SelectionChanged += (_, _) =>
         {
-            if (!buildingUi) Guard(() =>
+            if (!buildingUi&&!syncingSettings) Guard(() =>
             {
-                ReadSettings();
+                ReadSettingsCore(key,values[Math.Max(0,combo.SelectedIndex)]);
+                if(key=="probe_size")speedFailure="";
                 if (dirty)
                     Dirty();
                 else
                     Save();
                 UpdateReady();
-                if (key == "color_mode") BuildUi();
+                if (key is "color_mode" or "control_confirmation") BuildUi();
                 else if (key == "input_engine") RenderPlan();
             });
         };
@@ -506,6 +518,7 @@ internal sealed partial class MainWindow : Window
         var label=Text(title,11,Muted);label.ToolTip=T(title);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
         var box = new TextBox
         {
+            Tag = key,
             Text = settings.Number(key).ToString(CultureInfo.InvariantCulture),
             ToolTip = T(title)
         };
@@ -513,6 +526,7 @@ internal sealed partial class MainWindow : Window
         row.Children.Add(box);
         parent.Children.Add(row);
         var error=Text("",12,Danger);error.Visibility=Visibility.Collapsed;parent.Children.Add(error);
+        string errorKey=key+":"+(settingWriters.TryGetValue(key,out var peers)?peers.Count:0);
         bool Valid()
         {
             bool valid=double.TryParse(box.Text,NumberStyles.Float,CultureInfo.InvariantCulture,out var value)&&double.IsFinite(value)&&value>=0;
@@ -524,22 +538,37 @@ internal sealed partial class MainWindow : Window
                 "input_experimental_delay_ms"=>value>=8&&value<=16,
                 "paint_opacity_value" or "interval_value"=>value<=1,
                 "brush_size_value"=>value>=1&&value<=100,
+                "readback_polls"=>value>=24&&value<=120&&value==Math.Truncate(value),
+                "readback_attempts"=>value>=1&&value<=5&&value==Math.Truncate(value),
+                "readback_retry_pause_ms"=>value<=1000,
+                "capture_stable_attempts"=>value>=5&&value<=20&&value==Math.Truncate(value),
+                "capture_stable_interval_ms"=>value>=40&&value<=1000,
                 _=>true
             };
             string message=T("Перевір значення: ","Check the value: ")+T(title);
-            if(valid){numberErrors.Remove(key);error.Visibility=Visibility.Collapsed;box.BorderBrush=BorderColor;}
-            else{numberErrors[key]=message;error.Text=message;error.Visibility=Visibility.Visible;box.BorderBrush=Danger;}
+            if(valid){numberErrors.Remove(errorKey);error.Visibility=Visibility.Collapsed;box.BorderBrush=BorderColor;}
+            else{numberErrors[errorKey]=message;error.Text=message;error.Visibility=Visibility.Visible;box.BorderBrush=Danger;}
             return valid;
         }
-        box.TextChanged+=(_,_)=>{if(!buildingUi){Valid();if(box.Text!=settings.Number(key).ToString(CultureInfo.InvariantCulture))ResetCoverageState();UpdateReady();}};
-        readers[key] = () => double.TryParse(box.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var v) && double.IsFinite(v) ? v : throw new InvalidDataException(T(title) + ": " + box.Text);
+        box.TextChanged+=(_,_)=>
+        {
+            if(buildingUi||syncingSettings)return;
+            if(!Valid()||numberErrors.Count>0){UpdateReady();return;}
+            Guard(()=>
+            {
+                ReadSettingsCore(key,double.Parse(box.Text,CultureInfo.InvariantCulture));
+                if(dirty)Dirty();else{Save();RenderPlan();}UpdateReady();
+            });
+        };
+        BindSetting(key,()=>double.TryParse(box.Text,NumberStyles.Float,CultureInfo.InvariantCulture,out var v)&&double.IsFinite(v)?v:throw new InvalidDataException(T(title)+": "+box.Text),
+            value=>{box.Text=Convert.ToString(value,CultureInfo.InvariantCulture);Valid();});
         box.LostKeyboardFocus += (_, _) =>
         {
-            if (buildingUi||!Valid())
+            if (buildingUi||syncingSettings||!Valid())
                 return;
             Guard(() =>
             {
-                ReadSettings();
+                ReadSettingsCore(key,double.Parse(box.Text,CultureInfo.InvariantCulture));
                 if (dirty)
                     Dirty();
                 else
@@ -547,6 +576,7 @@ internal sealed partial class MainWindow : Window
                     Save();
                     RenderPlan();
                 }
+                UpdateReady();
             });
         };
         return box;
@@ -556,16 +586,17 @@ internal sealed partial class MainWindow : Window
     {
         var check = new CheckBox
         {
+            Tag = key,
             Content = T(title),
             IsChecked = settings.Bool(key)
         };
         parent.Children.Add(check);
-        readers[key] = () => check.IsChecked == true;
+        BindSetting(key,()=>check.IsChecked==true,value=>check.IsChecked=Convert.ToBoolean(value));
         check.Click += (_, _) =>
         {
-            if (!buildingUi) Guard(() =>
+            if (!buildingUi&&!syncingSettings) Guard(() =>
             {
-                ReadSettings();
+                ReadSettingsCore(key,check.IsChecked==true);
                 if (dirty)
                     Dirty();
                 else
@@ -579,13 +610,14 @@ internal sealed partial class MainWindow : Window
         return check;
     }
 
-    private void ReadSettings()
+    private void ReadSettings()=>ReadSettingsCore(null,null);
+    private void ReadSettingsCore(string? editedKey,object? editedValue)
     {
         var snapshot=settings.Clone();
         bool changed=false;
         foreach(var reader in readers)
         {
-            var value=reader.Value();snapshot.Data[reader.Key]=JsonSerializer.SerializeToNode(value);
+            var value=reader.Key==editedKey?editedValue!:reader.Value();snapshot.Data[reader.Key]=JsonSerializer.SerializeToNode(value);
             bool same=value switch
             {
                 bool flag=>settings.Bool(reader.Key)==flag,
@@ -595,8 +627,10 @@ internal sealed partial class MainWindow : Window
             };
             if(!same&&reader.Key is not ("language" or "transfer_simulator" or "smooth_preview" or "auto_insert_preview"))changed=true;
         }
+        if(editedKey is not null&&!readers.ContainsKey(editedKey))snapshot.Data[editedKey]=JsonSerializer.SerializeToNode(editedValue);
         DrawingWorkflow.Normalize(snapshot); snapshot.Validate();
         settings=snapshot;
+        if(editedKey is not null)SynchronizeEditors(editedKey,editedValue!);
         if(changed)ResetCoverageState();
     }
 
@@ -604,6 +638,7 @@ internal sealed partial class MainWindow : Window
     private void Dirty(bool refreshReady = true)
     {
         plan = null;
+        previewMeasuredPlan=null;RefreshMeasuredPlan();
         resumeSchedule = null;
         ResetCoverageState();
         generation++;
@@ -656,14 +691,17 @@ internal sealed partial class MainWindow : Window
         bool canvas=cal.Rect("canvas").Valid;
         bool color=settings.Mode==ColorMode.HexDirect?cal.HexReady&&settings.HexControlsReady:settings.Palette().Count>0&&cal.Rect("palette").Valid;
         bool controls=new[]{"size","interval","opacity"}.All(x=>cal.Rect(x+"_track").Valid && cal.Rect(x+"_value_field").Valid)
-            &&cal.Point("brush_tool") is not null&&(cal.Rect("brush_shapes").Valid||cal.Point(settings.Text("brush_shape")=="Square"?"square_brush":"hard_brush") is not null);
+            &&(settings.Mode==ColorMode.HexDirect||cal.Point("brush_tool") is not null)&&(cal.Rect("brush_shapes").Valid||cal.Point(settings.Text("brush_shape")=="Square"?"square_brush":"hard_brush") is not null);
         string? missing=source is null?T("Відкрий зображення.","Open an image."):!canvas?T("Захопи полотно.","Capture Canvas."):!color?T("Захопи палітру або перевір HEX.","Capture the palette or verify HEX."):!controls?T("Захопи пензель і три числові поля Rust.","Capture the brush and three Rust numeric fields."):null;
         if(numberErrors.Count>0)missing=numberErrors.Values.First();
+        if(CalibrationReliability.PaintingProblem(settings) is {} visualProblem)missing=T(visualProblem);
         if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)missing=T(auditProblem);
         RefreshWorkingBrush();
         UpdateDetailPreset();
         RefreshAdaptiveStatus();
         if(settings.Bool("adaptive_brush"))try{AdaptiveBrush.Validate(settings);}catch(InvalidOperationException e){missing=T(e.Message);}
+        if(previewMeasuredPlan is {TargetPixels:>0,CoveredPixels:0})missing=T("Жоден підтверджений пензель не поміщається у кольорові ділянки. Виміряй менший Size або зменш кількість кольорів.","No verified brush fits the color areas. Measure a smaller Size or reduce the color count.");
+        RefreshMeasuredPlan();
         bool available=missing is null;
         ready.Text=missing??T("Усе готово. Можна починати.","Everything is ready. You can start.");ready.Foreground=available?Success:Warning;
         badge.Text=available?T("ГОТОВО","READY"):T("ПОТРІБНА ПІДГОТОВКА","SETUP REQUIRED");badge.Foreground=available?Success:Warning;badge.ToolTip=ready.Text;
@@ -686,6 +724,7 @@ internal sealed partial class MainWindow : Window
         if (plan is null)
         {
             previewImage.Source = null;
+            previewMeasuredPlan=null;RefreshMeasuredPlan();
             return;
         }
 
@@ -709,13 +748,15 @@ internal sealed partial class MainWindow : Window
                 eta.Text = T("Обчислюю час…", "Calculating time…");
             var result = await Task.Run(() =>
             {
-                var groups = TransferSchedule.Build(active, snapshot);
-                var text = $"{Option("color_mode", snapshot.Text("color_mode"))}\n{active.Width}×{active.Height} • {T("Кольорів","Colors")}: {active.ColorCount}\n{T("Штрихів","Strokes")}: {groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0}\n{T("Протягувань миші","Mouse drags")}: {groups.Values.Sum(x => x.Count):N0}\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{Option("speed_profile",s.Name)}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name))}"));
-                return (Stats: text, Eta: Coverage.EstimateSeconds(active, snapshot), GroupCounts: TransferSchedule.Order(active,groups).Select(color=>groups[color].Count).ToArray());
+                var measured=MeasuredColorPlan.TryBuild(active,snapshot);
+                var groups = measured is null?TransferSchedule.Build(active,snapshot):TransferSchedule.Build(active,snapshot,measured.Groups);
+                var text = $"{Option("color_mode", snapshot.Text("color_mode"))}\n{active.Width}×{active.Height} • {T("Кольорів","Colors")}: {active.ColorCount}\n{T("Штрихів","Strokes")}: {groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0}\n{T("Протягувань миші","Mouse drags")}: {groups.Values.Sum(x => x.Count):N0}\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{Option("speed_profile",s.Name)}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name,measured is null?null:groups))}"));
+                return (Stats: text, Eta: Coverage.EstimateSeconds(active, snapshot,preparedGroups:groups), GroupCounts: TransferSchedule.Order(active,groups).Select(color=>groups[color].Count).ToArray(),Measured:measured);
             });
             if (closing || rid != renderGeneration || active != plan)
                 return;
             resumeSchedule = (active,result.GroupCounts);
+            previewMeasuredPlan=result.Measured;RefreshMeasuredPlan();
             stats.Text = result.Stats;
             if(!Painting&&lastPaintProgress is null)
             {
@@ -878,6 +919,8 @@ internal sealed partial class MainWindow : Window
         ReadSettings();
         Save();
         var execution = EffectiveSettings;
+        if(CalibrationReliability.PaintingProblem(execution) is {} visualProblem)
+            throw new InvalidOperationException(T(visualProblem));
         try { AdaptiveBrush.Validate(execution); }
         catch (InvalidOperationException) { ShowPage("adaptive"); throw; }
         if (plan is null || plan.Identity != PlanIdentity.Compute(source, execution, plan.Palette))

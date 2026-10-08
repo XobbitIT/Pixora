@@ -19,16 +19,16 @@ public sealed record ControlReadbackResult(double? Number,string? Raw,int Attemp
 public static class ControlReadback
 {
     public static ControlReadbackResult Read(string kind,double expected,IControlReadbackInput input,double copyDelay,
-        Action<ControlReadbackObservation>? observe=null)
+        Action<ControlReadbackObservation>? observe=null,ReadbackOptions? options=null)
     {
         if(!ControlNumber.InRange(kind,expected)||!double.IsFinite(copyDelay)||copyDelay is <0 or >1)
             throw new ArgumentException("Invalid control readback request.");
-        double? last=null;string? raw=null;int reads=0;
-        for(int attempt=0;attempt<ReadbackPolling.Attempts;attempt++)
+        options??=new();options.Validate();double? last=null;string? raw=null;int reads=0;
+        for(int attempt=0;attempt<options.Attempts;attempt++)
         {
             input.SelectField(attempt);input.SelectAll();input.WriteMarker(ControlNumber.Marker);input.Copy();
-            input.Wait(copyDelay+attempt*.05);
-            for(int poll=0;poll<ReadbackPolling.Polls;poll++)
+            input.Wait(copyDelay+attempt*options.RetryPause);
+            for(int poll=0;poll<options.Polls;poll++)
             {
                 if(poll>0)input.Wait(ReadbackPolling.Delay(poll));
                 raw=input.Read();reads++;var number=ControlNumber.Parse(kind,raw);
@@ -44,6 +44,6 @@ public static class ControlReadback
                 break;
             }
         }
-        input.Commit();return new(last,raw,ReadbackPolling.Attempts,reads,false);
+        input.Commit();return new(last,raw,options.Attempts,reads,false);
     }
 }

@@ -133,7 +133,7 @@ internal static class BrushFootprintChecks
             try{BrushFootprints.Tiles(new(0,0,300,300),[100]);throw new Exception("Clipped calibration accepted");}catch(InvalidOperationException){}
             var cfg=Config();foreach(double size in BrushFootprints.Sizes){cfg.Set("probe_size",size);cfg.Validate();Assert(AdaptiveBrush.CalibrationSettings(cfg,size).Number("brush_size_value")==size);}
         });
-        test("Measured adaptive planning chooses profitable shapes color first and covers removed centres with real solid pixels",()=>
+        test("Measured adaptive planning chooses profitable shapes and reports centres without solid coverage",()=>
         {
             var s=Config();s.Set("adaptive_auto_shape",true);s.Set("fast_transfer",false);
             var small=Profile(s,3,1,Rectangle(0,2,2,4),Rectangle(0,2,2,4));
@@ -142,7 +142,7 @@ internal static class BrushFootprintChecks
             var strokes=new Dictionary<int,List<Stroke>>{{0,Enumerable.Range(0,320).Select(y=>new Stroke(0,0,y,199,y)).ToList()},
                 {1,Enumerable.Range(0,320).Select(y=>new Stroke(1,200,y,399,y)).ToList()}};
             var plan=new PaintPlan{Width=400,Height=320,Palette=s.Palette().ToArray(),Indices=indices,Strokes=strokes,Counts=new(){{0,64000},{1,64000}},Identity="mask-test",Mode=ColorMode.RustPalette,Preview=new PixelImage(400,320)};
-            var baseline=Coverage.Build(plan,s);var ops=AdaptiveBrush.Build(plan,s);Assert(ops.Values.SelectMany(x=>x).Any(p=>p.ShapeSlot==4&&p.Size==40));
+            var baseline=Coverage.Build(plan,s);var result=MeasuredColorPlan.TryBuild(plan,s)!;var ops=AdaptiveBrush.Build(plan,s);Assert(ops.Values.SelectMany(x=>x).Any(p=>p.ShapeSlot==4&&p.Size==40));
             foreach(var (color,lines) in ops)
             {
                 var physical=new HashSet<ScreenPoint>();
@@ -159,7 +159,10 @@ internal static class BrushFootprintChecks
                     }
                 }
                 foreach(var line in baseline[color])for(int k=0;k<=TransferSchedule.Length(line);k++)
-                    Assert(physical.Contains(new(line.X1+k*Math.Sign(line.X2-line.X1),line.Y1+k*Math.Sign(line.Y2-line.Y1))),"Removed fine centre has no measured solid coverage");
+                {
+                    int x=line.X1+k*Math.Sign(line.X2-line.X1),y=line.Y1+k*Math.Sign(line.Y2-line.Y1);
+                    Assert(physical.Contains(new(x,y))==!result.UnplannedMask[y*400+x],"Reported guarantee differs from the actual solid sweep");
+                }
             }
             var groups=TransferSchedule.Build(plan,s,ops);var timing=PaintTimingPlan.Build(s,groups,TransferSchedule.Order(plan,groups));
             Assert(timing.Any(p=>p.RateKey=="brush_shape")&&timing.Count(p=>p.RateKey=="color")==2);

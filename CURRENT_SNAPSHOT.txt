@@ -1,3 +1,37 @@
+Pixora 1.0.14-beta.50 — synchronized settings, palette choice, measured mixed color-boundary plan.
+388 Core / 125 WPF offline checks; inGameTest=false.
+Source published in draft PR #2; GitHub Actions builds the committed snapshot.
+The previously delivered local ZIP retains its original pre-commit manifest.
+Planner changed; contrast 80, tolerance 12, measured-mask intersection, speed/spatial/audit criteria unchanged.
+Size 3 default; optional verified Size 1; mixed painting can use current Size 3/10/20.
+Model unplanned pixels are not actual Rust audit results. New START required; beta.49 RESUME incompatible.
+See CHANGES_BETA50_UA.md and TESTING_BETA50_UA.md.
+
+Previous beta.49:
+Pixora 1.0.14-beta.49 — private calibration proof cache and complete-cycle ETA.
+375 Core / 118 WPF offline checks; inGameTest=false.
+Local changes only; no new GitHub commit or CI run.
+Measured operation overhead is additive; input waits and commands unchanged.
+Planner, contrast 80, tolerance 12, masks, probe criteria and coverage audit unchanged.
+See CHANGES_BETA49_UA.md and TESTING_BETA49_UA.md.
+
+Previous beta.48:
+Pixora 1.0.14-beta.48 — normal Size 3; Size 1 only for Adaptive calibration.
+365 Core / 116 WPF offline checks; inGameTest=false.
+Local changes only; no new GitHub commit or CI run.
+Old Size 1/Profile normal controls migrate to 3; existing Adaptive footprints are preserved.
+Painting formulas, contrast 80, tolerance 12, masks, probe criteria and coverage audit unchanged.
+See CHANGES_BETA48_UA.md and TESTING_BETA48_UA.md.
+
+Previous beta.47:
+Pixora 1.0.14-beta.47 — compact preparation and optional slow-laptop transport.
+361 Core / 114 WPF offline checks; inGameTest=false.
+Local changes only; no new GitHub commit or CI run.
+Two strict slider frames and a mandatory working brush imprint; numeric clipboard transport remains the default.
+HEX verification, contrast 80, RGB tolerance 12, brush masks, Speed Probe criteria, planner and coverage audit unchanged.
+See CHANGES_BETA47_UA.md and TESTING_BETA47_UA.md.
+
+Previous beta.46:
 Pixora 1.0.14-beta.46 — responsive clipboard owner and slider rejection evidence.
 346 Core / 107 WPF checks; fresh laptop Rust validation required.
 Live beta.45 copied Size correctly, then failed visual slider recognition before Interval.
