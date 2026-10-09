@@ -1,0 +1,19 @@
+{
+  "source": "Rust beta.24 live Speed Probe, 2026-10-05 14:31 UTC",
+  "localLine": [
+    13,
+    32,
+    50,
+    32
+  ],
+  "outer": 7,
+  "inner": 0,
+  "expectedFailure": "SceneChanged",
+  "outsideChanged": 286,
+  "outsidePixels": 3316,
+  "originalPngSha256": {
+    "before": "8aa4b2d77112504410c02d30bfc5750c0eab2c640733d57a2d642b483d61030e",
+    "after": "863eaa6c42c64eb9911f19ddd96e0b47ec52d5efda37a76a43d14549dc7ef299"
+  },
+  "note": "Original captured pixels, no cursor removal or retouching."
+}

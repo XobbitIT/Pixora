@@ -1,0 +1,21 @@
+# Pixora — quick start
+
+Unzip the entire archive before starting Pixora.exe. Rust is installed separately. Pick your language in the top-right corner. Nothing is sent to Rust just by opening the guide.
+
+**English:** 1. Open or drop an image. 2. Open a clean Rust Canvas and select the brush tool. Use Prepare for painting and follow the selections; clear the test dots and lines afterwards. 3. Return to Painting, check the preview and press Start. F6 pauses, ESC stops. Adaptive, Speed Probe and audit are optional. If Start is disabled, read the preparation hint. Getting started reopens the guide. Settings → Rust compatibility offers visual verification when number copying fails.
+
+**Українська:** 1. Відкрий або перетягни зображення. 2. Відкрий чисте полотно Rust та вибери пензель. Натисни «Підготувати до малювання», виконай виділення й очисти тестові крапки й лінії. 3. Повернись у «Малювання», перевір прев’ю й натисни «Почати». F6 — пауза, ESC — стоп. Adaptive, тест швидкості й аудит необов’язкові. Якщо кнопка недоступна, прочитай підказку підготовки. «Як почати» відкриває інструкцію повторно. Для проблем копіювання чисел: Налаштування → Сумісність з Rust → візуальна перевірка.
+
+**Polski:** 1. Otwórz lub przeciągnij obraz. 2. Otwórz czyste płótno Rust i wybierz pędzel. Kliknij Przygotuj malowanie, zaznacz wskazane obszary i usuń kropki i linie testowe. 3. Wróć do Malowania, sprawdź podgląd i kliknij Rozpocznij. F6 — pauza, ESC — stop. Adaptive, test szybkości i audyt są opcjonalne. Gdy start jest niedostępny, przeczytaj wskazówkę przygotowania. Jak zacząć otwiera poradnik. Problemy z kopiowaniem liczb: Ustawienia → Zgodność z Rust → Weryfikacja wizualna.
+
+**Deutsch:** 1. Bild öffnen oder ins Fenster ziehen. 2. Leere Rust-Leinwand öffnen, Pinsel wählen, Malen vorbereiten anklicken. Bereiche auswählen und Testpunkte und Testlinien entfernen. 3. Unter Malen die Vorschau prüfen und Starten anklicken. F6 pausiert, ESC stoppt. Adaptive, Tempotest und Prüfung sind optional. Bei gesperrtem Start den Vorbereitungshinweis lesen. Erste Schritte öffnet die Hilfe erneut. Kopierprobleme: Einstellungen → Rust-Kompatibilität → Visuelle Prüfung.
+
+**Français :** 1. Ouvrez ou glissez une image. 2. Ouvrez une toile Rust vierge et sélectionnez le pinceau. Cliquez sur Préparer la peinture, sélectionnez les zones puis effacez les points et lignes de test. 3. Revenez à Peinture, vérifiez l’aperçu et démarrez. F6 — pause, ESC — arrêt. Adaptive, test de vitesse et audit sont facultatifs. Si Démarrer est bloqué, lisez l’indication de préparation. Bien démarrer rouvre le guide. Problèmes de copie : Paramètres → Compatibilité Rust → Vérification visuelle.
+
+**Español:** 1. Abre o arrastra una imagen. 2. Abre un lienzo limpio en Rust, elige el pincel y pulsa Preparar la pintura. Selecciona las áreas indicadas y borra los puntos y líneas de prueba. 3. Vuelve a Pintura, revisa la vista previa y pulsa Iniciar. F6 pausa, ESC detiene. Adaptive, prueba de velocidad y auditoría son opcionales. Si no puedes iniciar, lee la indicación de preparación. Primeros pasos abre la guía. Problemas al copiar números: Ajustes → Compatibilidad con Rust → Verificación visual.
+
+**Русский:** 1. Открой или перетащи изображение. 2. Открой чистое полотно Rust и выбери кисть. Нажми «Подготовить к рисованию», выдели нужные области и удали тестовые точки и линии. 3. Вернись в «Рисование», проверь превью и нажми «Начать». F6 — пауза, ESC — стоп. Adaptive, тест скорости и аудит необязательны. Если кнопка недоступна, прочитай подсказку подготовки. «Как начать» повторно открывает инструкцию. Проблемы копирования чисел: Настройки → Совместимость с Rust → Визуальная проверка.
+
+The five new languages cover the workflow and controls; some advanced technical diagnostics fall back to English. Report translation problems with the language, page and exact phrase. Application logs live in `%LOCALAPPDATA%/Pixora`; include only the files needed for the reported issue and inspect personal paths before sharing them.
+
+Preparation attempts the working brushes, spatial offsets and Speed Probe in the same flow. Failed optional acceleration keeps stable painting available; a failed mandatory brush measurement keeps Start blocked. Individual checks remain on their pages.

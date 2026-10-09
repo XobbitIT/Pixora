@@ -38,3 +38,4 @@ Adaptive fixture actions: 416 -> 164
 PASS Adaptive strokes stay within colors and preserve every baseline center
 PASS Adaptive brush rejects missing or stale calibration and translucent painting
 ALL 37 TESTS PASSED
+

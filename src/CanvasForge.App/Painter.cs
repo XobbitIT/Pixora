@@ -4,48 +4,69 @@ using System.Text.Json.Nodes;
 using CanvasForge.Core;
 
 namespace CanvasForge.App;
-internal sealed record PaintProgress(int Done, int Total, double Elapsed, double Eta, string Status);
-internal sealed record ResumeCheckpoint(string Identity, int Group, int Line, int Done);
-internal sealed class Painter
+internal sealed record PaintProgress(int Done, int Total, double Elapsed, double Eta, string Status,
+    EtaEstimate? Estimate=null,PaintPhase Phase=PaintPhase.Drawing);
+internal sealed partial class Painter : IDisposable
 {
     private readonly Settings settings;
     private readonly IntPtr window;
     private readonly ScreenRect windowRect;
+    private readonly uint windowProcessId;
+    private readonly int windowDpi;
     private readonly CoordinateRebase rebase;
     private readonly CancellationToken token;
     private readonly Action<PaintProgress> report;
     private readonly string checkpointPath;
     private readonly string logPath;
     private readonly Stopwatch clock = new();
-    private readonly bool experimental;
-    private readonly HashSet<long> verifiedSizeValues = [];
     private int hexChangesSinceReadback;
     private bool needsReprime;
     private bool f6Held;
     private long nextSafety;
+    private InputDelay? inputDelay;
+    private string? pauseReason;
+    private bool probeMode;
+    private long safetyCalls,moveCalls;
+    private double safetySeconds,sendInputSeconds;
     private double pausedSeconds;
     private volatile bool paused;
+    private readonly Dictionary<string,double> verifiedControls = new();
+    private readonly ICalibratedStrokeInput motionInput;
+    private CheckpointJournal? checkpoint;
+    private ScreenPoint? lastPaintPoint;
+    private ClipboardLease? clipboardLease;
+    private bool textRecovery;
+    private StrokeExecutionPlan? executionPlan;
+    private StrokeExecutionPlan Execution=>executionPlan??=new(settings);
+    private ScreenPoint? lastFieldRequested,lastFieldObserved;
     public bool Paused { get => paused; set => paused = value; }
+    private InputDelay DelayTimer => inputDelay??=new();
+    public void Dispose()=>inputDelay?.Dispose();
 
     public Painter(Settings s, IntPtr target, string checkpoint, string log, Action<PaintProgress> callback, CancellationToken cancel)
     {
         settings = s.Clone();
-        experimental = StrokeTiming.Experimental(settings);
         window = target;
         token = cancel;
         report = callback;
         checkpointPath = checkpoint;
         logPath = log;
-        Native.GetWindowRect(target, out var r);
+        if (!Native.IsRust(target) || !Native.GetWindowRect(target, out var r))
+            throw new InvalidOperationException("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.");
         windowRect = r.ToScreen();
+        windowProcessId = Native.ProcessIdOf(target);
+        InputIntegrity.Verify(windowProcessId);
+        windowDpi = Native.DpiOf(target);
         rebase = SessionRebase();
+        settings=BrushFootprints.Snapshot(settings);
+        motionInput = new GuardedStrokeInput(this);
     }
 
     // Rebases the captured absolute coordinates from the Rust client origin that
     // was recorded at calibration time onto the window's current position/DPI.
     // Strokes and controls read from settings.Calibration, so shifting those
     // keys fixes them; the palette click points baked into the plan are mapped
-    // separately via MapPoint. When the window has not moved (or no baseline was
+    // separately via PaletteSelection.ClickPoint. When the window has not moved (or no baseline was
     // captured) this is the identity transform and nothing changes.
     private CoordinateRebase SessionRebase()
     {
@@ -53,24 +74,10 @@ internal sealed class Painter
         if (cal.SessionClient is not { } baseline)
             return default;
         var now = Native.ClientOrigin(window);
-        var result = new CoordinateRebase(baseline.X, baseline.Y, cal.SessionDpi, now.X, now.Y, Native.DpiOf(window));
-        if (result.IsIdentity)
-            return result;
-        result.ApplyTo(cal.Data);
-        settings.SetCalibration(cal);
-        if (settings.Data["palette_click_points"] is JsonArray palette)
-            result.ApplyTo(palette);
-        if (settings.Data["hex_controls"] is JsonObject hex)
-            result.ApplyTo(hex);
-        Log("session_rebase", new { baseline, baseDpi = cal.SessionDpi, now, nowDpi = result.NowDpi, scale = result.Scale });
+        var result = CalibrationSession.Align(settings, now, windowDpi, Native.ClientSize(window));
+        if (!result.IsIdentity)
+            Log("session_rebase", new { baseline, baseDpi = cal.SessionDpi, now, nowDpi = result.NowDpi, scale = result.Scale });
         return result;
-    }
-
-    private ScreenPoint MapPoint(ScreenPoint p)
-    {
-        if (rebase.IsIdentity) return p;
-        var (x, y) = rebase.Map(p.X, p.Y);
-        return new(x, y);
     }
 
     private void Log(string action, object? details = null)
@@ -84,31 +91,54 @@ internal sealed class Painter
         }
     }
 
-    private void Check()
+    private void Check(bool forceGeometry=false)
     {
+        long started=Stopwatch.GetTimestamp();safetyCalls++;
+        try
+        {
         token.ThrowIfCancellationRequested();
         if (Native.Down(0x1B))
+        {
+            Log("input_interruption",new{reason="escape"});
             throw new OperationCanceledException("ESC");
+        }
         var f6 = Native.Down(0x75);
         if (f6 && !f6Held)
+        {
             Paused = !Paused;
+            pauseReason=Paused?"f6":null;
+            Log("input_pause",new{paused=Paused,reason="f6"});
+        }
         f6Held = f6;
-        if (Native.GetForegroundWindow() != window)
+        if (Native.GetForegroundWindow() != window&&!Paused)
+        {
             Paused = true;
-        if (Environment.TickCount64 < nextSafety)
+            pauseReason="focus_lost";
+            Log("input_pause",new{paused=true,reason=pauseReason});
+        }
+        if (!forceGeometry&&Environment.TickCount64 < nextSafety)
             return;
         nextSafety = Environment.TickCount64 + 75;
+        if (Native.ProcessIdOf(window) != windowProcessId || !Native.IsRust(window))
+            throw new InvalidOperationException("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення.");
+        if (Native.DpiOf(window) != windowDpi)
+            throw new InvalidOperationException(CalibrationSession.DpiChangedMessage);
         if (!Native.GetWindowRect(window, out var rect) || rect.ToScreen() != windowRect)
             throw new InvalidOperationException("Вікно Rust змінило розмір або положення. Повтори захоплення.");
+        }
+        finally{safetySeconds+=Stopwatch.GetElapsedTime(started).TotalSeconds;}
     }
 
     // All input waits are interruptible; never retain mouse-down while paused.
     private bool WaitReady()
     {
         Check();
+        if(probeMode&&Paused)CheckProbe();
         if (!Paused)
             return false;
         Native.Release();
+        verifiedControls.Clear();
+        FlushCheckpoint("pause");
         var start = clock.Elapsed.TotalSeconds;
         report(new(0, 0, 0, 0, "Пауза — повернись у Rust і натисни F6."));
         while (Paused)
@@ -124,6 +154,7 @@ internal sealed class Painter
         }
 
         pausedSeconds += clock.Elapsed.TotalSeconds - start;
+        pauseReason=null;
         nextSafety = 0;
         Check();
         if (Paused)
@@ -134,26 +165,29 @@ internal sealed class Painter
 
     private void Delay(double seconds)
     {
-        var until = Stopwatch.GetTimestamp() + seconds * Stopwatch.Frequency;
-        while (Stopwatch.GetTimestamp() < until)
+        DelayTimer.Wait(seconds,()=>
         {
             Check();
             if (Paused)
             {
                 Native.Release();
+                verifiedControls.Clear();
+                if(probeMode)CheckProbe();
                 throw new InputInterrupted();
             }
-
-            var remaining = (until - Stopwatch.GetTimestamp()) / (double)Stopwatch.Frequency;
-            if (remaining > .002)
-                Thread.Sleep(1);
-            else
-                Thread.SpinWait(40);
-        }
+        });
     }
 
     private sealed class InputInterrupted : Exception
     {
+        internal const string MessageText="Ввід призупинено: Rust втратив фокус або натиснуто F6. Повернись у Rust і повтори перевірку; під час малювання натисни F6 для продовження.";
+        public InputInterrupted():base(MessageText){}
+    }
+
+    private void CheckBoundary()
+    {
+        Check(true);
+        if(Paused){if(probeMode)CheckProbe();throw new InputInterrupted();}
     }
 
     private void Click(ScreenPoint p, bool twice = false)
@@ -161,99 +195,54 @@ internal sealed class Painter
         for (var i = 0; i < (twice ? 2 : 1); i++)
         {
             WaitReady();
-            if (experimental)
-            {
-                Delay(.002);
-                Native.MoveAndDown(p.X, p.Y);
-                try
-                {
-                    // One short game-frame-sized hold is much more reliable than a literal 1 ms click.
-                    Delay(.012);
-                }
-                finally
-                {
-                    Native.Mouse(true);
-                }
-                Delay(twice ? .012 : .004);
-            }
-            else
-            {
-                Native.SetCursorPos(p.X, p.Y);
-                Delay(Math.Max(.005, settings.Number("click_delay", .02)));
-                Native.Mouse(false);
-                try
-                {
-                    Delay(Math.Max(.04, settings.Number("mouse_up_delay_ms", 8) / 1000));
-                }
-                finally
-                {
-                    Native.Mouse(true);
-                }
-                Delay(twice ? Math.Max(.04, settings.Number("reclick_delay_ms", 35) / 1000) : .04);
-            }
+            CheckBoundary();
+            MoveCursor(p);
+            Delay(TextDelay(StrokeTiming.ClickSettle(settings)));
+            CheckBoundary();
+            Native.Mouse(false);
+            try { Delay(TextDelay(StrokeTiming.ClickHold(settings))); }
+            finally { Native.Mouse(true); }
+            Delay(TextDelay(StrokeTiming.ClickRelease(settings,twice)));
         }
+    }
+
+    private double TextDelay(double seconds)=>textRecovery?Math.Max(.08,seconds):seconds;
+    private void SelectTextField(ScreenPoint point,int attempt)
+    {
+        textRecovery=attempt>0;
+        Click(point,twice:textRecovery);
+        if(textRecovery)Delay(.12);
+        lastFieldRequested=point;lastFieldObserved=Native.Cursor();
+        Log("text_field_selection",new{requested=point,observed=lastFieldObserved,attempt,recovery=textRecovery,
+            transport="guarded SendInput",dpi=windowDpi});
     }
 
     private void PressKey(int key)
     {
+        CheckBoundary();
         Native.Key(key);
-        try { Delay(experimental ? .012 : .04); }
+        try { Delay(TextDelay(StrokeTiming.KeyHold(settings))); }
         finally { Native.Key(key, true); }
-        Delay(experimental ? .008 : .04);
+        Delay(TextDelay(StrokeTiming.KeyRelease(settings)));
     }
 
     private void ChordKey(int modifier, int key)
     {
+        CheckBoundary();
+        if(modifier==0x11&&key==0x43)clipboardLease?.ExpectCopy();
         Native.Key(modifier);
-        try { Delay(experimental ? .008 : .04); PressKey(key); }
+        try { Delay(TextDelay(StrokeTiming.ModifierSettle(settings))); PressKey(key); }
         finally { Native.Key(modifier, true); }
-        Delay(experimental ? .012 : .06);
+        Delay(TextDelay(StrokeTiming.ModifierRelease(settings)));
     }
 
-    private void TypeHex(string text)
-    {
-        foreach (var ch in text)
-        {
-            Native.UnicodeKey(ch, false);
-            try { Delay(experimental ? .012 : .04); }
-            finally { Native.UnicodeKey(ch, true); }
-            Delay(experimental ? .006 : .05);
-        }
-    }
 
-    private void SelectHex()
-    {
-        // Unity's HEX field normalizes on edit. Replacing one selection avoids
-        // intermediate empty/partial values moving the caret on each deletion.
-        PressKey(0x23);
-        ChordKey(0x10, 0x24);
-        Delay(experimental ? .02 : .08);
-    }
-
-    private void SelectHexMouse(ScreenRect box)
-    {
-        var y = box.Center.Y;
-        Native.SetCursorPos(box.Right - 3, y);
-        Delay(experimental ? .012 : .05);
-        Native.Mouse(false);
-        try
-        {
-            Delay(experimental ? .012 : .05);
-            for (var i = 1; i <= 12; i++)
-            {
-                Native.SetCursorPos(box.Right - 3 + (box.Left + 3 - (box.Right - 3)) * i / 12, y);
-                Delay(experimental ? .006 : .025);
-            }
-        }
-        finally { Native.Mouse(true); }
-        Delay(experimental ? .02 : .08);
-    }
 
     private void WriteClipboard(string text)
     {
         try
         {
-            ClipboardRetry.Run(() => { Native.ClipboardWrite(text); return true; }, () => Delay(.05));
+            ClipboardRetry.Run(() => { (clipboardLease??throw new InvalidOperationException("Clipboard backup is required.")).Write(text); return true; }, () => Delay(.05));
         }
         catch (System.ComponentModel.Win32Exception)
         {
@@ -264,7 +253,7 @@ internal sealed class Painter
 
     private string? ReadClipboard()
     {
-        try { return ClipboardRetry.Run(Native.ClipboardRead, () => Delay(.05)); }
+        try { return ClipboardRetry.Run(()=> (clipboardLease??throw new InvalidOperationException("Clipboard backup is required.")).Read(), () => Delay(.05)); }
         catch (System.ComponentModel.Win32Exception)
         {
             Log("clipboard", new { status = "read_failed" });
@@ -274,51 +263,39 @@ internal sealed class Painter
 
     private string? ReadHex(ScreenPoint p, Rgb expected)
     {
-        var box = settings.Calibration.Rect("hex");
         var readback = new HexReadback(expected);
-        for (var strategy = 0; strategy < 3; strategy++)
+        bool previousRecovery=textRecovery;
+        try
         {
-            Click(p);
-            if (strategy == 0) ChordKey(0x11, 0x41);
-            else if (strategy == 1) SelectHex();
-            else if (box.Valid) SelectHexMouse(box);
-            else continue;
-            WriteClipboard(HexReadback.Marker);
-            ChordKey(0x11, 0x43);
-            Delay(experimental ? .05 : .15);
-            var raw = ReadClipboard();
-            var value = HexReadback.Normalize(raw);
-            Log("hex_readback", new { strategy, status = readback.Status(raw), raw, value });
-            if (readback.Observe(raw)) return value;
+            var result=readback.Read(new NumberReadbackInput(this,new(p.X,p.Y,p.X+1,p.Y+1),textRecovery),StrokeTiming.CopyDelay(settings),
+                observation=>Log("hex_readback",new{strategy="select_all",attempt=observation.Attempt,poll=observation.Poll,
+                    status=observation.Status,raw=ReadbackDiagnostics.SafeText(observation.Raw),value=observation.Value}),CalibrationReliability.Readback(settings));
+            return result.Value;
         }
-        return readback.LastValid;
+        finally{textRecovery=previousRecovery;}
     }
 
     public bool ApplyHex(Rgb rgb, bool forceVerify = false)
     {
         var point = settings.Calibration.HexPoint ?? throw new InvalidOperationException("Захопи поле HEX.");
         var target = rgb.Hex;
-        var previous = ReadClipboard();
+        var previous = BeginClipboard();
+        bool previousRecovery=textRecovery;
         try
         {
             var maxAttempts = HexReadback.AttemptCount(settings.Int("hex_verify_retries", 2));
             for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
                 WaitReady();
-                Click(point);
-                Delay(experimental ? .008 : .02);
-                var box = settings.Calibration.Rect("hex");
-                if (attempt % 3 == 0) ChordKey(0x11, 0x41);
-                else if (attempt % 3 == 1) SelectHex();
-                else if (box.Valid) SelectHexMouse(box);
-                else ChordKey(0x11, 0x41);
+                SelectTextField(point,attempt);
+                Delay(StrokeTiming.Fast(settings)?StrokeTiming.ControlFrame(settings):.05);
+                ChordKey(0x11, 0x41);
                 var payload = settings.Bool("hex_include_hash", false) ? "#" + target : target;
                 WriteClipboard(payload);
                 ChordKey(0x11, 0x56);
-                Delay(experimental ? .02 : .18);
+                Delay(StrokeTiming.HexPaste(settings));
                 PressKey(0x0D);
-                var configuredDelay = settings.Number("hex_apply_delay_ms", 180) / 1000;
-                Delay(experimental ? Math.Clamp(configuredDelay / 3, .06, .08) : Math.Max(.18, configuredDelay));
+                Delay(StrokeTiming.HexCommit(settings) + attempt * .10);
 
                 var verify = forceVerify || settings.Bool("hex_verify", true);
                 var swatch = settings.Calibration.Rect("swatch");
@@ -348,7 +325,7 @@ internal sealed class Painter
                     payload,
                     read,
                     attempt,
-                    colorOk,
+                    colorOk = verify && swatch.Valid ? (bool?)colorOk : null,
                     swatchVerified = verify && swatch.Valid,
                     fullReadback
                 });
@@ -363,222 +340,265 @@ internal sealed class Painter
         }
         finally
         {
-            if (previous is not null)
-                try
-                {
-                    Native.ClipboardWrite(previous);
-                }
-                catch
-                {
-                }
+            textRecovery=previousRecovery;
+            RestoreClipboard(previous);
         }
     }
 
-    private readonly record struct SliderTarget(ScreenPoint Point, ScreenRect Track, double Fraction, bool Anchored);
-
-    // Sizes for which the user may capture an exact thumb position. An anchor is
-    // ground truth for that value, so it takes priority over the universal
-    // ControlCurve interpolation (whose hardcoded fraction mapping may not match
-    // the current Rust slider exactly).
-    private static string? SizeAnchorKey(double value)
+    private SliderObservation? ReadSlider(string kind)
+        =>ReadSlider(kind,settings.PaintCalibration());
+    private SliderObservation? ReadSlider(string kind,Calibration calibration)
     {
-        foreach (var s in new[] { 1, 3, 10, 20 })
-            if (Math.Abs(value - s) < .01)
-                return "size_anchor_" + s;
-        return null;
-    }
-
-    private SliderTarget? ResolveSliderTarget(string kind, double value)
-    {
-        var cal = settings.PaintCalibration();
-        var box = cal.Rect(kind + "_track");
-        var fraction = Math.Clamp(ControlCurve.Fraction(kind, value), 0, 1);
-
-        ScreenPoint? point = null;
-        var anchored = false;
-        if (kind == "size" && SizeAnchorKey(value) is { } anchorKey)
+        var hint = calibration.Rect(kind + "_track");
+        if (!hint.Valid) return null;
+        var bounds = new ScreenRect(
+            Math.Max(windowRect.Left, hint.Left - Math.Max(48, hint.Width / 4)),
+            Math.Max(windowRect.Top, hint.Top - 12),
+            Math.Min(windowRect.Right, hint.Right + Math.Max(120, hint.Width / 2)),
+            Math.Min(windowRect.Bottom, hint.Bottom + 12));
+        if (!bounds.Valid) return null;
+        var local = new ScreenRect(hint.Left - bounds.Left, hint.Top - bounds.Top,
+            hint.Right - bounds.Left, hint.Bottom - bounds.Top);
+        var screenshot=Native.Screenshot(bounds);
+        var read = RustSlider.Read(screenshot, local);
+        if (read is not { } observation)
         {
-            point = cal.Point(anchorKey);
-            anchored = point is not null;
-        }
-
-        point ??= ControlCurve.Point(cal, kind, value);
-        if (point is null)
+            var diagnosis=RustSlider.Diagnose(screenshot,local);
+            string? folder=null;
+            try{folder=SliderDiagnostics.Save(Path.GetDirectoryName(Path.GetFullPath(logPath))!,kind,screenshot,bounds,local,diagnosis);}
+            catch(Exception error){Log("slider_diagnostics_error",new{kind,error=error.GetType().Name});}
+            Log("slider_read_failed",new{kind,bounds,hint,reason=diagnosis.Reason,diagnosis,folder,dpi=windowDpi});
             return null;
-
-        // IMPORTANT: the captured min/max anchors (or a per-size manual anchor)
-        // are the source of truth. Older builds re-detected a "green run" inside
-        // the screenshot and replaced the click geometry with it. On the current
-        // Rust UI the green fill/label is not the real interactive slider range,
-        // so Size 1 could jump to ~2.27 and every subsequent stroke became too
-        // wide. Keep the captured anchors for clicking; the rectangle is
-        // diagnostics / verification only.
-        Log("control_target", new
+        }
+        var r = observation.Track;
+        var field = observation.ValueField;
+        return observation with
         {
-            kind,
-            value,
-            fraction,
-            point,
-            anchored,
-            min = cal.Point(kind + "_min"),
-            max = cal.Point(kind + "_max"),
-            box
-        });
-        return new(point.Value, box, fraction, anchored);
+            Track = new(r.Left + bounds.Left, r.Top + bounds.Top, r.Right + bounds.Left, r.Bottom + bounds.Top),
+            ValueField = new(field.Left + bounds.Left, field.Top + bounds.Top, field.Right + bounds.Left, field.Bottom + bounds.Top)
+        };
+    }
+
+    private sealed class NumberReadbackInput(Painter owner,ScreenRect field,bool recovery=false):IControlReadbackInput
+    {
+        public void SelectField()=>owner.Click(field.Center);
+        public void SelectField(int attempt)=>owner.SelectTextField(field.Center,recovery?Math.Max(1,attempt):attempt);
+        public void SelectAll()=>owner.ChordKey(0x11,0x41);
+        public void WriteMarker(string marker)=>owner.WriteClipboard(marker);
+        public void Copy()=>owner.ChordKey(0x11,0x43);
+        public void Wait(double seconds)=>owner.Delay(seconds);
+        public string? Read()=>owner.ReadClipboard();
+        public void Commit()=>owner.PressKey(0x0D);
+    }
+    private double? ReadControlNumber(string kind,ScreenRect field,double expected)
+    {
+        bool previousRecovery=textRecovery;
+        try
+        {
+            var result=ControlReadback.Read(kind,expected,new NumberReadbackInput(this,field,textRecovery),StrokeTiming.CopyDelay(settings),
+                observation=>Log("control_readback_poll",new{kind,expected,observation=observation with{Raw=ReadbackDiagnostics.SafeText(observation.Raw,kind)}}),CalibrationReliability.Readback(settings));
+            Log("control_readback",new{kind,raw=ReadbackDiagnostics.SafeText(result.Raw,kind),number=result.Number,fresh=result.Raw is not null&&result.Raw!=ControlNumber.Marker,
+                verified=result.Verified,attempts=result.Attempts,reads=result.Reads});
+            if(!result.Verified&&result.Number is null)
+            {
+                Log("control_copy_unavailable",new{kind,expected,field,attempts=result.Attempts,reads=result.Reads,
+                    markerPending=result.Raw==ControlNumber.Marker,raw=ReadbackDiagnostics.SafeText(result.Raw,kind),
+                    requested=lastFieldRequested,observed=lastFieldObserved,clickMatched=lastFieldRequested is not null&&lastFieldRequested==lastFieldObserved,
+                    budget=CalibrationReliability.Readback(settings),dpi=windowDpi,foreground=Native.GetForegroundWindow()==window});
+                // The reader already reselected/copied three times. Do not
+                // start a new paste while the final response is still pending.
+                throw new InvalidOperationException(ControlCopyProblem(kind));
+            }
+            return result.Verified?result.Number:null;
+        }
+        finally{textRecovery=previousRecovery;}
+    }
+
+    private bool VerifyControlNumber(string kind, double value, SliderObservation geometry)
+    {
+        bool visual=CalibrationReliability.Visual(settings);
+        var number = VisualControlVerification.ReadNumber(settings,()=>ReadControlNumber(kind,geometry.ValueField,value));
+        var original=Native.Cursor();
+        var area=new ScreenRect(Math.Min(geometry.Track.Left,geometry.ValueField.Left),Math.Min(geometry.Track.Top,geometry.ValueField.Top),
+            Math.Max(geometry.Track.Right,geometry.ValueField.Right),Math.Max(geometry.Track.Bottom,geometry.ValueField.Bottom));
+        var park=CaptureCursor.ParkingPoint(area,windowRect,original,(int)Math.Ceiling(48*windowDpi/96d))
+            ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
+        if(park!=original){Native.ReleaseChecked();MoveCursor(park);}
+        Log("control_cursor_park",new{kind,original,park,transport="guarded SendInput"});
+        Delay(StrokeTiming.CursorPark(settings));
+        VisualControlEvidence? evidence=visual?VisualControlVerification.Read(kind,value,()=>ReadSlider(kind),Delay,CalibrationReliability.StableInterval(settings)):null;
+        var after = visual?evidence!.Second:ReadSlider(kind);
+        var ok = visual?evidence!.Verified:ControlNumber.Matches(number, value) && after is { } result
+            && result.Matches(ControlCurve.Fraction(kind, value));
+        Log("slider_check", new { kind, value, number, actual = after?.Fraction, ok,
+            strategy = visual?"visual_slider":"numeric_field",numericReadback=!visual,evidence,physicalFootprintRequired=visual });
+        if(ok)verifiedControls[kind]=value;else verifiedControls.Remove(kind);
+        return ok;
     }
 
     private bool SliderMatches(string kind, double value)
     {
-        var target = ResolveSliderTarget(kind, value);
-        if (target is null || !target.Value.Track.Valid) return false;
-        var actual = DetectSlider(Native.Screenshot(target.Value.Track));
-        if (actual is null)
-        {
-            Log("slider_check_unverified", new { kind, value, desired = target.Value.Fraction, reason = "green band not found" });
-            return true;
-        }
-        var ok = Math.Abs(actual.Value - target.Value.Fraction) <= settings.Number("control_verify_tolerance", .12);
-        Log("slider_check", new { kind, value, desired = target.Value.Fraction, actual, ok });
-        return ok;
+        var previous = BeginClipboard();
+        try { return ReadSlider(kind) is { } geometry && VerifyControlNumber(kind, value, geometry); }
+        finally { RestoreClipboard(previous); }
     }
 
     private void Slider(string kind, double value)
     {
-        var target = ResolveSliderTarget(kind, value);
-        if (target is null) return;
-        var point = target.Value.Point;
-        var box = target.Value.Track;
         WaitReady();
-        if (experimental)
+        var payload = ControlNumber.Format(kind, value);
+        if(StrokeTiming.Fast(settings)&&verifiedControls.TryGetValue(kind,out var known)&&known==value
+            &&ReadSlider(kind) is { } current&&current.Matches(ControlCurve.Fraction(kind,value)))
         {
-            Native.MoveAndDown(point.X, point.Y);
-            try { Delay(.02); }
-            finally { Native.Mouse(true); }
-            Delay(.03);
+            Log("control_unchanged",new{kind,value,verifiedEarlier=true});return;
         }
-        else
+        verifiedControls.Remove(kind);
+        var previous = BeginClipboard();
+        bool previousRecovery=textRecovery;
+        try
         {
-            Native.SetCursorPos(point.X, point.Y);
-            Delay(.08);
-            Native.Mouse(false);
-            try { Delay(.08); }
-            finally { Native.Mouse(true); }
-            Delay(.15);
-        }
-        Delay(settings.Number("sequence_delay_ms", 3) / 1000);
-
-        var explicitVerify = settings.Bool("verify_controls");
-        var sizeKey = (long)Math.Round(value * 10000);
-        var anchored = target.Value.Anchored;
-        var verifySizeOnce = kind == "size" && (value > 1.01 || anchored) && !verifiedSizeValues.Contains(sizeKey);
-        if ((explicitVerify || verifySizeOnce) && box.Valid)
-        {
-            var desired = target.Value.Fraction;
-            var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 0, 5);
-            double? actual = null;
+            var retries = Math.Clamp(settings.Int("control_verify_retries", 2), 2, 5);
             for (var attempt = 0; attempt <= retries; attempt++)
             {
-                Delay(experimental ? .016 : .05);
-                actual = DetectSlider(Native.Screenshot(box));
-                Log("slider", new { kind, value, desired, actual, attempt, verifySizeOnce });
-                if (actual is null)
-                    continue; // band not visible yet; re-check without disturbing the slider
-                if (Math.Abs(actual.Value - desired) <= settings.Number("control_verify_tolerance", .12))
-                {
-                    if (verifySizeOnce) verifiedSizeValues.Add(sizeKey);
-                    return;
-                }
-                if (attempt < retries)
-                    Click(point, settings.Bool("double_click_controls", true));
+                var geometry = ReadSlider(kind) ?? throw new InvalidOperationException(ControlLayoutProblem(kind));
+                Log("control_target", new { kind, value, point = geometry.ValueField.Center, field = geometry.ValueField, strategy = "numeric_field", attempt });
+                SelectTextField(geometry.ValueField.Center,attempt);
+                ChordKey(0x11, 0x41);
+                WriteClipboard(payload);
+                ChordKey(0x11, 0x56);
+                PressKey(0x0D);
+                Delay(StrokeTiming.ControlCommit(settings) + attempt * .10);
+                var ok = VerifyControlNumber(kind, value, geometry);
+                Log("slider", new { kind, value, attempt, strategy = "numeric_field", verified = ok });
+                if (ok) return;
             }
+            throw new InvalidOperationException($"Не підтверджено число {kind}. Перевір числове поле справа й повтори тест controls.");
+        }
+        finally { textRecovery=previousRecovery;RestoreClipboard(previous); }
+    }
 
-            // The green band could not be located at all. The click already used
-            // the calibrated min/max anchors (the source of truth), so warn and
-            // continue instead of failing the whole transfer.
-            if (actual is null)
+    private ClipboardLease BeginClipboard()
+    {
+        if(clipboardLease is not null)throw new InvalidOperationException("Nested clipboard transaction.");
+        return clipboardLease=new(new WindowsClipboardStore(detail=>Log("clipboard_capture",detail)),windowProcessId,
+            status=>Log("clipboard_restore",new{status}),detail=>Log("clipboard_sequence",detail));
+    }
+
+    internal static string ControlCopyProblem(string kind)=>kind switch
+    {
+        "size"=>"Rust не повернув число Розмір (Size). Захопи цю смугу разом із числом справа й повтори перевірку. Залиш Rust на передньому плані; для віддаленого підключення вимкни синхронізацію буфера обміну.",
+        "interval"=>"Rust не повернув число Інтервал (Interval). Захопи цю смугу разом із числом справа й повтори перевірку. Залиш Rust на передньому плані; для віддаленого підключення вимкни синхронізацію буфера обміну.",
+        "opacity"=>"Rust не повернув число Прозорість (Opacity). Захопи цю смугу разом із числом справа й повтори перевірку. Залиш Rust на передньому плані; для віддаленого підключення вимкни синхронізацію буфера обміну.",
+        _=>throw new ArgumentException("Invalid control kind.",nameof(kind))
+    };
+    private void RestoreClipboard(ClipboardLease previous)
+    {
+        clipboardLease=null;previous.Dispose();
+    }
+
+    public Rgb SelectCalibrationColor(Rgb background)
+    {
+        var cal = settings.PaintCalibration();
+        if(settings.Mode==ColorMode.RustPalette)
+            Click(cal.Point("brush_tool") ?? throw new InvalidOperationException("Захопи інструмент пензля через налаштування Rust."));
+        ApplyBrushShape();
+        if (settings.Mode == ColorMode.HexDirect)
+        {
+            var color = RustSlider.Delta(background, new(0, 0, 0)) > RustSlider.Delta(background, new(255, 255, 255))
+                ? new Rgb(0, 0, 0) : new Rgb(255, 255, 255);
+            if (!ApplyHex(color, true)) throw new InvalidOperationException("Не підтверджено контрастний HEX-колір калібрування.");
+            return color;
+        }
+        var entry = settings.Palette().Where(x => x.ClickPoint.HasValue)
+            .OrderByDescending(x => RustSlider.Delta(x.Color, background)).FirstOrDefault()
+            ?? throw new InvalidOperationException("Захопи палітру Rust.");
+        if (RustSlider.Delta(entry.Color, background) < 40)
+            throw new InvalidOperationException("У палітрі немає контрастного кольору для цього Canvas.");
+        ApplyPalette(entry,alreadyAligned:true);
+        return entry.Color;
+    }
+
+    private void ApplyPalette(PaletteEntry entry,bool alreadyAligned=false)
+    {
+        var point = PaletteSelection.ClickPoint(entry,rebase,alreadyAligned);
+        var swatch = settings.Calibration.Rect("palette_swatch");
+        VerifyPaletteTarget(entry, point);
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            Click(point);
+            Delay(ColorDelay() + attempt * .10);
+            if (!swatch.Valid)
             {
-                Log("slider_unverified", new { kind, value, desired, reason = "green band not found" });
-                if (verifySizeOnce) verifiedSizeValues.Add(sizeKey);
+                // The target cell was checked before input. Do not mislabel
+                // that evidence as an active-color or final-paint RGB proof.
+                Log("palette", new { target = entry.Color.Hex, point, attempt, verified = false,
+                    targetVerified = true, verification = "palette-cell", reason = "active swatch unavailable; painted RGB unverified" });
                 return;
             }
+            var actual = Native.Median(swatch);
+            var ok = RustSlider.Delta(actual, entry.Color) <= Math.Clamp(settings.Int("hex_verify_tolerance", 22), 0, 40);
+            Log("palette", new { target = entry.Color.Hex, actual = actual.Hex, point, attempt, verified = ok });
+            if (ok) return;
+        }
+        throw new InvalidOperationException($"Rust не підтвердив колір палітри {entry.Color.Hex}. Перевір зразок активного кольору.");
+    }
 
-            // The click used a user-captured anchor for this exact size, which is
-            // ground truth; the green-band fraction is only a rough guide here, so
-            // warn instead of failing the transfer on a mismatch.
-            if (anchored)
-            {
-                Log("slider_anchor_mismatch", new { kind, value, desired, actual });
-                verifiedSizeValues.Add(sizeKey);
-                return;
-            }
-
-            // A confirmed mismatched Size is unsafe even when general control
-            // verification is disabled: continuing would paint with the wrong
-            // physical radius and make the picture appear shifted/out of place.
-            if (explicitVerify || verifySizeOnce)
-                throw new InvalidOperationException($"Не підтверджено {kind}. Перевір захоплення min/max повзунка.");
+    private void VerifyPaletteTarget(PaletteEntry entry, ScreenPoint point)
+    {
+        CheckBoundary();
+        try
+        {
+            // Move outside the palette before reading so hover/cursor pixels
+            // cannot masquerade as a changed color. The guard checks focus too.
+            var original=Native.Cursor();
+            var palette=settings.Calibration.Rect(entry.Source=="quick"?"quick":"palette");
+            var area=PaletteSelection.SampleArea(settings.Calibration,point,entry.Source);
+            if(area.Left<windowRect.Left||area.Top<windowRect.Top||area.Right>windowRect.Right||area.Bottom>windowRect.Bottom)
+                throw new PaletteLayoutException();
+            var park=CaptureCursor.ParkingPoint(palette,windowRect,original,48)
+                ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
+            if(park!=original){Native.ReleaseChecked();MoveCursor(park);Delay(.08);}
+            var evidence = PaletteSelection.Verify(settings.Calibration, entry, point, area =>
+            { CheckBoundary(); return Native.Median(area); }, () => Delay(.08));
+            Log("palette_target", new { color=entry.Color.Hex, point, evidence, activeColorVerified=false });
+        }
+        catch(InvalidOperationException e)
+        {
+            Log("palette_target_failed", new { color=entry.Color.Hex, point, reason=e.Message,
+                evidence=(e as PaletteTargetException)?.Evidence });
+            throw;
         }
     }
 
-    // Advisory only: returns the filled fraction of the green track, or null
-    // when no clear band is visible in the region. Callers must treat null as
-    // "cannot verify visually" and fall back to the calibrated anchors rather
-    // than as a mismatch.
-    internal static double? DetectSlider(PixelImage image)
+    public void VerifyPaletteTargets()
     {
-        var values = new double[image.Width];
-        for (var x = 0; x < image.Width; x++)
-        {
-            double sum = 0;
-            var n = 0;
-            for (var y = image.Height / 3; y < Math.Max(image.Height / 3 + 1, image.Height * 2 / 3); y++)
-            {
-                var c = image.Color(y * image.Width + x);
-                sum += c.G * 1.2 + c.R * .25 + c.B * .15;
-                n++;
-            }
-
-            values[x] = sum / Math.Max(1, n);
-        }
-
-        var sorted = values.OrderBy(x => x).ToArray();
-        var lo = sorted[(int)(sorted.Length * .2)];
-        var hi = sorted[Math.Min(sorted.Length - 1, (int)(sorted.Length * .8))];
-        if (hi - lo < 5)
-            return null;
-        var threshold = (lo + hi) / 2;
-        var last = 0;
-        for (var x = 0; x < values.Length; x++)
-        {
-            var filled = 0;
-            for (var k = Math.Max(0, x - 2); k <= Math.Min(values.Length - 1, x + 2); k++)
-                if (values[k] >= threshold)
-                    filled++;
-            if (filled >= 3)
-                last = x;
-        }
-
-        return last / (double)Math.Max(1, image.Width - 1);
+        foreach(var entry in settings.Palette())
+            VerifyPaletteTarget(entry, PaletteSelection.ClickPoint(entry,rebase,alreadyAligned:true));
     }
 
     private double? activeAdaptiveSize;
+    private int activeShape;
 
-    private void ApplyBrushShape()
+    private void ApplyBrushShape(int? shapeOverride=null)
     {
         var cal = settings.PaintCalibration();
         var shapes = cal.GridCenters("brush_shapes", cal.Get("brush_shape_cols", 7), 1);
-        var slot = Math.Clamp(settings.Int("brush_shape_slot", 3) - 1, 0, 6);
+        int selected=shapeOverride??(activeShape>0?activeShape:settings.Int("brush_shape_slot",3));
+        var slot = Math.Clamp(selected - 1, 0, 6);
         if (shapes.Count > slot)
             Click(shapes[slot]);
-        else if (cal.Point(settings.Text("brush_shape", "Round") == "Square" ? "square_brush" : "hard_brush") is ScreenPoint shape)
+        else if (selected is 3 or 4&&cal.Point(selected==4 ? "square_brush" : "hard_brush") is ScreenPoint shape)
             Click(shape);
+        else throw new InvalidOperationException("Capture all seven brush shapes before using this shape.");
+        activeShape=selected;
+        activeAdaptiveSize=null; // Reverify Size after changing the brush style.
     }
 
     private (double Size, double Interval, double Opacity) DesiredControls(double? sizeOverride = null)
     {
         var speed = SpeedProfile.Get(settings.Text("speed_profile", "Rapid"));
         var precision = settings.Text("coverage_mode", "Precision") == "Precision" && settings.Bool("force_precision_controls", true);
-        var size = precision ? speed.BrushSize : settings.Number("brush_size_value", 3);
+        var size = precision ? PaintTimingPlan.DefaultSize(settings) : settings.Number("brush_size_value", 3);
         if (!precision && settings.Bool("auto_brush_size", true))
             size = BrushValue(Math.Max(1, settings.Int("cell_px", 3)));
         if (sizeOverride.HasValue)
@@ -590,6 +610,7 @@ internal sealed class Painter
 
     private void ApplyControls(double? sizeOverride)
     {
+        VerifyControlLayout();
         ApplyBrushShape();
         var desired = DesiredControls(sizeOverride);
         Slider("size", desired.Size);
@@ -599,71 +620,63 @@ internal sealed class Painter
         needsReprime = false;
     }
 
-    private void ReprimeControls(double? sizeOverride)
+    private void ReprimeControls(double? sizeOverride,int? shapeOverride=null)
     {
         // Returning from pause should not blindly re-click all three controls.
         // Verify their current positions and only repair a control that drifted.
-        ApplyBrushShape();
+        ApplyBrushShape(shapeOverride);
         var desired = DesiredControls(sizeOverride);
         var repaired = new List<string>();
         if (!SliderMatches("size", desired.Size)) { Slider("size", desired.Size); repaired.Add("size"); }
         if (!SliderMatches("interval", desired.Interval)) { Slider("interval", desired.Interval); repaired.Add("interval"); }
         if (!SliderMatches("opacity", desired.Opacity)) { Slider("opacity", desired.Opacity); repaired.Add("opacity"); }
         activeAdaptiveSize = desired.Size;
-        Log("reprime", new { size = desired.Size, desired.Interval, desired.Opacity, repaired });
+        Log("reprime", new { size = desired.Size, desired.Interval, desired.Opacity, repaired, verified = true });
     }
 
     private double BrushValue(double pixels)
-    {
-        var pts = settings.Data["brush_calibration_points"] as System.Text.Json.Nodes.JsonArray;
-        if (pts is null || pts.Count < 2)
-            return pixels;
-        var list = pts.OfType<System.Text.Json.Nodes.JsonArray>().Where(x => x.Count == 2).Select(x => (Value: x[0]!.GetValue<double>(), Pixels: x[1]!.GetValue<double>())).OrderBy(x => x.Pixels).ToArray();
-        if (list.Length < 2)
-            return pixels;
-        if (pixels <= list[0].Pixels)
-            return list[0].Value;
-        for (var i = 1; i < list.Length; i++)
-            if (pixels <= list[i].Pixels)
-                return list[i - 1].Value + (list[i].Value - list[i - 1].Value) * (pixels - list[i - 1].Pixels) / (list[i].Pixels - list[i - 1].Pixels);
-        return list[^1].Value;
-    }
+        => AutomaticBrush.Value(settings, pixels);
 
     private double ColorDelay() => StrokeTiming.ColorDelay(settings);
 
     public void Run(PaintPlan plan, ResumeCheckpoint? resume = null)
     {
-        var groups = AdaptiveBrush.Build(plan, settings);
-        var order = groups.Keys.OrderByDescending(i => plan.Counts.GetValueOrDefault(i)).ToList();
-        if (plan.BackgroundColor is int bg)
-        {
-            order.Remove(bg);
-            order.Insert(0, bg);
-        }
+        if(PaintingReadiness.BrushProblem(settings) is {} calibrationProblem)throw new InvalidOperationException(calibrationProblem);
+        token.ThrowIfCancellationRequested();
+        Log("start_preparing",new{version=BuildInfo.Version,workingSize=PaintTimingPlan.DefaultSize(settings)});
+        report(new(0,0,0,0,"Готую штрихи та час. Можна зупинити підготовку.",Phase:PaintPhase.Preparing));
+        settings.Validate();
+        if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)
+            throw new InvalidOperationException(auditProblem);
+        if(settings.Bool("coverage_audit")&&resume is not null)
+            throw new InvalidOperationException("Аудит потребує початкового кадру Canvas. Виконай новий START; RESUME доступний без аудиту.");
+        var measuredPlan=MeasuredColorPlan.TryBuild(plan,settings,token);
+        var groups = measuredPlan is null?TransferSchedule.Build(plan,settings,token):TransferSchedule.Build(plan,settings,measuredPlan.Groups,token);
+        if(measuredPlan is not null)
+            Log("measured_color_plan",new{revision=MeasuredColorPlan.Revision,measuredPlan.TargetPixels,measuredPlan.CoveredPixels,measuredPlan.UnplannedPixels,
+                sizes=measuredPlan.Groups.Values.SelectMany(x=>x).Select(x=>x.Size).Distinct().Order().ToArray(),physicalResultVerified=false});
+        if(groups.Values.All(x=>x.Count==0))throw new InvalidOperationException("Жоден підтверджений пензель не поміщається у кольорові ділянки. Виміряй менший Size або зменш кількість кольорів.");
+        var order = TransferSchedule.Order(plan, groups);
 
         var total = groups.Values.Sum(x => x.Count);
         var done = resume?.Done ?? 0;
-        if (resume is not null)
-        {
-            if (resume.Group < 0 || resume.Group > order.Count || resume.Line < 0 || done < 0 || done > total
-                || resume.Group == order.Count && resume.Line != 0
-                || resume.Group < order.Count && resume.Line > groups[order[resume.Group]].Count)
-                throw new InvalidDataException("Пошкоджений RESUME. Виконай новий START.");
-            var expected = order.Take(resume.Group).Sum(color => groups[color].Count) + resume.Line;
-            if (expected != done)
-                throw new InvalidDataException("Прогрес RESUME не відповідає плану. Виконай новий START.");
-        }
+        if (resume is not null && !resume.Matches(plan.Identity, order.Select(color => groups[color].Count).ToArray()))
+            throw new InvalidDataException("Прогрес RESUME не відповідає плану. Виконай новий START.");
         var speed = SpeedProfile.Get(settings.Text("speed_profile", "Rapid"));
+        double nextReport=0;
         clock.Start();
-        if (resume is null)
-            Save(new(plan.Identity, 0, 0, 0));
+        timing=new(PaintTimingPlan.Build(settings,groups,order,resume?.Group??0,resume?.Line??0,token));
+        timingDone=done;timingTotal=total;timingPhase=PaintPhase.Countdown;
+        checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0));
+        FlushCheckpoint("start");
+        bool completed = false;
         var highResolutionTimer = Native.BeginHighResolutionTimer();
         try
         {
             for (var sec = settings.Int("start_delay", 5); sec > 0; sec--)
             {
                 token.ThrowIfCancellationRequested();
-                report(new(done, total, 0, 0, $"Старт через {sec} с…"));
+                ReportTiming($"Старт через {sec} с…",sec);
                 for (var j = 0; j < 20; j++)
                 {
                     token.ThrowIfCancellationRequested();
@@ -679,15 +692,23 @@ internal sealed class Painter
             if (Native.GetForegroundWindow() != window)
                 throw new InvalidOperationException("Поверни фокус у Rust і повтори START.");
             WaitReady();
-            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), frameMs = StrokeTiming.Frame(settings) * 1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, strokes = total, canvas = settings.Calibration.Rect("canvas") });
-            ApplyControls();
-            Log("adaptive_plan", new { enabled = settings.Bool("adaptive_brush"), wide = groups.Values.SelectMany(x => x).Count(x => x.Size > 0), total });
+            Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), delayTransport=DelayTimer.Transport, fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), calibratedMotion=SpeedCalibration.Use(settings), coverageAudit=settings.Bool("coverage_audit"), motionTransport = SpeedCalibration.Use(settings)?"SendInput probe verified":TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, timingRevision=StrokeTiming.Revision, highResolutionTimer, probeRevision=SpeedCalibration.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, controlFrameMs=StrokeTiming.ControlFrame(settings)*1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
+            BeginTiming(PaintTimingPlan.Setup,PaintPhase.Preparing,"Налаштовую пензель…");
+            double setupStart=ActiveSeconds;
+            for (;;)
+                try { ApplyControls(); break; }
+                catch (InputInterrupted) { WaitReady(); }
+            timing.Complete(PaintTimingPlan.Setup,ActiveSeconds-setupStart);
+            Log("adaptive_plan", new { enabled = settings.Bool("adaptive_brush"), wide = groups.Values.SelectMany(x => x).Count(x => x.Size > 0), total,
+                footprintRevision=BrushFootprints.Revision,shapeSlots=groups.Values.SelectMany(x=>x).Select(x=>x.ShapeSlot>0?x.ShapeSlot:settings.Int("brush_shape_slot",3)).Distinct().Order().ToArray() });
             string? lastHex = null;
             for (var group = resume?.Group ?? 0; group < order.Count; group++)
             {
                 var color = order[group];
                 var entry = plan.Palette[color];
                 WaitReady();
+                BeginTiming(PaintTimingPlan.Color(group),PaintPhase.Preparing,$"#{entry.Color.Hex}");
+                double colorStart=ActiveSeconds;
                 for (;;)
                     try
                     {
@@ -701,8 +722,9 @@ internal sealed class Painter
                             }
                         }
                         else
-                            Click(MapPoint(entry.ClickPoint ?? throw new InvalidOperationException("Колір не має координат палітри.")));
-                        Delay(ColorDelay());
+                            ApplyPalette(entry);
+                        if (plan.Mode == ColorMode.HexDirect)
+                            Delay(ColorDelay());
                         break;
                     }
                     catch (InputInterrupted)
@@ -711,20 +733,38 @@ internal sealed class Painter
                         lastHex = null;
                     }
 
+                timing.Complete(PaintTimingPlan.Color(group),ActiveSeconds-colorStart);
                 Log("color_group", new { group, mode = plan.Mode.ToString(), color = entry.Color.Hex, point = entry.ClickPoint, strokes = groups[color].Count });
+                PixelImage? auditBefore=null;
+                if(settings.Bool("coverage_audit"))
+                {
+                    BeginTiming(PaintTimingPlan.BeforeAudit(group),PaintPhase.Auditing,"Знімаю полотно для аудиту…");
+                    double captureStart=ActiveSeconds;
+                    for(;;)try{auditBefore=StableShot(settings.Calibration.Rect("canvas"));break;}
+                        catch(InputInterrupted){WaitReady();}
+                    timing.Complete(PaintTimingPlan.BeforeAudit(group),ActiveSeconds-captureStart);
+                }
                 var lines = groups[color];
+                double motionSeconds=0,plannedMotionSeconds=0,operationOverheadSeconds=0;
+                double resolutionSeconds=0,estimateSeconds=0,etaModelSeconds=0,checkpointSeconds=0,reportSeconds=0;int motionBatches=0,shiftParts=0;
+                var routes=new Dictionary<string,int>();var lengthHistogram=new int[6];
+                InputCosts costs=default;
                 for (var line = group == (resume?.Group ?? -1) ? resume!.Line : 0; line < lines.Count; line++)
                 {
+                    double cycleStart=0,excludedSeconds=0,actualMotion=0;
                     while (true)
                         try
                         {
+                            cycleStart=ActiveSeconds;excludedSeconds=0;
                             WaitReady();
                             var op = lines[line];
-                            var targetSize = settings.Bool("adaptive_brush") ? (op.Size > 0 ? op.Size : speed.BrushSize) : (double?)null;
+                            var targetSize = settings.Bool("adaptive_brush") ? (op.Size > 0 ? op.Size : PaintTimingPlan.DefaultSize(settings)) : (double?)null;
+                            int targetShape=op.ShapeSlot>0?op.ShapeSlot:settings.Int("brush_shape_slot",3);
 
                             if (needsReprime)
                             {
-                                ReprimeControls(targetSize);
+                                double reprimeStart=ActiveSeconds;
+                                ReprimeControls(targetSize,targetShape);
                                 if (plan.Mode == ColorMode.HexDirect)
                                 {
                                     if (!ApplyHex(entry.Color))
@@ -732,21 +772,60 @@ internal sealed class Painter
                                     lastHex = entry.Color.Hex;
                                 }
                                 else
-                                    Click(MapPoint(entry.ClickPoint!.Value));
+                                    ApplyPalette(entry);
                                 needsReprime = false;
+                                excludedSeconds+=ActiveSeconds-reprimeStart;
                             }
 
+                            if(activeShape!=targetShape)
+                            {
+                                BeginTiming(PaintTimingPlan.Shape(group,line),PaintPhase.Preparing,"Змінюю форму пензля…");
+                                double shapeStart=ActiveSeconds;ApplyBrushShape(targetShape);
+                                double shapeSeconds=ActiveSeconds-shapeStart;excludedSeconds+=shapeSeconds;
+                                timing.Complete(PaintTimingPlan.Shape(group,line),shapeSeconds);
+                                Log("adaptive_shape",new{group,line,shape=targetShape,op.ProfileId});
+                            }
+                            timing.Skip(PaintTimingPlan.Shape(group,line));
                             if (settings.Bool("adaptive_brush"))
                             {
                                 var size = targetSize!.Value;
                                 if (activeAdaptiveSize != size)
                                 {
+                                    BeginTiming(PaintTimingPlan.Size(group,line),PaintPhase.Preparing,"Змінюю розмір пензля…");
+                                    double sizeStart=ActiveSeconds;
                                     Slider("size", size);
+                                    double sizeSeconds=ActiveSeconds-sizeStart;excludedSeconds+=sizeSeconds;
+                                    timing.Complete(PaintTimingPlan.Size(group,line),sizeSeconds);
                                     activeAdaptiveSize = size;
                                     Log("adaptive_size", new { group, line, size, wide = op.Size > 0 });
                                 }
                             }
-                            Draw(op.Line, speed, line % 2 == 1);
+                            // Reprime after a pause may have already set the pending Size.
+                            timing.Skip(PaintTimingPlan.Size(group,line));
+                            BeginTiming(PaintTimingPlan.Motion(group,line),PaintPhase.Drawing,$"#{entry.Color.Hex}");
+                            long motionStart=Stopwatch.GetTimestamp();
+                            var inputStart=InputSnapshot();
+                            long resolutionStart=Stopwatch.GetTimestamp();
+                            bool fastBatch=Execution.FastBatch(op);
+                            var sample=op.Segments.Count==1?Execution.Resolve(activeAdaptiveSize??DesiredControls().Size,op.Segments[0],activeShape):null;
+                            resolutionSeconds+=Stopwatch.GetElapsedTime(resolutionStart).TotalSeconds;
+                            if(fastBatch)DrawBatch(op,speed);
+                            else Draw(op.Segments[0], speed, line % 2 == 1,sample);
+                            actualMotion=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;
+                            string route=fastBatch?"dense_path":sample is not null?$"probe_{sample.Method}":
+                                settings.Bool("line_mode")&&settings.Text("coverage_mode")=="Fast"&&TransferSchedule.Length(op.Segments[0])>=settings.Int("min_line_width",4)*settings.Int("cell_px",3)?"legacy_shift":"drag";
+                            var first=op.Segments[0];route+=op.Segments.Count>1?":mixed":first.X1==first.X2&&first.Y1!=first.Y2?":V":":H";
+                            routes[route]=routes.GetValueOrDefault(route)+1;
+                            foreach(var segment in op.Segments){int n=TransferSchedule.Length(segment);lengthHistogram[n<8?0:n<16?1:n<32?2:n<64?3:n<128?4:5]++;}
+                            if(sample?.Method==StrokeMethod.Shift)shiftParts+=Math.Max(1,(TransferSchedule.Length(first)+sample.MaxLength-1)/sample.MaxLength);
+                            costs+=InputSnapshot()-inputStart;
+                            long etaStart=Stopwatch.GetTimestamp();
+                            timing.Complete(PaintTimingPlan.Motion(group,line),actualMotion);
+                            etaModelSeconds+=Stopwatch.GetElapsedTime(etaStart).TotalSeconds;
+                            motionSeconds+=actualMotion;
+                            long estimateStart=Stopwatch.GetTimestamp();
+                            plannedMotionSeconds+=Execution.Estimate(op);motionBatches++;
+                            estimateSeconds+=Stopwatch.GetElapsedTime(estimateStart).TotalSeconds;
                             break;
                         }
                         catch (InputInterrupted)
@@ -756,47 +835,96 @@ internal sealed class Painter
                         }
 
                     done++;
+                    timingDone=done;
                     var state = new ResumeCheckpoint(plan.Identity, group, line + 1, done);
-                    if (line + 1 == lines.Count)
+                    if (line + 1 == lines.Count&&!settings.Bool("coverage_audit"))
                         state = state with
                         {
                             Group = group + 1,
                             Line = 0
                         };
+                    long checkpointStart=Stopwatch.GetTimestamp();checkpoint.Update(state);
                     if (done % 50 == 0 || line + 1 == lines.Count)
-                        Save(state);
-                    if (done % 12 == 0 || done == total)
+                        FlushCheckpoint("periodic");
+                    checkpointSeconds+=Stopwatch.GetElapsedTime(checkpointStart).TotalSeconds;
+                    if (clock.Elapsed.TotalSeconds>=nextReport || done == total)
                     {
-                        var elapsed = clock.Elapsed.TotalSeconds - pausedSeconds;
-                        report(new(done, total, elapsed, done > 0 ? elapsed * (total - done) / done : 0, $"#{entry.Color.Hex}"));
+                        long reportStart=Stopwatch.GetTimestamp();
+                        nextReport=clock.Elapsed.TotalSeconds+.25;
+                        ReportTiming($"#{entry.Color.Hex}");
+                        reportSeconds+=Stopwatch.GetElapsedTime(reportStart).TotalSeconds;
                     }
+                    double overhead=Math.Max(0,ActiveSeconds-cycleStart-excludedSeconds-actualMotion);
+                    timing.RecordOperationOverhead(PaintTimingPlan.Motion(group,line),overhead);
+                    operationOverheadSeconds+=overhead;
+                }
+                Log("motion_group",new{group,motionBatches,motionSeconds,plannedMotionSeconds,operationOverheadSeconds,
+                    resolutionSeconds,estimateSeconds,etaModelSeconds,checkpointSeconds,reportSeconds,executionRevision=StrokeExecutionPlan.Revision,
+                    routes,shiftParts,lengthHistogram, lengthHistogramRanges=new[]{"0-7","8-15","16-31","32-63","64-127","128+"},
+                    delayTransport=DelayTimer.Transport,inputCosts=costs,meanStrokeMs=motionBatches>0?motionSeconds*1000/motionBatches:0,plannedMeanStrokeMs=motionBatches>0?plannedMotionSeconds*1000/motionBatches:0});
+                if(auditBefore is not null)
+                {
+                    BeginTiming(PaintTimingPlan.Audit(group),PaintPhase.Auditing,"Перевіряю покриття…");
+                    double auditStart=ActiveSeconds;
+                    for(;;)try{AuditGroup(plan,color,group,auditBefore);break;}
+                        catch(InputInterrupted){WaitReady();ReprimeControls(activeAdaptiveSize);}
+                    timing.Complete(PaintTimingPlan.Audit(group),ActiveSeconds-auditStart);
+                    checkpoint.Update(new(plan.Identity,group+1,0,done));
+                    FlushCheckpoint("audited_group");
                 }
             }
 
-            if (Native.GetForegroundWindow() == window)
-                Slider("opacity", 1);
+            BeginTiming(PaintTimingPlan.Finish,PaintPhase.Finishing,"Завершую перенесення…");
+            double finishStart=ActiveSeconds;
+            FinishControls(settings, () => Native.GetForegroundWindow() == window, value => Slider("opacity", value));
             if (File.Exists(checkpointPath))
                 File.Delete(checkpointPath);
-            report(new(total, total, clock.Elapsed.TotalSeconds - pausedSeconds, 0, "Готово"));
-            Log("complete", new { done, total });
+            RestoreLastStrokeCursor();
+            timing.Complete(PaintTimingPlan.Finish,ActiveSeconds-finishStart);
+            completed = true;
+            timingPhase=PaintPhase.Completed;
+            ReportTiming(settings.Bool("coverage_audit")?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди виконано. Перевір результат у Rust.");
+            Log("complete", new { done, total, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), calibratedMotion=SpeedCalibration.Use(settings),coverageVerified=settings.Bool("coverage_audit"),resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
         }
         finally
         {
             Native.Release();
             if (highResolutionTimer)
                 Native.EndHighResolutionTimer();
+            if (!completed) FlushCheckpoint(token.IsCancellationRequested ? "stop" : "interruption");
         }
     }
 
-    private void Save(ResumeCheckpoint state)
+    // Only restore controls while Rust is still foreground.
+    internal static void FinishControls(Settings settings, Func<bool> foreground, Action<double> applyOpacity)
     {
-        var temp = checkpointPath + ".tmp";
-        File.WriteAllText(temp, JsonSerializer.Serialize(state));
-        File.Move(temp, checkpointPath, true);
+        if (foreground()) applyOpacity(1);
     }
 
-    private void Draw(ScreenLine line, SpeedProfile speed, bool reverse)
+    private void FlushCheckpoint(string reason)
     {
+        try
+        {
+            if (checkpoint?.Flush() == true)
+                Log("checkpoint", new { reason, checkpoint.Latest.Group, checkpoint.Latest.Line, checkpoint.Latest.Done });
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Log("checkpoint_save_failed", new { reason, checkpoint?.Latest, message = e.Message });
+            throw new IOException("Не вдалося зберегти прогрес. Продовження може повторити дії після попередньої контрольної точки.", e);
+        }
+    }
+
+    private void Draw(ScreenLine line, SpeedProfile speed, bool reverse,SpeedSample? sample)
+    {
+        if(sample is not null)
+        {
+            // Probe validates left-to-right / top-to-bottom. Preserve that direction.
+            var tested=line.X2<line.X1||line.Y2<line.Y1?TransferSchedule.Reverse(line):line;
+            CalibratedMotion.Draw(tested,sample,motionInput);
+            lastPaintPoint=Native.Cursor();
+            return;
+        }
         var a = new ScreenPoint(reverse ? line.X2 : line.X1, reverse ? line.Y2 : line.Y1);
         var b = new ScreenPoint(reverse ? line.X1 : line.X2, reverse ? line.Y1 : line.Y2);
         var length = Math.Max(Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y));
@@ -804,9 +932,11 @@ internal sealed class Painter
         Native.SetCursorPos(a.X, a.Y);
         var frame = StrokeTiming.Frame(settings);
         Delay(StrokeTiming.Settle(settings, speed));
+        CheckBoundary();
         if (shift)
             Native.Key(0x10);
         Native.Mouse(false);
+        var heldFrom = Stopwatch.GetTimestamp();
         try
         {
             Delay(frame);
@@ -826,13 +956,15 @@ internal sealed class Painter
                     batch.Add(new((int)Math.Round(a.X + (b.X - a.X) * f), (int)Math.Round(a.Y + (b.Y - a.Y) * f)));
                     if (batch.Count >= speed.BatchSize || step >= length)
                     {
-                        Native.MovePath(batch);
+                        MovePathMeasured(batch);
                         Delay(speed.PointDelay * batch.Count);
                         batch.Clear();
                     }
                 }
 
             Delay(StrokeTiming.EndHold(settings, speed));
+            var held = (Stopwatch.GetTimestamp() - heldFrom) / (double)Stopwatch.Frequency;
+            if (held < .04) Delay(.04 - held);
         }
         finally
         {
@@ -842,5 +974,43 @@ internal sealed class Painter
         }
 
         Delay(StrokeTiming.Release(settings));
+        lastPaintPoint=Native.Cursor();
+    }
+
+    private void DrawBatch(PaintBatch batch,SpeedProfile speed)
+    {
+        StrokeMotion.Draw(batch,settings,speed,motionInput);lastPaintPoint=Native.Cursor();
+    }
+
+    private void MoveCursor(ScreenPoint point)
+    {
+        // SetCursorPos can leave Rust's rendered brush indicator at the last
+        // stroke. Use the guarded input event path for parking and returning too,
+        // so the game receives the move before the settled capture is taken.
+        motionInput.Move([point]);
+    }
+    private bool CanReturnCursor()=>!token.IsCancellationRequested&&!Paused&&!Native.Down(0x1B)&&!Native.Down(0x75)
+        &&Native.GetForegroundWindow()==window&&Native.ProcessIdOf(window)==windowProcessId
+        &&Native.DpiOf(window)==windowDpi&&Native.GetWindowRect(window,out var rect)&&rect.ToScreen()==windowRect;
+    public void RestoreLastStrokeCursor()
+    {
+        if(lastPaintPoint is not { } point)return;
+        bool restored=CaptureCursor.Return(point,Native.ReleaseChecked,MoveCursor,CanReturnCursor,
+            error=>Log("cursor_restore_failed",new{phase="completion",message=error.Message}));
+        Log("cursor_finish",new{point,restored});
+    }
+
+    private sealed class GuardedStrokeInput(Painter owner) : ICalibratedStrokeInput
+    {
+        public double Seconds => owner.clock.Elapsed.TotalSeconds;
+        public void Move(IReadOnlyList<ScreenPoint> points)
+        {
+            owner.Check();
+            if(owner.Paused){if(owner.probeMode)owner.CheckProbe();throw new InputInterrupted();}
+            owner.MovePathMeasured(points);
+        }
+        public void Button(bool up){if(!up)owner.CheckBoundary();Native.Mouse(up);}
+        public void Shift(bool up){if(!up)owner.CheckBoundary();Native.Key(0x10,up);}
+        public void Wait(double seconds) => owner.Delay(seconds);
     }
 }

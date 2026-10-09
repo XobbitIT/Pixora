@@ -1,0 +1,2770 @@
+[
+  [
+    "Interface language",
+    "Język interfejsu",
+    "Sprache",
+    "Langue de l’interface",
+    "Idioma de la interfaz",
+    "Язык интерфейса"
+  ],
+  [
+    "Getting started",
+    "Jak zacząć",
+    "Erste Schritte",
+    "Bien démarrer",
+    "Primeros pasos",
+    "Как начать"
+  ],
+  [
+    "Painting",
+    "Malowanie",
+    "Malen",
+    "Peinture",
+    "Pintura",
+    "Рисование"
+  ],
+  [
+    "Capture Rust",
+    "Przechwytywanie Rust",
+    "Rust erfassen",
+    "Capture Rust",
+    "Capturar Rust",
+    "Захват Rust"
+  ],
+  [
+    "Rust capture",
+    "Przechwytywanie Rust",
+    "Rust erfassen",
+    "Capture Rust",
+    "Capturar Rust",
+    "Захват Rust"
+  ],
+  [
+    "Brush",
+    "Pędzel",
+    "Pinsel",
+    "Pinceau",
+    "Pincel",
+    "Кисть"
+  ],
+  [
+    "Speed Probe",
+    "Test szybkości",
+    "Tempotest",
+    "Test de vitesse",
+    "Prueba de velocidad",
+    "Тест скорости"
+  ],
+  [
+    "Settings",
+    "Ustawienia",
+    "Einstellungen",
+    "Paramètres",
+    "Ajustes",
+    "Настройки"
+  ],
+  [
+    "SECTIONS",
+    "SEKCJE",
+    "BEREICHE",
+    "SECTIONS",
+    "SECCIONES",
+    "РАЗДЕЛЫ"
+  ],
+  [
+    "PREPARATION",
+    "PRZYGOTOWANIE",
+    "VORBEREITUNG",
+    "PRÉPARATION",
+    "PREPARACIÓN",
+    "ПОДГОТОВКА"
+  ],
+  [
+    "Image",
+    "Obraz",
+    "Bild",
+    "Image",
+    "Imagen",
+    "Изображение"
+  ],
+  [
+    "Coverage",
+    "Pokrycie",
+    "Abdeckung",
+    "Couverture",
+    "Cobertura",
+    "Покрытие"
+  ],
+  [
+    "Ready",
+    "Gotowe",
+    "Bereit",
+    "Prêt",
+    "Listo",
+    "Готово"
+  ],
+  [
+    "Pending",
+    "Oczekuje",
+    "Ausstehend",
+    "En attente",
+    "Pendiente",
+    "Ожидает"
+  ],
+  [
+    "Verified",
+    "Potwierdzono",
+    "Bestätigt",
+    "Vérifié",
+    "Verificado",
+    "Проверено"
+  ],
+  [
+    "Stale",
+    "Nieaktualne",
+    "Veraltet",
+    "Périmé",
+    "Caducado",
+    "Устарело"
+  ],
+  [
+    "Error",
+    "Błąd",
+    "Fehler",
+    "Erreur",
+    "Error",
+    "Ошибка"
+  ],
+  [
+    "Disabled",
+    "Wyłączone",
+    "Aus",
+    "Désactivé",
+    "Desactivado",
+    "Выключено"
+  ],
+  [
+    "Needs review",
+    "Wymaga uwagi",
+    "Prüfung nötig",
+    "À vérifier",
+    "Revisar",
+    "Требует внимания"
+  ],
+  [
+    "Open image",
+    "Otwórz obraz",
+    "Bild öffnen",
+    "Ouvrir une image",
+    "Abrir imagen",
+    "Открыть изображение"
+  ],
+  [
+    "Original",
+    "Oryginał",
+    "Original",
+    "Original",
+    "Original",
+    "Оригинал"
+  ],
+  [
+    "Result",
+    "Wynik",
+    "Ergebnis",
+    "Résultat",
+    "Resultado",
+    "Результат"
+  ],
+  [
+    "Your original image will appear here",
+    "Tutaj pojawi się oryginał",
+    "Hier erscheint das Original",
+    "L’original apparaîtra ici",
+    "Aquí aparecerá el original",
+    "Здесь появится оригинал"
+  ],
+  [
+    "Your result will appear here",
+    "Tutaj pojawi się wynik",
+    "Hier erscheint das Ergebnis",
+    "Le résultat apparaîtra ici",
+    "Aquí aparecerá el resultado",
+    "Здесь появится результат"
+  ],
+  [
+    "Open an image to see the preview.",
+    "Otwórz obraz, aby zobaczyć podgląd.",
+    "Öffne ein Bild für die Vorschau.",
+    "Ouvrez une image pour voir l’aperçu.",
+    "Abre una imagen para ver la vista previa.",
+    "Открой изображение для просмотра."
+  ],
+  [
+    "Open an image.",
+    "Otwórz obraz.",
+    "Öffne ein Bild.",
+    "Ouvrez une image.",
+    "Abre una imagen.",
+    "Открой изображение."
+  ],
+  [
+    "Start",
+    "Rozpocznij",
+    "Starten",
+    "Démarrer",
+    "Iniciar",
+    "Начать"
+  ],
+  [
+    "Resume",
+    "Wznów",
+    "Fortsetzen",
+    "Reprendre",
+    "Continuar",
+    "Продолжить"
+  ],
+  [
+    "Pause",
+    "Pauza",
+    "Pause",
+    "Pause",
+    "Pausa",
+    "Пауза"
+  ],
+  [
+    "Stop",
+    "Zatrzymaj",
+    "Stoppen",
+    "Arrêter",
+    "Detener",
+    "Остановить"
+  ],
+  [
+    "Stop setup",
+    "Zatrzymaj przygotowanie",
+    "Vorbereitung stoppen",
+    "Arrêter la préparation",
+    "Detener preparación",
+    "Остановить подготовку"
+  ],
+  [
+    "Cancel",
+    "Anuluj",
+    "Abbrechen",
+    "Annuler",
+    "Cancelar",
+    "Отмена"
+  ],
+  [
+    "Close",
+    "Zamknij",
+    "Schließen",
+    "Fermer",
+    "Cerrar",
+    "Закрыть"
+  ],
+  [
+    "Dismiss",
+    "Zamknij",
+    "Ausblenden",
+    "Masquer",
+    "Ocultar",
+    "Закрыть"
+  ],
+  [
+    "Yes",
+    "Tak",
+    "Ja",
+    "Oui",
+    "Sí",
+    "Да"
+  ],
+  [
+    "No",
+    "Nie",
+    "Nein",
+    "Non",
+    "No",
+    "Нет"
+  ],
+  [
+    "OK",
+    "OK",
+    "OK",
+    "OK",
+    "Aceptar",
+    "Хорошо"
+  ],
+  [
+    "1. Preparation",
+    "1. Przygotowanie",
+    "1. Vorbereitung",
+    "1. Préparation",
+    "1. Preparación",
+    "1. Подготовка"
+  ],
+  [
+    "2. Colors",
+    "2. Kolory",
+    "2. Farben",
+    "2. Couleurs",
+    "2. Colores",
+    "2. Цвета"
+  ],
+  [
+    "3. Quality and speed",
+    "3. Jakość i szybkość",
+    "3. Qualität und Tempo",
+    "3. Qualité et vitesse",
+    "3. Calidad y velocidad",
+    "3. Качество и скорость"
+  ],
+  [
+    "4. Painting",
+    "4. Malowanie",
+    "4. Malen",
+    "4. Peinture",
+    "4. Pintura",
+    "4. Рисование"
+  ],
+  [
+    "Prepare for painting",
+    "Przygotuj malowanie",
+    "Malen vorbereiten",
+    "Préparer la peinture",
+    "Preparar la pintura",
+    "Подготовить к рисованию"
+  ],
+  [
+    "Individual Rust settings",
+    "Osobne ustawienia Rust",
+    "Einzelne Rust-Einstellungen",
+    "Réglages Rust individuels",
+    "Ajustes individuales de Rust",
+    "Отдельные настройки Rust"
+  ],
+  [
+    "Color selection",
+    "Wybór koloru",
+    "Farbauswahl",
+    "Sélection des couleurs",
+    "Selección de color",
+    "Выбор цвета"
+  ],
+  [
+    "Rust Palette",
+    "Paleta Rust",
+    "Rust-Palette",
+    "Palette Rust",
+    "Paleta de Rust",
+    "Палитра Rust"
+  ],
+  [
+    "HEX Direct",
+    "Bezpośredni HEX",
+    "Direktes HEX",
+    "HEX direct",
+    "HEX directo",
+    "Прямой HEX"
+  ],
+  [
+    "Quick Colors",
+    "Szybkie kolory",
+    "Schnellfarben",
+    "Couleurs rapides",
+    "Colores rápidos",
+    "Быстрые цвета"
+  ],
+  [
+    "Color count",
+    "Liczba kolorów",
+    "Farbanzahl",
+    "Nombre de couleurs",
+    "Número de colores",
+    "Количество цветов"
+  ],
+  [
+    "Maximum color count",
+    "Maksymalna liczba kolorów",
+    "Maximale Farbanzahl",
+    "Nombre maximal de couleurs",
+    "Número máximo de colores",
+    "Максимальное количество цветов"
+  ],
+  [
+    "Compare 64 / 96 / 128 / 256",
+    "Porównaj 64 / 96 / 128 / 256",
+    "64 / 96 / 128 / 256 vergleichen",
+    "Comparer 64 / 96 / 128 / 256",
+    "Comparar 64 / 96 / 128 / 256",
+    "Сравнить 64 / 96 / 128 / 256"
+  ],
+  [
+    "Detail, px",
+    "Szczegółowość, px",
+    "Detail, px",
+    "Détail, px",
+    "Detalle, px",
+    "Детализация, px"
+  ],
+  [
+    "Clear · 1 px",
+    "Dokładnie · 1 px",
+    "Detailreich · 1 px",
+    "Précis · 1 px",
+    "Preciso · 1 px",
+    "Чётко · 1 px"
+  ],
+  [
+    "Balance · 3 px",
+    "Balans · 3 px",
+    "Ausgewogen · 3 px",
+    "Équilibré · 3 px",
+    "Equilibrado · 3 px",
+    "Баланс · 3 px"
+  ],
+  [
+    "Fast · 5 px",
+    "Szybko · 5 px",
+    "Schnell · 5 px",
+    "Rapide · 5 px",
+    "Rápido · 5 px",
+    "Быстро · 5 px"
+  ],
+  [
+    "Draft · 8 px",
+    "Szkic · 8 px",
+    "Entwurf · 8 px",
+    "Brouillon · 8 px",
+    "Borrador · 8 px",
+    "Черновик · 8 px"
+  ],
+  [
+    "Maximum transfer speed",
+    "Maksymalna szybkość transferu",
+    "Maximales Übertragungstempo",
+    "Vitesse maximale de transfert",
+    "Velocidad máxima de transferencia",
+    "Максимальная скорость переноса"
+  ],
+  [
+    "Speed Probe and audit",
+    "Test szybkości i audyt",
+    "Tempotest und Prüfung",
+    "Test de vitesse et audit",
+    "Prueba de velocidad y auditoría",
+    "Тест скорости и аудит"
+  ],
+  [
+    "Speed Probe & audit",
+    "Test szybkości i audyt",
+    "Tempotest und Prüfung",
+    "Test de vitesse et audit",
+    "Prueba de velocidad y auditoría",
+    "Тест скорости и аудит"
+  ],
+  [
+    "Precise speed parameters",
+    "Dokładne parametry szybkości",
+    "Genaue Tempoeinstellungen",
+    "Paramètres précis de vitesse",
+    "Parámetros precisos de velocidad",
+    "Точные параметры скорости"
+  ],
+  [
+    "Movement profile",
+    "Profil ruchu",
+    "Bewegungsprofil",
+    "Profil de mouvement",
+    "Perfil de movimiento",
+    "Профиль движения"
+  ],
+  [
+    "Input engine",
+    "Tryb wprowadzania",
+    "Eingabemodus",
+    "Mode d’entrée",
+    "Modo de entrada",
+    "Режим ввода"
+  ],
+  [
+    "Stable",
+    "Stabilny",
+    "Stabil",
+    "Stable",
+    "Estable",
+    "Стабильный"
+  ],
+  [
+    "Experimental (8–16 ms)",
+    "Eksperymentalny (8–16 ms)",
+    "Experimentell (8–16 ms)",
+    "Expérimental (8–16 ms)",
+    "Experimental (8–16 ms)",
+    "Экспериментальный (8–16 мс)"
+  ],
+  [
+    "Safe",
+    "Bezpieczny",
+    "Sicher",
+    "Prudent",
+    "Seguro",
+    "Безопасный"
+  ],
+  [
+    "Rapid",
+    "Szybki",
+    "Schnell",
+    "Rapide",
+    "Rápido",
+    "Быстрый"
+  ],
+  [
+    "Turbo",
+    "Turbo",
+    "Turbo",
+    "Turbo",
+    "Turbo",
+    "Турбо"
+  ],
+  [
+    "Max Speed",
+    "Maksymalne tempo",
+    "Maximales Tempo",
+    "Vitesse maximale",
+    "Velocidad máxima",
+    "Максимальная скорость"
+  ],
+  [
+    "Movement profile default",
+    "Według profilu ruchu",
+    "Laut Bewegungsprofil",
+    "Selon le profil de mouvement",
+    "Según el perfil de movimiento",
+    "По профилю движения"
+  ],
+  [
+    "Plan and export",
+    "Plan i eksport",
+    "Plan und Export",
+    "Plan et export",
+    "Plan y exportación",
+    "План и экспорт"
+  ],
+  [
+    "Enlarge result",
+    "Powiększ wynik",
+    "Ergebnis vergrößern",
+    "Agrandir le résultat",
+    "Ampliar resultado",
+    "Увеличить результат"
+  ],
+  [
+    "Compare original / result",
+    "Porównaj oryginał / wynik",
+    "Original / Ergebnis vergleichen",
+    "Comparer original / résultat",
+    "Comparar original / resultado",
+    "Сравнить оригинал / результат"
+  ],
+  [
+    "Show result only",
+    "Pokaż tylko wynik",
+    "Nur Ergebnis anzeigen",
+    "Afficher le résultat seul",
+    "Mostrar solo el resultado",
+    "Показать только результат"
+  ],
+  [
+    "No saved progress.",
+    "Brak zapisanego postępu.",
+    "Kein gespeicherter Fortschritt.",
+    "Aucune progression enregistrée.",
+    "No hay progreso guardado.",
+    "Нет сохранённого прогресса."
+  ],
+  [
+    "F6 — pause · ESC — stop",
+    "F6 — pauza · ESC — stop",
+    "F6 — Pause · ESC — Stopp",
+    "F6 — pause · ESC — arrêt",
+    "F6 — pausa · ESC — detener",
+    "F6 — пауза · ESC — стоп"
+  ],
+  [
+    "F6 — pause • ESC — stop",
+    "F6 — pauza • ESC — stop",
+    "F6 — Pause • ESC — Stopp",
+    "F6 — pause • ESC — arrêt",
+    "F6 — pausa • ESC — detener",
+    "F6 — пауза • ESC — стоп"
+  ],
+  [
+    "Image → Rust Canvas",
+    "Obraz → płótno Rust",
+    "Bild → Rust-Leinwand",
+    "Image → toile Rust",
+    "Imagen → lienzo de Rust",
+    "Изображение → полотно Rust"
+  ],
+  [
+    "Start in three steps",
+    "Zacznij w trzech krokach",
+    "Start in drei Schritten",
+    "Démarrez en trois étapes",
+    "Empieza en tres pasos",
+    "Начни с трёх шагов"
+  ],
+  [
+    "1. Choose an image",
+    "1. Wybierz obraz",
+    "1. Bild auswählen",
+    "1. Choisissez une image",
+    "1. Elige una imagen",
+    "1. Выбери изображение"
+  ],
+  [
+    "2. Prepare Rust",
+    "2. Przygotuj Rust",
+    "2. Rust vorbereiten",
+    "2. Préparez Rust",
+    "2. Prepara Rust",
+    "2. Подготовь Rust"
+  ],
+  [
+    "3. Start painting",
+    "3. Rozpocznij malowanie",
+    "3. Malen starten",
+    "3. Lancez la peinture",
+    "3. Empieza a pintar",
+    "3. Начни рисовать"
+  ],
+  [
+    "Go to preparation",
+    "Przejdź do przygotowania",
+    "Zur Vorbereitung",
+    "Aller à la préparation",
+    "Ir a la preparación",
+    "Перейти к подготовке"
+  ],
+  [
+    "Show workspace",
+    "Pokaż obszar roboczy",
+    "Arbeitsbereich anzeigen",
+    "Afficher l’espace de travail",
+    "Mostrar área de trabajo",
+    "Показать рабочее окно"
+  ],
+  [
+    "Open PNG, JPG or BMP. You can also drop a file into the window.",
+    "Otwórz PNG, JPG lub BMP albo przeciągnij plik do okna.",
+    "Öffne PNG, JPG oder BMP oder ziehe eine Datei ins Fenster.",
+    "Ouvrez un PNG, JPG ou BMP, ou glissez le fichier dans la fenêtre.",
+    "Abre un PNG, JPG o BMP, o arrastra el archivo a la ventana.",
+    "Открой PNG, JPG или BMP либо перетащи файл в окно."
+  ],
+  [
+    "Open a clean Canvas in Rust. Prepare for painting guides you through regions, colors and brush verification. Clear the test dots afterwards.",
+    "Otwórz czyste płótno w Rust. Przygotowanie prowadzi przez zaznaczanie obszarów, kolory i weryfikację pędzla. Potem usuń kropki testowe.",
+    "Öffne eine leere Leinwand in Rust. Die Vorbereitung führt durch Bereiche, Farben und Pinselprüfung. Entferne danach die Testpunkte.",
+    "Ouvrez une toile vierge dans Rust. La préparation guide la sélection des zones, des couleurs et la vérification du pinceau. Effacez ensuite les points de test.",
+    "Abre un lienzo limpio en Rust. La preparación guía la selección de áreas, colores y la verificación del pincel. Borra después los puntos de prueba.",
+    "Открой чистое полотно в Rust. Подготовка проведёт через выбор областей, цвета и проверку кисти. Затем удали тестовые точки."
+  ],
+  [
+    "Return to Painting, check the preview and press Start. The preparation hint explains anything still missing.",
+    "Wróć do Malowania, sprawdź podgląd i kliknij Rozpocznij. Podpowiedź wyjaśni, czego jeszcze brakuje.",
+    "Kehre zu Malen zurück, prüfe die Vorschau und klicke Starten. Die Vorbereitung zeigt fehlende Schritte an.",
+    "Revenez à Peinture, vérifiez l’aperçu et cliquez sur Démarrer. L’indication de préparation signale les étapes manquantes.",
+    "Vuelve a Pintura, revisa la vista previa y pulsa Iniciar. La indicación de preparación explica lo que falta.",
+    "Вернись в «Рисование», проверь превью и нажми «Начать». Подсказка подготовки объяснит, чего не хватает."
+  ],
+  [
+    "Optional: Adaptive brush, Speed Probe and coverage audit have separate settings. They are not required for your first standard painting.",
+    "Opcjonalnie: pędzel adaptacyjny, test szybkości i audyt pokrycia mają osobne ustawienia. Nie są wymagane do pierwszego zwykłego malowania.",
+    "Optional: Adaptiver Pinsel, Tempotest und Abdeckungsprüfung werden separat eingestellt. Für das erste normale Malen sind sie nicht erforderlich.",
+    "Facultatif : le pinceau adaptatif, le test de vitesse et l’audit de couverture se règlent séparément. Ils ne sont pas nécessaires pour la première peinture standard.",
+    "Opcional: el pincel adaptativo, la prueba de velocidad y la auditoría de cobertura se configuran por separado. No son necesarios para la primera pintura normal.",
+    "Дополнительно: адаптивная кисть, тест скорости и аудит покрытия настраиваются отдельно. Для первого обычного рисования они не нужны."
+  ],
+  [
+    "Technical diagnostics may appear in English.",
+    "Komunikaty diagnostyczne mogą być po angielsku.",
+    "Technische Diagnosen können auf Englisch erscheinen.",
+    "Les diagnostics techniques peuvent être en anglais.",
+    "Los diagnósticos técnicos pueden aparecer en inglés.",
+    "Техническая диагностика может отображаться на английском."
+  ],
+  [
+    "General settings",
+    "Ustawienia ogólne",
+    "Allgemeine Einstellungen",
+    "Réglages généraux",
+    "Ajustes generales",
+    "Основные настройки"
+  ],
+  [
+    "Quality profile",
+    "Profil jakości",
+    "Qualitätsprofil",
+    "Profil de qualité",
+    "Perfil de calidad",
+    "Профиль качества"
+  ],
+  [
+    "Apply profile",
+    "Zastosuj profil",
+    "Profil anwenden",
+    "Appliquer le profil",
+    "Aplicar perfil",
+    "Применить профиль"
+  ],
+  [
+    "Illustrations and line art",
+    "Ilustracje i kontury",
+    "Illustrationen und Konturen",
+    "Illustrations et contours",
+    "Ilustraciones y contornos",
+    "Иллюстрации и контуры"
+  ],
+  [
+    "Photo",
+    "Zdjęcie",
+    "Foto",
+    "Photo",
+    "Foto",
+    "Фото"
+  ],
+  [
+    "Fast",
+    "Szybki",
+    "Schnell",
+    "Rapide",
+    "Rápido",
+    "Быстрый"
+  ],
+  [
+    "Pixel Art",
+    "Grafika pikselowa",
+    "Pixelgrafik",
+    "Pixel art",
+    "Arte píxel",
+    "Пиксельная графика"
+  ],
+  [
+    "Custom",
+    "Własny",
+    "Benutzerdefiniert",
+    "Personnalisé",
+    "Personalizado",
+    "Свой"
+  ],
+  [
+    "Rust compatibility",
+    "Zgodność z Rust",
+    "Rust-Kompatibilität",
+    "Compatibilité Rust",
+    "Compatibilidad con Rust",
+    "Совместимость с Rust"
+  ],
+  [
+    "Value confirmation",
+    "Potwierdzanie wartości",
+    "Werte bestätigen",
+    "Confirmation des valeurs",
+    "Confirmación de valores",
+    "Подтверждение значений"
+  ],
+  [
+    "Visual verification",
+    "Weryfikacja wizualna",
+    "Visuelle Prüfung",
+    "Vérification visuelle",
+    "Verificación visual",
+    "Визуальная проверка"
+  ],
+  [
+    "Read numeric values",
+    "Odczyt liczb",
+    "Zahlen auslesen",
+    "Lire les valeurs numériques",
+    "Leer valores numéricos",
+    "Считывание чисел"
+  ],
+  [
+    "Confirmation method",
+    "Metoda potwierdzania",
+    "Bestätigungsmethode",
+    "Méthode de confirmation",
+    "Método de confirmación",
+    "Способ подтверждения"
+  ],
+  [
+    "Number readback",
+    "Odczyt liczby",
+    "Zahl auslesen",
+    "Lecture du nombre",
+    "Lectura numérica",
+    "Считывание числа"
+  ],
+  [
+    "Slider and imprint",
+    "Suwak i odcisk",
+    "Regler und Abdruck",
+    "Curseur et empreinte",
+    "Control y huella",
+    "Ползунок и отпечаток"
+  ],
+  [
+    "Advanced painting settings",
+    "Zaawansowane ustawienia malowania",
+    "Erweiterte Maleinstellungen",
+    "Réglages avancés de peinture",
+    "Ajustes avanzados de pintura",
+    "Расширенные настройки рисования"
+  ],
+  [
+    "Image quality",
+    "Jakość obrazu",
+    "Bildqualität",
+    "Qualité d’image",
+    "Calidad de imagen",
+    "Качество изображения"
+  ],
+  [
+    "Automation",
+    "Automatyzacja",
+    "Automatisierung",
+    "Automatisation",
+    "Automatización",
+    "Автоматизация"
+  ],
+  [
+    "Rust controls",
+    "Sterowanie Rust",
+    "Rust-Steuerung",
+    "Commandes Rust",
+    "Controles de Rust",
+    "Управление Rust"
+  ],
+  [
+    "Preview",
+    "Podgląd",
+    "Vorschau",
+    "Aperçu",
+    "Vista previa",
+    "Превью"
+  ],
+  [
+    "About",
+    "O programie",
+    "Über Pixora",
+    "À propos",
+    "Acerca de",
+    "О программе"
+  ],
+  [
+    "Fit square",
+    "Dopasuj do kwadratu",
+    "In Quadrat einpassen",
+    "Adapter au carré",
+    "Ajustar al cuadrado",
+    "Вписать в квадрат"
+  ],
+  [
+    "Fit whole image",
+    "Cały obraz",
+    "Ganzes Bild einpassen",
+    "Image entière",
+    "Imagen completa",
+    "Полное изображение"
+  ],
+  [
+    "Crop",
+    "Przytnij",
+    "Zuschneiden",
+    "Rogner",
+    "Recortar",
+    "Обрезать"
+  ],
+  [
+    "Smart placement",
+    "Inteligentne dopasowanie",
+    "Intelligente Platzierung",
+    "Placement intelligent",
+    "Colocación inteligente",
+    "Умное размещение"
+  ],
+  [
+    "Preserve",
+    "Zachowaj",
+    "Beibehalten",
+    "Conserver",
+    "Conservar",
+    "Сохранить"
+  ],
+  [
+    "Automatic",
+    "Automatycznie",
+    "Automatisch",
+    "Automatique",
+    "Automático",
+    "Автоматически"
+  ],
+  [
+    "Precision",
+    "Precyzyjny",
+    "Präzise",
+    "Précision",
+    "Precisión",
+    "Точный"
+  ],
+  [
+    "Paced movement",
+    "Ruch z opóźnieniami",
+    "Bewegung mit Pausen",
+    "Mouvement cadencé",
+    "Movimiento pausado",
+    "Движение с задержками"
+  ],
+  [
+    "Shift line",
+    "Linia z Shift",
+    "Shift-Linie",
+    "Ligne avec Shift",
+    "Línea con Shift",
+    "Линия с Shift"
+  ],
+  [
+    "Main palette",
+    "Główna paleta",
+    "Hauptpalette",
+    "Palette principale",
+    "Paleta principal",
+    "Основная палитра"
+  ],
+  [
+    "Size",
+    "Rozmiar",
+    "Größe",
+    "Taille",
+    "Tamaño",
+    "Размер"
+  ],
+  [
+    "Interval",
+    "Odstęp",
+    "Abstand",
+    "Intervalle",
+    "Intervalo",
+    "Интервал"
+  ],
+  [
+    "Opacity",
+    "Krycie",
+    "Deckkraft",
+    "Opacité",
+    "Opacidad",
+    "Непрозрачность"
+  ],
+  [
+    "Canvas and Rust regions",
+    "Płótno i obszary Rust",
+    "Leinwand und Rust-Bereiche",
+    "Toile et zones Rust",
+    "Lienzo y áreas de Rust",
+    "Полотно и области Rust"
+  ],
+  [
+    "Colors / HEX",
+    "Kolory / HEX",
+    "Farben / HEX",
+    "Couleurs / HEX",
+    "Colores / HEX",
+    "Цвета / HEX"
+  ],
+  [
+    "Brush and numeric fields",
+    "Pędzel i pola liczbowe",
+    "Pinsel und Zahlenfelder",
+    "Pinceau et champs numériques",
+    "Pincel y campos numéricos",
+    "Кисть и числовые поля"
+  ],
+  [
+    "Brush measurement",
+    "Pomiar pędzla",
+    "Pinselmessung",
+    "Mesure du pinceau",
+    "Medición del pincel",
+    "Измерение кисти"
+  ],
+  [
+    "Spatial offsets",
+    "Przesunięcia przestrzenne",
+    "Räumliche Versätze",
+    "Décalages spatiaux",
+    "Desplazamientos espaciales",
+    "Пространственные смещения"
+  ],
+  [
+    "running",
+    "w toku",
+    "läuft",
+    "en cours",
+    "en curso",
+    "выполняется"
+  ],
+  [
+    "passed",
+    "gotowe",
+    "bestätigt",
+    "réussi",
+    "correcto",
+    "готово"
+  ],
+  [
+    "failed",
+    "błąd",
+    "fehlgeschlagen",
+    "échec",
+    "falló",
+    "ошибка"
+  ],
+  [
+    "cancelled",
+    "anulowano",
+    "abgebrochen",
+    "annulé",
+    "cancelado",
+    "отменено"
+  ],
+  [
+    "pending",
+    "oczekuje",
+    "ausstehend",
+    "en attente",
+    "pendiente",
+    "ожидает"
+  ],
+  [
+    "finished",
+    "zakończono",
+    "beendet",
+    "terminé",
+    "terminado",
+    "завершено"
+  ],
+  [
+    "Could not measure Size",
+    "Nie udało się zmierzyć Size",
+    "Size konnte nicht gemessen werden",
+    "Mesure de Size impossible",
+    "No se pudo medir Size",
+    "Не удалось измерить Size"
+  ],
+  [
+    "Show gaps",
+    "Pokaż braki",
+    "Lücken anzeigen",
+    "Afficher les manques",
+    "Mostrar huecos",
+    "Показать пропуски"
+  ],
+  [
+    "Open diagnostics",
+    "Otwórz diagnostykę",
+    "Diagnose öffnen",
+    "Ouvrir les diagnostics",
+    "Abrir diagnóstico",
+    "Открыть диагностику"
+  ],
+  [
+    "Open diagnostics folder",
+    "Otwórz folder diagnostyki",
+    "Diagnoseordner öffnen",
+    "Ouvrir le dossier de diagnostic",
+    "Abrir carpeta de diagnóstico",
+    "Открыть папку диагностики"
+  ],
+  [
+    "Coverage audit needs attention",
+    "Audyt pokrycia wymaga uwagi",
+    "Abdeckungsprüfung braucht Aufmerksamkeit",
+    "Audit de couverture à vérifier",
+    "La auditoría requiere atención",
+    "Аудит покрытия требует внимания"
+  ],
+  [
+    "Why did controls fail?",
+    "Dlaczego sterowanie nie działa?",
+    "Warum scheiterte die Steuerung?",
+    "Pourquoi les commandes ont échoué ?",
+    "¿Por qué fallaron los controles?",
+    "Почему не прошла проверка управления?"
+  ],
+  [
+    "Control diagnostics",
+    "Diagnostyka sterowania",
+    "Steuerungsdiagnose",
+    "Diagnostic des commandes",
+    "Diagnóstico de controles",
+    "Диагностика управления"
+  ],
+  [
+    "1. Spatial calibration",
+    "1. Kalibracja przestrzenna",
+    "1. Räumliche Kalibrierung",
+    "1. Étalonnage spatial",
+    "1. Calibración espacial",
+    "1. Пространственная калибровка"
+  ],
+  [
+    "2. Speed Probe",
+    "2. Test szybkości",
+    "2. Tempotest",
+    "2. Test de vitesse",
+    "2. Prueba de velocidad",
+    "2. Тест скорости"
+  ],
+  [
+    "3. Coverage audit",
+    "3. Audyt pokrycia",
+    "3. Abdeckungsprüfung",
+    "3. Audit de couverture",
+    "3. Auditoría de cobertura",
+    "3. Аудит покрытия"
+  ],
+  [
+    "Run Speed Probe",
+    "Uruchom test szybkości",
+    "Tempotest starten",
+    "Lancer le test de vitesse",
+    "Iniciar prueba de velocidad",
+    "Запустить тест скорости"
+  ],
+  [
+    "Measure spatial offsets",
+    "Zmierz przesunięcia",
+    "Versätze messen",
+    "Mesurer les décalages",
+    "Medir desplazamientos",
+    "Измерить смещения"
+  ],
+  [
+    "Brush size for tests",
+    "Rozmiar pędzla do testów",
+    "Pinselgröße für Tests",
+    "Taille du pinceau pour les tests",
+    "Tamaño del pincel para pruebas",
+    "Размер кисти для тестов"
+  ],
+  [
+    "Enable adaptive brush",
+    "Włącz pędzel adaptacyjny",
+    "Adaptiven Pinsel aktivieren",
+    "Activer le pinceau adaptatif",
+    "Activar pincel adaptativo",
+    "Включить адаптивную кисть"
+  ],
+  [
+    "Verify Size 1 for Adaptive",
+    "Sprawdź Size 1 dla Adaptive",
+    "Size 1 für Adaptive prüfen",
+    "Vérifier Size 1 pour Adaptive",
+    "Verificar Size 1 para Adaptive",
+    "Проверить Size 1 для Adaptive"
+  ],
+  [
+    "3. Adaptive painting",
+    "3. Malowanie adaptacyjne",
+    "3. Adaptives Malen",
+    "3. Peinture adaptative",
+    "3. Pintura adaptativa",
+    "3. Адаптивное рисование"
+  ],
+  [
+    "Maximum wide brush size",
+    "Maksymalny rozmiar szerokiego pędzla",
+    "Maximale breite Pinselgröße",
+    "Taille maximale du pinceau large",
+    "Tamaño máximo del pincel ancho",
+    "Максимальный размер широкой кисти"
+  ],
+  [
+    "Automatically select measured shapes",
+    "Automatyczny wybór zmierzonych kształtów",
+    "Gemessene Formen automatisch wählen",
+    "Choisir automatiquement les formes mesurées",
+    "Elegir automáticamente formas medidas",
+    "Автоматически выбирать измеренные формы"
+  ],
+  [
+    "Measured brush sizes",
+    "Zmierzone rozmiary pędzla",
+    "Gemessene Pinselgrößen",
+    "Tailles de pinceau mesurées",
+    "Tamaños de pincel medidos",
+    "Измеренные размеры кисти"
+  ],
+  [
+    "Open calibration snapshots",
+    "Otwórz zrzuty kalibracji",
+    "Kalibrierungsbilder öffnen",
+    "Ouvrir les captures d’étalonnage",
+    "Abrir capturas de calibración",
+    "Открыть снимки калибровки"
+  ],
+  [
+    "Balanced · 3 px",
+    "Balans · 3 px",
+    "Ausgewogen · 3 px",
+    "Équilibré · 3 px",
+    "Equilibrado · 3 px",
+    "Баланс · 3 px"
+  ],
+  [
+    "Detail · 1 px",
+    "Detale · 1 px",
+    "Detailreich · 1 px",
+    "Détaillé · 1 px",
+    "Detalle · 1 px",
+    "Детально · 1 px"
+  ],
+  [
+    "Advanced painting",
+    "Malowanie zaawansowane",
+    "Erweitertes Malen",
+    "Peinture avancée",
+    "Pintura avanzada",
+    "Расширенное рисование"
+  ],
+  [
+    "1. Canvas and Rust regions: pending",
+    "1. Płótno i obszary Rust: oczekuje",
+    "1. Leinwand und Rust-Bereiche: ausstehend",
+    "1. Toile et zones Rust : en attente",
+    "1. Lienzo y áreas de Rust: pendiente",
+    "1. Полотно и области Rust: ожидает"
+  ],
+  [
+    "2. Colors / HEX: pending",
+    "2. Kolory / HEX: oczekuje",
+    "2. Farben / HEX: ausstehend",
+    "2. Couleurs / HEX : en attente",
+    "2. Colores / HEX: pendiente",
+    "2. Цвета / HEX: ожидает"
+  ],
+  [
+    "3. Brush and numeric fields: pending",
+    "3. Pędzel i pola liczbowe: oczekuje",
+    "3. Pinsel und Zahlenfelder: ausstehend",
+    "3. Pinceau et champs numériques : en attente",
+    "3. Pincel y campos numéricos: pendiente",
+    "3. Кисть и числовые поля: ожидает"
+  ],
+  [
+    "4. Brush measurement: pending",
+    "4. Pomiar pędzla: oczekuje",
+    "4. Pinselmessung: ausstehend",
+    "4. Mesure du pinceau : en attente",
+    "4. Medición del pincel: pendiente",
+    "4. Измерение кисти: ожидает"
+  ],
+  [
+    "2. Automatic calibration",
+    "2. Kalibracja automatyczna",
+    "2. Automatische Kalibrierung",
+    "2. Étalonnage automatique",
+    "2. Calibración automática",
+    "2. Автоматическая калибровка"
+  ],
+  [
+    "3. Coverage verification",
+    "3. Weryfikacja pokrycia",
+    "3. Abdeckung prüfen",
+    "3. Vérification de couverture",
+    "3. Verificación de cobertura",
+    "3. Проверка покрытия"
+  ],
+  [
+    "Active color swatch (optional)",
+    "Próbka aktywnego koloru (opcjonalna)",
+    "Aktuelle Farbprobe (optional)",
+    "Échantillon actif (facultatif)",
+    "Muestra de color activo (opcional)",
+    "Образец активного цвета (необязательно)"
+  ],
+  [
+    "Adaptive mode: disabled or needs calibration",
+    "Tryb adaptacyjny: wyłączony lub wymaga kalibracji",
+    "Adaptiver Modus: aus oder Kalibrierung nötig",
+    "Mode adaptatif : désactivé ou à étalonner",
+    "Modo adaptativo: desactivado o requiere calibración",
+    "Адаптивный режим: выключен или требует калибровки"
+  ],
+  [
+    "Apply clear-edge profile",
+    "Zastosuj profil ostrych krawędzi",
+    "Profil für klare Kanten anwenden",
+    "Appliquer le profil de contours nets",
+    "Aplicar perfil de bordes nítidos",
+    "Применить профиль чётких краёв"
+  ],
+  [
+    "Audit after each color",
+    "Audyt po każdym kolorze",
+    "Nach jeder Farbe prüfen",
+    "Auditer après chaque couleur",
+    "Auditar después de cada color",
+    "Проверять после каждого цвета"
+  ],
+  [
+    "Auto improvement threshold (%)",
+    "Próg automatycznej poprawy (%)",
+    "Automatische Verbesserungsschwelle (%)",
+    "Seuil d’amélioration automatique (%)",
+    "Umbral de mejora automática (%)",
+    "Порог автоматического улучшения (%)"
+  ],
+  [
+    "Automatic brush size",
+    "Automatyczny rozmiar pędzla",
+    "Automatische Pinselgröße",
+    "Taille automatique du pinceau",
+    "Tamaño automático del pincel",
+    "Автоматический размер кисти"
+  ],
+  [
+    "Automatically choose measured shapes",
+    "Automatycznie wybieraj zmierzone kształty",
+    "Gemessene Formen automatisch wählen",
+    "Choisir automatiquement les formes mesurées",
+    "Elegir automáticamente formas medidas",
+    "Автоматически выбирать измеренные формы"
+  ],
+  [
+    "Background mode",
+    "Tryb tła",
+    "Hintergrundmodus",
+    "Mode d’arrière-plan",
+    "Modo de fondo",
+    "Режим фона"
+  ],
+  [
+    "Brush calibration",
+    "Kalibracja pędzla",
+    "Pinselkalibrierung",
+    "Étalonnage du pinceau",
+    "Calibración del pincel",
+    "Калибровка кисти"
+  ],
+  [
+    "Brush shape and values",
+    "Kształt i wartości pędzla",
+    "Pinselform und Werte",
+    "Forme et valeurs du pinceau",
+    "Forma y valores del pincel",
+    "Форма и параметры кисти"
+  ],
+  [
+    "Brush shape for calibration",
+    "Kształt pędzla do kalibracji",
+    "Pinselform für Kalibrierung",
+    "Forme du pinceau à étalonner",
+    "Forma del pincel para calibrar",
+    "Форма кисти для калибровки"
+  ],
+  [
+    "Brush shapes",
+    "Kształty pędzla",
+    "Pinselformen",
+    "Formes de pinceau",
+    "Formas de pincel",
+    "Формы кисти"
+  ],
+  [
+    "Brush tool",
+    "Narzędzie pędzla",
+    "Pinselwerkzeug",
+    "Outil pinceau",
+    "Herramienta pincel",
+    "Инструмент кисти"
+  ],
+  [
+    "Brushes and Adaptive",
+    "Pędzle i Adaptive",
+    "Pinsel und Adaptive",
+    "Pinceaux et Adaptive",
+    "Pinceles y Adaptive",
+    "Кисти и Adaptive"
+  ],
+  [
+    "Calibrate automatically",
+    "Kalibruj automatycznie",
+    "Automatisch kalibrieren",
+    "Étalonner automatiquement",
+    "Calibrar automáticamente",
+    "Откалибровать автоматически"
+  ],
+  [
+    "Canvas / palette",
+    "Płótno / paleta",
+    "Leinwand / Palette",
+    "Toile / palette",
+    "Lienzo / paleta",
+    "Полотно / палитра"
+  ],
+  [
+    "Capture Canvas and Rust controls",
+    "Przechwyć płótno i sterowanie Rust",
+    "Leinwand und Rust-Steuerung erfassen",
+    "Capturer la toile et les commandes Rust",
+    "Capturar lienzo y controles de Rust",
+    "Захватить полотно и управление Rust"
+  ],
+  [
+    "Capture interval, ms (40–1000)",
+    "Odstęp przechwytywania, ms (40–1000)",
+    "Aufnahmeabstand, ms (40–1000)",
+    "Intervalle de capture, ms (40–1000)",
+    "Intervalo de captura, ms (40–1000)",
+    "Интервал захвата, мс (40–1000)"
+  ],
+  [
+    "Capture palette 4×16",
+    "Przechwyć paletę 4×16",
+    "Palette 4×16 erfassen",
+    "Capturer la palette 4×16",
+    "Capturar paleta 4×16",
+    "Захватить палитру 4×16"
+  ],
+  [
+    "Capture regions only",
+    "Przechwyć tylko obszary",
+    "Nur Bereiche erfassen",
+    "Capturer uniquement les zones",
+    "Capturar solo áreas",
+    "Захватить только области"
+  ],
+  [
+    "Change Canvas only",
+    "Zmień tylko płótno",
+    "Nur Leinwand ändern",
+    "Changer uniquement la toile",
+    "Cambiar solo el lienzo",
+    "Изменить только полотно"
+  ],
+  [
+    "Check precision transfer readiness",
+    "Sprawdzaj gotowość precyzyjnego transferu",
+    "Bereitschaft für präzise Übertragung prüfen",
+    "Vérifier le transfert précis",
+    "Verificar transferencia precisa",
+    "Проверять готовность точного переноса"
+  ],
+  [
+    "Click delay (s)",
+    "Opóźnienie kliknięcia (s)",
+    "Klickpause (s)",
+    "Délai de clic (s)",
+    "Retardo de clic (s)",
+    "Задержка клика (с)"
+  ],
+  [
+    "Color change delay (s)",
+    "Opóźnienie zmiany koloru (s)",
+    "Farbwechselpause (s)",
+    "Délai de changement de couleur (s)",
+    "Retardo de cambio de color (s)",
+    "Задержка смены цвета (с)"
+  ],
+  [
+    "Color verification tolerance",
+    "Tolerancja weryfikacji koloru",
+    "Toleranz der Farbprüfung",
+    "Tolérance de vérification des couleurs",
+    "Tolerancia de verificación de color",
+    "Допуск проверки цвета"
+  ],
+  [
+    "Control verification retries",
+    "Ponowienia weryfikacji sterowania",
+    "Wiederholungen der Steuerungsprüfung",
+    "Tentatives de vérification des commandes",
+    "Reintentos de verificación de controles",
+    "Повторные попытки управления"
+  ],
+  [
+    "Copy attempts (1–5)",
+    "Próby kopiowania (1–5)",
+    "Kopierversuche (1–5)",
+    "Tentatives de copie (1–5)",
+    "Intentos de copia (1–5)",
+    "Попытки копирования (1–5)"
+  ],
+  [
+    "Copy polls (24–120)",
+    "Odczyty bufora (24–120)",
+    "Zwischenablageabfragen (24–120)",
+    "Lectures du presse-papiers (24–120)",
+    "Lecturas del portapapeles (24–120)",
+    "Проверки буфера (24–120)"
+  ],
+  [
+    "Cycle delay (ms)",
+    "Opóźnienie cyklu (ms)",
+    "Zykluspause (ms)",
+    "Délai de cycle (ms)",
+    "Retardo de ciclo (ms)",
+    "Задержка цикла (мс)"
+  ],
+  [
+    "Delay before START",
+    "Opóźnienie przed startem",
+    "Pause vor dem Start",
+    "Délai avant le démarrage",
+    "Retardo antes de iniciar",
+    "Задержка перед началом"
+  ],
+  [
+    "Exact Size / Interval / Opacity values",
+    "Dokładne Size / Interval / Opacity",
+    "Genaue Size / Interval / Opacity",
+    "Valeurs exactes Size / Interval / Opacity",
+    "Valores exactos Size / Interval / Opacity",
+    "Точные Size / Interval / Opacity"
+  ],
+  [
+    "Experimental, ms (8–16)",
+    "Eksperymentalny, ms (8–16)",
+    "Experimentell, ms (8–16)",
+    "Expérimental, ms (8–16)",
+    "Experimental, ms (8–16)",
+    "Экспериментальный, мс (8–16)"
+  ],
+  [
+    "Export PNG",
+    "Eksportuj PNG",
+    "PNG exportieren",
+    "Exporter en PNG",
+    "Exportar PNG",
+    "Экспорт PNG"
+  ],
+  [
+    "Fast coverage pitch",
+    "Krok szybkiego pokrycia",
+    "Schrittweite schneller Abdeckung",
+    "Pas de couverture rapide",
+    "Paso de cobertura rápida",
+    "Шаг быстрого покрытия"
+  ],
+  [
+    "Fast movement packet (1–16)",
+    "Pakiet szybkiego ruchu (1–16)",
+    "Schnelles Bewegungspaket (1–16)",
+    "Paquet de mouvement rapide (1–16)",
+    "Paquete de movimiento rápido (1–16)",
+    "Пакет быстрого движения (1–16)"
+  ],
+  [
+    "Fewer colors: compare plans",
+    "Mniej kolorów: porównaj plany",
+    "Weniger Farben: Pläne vergleichen",
+    "Moins de couleurs : comparer les plans",
+    "Menos colores: comparar planes",
+    "Меньше цветов: сравнить планы"
+  ],
+  [
+    "Fill background",
+    "Wypełnij tło",
+    "Hintergrund füllen",
+    "Remplir l’arrière-plan",
+    "Rellenar fondo",
+    "Залить фон"
+  ],
+  [
+    "Fill Canvas with the subject",
+    "Wypełnij płótno obiektem",
+    "Leinwand mit Motiv füllen",
+    "Remplir la toile avec le sujet",
+    "Llenar lienzo con el sujeto",
+    "Заполнить полотно объектом"
+  ],
+  [
+    "Fixed opacity",
+    "Stałe krycie",
+    "Feste Deckkraft",
+    "Opacité fixe",
+    "Opacidad fija",
+    "Постоянная непрозрачность"
+  ],
+  [
+    "Full checks with spatial calibration and speed",
+    "Pełne testy: przestrzeń i szybkość",
+    "Vollständige Raum- und Tempotests",
+    "Tests complets : espace et vitesse",
+    "Pruebas completas: espacio y velocidad",
+    "Полная проверка: смещения и скорость"
+  ],
+  [
+    "Full HEX readback every N colors",
+    "Pełny odczyt HEX co N kolorów",
+    "HEX vollständig alle N Farben auslesen",
+    "Lecture HEX complète toutes les N couleurs",
+    "Lectura HEX completa cada N colores",
+    "Полное чтение HEX каждые N цветов"
+  ],
+  [
+    "Go to painting",
+    "Przejdź do malowania",
+    "Zum Malen",
+    "Aller à Peinture",
+    "Ir a Pintura",
+    "Перейти к рисованию"
+  ],
+  [
+    "Go to Speed Probe",
+    "Przejdź do testu szybkości",
+    "Zum Tempotest",
+    "Aller au test de vitesse",
+    "Ir a prueba de velocidad",
+    "Перейти к тесту скорости"
+  ],
+  [
+    "Gradient dithering",
+    "Dithering gradientów",
+    "Verlaufsdithering",
+    "Tramage des dégradés",
+    "Tramado de degradados",
+    "Дизеринг градиентов"
+  ],
+  [
+    "Group horizontal / vertical strokes",
+    "Grupuj poziome / pionowe pociągnięcia",
+    "Waagerechte / senkrechte Striche gruppieren",
+    "Grouper les traits horizontaux / verticaux",
+    "Agrupar trazos horizontales / verticales",
+    "Группировать горизонтальные / вертикальные штрихи"
+  ],
+  [
+    "HEX delay (ms)",
+    "Opóźnienie HEX (ms)",
+    "HEX-Pause (ms)",
+    "Délai HEX (ms)",
+    "Retardo HEX (ms)",
+    "Задержка HEX (мс)"
+  ],
+  [
+    "HEX verification retries",
+    "Ponowienia weryfikacji HEX",
+    "Wiederholungen der HEX-Prüfung",
+    "Tentatives de vérification HEX",
+    "Reintentos de verificación HEX",
+    "Повторные попытки HEX"
+  ],
+  [
+    "Image placement",
+    "Rozmieszczenie obrazu",
+    "Bildplatzierung",
+    "Placement de l’image",
+    "Colocación de imagen",
+    "Размещение изображения"
+  ],
+  [
+    "Image plan",
+    "Plan obrazu",
+    "Bildplan",
+    "Plan de l’image",
+    "Plan de imagen",
+    "План изображения"
+  ],
+  [
+    "Improve skin tones",
+    "Popraw odcienie skóry",
+    "Hauttöne verbessern",
+    "Améliorer les tons de peau",
+    "Mejorar tonos de piel",
+    "Улучшать оттенки кожи"
+  ],
+  [
+    "Individual actions and advanced checks",
+    "Osobne działania i testy zaawansowane",
+    "Einzelaktionen und erweiterte Prüfungen",
+    "Actions individuelles et tests avancés",
+    "Acciones individuales y pruebas avanzadas",
+    "Отдельные действия и расширенные проверки"
+  ],
+  [
+    "Input timing",
+    "Czas wprowadzania",
+    "Eingabezeiten",
+    "Délais d’entrée",
+    "Tiempos de entrada",
+    "Тайминги ввода"
+  ],
+  [
+    "Maximum repair passes",
+    "Maksymalna liczba poprawek",
+    "Maximale Korrekturdurchgänge",
+    "Passages de correction maximum",
+    "Pasadas máximas de reparación",
+    "Максимум проходов исправления"
+  ],
+  [
+    "Maximum wide brush Size",
+    "Maksymalny Size szerokiego pędzla",
+    "Maximale Size für breiten Pinsel",
+    "Size maximal du pinceau large",
+    "Size máximo del pincel ancho",
+    "Максимальный Size широкой кисти"
+  ],
+  [
+    "Measure Size 1 for Adaptive",
+    "Zmierz Size 1 dla Adaptive",
+    "Size 1 für Adaptive messen",
+    "Mesurer Size 1 pour Adaptive",
+    "Medir Size 1 para Adaptive",
+    "Измерить Size 1 для Adaptive"
+  ],
+  [
+    "Measured",
+    "Zmierzono",
+    "Gemessen",
+    "Mesuré",
+    "Medido",
+    "Измерено"
+  ],
+  [
+    "Median cleanup",
+    "Czyszczenie medianowe",
+    "Medianbereinigung",
+    "Nettoyage médian",
+    "Limpieza por mediana",
+    "Медианная очистка"
+  ],
+  [
+    "Minimize Pixora while painting",
+    "Minimalizuj Pixora podczas malowania",
+    "Pixora beim Malen minimieren",
+    "Réduire Pixora pendant la peinture",
+    "Minimizar Pixora al pintar",
+    "Сворачивать Pixora при рисовании"
+  ],
+  [
+    "Minimum region",
+    "Minimalny obszar",
+    "Mindestbereich",
+    "Zone minimale",
+    "Región mínima",
+    "Минимальная область"
+  ],
+  [
+    "Minimum Shift-line length",
+    "Minimalna długość linii Shift",
+    "Mindestlänge der Shift-Linie",
+    "Longueur minimale de ligne Shift",
+    "Longitud mínima de línea Shift",
+    "Минимальная длина линии Shift"
+  ],
+  [
+    "Mouse release delay (ms)",
+    "Opóźnienie zwolnienia myszy (ms)",
+    "Pause beim Loslassen (ms)",
+    "Délai de relâchement (ms)",
+    "Retardo al soltar el ratón (ms)",
+    "Задержка отпускания мыши (мс)"
+  ],
+  [
+    "Movement timing",
+    "Czas ruchu",
+    "Bewegungszeiten",
+    "Délais de mouvement",
+    "Tiempos de movimiento",
+    "Тайминги движения"
+  ],
+  [
+    "Next-attempt pause, ms",
+    "Pauza przed kolejną próbą, ms",
+    "Pause vor nächstem Versuch, ms",
+    "Pause entre tentatives, ms",
+    "Pausa entre intentos, ms",
+    "Пауза перед повтором, мс"
+  ],
+  [
+    "Not measured",
+    "Nie zmierzono",
+    "Nicht gemessen",
+    "Non mesuré",
+    "Sin medir",
+    "Не измерено"
+  ],
+  [
+    "Numeric fields: Size / Interval / Opacity",
+    "Pola liczbowe: Size / Interval / Opacity",
+    "Zahlenfelder: Size / Interval / Opacity",
+    "Champs numériques : Size / Interval / Opacity",
+    "Campos numéricos: Size / Interval / Opacity",
+    "Числовые поля: Size / Interval / Opacity"
+  ],
+  [
+    "Palette and export",
+    "Paleta i eksport",
+    "Palette und Export",
+    "Palette et export",
+    "Paleta y exportación",
+    "Палитра и экспорт"
+  ],
+  [
+    "Palette and preview",
+    "Paleta i podgląd",
+    "Palette und Vorschau",
+    "Palette et aperçu",
+    "Paleta y vista previa",
+    "Палитра и превью"
+  ],
+  [
+    "Planned estimate: —",
+    "Szacowany czas: —",
+    "Geschätzte Zeit: —",
+    "Durée estimée : —",
+    "Tiempo estimado: —",
+    "Ориентировочное время: —"
+  ],
+  [
+    "Pre-blur",
+    "Wstępne rozmycie",
+    "Vorweichzeichnung",
+    "Flou préalable",
+    "Desenfoque previo",
+    "Предварительное размытие"
+  ],
+  [
+    "Precision Size / Interval / Opacity",
+    "Precyzyjne Size / Interval / Opacity",
+    "Präzise Size / Interval / Opacity",
+    "Size / Interval / Opacity précis",
+    "Size / Interval / Opacity precisos",
+    "Точные Size / Interval / Opacity"
+  ],
+  [
+    "Preserve edges / Line Art",
+    "Zachowaj krawędzie / kontury",
+    "Kanten / Konturen erhalten",
+    "Préserver les bords / contours",
+    "Conservar bordes / contornos",
+    "Сохранять края / контуры"
+  ],
+  [
+    "Preview on Canvas material",
+    "Podgląd na materiale płótna",
+    "Vorschau auf Leinwandmaterial",
+    "Aperçu sur le matériau de la toile",
+    "Vista previa sobre material del lienzo",
+    "Превью на материале полотна"
+  ],
+  [
+    "Ready Sizes: ",
+    "Gotowe Size: ",
+    "Bereite Size: ",
+    "Size prêts : ",
+    "Size listos: ",
+    "Готовые Size: "
+  ],
+  [
+    "Ready. Clear Canvas before START.",
+    "Gotowe. Wyczyść płótno przed startem.",
+    "Bereit. Leinwand vor dem Start leeren.",
+    "Prêt. Effacez la toile avant de démarrer.",
+    "Listo. Limpia el lienzo antes de iniciar.",
+    "Готово. Очисти полотно перед началом."
+  ],
+  [
+    "Refresh preview",
+    "Odśwież podgląd",
+    "Vorschau aktualisieren",
+    "Actualiser l’aperçu",
+    "Actualizar vista previa",
+    "Обновить превью"
+  ],
+  [
+    "Remove background",
+    "Usuń tło",
+    "Hintergrund entfernen",
+    "Supprimer l’arrière-plan",
+    "Eliminar fondo",
+    "Удалять фон"
+  ],
+  [
+    "Repair confirmed gaps",
+    "Napraw potwierdzone braki",
+    "Bestätigte Lücken korrigieren",
+    "Corriger les manques confirmés",
+    "Reparar huecos confirmados",
+    "Исправлять подтверждённые пропуски"
+  ],
+  [
+    "Repeat click delay (ms)",
+    "Opóźnienie ponownego kliknięcia (ms)",
+    "Pause vor erneutem Klick (ms)",
+    "Délai avant nouveau clic (ms)",
+    "Retardo de clic repetido (ms)",
+    "Задержка повторного клика (мс)"
+  ],
+  [
+    "Results by Size and direction",
+    "Wyniki według Size i kierunku",
+    "Ergebnisse nach Size und Richtung",
+    "Résultats par Size et direction",
+    "Resultados por Size y dirección",
+    "Результаты по Size и направлению"
+  ],
+  [
+    "Retry only failed selected Sizes",
+    "Powtórz tylko nieudane wybrane Size",
+    "Nur fehlgeschlagene ausgewählte Size wiederholen",
+    "Retester les Size sélectionnés en échec",
+    "Reintentar solo Size seleccionados fallidos",
+    "Повторить только неудачные выбранные Size"
+  ],
+  [
+    "Rust brush",
+    "Pędzel Rust",
+    "Rust-Pinsel",
+    "Pinceau Rust",
+    "Pincel de Rust",
+    "Кисть Rust"
+  ],
+  [
+    "Rust brush Size",
+    "Size pędzla Rust",
+    "Rust-Pinsel-Size",
+    "Size du pinceau Rust",
+    "Size del pincel de Rust",
+    "Size кисти Rust"
+  ],
+  [
+    "Rust setup",
+    "Przygotowanie Rust",
+    "Rust-Vorbereitung",
+    "Préparation Rust",
+    "Preparación de Rust",
+    "Подготовка Rust"
+  ],
+  [
+    "Set movement timing on the Painting page",
+    "Ustaw czas ruchu na stronie Malowanie",
+    "Bewegungszeiten unter Malen einstellen",
+    "Régler les délais dans Peinture",
+    "Ajustar tiempos en Pintura",
+    "Настроить движение на странице рисования"
+  ],
+  [
+    "Shift-line in Fast mode",
+    "Linia Shift w trybie szybkim",
+    "Shift-Linie im schnellen Modus",
+    "Ligne Shift en mode rapide",
+    "Línea Shift en modo rápido",
+    "Линии Shift в быстром режиме"
+  ],
+  [
+    "Shift-line timing (s / 100 px)",
+    "Czas linii Shift (s / 100 px)",
+    "Zeit für Shift-Linie (s / 100 px)",
+    "Durée de ligne Shift (s / 100 px)",
+    "Tiempo de línea Shift (s / 100 px)",
+    "Время линии Shift (с / 100 px)"
+  ],
+  [
+    "Show areas without commands",
+    "Pokaż obszary bez poleceń",
+    "Bereiche ohne Befehle anzeigen",
+    "Afficher les zones sans commandes",
+    "Mostrar áreas sin comandos",
+    "Показать области без команд"
+  ],
+  [
+    "Show insertion",
+    "Pokaż wstawienie",
+    "Einfügung anzeigen",
+    "Afficher l’insertion",
+    "Mostrar inserción",
+    "Показать вставку"
+  ],
+  [
+    "Show insertion after capturing Canvas",
+    "Pokaż wstawienie po przechwyceniu płótna",
+    "Einfügung nach Leinwanderfassung zeigen",
+    "Afficher l’insertion après capture",
+    "Mostrar inserción después de capturar",
+    "Показать вставку после захвата полотна"
+  ],
+  [
+    "Show Pixora after painting completes",
+    "Pokaż Pixora po zakończeniu",
+    "Pixora nach dem Malen anzeigen",
+    "Afficher Pixora à la fin",
+    "Mostrar Pixora al terminar",
+    "Показать Pixora после рисования"
+  ],
+  [
+    "Size → dot diameter / solid coverage (px)",
+    "Size → średnica kropki / pełne krycie (px)",
+    "Size → Punktdurchmesser / volle Abdeckung (px)",
+    "Size → diamètre / couverture pleine (px)",
+    "Size → diámetro / cobertura sólida (px)",
+    "Size → диаметр / сплошное покрытие (px)"
+  ],
+  [
+    "Sizes to calibrate",
+    "Rozmiary do kalibracji",
+    "Zu kalibrierende Größen",
+    "Tailles à étalonner",
+    "Tamaños para calibrar",
+    "Размеры для калибровки"
+  ],
+  [
+    "Smooth preview",
+    "Wygładzaj podgląd",
+    "Vorschau glätten",
+    "Lisser l’aperçu",
+    "Suavizar vista previa",
+    "Сглаживать превью"
+  ],
+  [
+    "Smoothing passes",
+    "Przejścia wygładzania",
+    "Glättungsdurchgänge",
+    "Passages de lissage",
+    "Pasadas de suavizado",
+    "Проходы сглаживания"
+  ],
+  [
+    "Speed: not tested",
+    "Szybkość: nie sprawdzono",
+    "Tempo: nicht geprüft",
+    "Vitesse : non testée",
+    "Velocidad: sin probar",
+    "Скорость: не проверена"
+  ],
+  [
+    "Stable-frame attempts (5–20)",
+    "Próby stabilnego kadru (5–20)",
+    "Versuche für stabiles Bild (5–20)",
+    "Tentatives d’image stable (5–20)",
+    "Intentos de imagen estable (5–20)",
+    "Попытки стабильного кадра (5–20)"
+  ],
+  [
+    "Stable, ms (16–100)",
+    "Stabilny, ms (16–100)",
+    "Stabil, ms (16–100)",
+    "Stable, ms (16–100)",
+    "Estable, ms (16–100)",
+    "Стабильный, мс (16–100)"
+  ],
+  [
+    "Test brush Size",
+    "Sprawdź Size pędzla",
+    "Pinsel-Size prüfen",
+    "Tester le Size du pinceau",
+    "Probar Size del pincel",
+    "Проверить Size кисти"
+  ],
+  [
+    "Test Rust controls",
+    "Sprawdź sterowanie Rust",
+    "Rust-Steuerung prüfen",
+    "Tester les commandes Rust",
+    "Probar controles de Rust",
+    "Проверить управление Rust"
+  ],
+  [
+    "Transparency threshold",
+    "Próg przezroczystości",
+    "Transparenzschwelle",
+    "Seuil de transparence",
+    "Umbral de transparencia",
+    "Порог прозрачности"
+  ],
+  [
+    "Use the verified movement route",
+    "Użyj potwierdzonej trasy ruchu",
+    "Bestätigten Bewegungsweg nutzen",
+    "Utiliser le trajet vérifié",
+    "Usar ruta de movimiento verificada",
+    "Использовать проверенный маршрут движения"
+  ],
+  [
+    "Use verified Size ",
+    "Użyj potwierdzonego Size ",
+    "Bestätigte Size verwenden ",
+    "Utiliser le Size vérifié ",
+    "Usar Size verificado ",
+    "Использовать проверенный Size "
+  ],
+  [
+    "Verification timing",
+    "Czas weryfikacji",
+    "Prüfzeiten",
+    "Délais de vérification",
+    "Tiempos de verificación",
+    "Тайминги проверки"
+  ],
+  [
+    "Verify selected color",
+    "Sprawdzaj wybrany kolor",
+    "Gewählte Farbe prüfen",
+    "Vérifier la couleur sélectionnée",
+    "Verificar color seleccionado",
+    "Проверять выбранный цвет"
+  ],
+  [
+    "Solid round",
+    "Pełny okrągły",
+    "Vollrund",
+    "Rond plein",
+    "Redondo sólido",
+    "Сплошная круглая"
+  ],
+  [
+    "Solid square",
+    "Pełny kwadrat",
+    "Vollquadrat",
+    "Carré plein",
+    "Cuadrado sólido",
+    "Сплошная квадратная"
+  ],
+  [
+    "Shape {p0}",
+    "Kształt {p0}",
+    "Form {p0}",
+    "Forme {p0}",
+    "Forma {p0}",
+    "Форма {p0}"
+  ],
+  [
+    "✓ {p0} · Solid round",
+    "✓ {p0} · Pełny okrągły",
+    "✓ {p0} · Vollrund",
+    "✓ {p0} · Rond plein",
+    "✓ {p0} · Redondo sólido",
+    "✓ {p0} · Сплошная круглая"
+  ],
+  [
+    "{p0} · Solid square",
+    "{p0} · Pełny kwadrat",
+    "{p0} · Vollquadrat",
+    "{p0} · Carré plein",
+    "{p0} · Cuadrado sólido",
+    "{p0} · Сплошная квадратная"
+  ],
+  [
+    "Balanced · {p0} px · Movement: {p1}",
+    "Balans · {p0} px · Ruch: {p1}",
+    "Ausgewogen · {p0} px · Bewegung: {p1}",
+    "Équilibré · {p0} px · Mouvement : {p1}",
+    "Equilibrado · {p0} px · Movimiento: {p1}",
+    "Баланс · {p0} px · Движение: {p1}"
+  ],
+  [
+    "0% · ETA —",
+    "0% · Pozostało —",
+    "0% · Restzeit —",
+    "0% · Restant —",
+    "0% · Restante —",
+    "0% · Осталось —"
+  ],
+  [
+    "READY",
+    "GOTOWE",
+    "BEREIT",
+    "PRÊT",
+    "LISTO",
+    "ГОТОВО"
+  ],
+  [
+    "SETUP REQUIRED",
+    "PRZYGOTUJ",
+    "VORBEREITEN",
+    "À PRÉPARER",
+    "PREPARAR",
+    "НУЖНА ПОДГОТОВКА"
+  ],
+  [
+    "Everything is ready. You can start.",
+    "Wszystko gotowe. Możesz rozpocząć.",
+    "Alles bereit. Du kannst starten.",
+    "Tout est prêt. Vous pouvez démarrer.",
+    "Todo listo. Puedes iniciar.",
+    "Всё готово. Можно начинать."
+  ],
+  [
+    "Capture Canvas.",
+    "Przechwyć płótno.",
+    "Erfasse die Leinwand.",
+    "Capturez la toile.",
+    "Captura el lienzo.",
+    "Захвати полотно."
+  ],
+  [
+    "Capture the palette or verify HEX.",
+    "Przechwyć paletę lub sprawdź HEX.",
+    "Erfasse die Palette oder prüfe HEX.",
+    "Capturez la palette ou vérifiez HEX.",
+    "Captura la paleta o verifica HEX.",
+    "Захвати палитру или проверь HEX."
+  ],
+  [
+    "Capture the brush and three Rust numeric fields.",
+    "Przechwyć pędzel i trzy pola liczbowe Rust.",
+    "Erfasse den Pinsel und drei Zahlenfelder in Rust.",
+    "Capturez le pinceau et les trois champs numériques Rust.",
+    "Captura el pincel y los tres campos numéricos de Rust.",
+    "Захвати кисть и три числовых поля Rust."
+  ],
+  [
+    "Load an image, capture Canvas, and press START.",
+    "Otwórz obraz, przechwyć płótno i kliknij Rozpocznij.",
+    "Bild öffnen, Leinwand erfassen und Starten klicken.",
+    "Ouvrez une image, capturez la toile et cliquez sur Démarrer.",
+    "Abre una imagen, captura el lienzo y pulsa Iniciar.",
+    "Открой изображение, захвати полотно и нажми «Начать»."
+  ],
+  [
+    "Open the Rust Canvas and select the brush tool. The main button prepares one working Size without speed trials.",
+    "Otwórz płótno Rust i wybierz pędzel. Główny przycisk przygotuje jeden Size bez testów szybkości.",
+    "Öffne die Rust-Leinwand und wähle den Pinsel. Die Haupttaste bereitet eine Size ohne Tempotests vor.",
+    "Ouvrez la toile Rust et sélectionnez le pinceau. Le bouton principal prépare un Size sans test de vitesse.",
+    "Abre el lienzo de Rust y selecciona el pincel. El botón principal prepara un Size sin pruebas de velocidad.",
+    "Открой полотно Rust и выбери кисть. Основная кнопка подготовит один Size без тестов скорости."
+  ],
+  [
+    "Regions → colors → controls → one brush. Speed Probe and Adaptive are separate.",
+    "Obszary → kolory → sterowanie → jeden pędzel. Test szybkości i Adaptive są osobno.",
+    "Bereiche → Farben → Steuerung → ein Pinsel. Tempotest und Adaptive sind separat.",
+    "Zones → couleurs → commandes → un pinceau. Test de vitesse et Adaptive séparés.",
+    "Áreas → colores → controles → un pincel. Prueba de velocidad y Adaptive aparte.",
+    "Области → цвета → управление → одна кисть. Тест скорости и Adaptive отдельно."
+  ],
+  [
+    "Brush ready. Clear the test dots, open an image and press Start.",
+    "Pędzel gotowy. Usuń kropki testowe, otwórz obraz i kliknij Rozpocznij.",
+    "Pinsel bereit. Entferne Testpunkte, öffne ein Bild und klicke Starten.",
+    "Pinceau prêt. Effacez les points de test, ouvrez une image et cliquez sur Démarrer.",
+    "Pincel listo. Borra los puntos de prueba, abre una imagen y pulsa Iniciar.",
+    "Кисть готова. Удали тестовые точки, открой изображение и нажми «Начать»."
+  ],
+  [
+    "CANVAS",
+    "PŁÓTNO",
+    "LEINWAND",
+    "TOILE",
+    "LIENZO",
+    "ПОЛОТНО"
+  ],
+  [
+    "Select one full slider and its number with extra space. ESC — cancel.",
+    "Zaznacz cały suwak z liczbą i marginesem. ESC — anuluj.",
+    "Markiere einen ganzen Regler mit Zahl und Rand. ESC — abbrechen.",
+    "Sélectionnez un curseur entier avec son nombre et une marge. ESC — annuler.",
+    "Selecciona un control completo con su número y margen. ESC — cancelar.",
+    "Выдели весь ползунок с числом и запасом. ESC — отмена."
+  ],
+  [
+    "Click the required point. ESC — cancel.",
+    "Kliknij potrzebny punkt. ESC — anuluj.",
+    "Klicke den gewünschten Punkt an. ESC — abbrechen.",
+    "Cliquez sur le point voulu. ESC — annuler.",
+    "Haz clic en el punto deseado. ESC — cancelar.",
+    "Нажми на нужную точку. ESC — отмена."
+  ],
+  [
+    "Drag to select an area. ESC — cancel.",
+    "Przeciągnij, aby zaznaczyć obszar. ESC — anuluj.",
+    "Ziehe zum Markieren eines Bereichs. ESC — abbrechen.",
+    "Faites glisser pour sélectionner une zone. ESC — annuler.",
+    "Arrastra para seleccionar un área. ESC — cancelar.",
+    "Обведи область мышью. ESC — отмена."
+  ],
+  [
+    "No complete slider found. Include the whole bar and number; draw again.",
+    "Nie znaleziono całego suwaka. Zaznacz całą belkę i liczbę ponownie.",
+    "Kein ganzer Regler gefunden. Markiere Balken und Zahl erneut.",
+    "Aucun curseur complet trouvé. Sélectionnez la barre entière et le nombre.",
+    "No se encontró un control completo. Selecciona toda la barra y el número.",
+    "Полный ползунок не найден. Выдели всю полосу и число ещё раз."
+  ],
+  [
+    "Several sliders found. Select just one with extra space.",
+    "Znaleziono kilka suwaków. Zaznacz tylko jeden z marginesem.",
+    "Mehrere Regler gefunden. Markiere nur einen mit Rand.",
+    "Plusieurs curseurs trouvés. Sélectionnez-en un seul avec une marge.",
+    "Se encontraron varios controles. Selecciona solo uno con margen.",
+    "Найдено несколько ползунков. Выдели один с запасом."
+  ],
+  [
+    "Slider found. Green: track and number. Enter — save; draw again to adjust. ESC — cancel.",
+    "Suwak znaleziony. Zielone: belka i liczba. Enter — zapisz; zaznacz ponownie, aby poprawić. ESC — anuluj.",
+    "Regler gefunden. Grün: Balken und Zahl. Enter — speichern; erneut markieren zum Anpassen. ESC — abbrechen.",
+    "Curseur trouvé. En vert : barre et nombre. Entrée — enregistrer ; redessinez pour ajuster. ESC — annuler.",
+    "Control encontrado. Verde: barra y número. Enter — guardar; vuelve a seleccionar para ajustar. ESC — cancelar.",
+    "Ползунок найден. Зелёным — полоса и число. Enter — сохранить; выдели повторно для коррекции. ESC — отмена."
+  ],
+  [
+    "Pixora is already running. Close the other copy before starting a new one.",
+    "Pixora już działa. Zamknij drugą kopię przed uruchomieniem nowej.",
+    "Pixora läuft bereits. Schließe die andere Kopie vor einem Neustart.",
+    "Pixora fonctionne déjà. Fermez l’autre copie avant d’en lancer une nouvelle.",
+    "Pixora ya está en ejecución. Cierra la otra copia antes de abrir una nueva.",
+    "Pixora уже запущена. Закрой другую копию перед новым запуском."
+  ],
+  [
+    "If Rust does not return numeric values, use visual verification. You can also adjust response waits here.",
+    "Jeśli Rust nie zwraca liczb, użyj weryfikacji wizualnej. Tutaj możesz też wydłużyć oczekiwanie na odpowiedź.",
+    "Falls Rust keine Zahlen zurückgibt, nutze die visuelle Prüfung. Hier kannst du auch Wartezeiten anpassen.",
+    "Si Rust ne renvoie pas les nombres, utilisez la vérification visuelle. Ajustez aussi les délais de réponse ici.",
+    "Si Rust no devuelve números, usa la verificación visual. Aquí también puedes ajustar la espera de respuesta.",
+    "Если Rust не возвращает числа, используй визуальную проверку. Здесь также можно настроить ожидание ответа."
+  ],
+  [
+    "Color mode, color limit, detail, and Speed Engine are on the Painting page.",
+    "Tryb kolorów, limit, szczegółowość i tryb wprowadzania są na stronie Malowanie.",
+    "Farbmodus, Farblimit, Detail und Eingabemodus befinden sich unter Malen.",
+    "Le mode couleur, la limite, le détail et le mode d’entrée sont dans Peinture.",
+    "El modo de color, el límite, el detalle y la entrada están en Pintura.",
+    "Режим цветов, лимит, детализация и режим ввода — на странице рисования."
+  ],
+  [
+    "Color mode: Rust Palette. Change it on the Painting page.",
+    "Tryb kolorów: paleta Rust. Zmień na stronie Malowanie.",
+    "Farbmodus: Rust-Palette. Unter Malen ändern.",
+    "Mode couleur : palette Rust. Modifiez-le dans Peinture.",
+    "Modo de color: paleta de Rust. Cámbialo en Pintura.",
+    "Режим цветов: палитра Rust. Изменить можно на странице рисования."
+  ],
+  [
+    "Rust palette painting. If Rust is Pending, capture the palette and controls for this mode.",
+    "Malowanie paletą Rust. Jeśli Rust oczekuje, przechwyć paletę i sterowanie dla tego trybu.",
+    "Malen mit Rust-Palette. Bei ausstehendem Rust-Status Palette und Steuerung erfassen.",
+    "Peinture avec la palette Rust. Si Rust est en attente, capturez sa palette et ses commandes.",
+    "Pintura con paleta de Rust. Si Rust está pendiente, captura la paleta y los controles del modo.",
+    "Рисование палитрой Rust. Если Rust ожидает, захвати палитру и управление для этого режима."
+  ],
+  [
+    "Combines verified Sizes: large brushes for fills, the smallest for details. Size 1 is optional; Size 3 is the default.",
+    "Łączy potwierdzone Size: duże do wypełnień, najmniejszy do detali. Size 1 opcjonalny, domyślny Size 3.",
+    "Kombiniert bestätigte Size: große für Flächen, die kleinste für Details. Size 1 optional, Standard Size 3.",
+    "Combine les Size vérifiés : grands pour remplir, le plus petit pour les détails. Size 1 facultatif ; Size 3 par défaut.",
+    "Combina Size verificados: grandes para rellenar, el menor para detalles. Size 1 opcional; Size 3 predeterminado.",
+    "Комбинирует проверенные Size: большие для заливки, минимальный для деталей. Size 1 необязателен; по умолчанию Size 3."
+  ],
+  [
+    "Shorter delays make input faster. If strokes are missed, increase the delay or run Speed Probe.",
+    "Krótsze przerwy przyspieszają wprowadzanie. Przy brakujących pociągnięciach wydłuż przerwę lub uruchom test szybkości.",
+    "Kürzere Pausen beschleunigen die Eingabe. Bei fehlenden Strichen Pause erhöhen oder Tempotest starten.",
+    "Des délais courts accélèrent l’entrée. Si des traits manquent, augmentez le délai ou lancez le test de vitesse.",
+    "Los retardos cortos aceleran la entrada. Si faltan trazos, aumenta el retardo o ejecuta la prueba de velocidad.",
+    "Меньшие задержки ускоряют ввод. Если штрихи пропускаются, увеличь задержку или выполни тест скорости."
+  ],
+  [
+    "Colors",
+    "Kolory",
+    "Farben",
+    "Couleurs",
+    "Colores",
+    "Цвета"
+  ],
+  [
+    "Strokes",
+    "Pociągnięcia",
+    "Striche",
+    "Traits",
+    "Trazos",
+    "Штрихи"
+  ],
+  [
+    "Mouse drags",
+    "Przeciągnięcia myszy",
+    "Mauszüge",
+    "Glissements de souris",
+    "Arrastres del ratón",
+    "Протягивания мыши"
+  ],
+  [
+    "ETA",
+    "Pozostało",
+    "Restzeit",
+    "Restant",
+    "Restante",
+    "Осталось"
+  ],
+  [
+    "h",
+    "godz.",
+    "Std.",
+    "h",
+    "h",
+    "ч"
+  ],
+  [
+    "min",
+    "min",
+    "Min.",
+    "min",
+    "min",
+    "мин"
+  ],
+  [
+    "s",
+    "s",
+    "s",
+    "s",
+    "s",
+    "с"
+  ],
+  [
+    "Calculating the safe plan…",
+    "Obliczanie bezpiecznego planu…",
+    "Sicheren Plan berechnen…",
+    "Calcul du plan sûr…",
+    "Calculando plan seguro…",
+    "Вычисляю безопасный план…"
+  ],
+  [
+    "Plan calculation failed. Prepare the image again.",
+    "Obliczenie planu nie powiodło się. Przygotuj obraz ponownie.",
+    "Planberechnung fehlgeschlagen. Bild erneut vorbereiten.",
+    "Échec du calcul du plan. Préparez l’image à nouveau.",
+    "Falló el cálculo del plan. Prepara otra vez la imagen.",
+    "Расчёт плана не завершён. Подготовь изображение повторно."
+  ],
+  [
+    "Open section: ",
+    "Otwórz sekcję: ",
+    "Bereich öffnen: ",
+    "Ouvrir la section : ",
+    "Abrir sección: ",
+    "Открыть раздел: "
+  ],
+  [
+    "Planned estimate: ",
+    "Szacowany czas: ",
+    "Geschätzte Zeit: ",
+    "Durée estimée : ",
+    "Tiempo estimado: ",
+    "Ориентировочное время: "
+  ],
+  [
+    "Speed Probe diagnostics",
+    "Diagnostyka testu szybkości",
+    "Tempotest-Diagnose",
+    "Diagnostic du test de vitesse",
+    "Diagnóstico de prueba de velocidad",
+    "Диагностика теста скорости"
+  ],
+  [
+    "HEX palette comparison",
+    "Porównanie palet HEX",
+    "HEX-Palettenvergleich",
+    "Comparaison des palettes HEX",
+    "Comparación de paletas HEX",
+    "Сравнение палитр HEX"
+  ],
+  [
+    "Save report and previews…",
+    "Zapisz raport i podglądy…",
+    "Bericht und Vorschauen speichern…",
+    "Enregistrer rapport et aperçus…",
+    "Guardar informe y vistas previas…",
+    "Сохранить отчёт и превью…"
+  ],
+  [
+    "Building plans…",
+    "Budowanie planów…",
+    "Pläne berechnen…",
+    "Calcul des plans…",
+    "Calculando planes…",
+    "Построение планов…"
+  ],
+  [
+    "Same image and settings. Only the color limit changes.",
+    "Ten sam obraz i ustawienia. Zmienia się tylko limit kolorów.",
+    "Gleiches Bild und gleiche Einstellungen. Nur das Farblimit ändert sich.",
+    "Même image et mêmes réglages. Seule la limite de couleurs change.",
+    "Misma imagen y ajustes. Solo cambia el límite de colores.",
+    "То же изображение и настройки. Меняется только лимит цветов."
+  ],
+  [
+    "Planning runs locally. No input is sent to Rust.",
+    "Planowanie działa lokalnie, bez wprowadzania do Rust.",
+    "Planung läuft lokal, ohne Eingaben an Rust.",
+    "Le calcul est local, sans entrée dans Rust.",
+    "El cálculo es local, sin enviar entrada a Rust.",
+    "Планирование выполняется локально, без ввода в Rust."
+  ],
+  [
+    "Apply {p0}",
+    "Zastosuj {p0}",
+    "{p0} anwenden",
+    "Appliquer {p0}",
+    "Aplicar {p0}",
+    "Применить {p0}"
+  ],
+  [
+    "Up to {p0} colors",
+    "Do {p0} kolorów",
+    "Bis zu {p0} Farben",
+    "Jusqu’à {p0} couleurs",
+    "Hasta {p0} colores",
+    "До {p0} цветов"
+  ],
+  [
+    "Up to 256 colors · baseline",
+    "Do 256 kolorów · baza",
+    "Bis zu 256 Farben · Basis",
+    "Jusqu’à 256 couleurs · référence",
+    "Hasta 256 colores · referencia",
+    "До 256 цветов · база"
+  ],
+  [
+    "Colors in plan",
+    "Kolory w planie",
+    "Farben im Plan",
+    "Couleurs du plan",
+    "Colores del plan",
+    "Цветов в плане"
+  ],
+  [
+    "Mouse operations",
+    "Operacje myszy",
+    "Mausaktionen",
+    "Actions de souris",
+    "Operaciones del ratón",
+    "Операций мыши"
+  ],
+  [
+    "Wide operations",
+    "Szerokie operacje",
+    "Breite Pinselaktionen",
+    "Actions de pinceau large",
+    "Operaciones de pincel ancho",
+    "Широких операций"
+  ],
+  [
+    "Brush size changes",
+    "Zmiany rozmiaru pędzla",
+    "Pinselgrößenwechsel",
+    "Changements de taille du pinceau",
+    "Cambios de tamaño del pincel",
+    "Смен размера кисти"
+  ],
+  [
+    "Planned time",
+    "Szacowany czas",
+    "Geplante Zeit",
+    "Durée prévue",
+    "Tiempo previsto",
+    "Плановое время"
+  ],
+  [
+    "Open a clean Rust Canvas and select the brush tool. Pixora will check colors, controls and three imprints of one working Size. Painting will use Precision, Opacity 1 and stable input; Adaptive, audit and acceleration are enabled separately. Clear test dots afterwards. Do not move the mouse; ESC cancels. Begin?",
+    "Otwórz czyste płótno Rust i wybierz pędzel. Pixora sprawdzi kolory, sterowanie i trzy odciski jednego Size. Malowanie: Precision, Opacity 1, stabilny tryb; Adaptive, audyt i przyspieszenie włącza się osobno. Po teście usuń kropki. Nie ruszaj myszą; ESC anuluje. Rozpocząć?",
+    "Öffne eine leere Rust-Leinwand und wähle den Pinsel. Pixora prüft Farben, Steuerung und drei Abdrücke einer Size. Malen nutzt Precision, Opacity 1 und stabile Eingabe; Adaptive, Prüfung und Beschleunigung sind separat. Testpunkte danach entfernen. Maus nicht bewegen; ESC bricht ab. Beginnen?",
+    "Ouvrez une toile Rust vierge et sélectionnez le pinceau. Pixora vérifiera couleurs, commandes et trois empreintes d’un Size. Peinture en Precision, Opacity 1 et entrée stable ; Adaptive, audit et accélération se règlent séparément. Effacez ensuite les points de test. Ne bougez pas la souris ; ESC annule. Commencer ?",
+    "Abre un lienzo limpio en Rust y selecciona el pincel. Pixora comprobará colores, controles y tres huellas de un Size. Pintura con Precision, Opacity 1 y entrada estable; Adaptive, auditoría y aceleración se activan aparte. Borra después los puntos de prueba. No muevas el ratón; ESC cancela. ¿Iniciar?",
+    "Открой чистое полотно Rust и выбери кисть. Pixora проверит цвета, управление и три отпечатка одного Size. Рисование: Precision, Opacity 1, стабильный ввод; Adaptive, аудит и ускорение включаются отдельно. После проверки удали тестовые точки. Не двигай мышь; ESC отменяет. Начать?"
+  ],
+  [
+    "Size 1 is optional for ordinary painting and mixed sizes. Keep it only when a fresh footprint measurement succeeds.",
+    "Size 1 jest opcjonalny dla zwykłego i mieszanego malowania. Używaj go tylko po nowym udanym pomiarze odcisku.",
+    "Size 1 ist für normales und gemischtes Malen optional. Nur nach erfolgreicher aktueller Abdruckmessung nutzen.",
+    "Size 1 est facultatif en peinture normale ou mixte. Utilisez-le seulement après une mesure récente réussie.",
+    "Size 1 es opcional para pintura normal o mixta. Úsalo solo tras medir correctamente una huella reciente.",
+    "Size 1 необязателен для обычного и комбинированного рисования. Используй только после успешного свежего измерения отпечатка."
+  ],
+  [
+    "This is the Rust control value. Detail, px is the separate image grid.",
+    "To wartość sterowania Rust. Szczegółowość w px to osobna siatka obrazu.",
+    "Das ist der Rust-Reglerwert. Detail in px ist das separate Bildraster.",
+    "C’est la valeur du contrôle Rust. Le détail en px est la grille distincte de l’image.",
+    "Es el valor del control de Rust. El detalle en px corresponde a otra cuadrícula de imagen.",
+    "Это значение управления Rust. Детализация в px — отдельная сетка изображения."
+  ],
+  [
+    "Do not move the mouse during the test. ESC cancels. Clear Canvas afterwards.",
+    "Nie ruszaj myszą podczas testu. ESC anuluje. Potem wyczyść płótno.",
+    "Maus während des Tests nicht bewegen. ESC bricht ab. Danach Leinwand leeren.",
+    "Ne bougez pas la souris pendant le test. ESC annule. Effacez ensuite la toile.",
+    "No muevas el ratón durante la prueba. ESC cancela. Limpia después el lienzo.",
+    "Не двигай мышь во время теста. ESC отменяет. После очисти полотно."
+  ],
+  [
+    "Verified routes are available. Other Sizes use normal input.",
+    "Potwierdzone trasy dostępne. Inne Size używają zwykłego wprowadzania.",
+    "Bestätigte Wege verfügbar. Andere Size nutzen normale Eingabe.",
+    "Trajets vérifiés disponibles. Les autres Size utilisent l’entrée normale.",
+    "Rutas verificadas disponibles. Otros Size usan entrada normal.",
+    "Проверенные маршруты доступны. Другие Size используют обычный ввод."
+  ],
+  [
+    "Values are entered directly. Manual Size anchors are no longer needed.",
+    "Wartości wprowadzane bezpośrednio. Ręczne punkty Size nie są potrzebne.",
+    "Werte werden direkt eingegeben. Manuelle Size-Anker sind unnötig.",
+    "Valeurs saisies directement. Les repères manuels de Size sont inutiles.",
+    "Valores introducidos directamente. Ya no hacen falta anclajes manuales de Size.",
+    "Значения вводятся напрямую. Ручные опорные точки Size не нужны."
+  ],
+  [
+    "Values are confirmed by copying the number and capturing the slider.",
+    "Wartości potwierdzane odczytem liczby i zrzutem suwaka.",
+    "Werte werden durch kopierte Zahl und Regleraufnahme bestätigt.",
+    "Valeurs confirmées par copie du nombre et capture du curseur.",
+    "Valores confirmados copiando el número y capturando el control.",
+    "Значения проверяются копированием числа и снимком ползунка."
+  ],
+  [
+    "Go to painting preparation",
+    "Przejdź do przygotowania malowania",
+    "Zur Malvorbereitung",
+    "Préparer la peinture",
+    "Ir a la preparación de pintura",
+    "Перейти к подготовке рисования"
+  ],
+  [
+    "Required preparation only",
+    "Tylko wymagane przygotowanie",
+    "Nur erforderliche Vorbereitung",
+    "Préparation obligatoire uniquement",
+    "Solo preparación necesaria",
+    "Только обязательная подготовка"
+  ],
+  [
+    "Image → open",
+    "Obraz → otwórz",
+    "Bild → öffnen",
+    "Image → ouvrir",
+    "Imagen → abrir",
+    "Изображение → открыть"
+  ],
+  [
+    "optional",
+    "opcjonalne",
+    "optional",
+    "facultatif",
+    "opcional",
+    "необязательно"
+  ],
+  [
+    "Brush is unverified. Press Prepare for painting or repeat brush measurement.",
+    "Pędzel nie jest potwierdzony. Kliknij Przygotuj do malowania lub powtórz pomiar pędzla.",
+    "Pinsel nicht bestätigt. Klicke auf Malen vorbereiten oder wiederhole die Pinselmessung.",
+    "Pinceau non vérifié. Cliquez sur Préparer la peinture ou recommencez la mesure du pinceau.",
+    "Pincel sin verificar. Pulsa Preparar para pintar o repite la medición del pincel.",
+    "Кисть не подтверждена. Нажмите Подготовить к рисованию или повторите измерение кисти."
+  ],
+  [
+    "One preparation: regions, colors, brushes and speed. If acceleration fails, stable input remains available.",
+    "Jedno przygotowanie: obszary, kolory, pędzle i szybkość. Jeśli przyspieszenie nie przejdzie testu, pozostaje stabilny tryb wprowadzania.",
+    "Eine Vorbereitung: Bereiche, Farben, Pinsel und Geschwindigkeit. Schlägt die Beschleunigung fehl, bleibt die stabile Eingabe verfügbar.",
+    "Une seule préparation : zones, couleurs, pinceaux et vitesse. Si l’accélération échoue, la saisie stable reste disponible.",
+    "Una preparación: zonas, colores, pinceles y velocidad. Si falla la aceleración, sigue disponible la entrada estable.",
+    "Одна подготовка: области, цвета, кисти и скорость. Если ускорение не пройдет проверку, останется стабильный ввод."
+  ],
+  [
+    "Main preparation is on the Painting page. Repeat individual captures or checks here.",
+    "Główne przygotowanie znajduje się na stronie Malowanie. Tutaj możesz powtórzyć pojedyncze zaznaczenia lub testy.",
+    "Die Hauptvorbereitung befindet sich auf der Seite Malen. Hier kannst du einzelne Erfassungen oder Prüfungen wiederholen.",
+    "La préparation principale se trouve sur la page Peinture. Répétez ici une capture ou une vérification.",
+    "La preparación principal está en la página Pintura. Aquí puedes repetir capturas o comprobaciones individuales.",
+    "Основная подготовка находится на странице Рисование. Здесь можно повторить отдельное выделение или проверку."
+  ],
+  [
+    "Preparation completed. Clear test dots and lines and press Start.",
+    "Przygotowanie zakończone. Usuń testowe kropki i linie, a następnie kliknij Start.",
+    "Vorbereitung abgeschlossen. Entferne Testpunkte und Linien und klicke auf Start.",
+    "Préparation terminée. Effacez les points et lignes de test, puis cliquez sur Démarrer.",
+    "Preparación completada. Borra los puntos y líneas de prueba y pulsa Iniciar.",
+    "Подготовка завершена. Очистите тестовые точки и линии и нажмите Начать."
+  ],
+  [
+    "Brush ready. Acceleration is unverified; stable painting is available. Clear test traces before Start.",
+    "Pędzel gotowy. Przyspieszenie nie jest potwierdzone; dostępne jest stabilne malowanie. Usuń ślady testu przed startem.",
+    "Pinsel bereit. Beschleunigung nicht bestätigt; stabiles Malen ist verfügbar. Entferne Testspuren vor dem Start.",
+    "Pinceau prêt. Accélération non vérifiée ; la peinture stable est disponible. Effacez les traces de test avant de démarrer.",
+    "Pincel listo. Aceleración sin verificar; puedes pintar con entrada estable. Borra los trazos de prueba antes de iniciar.",
+    "Кисть готова. Ускорение не подтверждено; доступно стабильное рисование. Очистите тестовые следы перед запуском."
+  ],
+  [
+    "Rust Palette approximates image colors. Choose HEX for closer shades. Antialiased edges may contain additional colors.",
+    "Paleta Rust przybliża kolory obrazu. Wybierz HEX, aby uzyskać dokładniejsze odcienie. Wygładzone krawędzie mogą zawierać dodatkowe kolory.",
+    "Die Rust-Palette nähert Bildfarben an. Wähle HEX für genauere Farbtöne. Geglättete Kanten können zusätzliche Farben enthalten.",
+    "La palette Rust approxime les couleurs de l’image. Choisissez HEX pour des teintes plus proches. Les bords lissés peuvent contenir d’autres couleurs.",
+    "La paleta de Rust aproxima los colores de la imagen. Elige HEX para tonos más precisos. Los bordes suavizados pueden contener colores adicionales.",
+    "Палитра Rust приближает цвета изображения. Для более точных оттенков выберите HEX. Сглаженные края могут содержать дополнительные цвета."
+  ],
+  [
+    "Palette moved. Repeat preparation or capture the palette again.",
+    "Paleta została przesunięta. Powtórz przygotowanie lub zaznacz paletę ponownie.",
+    "Palette verschoben. Wiederhole die Vorbereitung oder erfasse die Palette erneut.",
+    "La palette a bougé. Recommencez la préparation ou capturez à nouveau la palette.",
+    "La paleta se movió. Repite la preparación o vuelve a capturar la paleta.",
+    "Палитра сместилась. Повторите подготовку или выделите палитру заново."
+  ],
+  [
+    "Palette color {color} changed or its coordinates are stale. Capture the palette again.",
+    "Kolor palety {color} zmienił się lub jego współrzędne są nieaktualne. Zaznacz paletę ponownie.",
+    "Palettenfarbe {color} geändert oder Koordinaten veraltet. Erfasse die Palette erneut.",
+    "La couleur {color} a changé ou ses coordonnées sont obsolètes. Capturez à nouveau la palette.",
+    "El color {color} cambió o sus coordenadas están desactualizadas. Vuelve a capturar la paleta.",
+    "Цвет палитры {color} изменился или его координаты устарели. Выделите палитру заново."
+  ],
+  [
+    "Repeat spatial calibration first. Stable painting is available.",
+    "Najpierw powtórz kalibrację przestrzenną. Stabilne malowanie jest dostępne.",
+    "Wiederhole zuerst die räumliche Kalibrierung. Stabiles Malen ist verfügbar.",
+    "Recommencez d’abord le calibrage spatial. La peinture stable est disponible.",
+    "Primero repite la calibración espacial. Puedes pintar con entrada estable.",
+    "Сначала повторите пространственную проверку. Стабильное рисование доступно."
+  ],
+  [
+    "Open a clean Rust Canvas. One preparation checks regions, the selected color mode, controls, working brushes and speed. If acceleration cannot be verified, stable painting remains available. Test dots and lines remain: clear Canvas before painting. Do not move the mouse; ESC cancels. Begin?",
+    "Otwórz czyste płótno Rust. Przygotowanie sprawdzi obszary, wybrany tryb kolorów, sterowanie, pędzle i szybkość. Jeśli przyspieszenie nie zostanie potwierdzone, pozostanie stabilne malowanie. Testowe kropki i linie pozostaną: wyczyść płótno przed malowaniem. Nie ruszaj myszą; ESC anuluje. Rozpocząć?",
+    "Öffne eine leere Rust-Leinwand. Die Vorbereitung prüft Bereiche, Farbmodus, Steuerung, Pinsel und Geschwindigkeit. Wird die Beschleunigung nicht bestätigt, bleibt stabiles Malen verfügbar. Testpunkte und Linien bleiben: Leere die Leinwand vor dem Malen. Bewege die Maus nicht; ESC bricht ab. Beginnen?",
+    "Ouvrez une toile Rust vierge. La préparation vérifie les zones, le mode de couleur choisi, les commandes, les pinceaux et la vitesse. Si l’accélération n’est pas vérifiée, la peinture stable reste disponible. Les points et lignes de test restent : effacez la toile avant de peindre. Ne bougez pas la souris ; ESC annule. Commencer ?",
+    "Abre un lienzo Rust limpio. La preparación comprueba zonas, modo de color elegido, controles, pinceles y velocidad. Si no se verifica la aceleración, sigue disponible la pintura estable. Quedarán puntos y líneas de prueba: limpia el lienzo antes de pintar. No muevas el ratón; ESC cancela. ¿Empezar?",
+    "Откройте чистый холст Rust. Подготовка проверит области, выбранный режим цветов, управление, рабочие кисти и скорость. Если ускорение не подтвердится, останется стабильное рисование. Тестовые точки и линии останутся: очистите холст перед рисованием. Не двигайте мышь; ESC отменяет. Начать?"
+  ],
+  [
+    "Stable painting is ready. Acceleration needs another check.",
+    "Stabilne malowanie jest gotowe. Przyspieszenie wymaga ponownej kontroli.",
+    "Stabiles Malen ist bereit. Beschleunigung muss erneut geprüft werden.",
+    "La peinture stable est prête. L’accélération doit être vérifiée à nouveau.",
+    "La pintura estable está lista. La aceleración necesita otra comprobación.",
+    "Стабильное рисование готово. Ускорение требует повторной проверки."
+  ],
+  [
+    "Painting in progress",
+    "Trwa malowanie",
+    "Malen läuft",
+    "Peinture en cours",
+    "Pintura en curso",
+    "Идёт рисование"
+  ],
+  [
+    "Open a clean Rust Canvas. One button checks regions, colors, brushes and speed. Clear the test dots and lines afterwards.",
+    "Otwórz czyste płótno Rust. Jeden przycisk sprawdzi obszary, kolory, pędzle i szybkość. Następnie usuń testowe kropki i linie.",
+    "Öffne eine leere Rust-Leinwand. Eine Taste prüft Bereiche, Farben, Pinsel und Geschwindigkeit. Entferne danach Testpunkte und Linien.",
+    "Ouvrez une toile Rust vierge. Un seul bouton vérifie les zones, couleurs, pinceaux et vitesse. Effacez ensuite les points et lignes de test.",
+    "Abre un lienzo Rust limpio. Un botón comprueba zonas, colores, pinceles y velocidad. Borra después los puntos y líneas de prueba.",
+    "Откройте чистый холст Rust. Одна кнопка проверит области, цвета, кисти и скорость. Затем очистите тестовые точки и линии."
+  ],
+  [
+    "A failed speed check leaves stable painting available. Adaptive and audit are optional; individual checks remain on their pages.",
+    "Nieudany test szybkości nie blokuje stabilnego malowania. Adaptive i audyt są opcjonalne; pojedyncze testy pozostają na swoich stronach.",
+    "Ein fehlgeschlagener Tempotest lässt stabiles Malen verfügbar. Adaptive und Prüfung sind optional; einzelne Tests bleiben auf ihren Seiten.",
+    "Un test de vitesse échoué laisse la peinture stable disponible. Adaptive et audit sont facultatifs ; les tests individuels restent sur leurs pages.",
+    "Si falla la prueba de velocidad, sigue disponible la pintura estable. Adaptive y auditoría son opcionales; las pruebas individuales siguen en sus páginas.",
+    "Неудачная проверка скорости оставляет стабильное рисование доступным. Adaptive и аудит необязательны; отдельные проверки остаются в своих разделах."
+  ]
+]

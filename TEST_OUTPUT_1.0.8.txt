@@ -33,3 +33,4 @@ PASS HEX controls remain separate and missing HEX calibration never uses palette
 PASS English translations cover capture, progress and dynamic errors
 PASS Input delay defaults, bounds, and ETA agree
 ALL 33 TESTS PASSED
+

@@ -35,3 +35,4 @@ PASS Input delay defaults, bounds, and ETA agree
 PASS Experimental timing uses 1 ms while Stable preserves legacy timings
 PASS Experimental timing keeps planned pixels and changes the ETA
 ALL 35 TESTS PASSED
+

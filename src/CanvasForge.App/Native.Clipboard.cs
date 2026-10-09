@@ -1,0 +1,172 @@
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Text;
+
+namespace CanvasForge.App;
+
+internal static partial class Native
+{
+    [DllImport("user32.dll",EntryPoint="GetClipboardSequenceNumber")]internal static extern uint ClipboardSequence();
+    [DllImport("user32.dll",EntryPoint="GetClipboardOwner")]internal static extern IntPtr ClipboardOwner();
+    [DllImport("user32.dll",SetLastError=true)]private static extern uint EnumClipboardFormats(uint format);
+    [DllImport("user32.dll",CharSet=CharSet.Unicode)]private static extern int GetClipboardFormatNameW(uint format,StringBuilder name,int maximum);
+    [DllImport("user32.dll")]private static extern bool IsClipboardFormatAvailable(uint format);
+    [DllImport("shell32.dll",CharSet=CharSet.Unicode)]private static extern uint DragQueryFileW(IntPtr drop,uint index,StringBuilder? path,uint size);
+    [DllImport("ole32.dll")]private static extern IntPtr OleDuplicateData(IntPtr source,ushort format,uint flags);
+    [DllImport("gdi32.dll",CharSet=CharSet.Unicode)]private static extern IntPtr CopyEnhMetaFileW(IntPtr source,string? file);
+    [DllImport("gdi32.dll")]private static extern bool DeleteEnhMetaFile(IntPtr handle);
+    [DllImport("gdi32.dll")]private static extern bool DeleteMetaFile(IntPtr handle);
+    [DllImport("kernel32.dll")]private static extern void SetLastError(uint error);
+    [StructLayout(LayoutKind.Sequential)]private struct MetafilePicture {public int Mode,X,Y;public IntPtr Metafile;}
+    internal sealed class ClipboardFormatException(uint format,string name,int error):Win32Exception(error,"Cannot preserve clipboard format.")
+    {
+        internal uint Format { get; }=format;
+        internal string FormatName { get; }=name;
+    }
+    internal static bool MaySkipFileContents(string name,int error,bool physicalFileDrop)
+        =>name=="FileContents"&&error==0&&physicalFileDrop;
+    private static bool PhysicalFileDrop(IntPtr handle)
+    {
+        uint count=DragQueryFileW(handle,uint.MaxValue,null,0);
+        if(count is 0 or >4096)return false;
+        for(uint i=0;i<count;i++)
+        {
+            uint length=DragQueryFileW(handle,i,null,0);if(length is 0 or >32767)return false;
+            var path=new StringBuilder((int)length+1);
+            if(DragQueryFileW(handle,i,path,(uint)path.Capacity)!=length)return false;
+            string value=path.ToString();
+            if(!Path.IsPathFullyQualified(value)||!File.Exists(value)&&!Directory.Exists(value))return false;
+        }
+        return true;
+    }
+    private sealed record ClipboardEntry(uint Format,IntPtr Handle)
+    {
+        internal ClipboardEntry Copy()
+        {
+            // Unknown GDI/private owner-display formats cannot be treated as
+            // HGLOBAL. Abort capture before replacing the original clipboard.
+            if(Format is 0x80 or >=0x100 and <=0x3ff)throw new InvalidOperationException("Цей формат буфера обміну неможливо безпечно зберегти. Збережи його вміст перед тестом.");
+            uint duplicateFormat=Format switch{0x82=>2,0x83=>3,_=>Format};
+            var duplicate=Format is 14 or 0x8e?CopyEnhMetaFileW(Handle,null):OleDuplicateData(Handle,checked((ushort)duplicateFormat),0);
+            if(duplicate==IntPtr.Zero)throw new Win32Exception("Cannot preserve clipboard data.");
+            return new(Format,duplicate);
+        }
+        internal void Free()
+        {
+            if(Format is 2 or 9 or 0x82)DeleteObject(Handle);
+            else if(Format is 14 or 0x8e)DeleteEnhMetaFile(Handle);
+            else
+            {
+                if(Format is 3 or 0x83)
+                {
+                    var pointer=GlobalLock(Handle);
+                    if(pointer!=IntPtr.Zero)
+                    {try{DeleteMetaFile(Marshal.ReadIntPtr(pointer,Marshal.OffsetOf<MetafilePicture>(nameof(MetafilePicture.Metafile)).ToInt32()));}finally{GlobalUnlock(Handle);}}
+                }
+                GlobalFree(Handle);
+            }
+        }
+    }
+    internal sealed class ClipboardBackup:IClipboardBackup
+    {
+        private readonly List<ClipboardEntry> entries=[];
+        private readonly List<uint> skippedFileContents=[];
+        internal IReadOnlyList<uint> SkippedFileContents=>skippedFileContents;
+        internal int FormatCount=>entries.Count;
+        public uint Sequence { get; private set; }
+        private uint? interruptedRestoreSequence;
+        private ClipboardWriteWindow? restoreOwner;
+        internal static ClipboardBackup Capture()
+        {
+            var backup=new ClipboardBackup();
+            ClipboardOpen();
+            try
+            {
+                backup.Sequence=ClipboardSequence();
+                // Explorer also advertises indexed FileContents streams. They
+                // cannot be read with GetClipboardData. Capture CF_HDROP first;
+                // only an unreadable alternate stream backed by existing local
+                // files may be omitted. Virtual-only files still abort safely.
+                bool physicalFileDrop=false;
+                if(IsClipboardFormatAvailable(15))
+                {
+                    SetLastError(0);var drop=GetClipboardData(15);
+                    if(drop==IntPtr.Zero)throw new ClipboardFormatException(15,"CF_HDROP",Marshal.GetLastWin32Error());
+                    var savedDrop=new ClipboardEntry(15,drop).Copy();backup.entries.Add(savedDrop);
+                    physicalFileDrop=PhysicalFileDrop(savedDrop.Handle);
+                }
+                uint format=0;
+                int advertised=0;
+                while(true)
+                {
+                    SetLastError(0);format=EnumClipboardFormats(format);
+                    if(format==0){int error=Marshal.GetLastWin32Error();if(error!=0)throw new Win32Exception(error);break;}
+                    advertised++;
+                    if(advertised>256)throw new InvalidOperationException("Too many clipboard formats.");
+                    if(format==15)continue;
+                    string label="";
+                    if(format>=0xc000)
+                    {
+                        var name=new StringBuilder(256);GetClipboardFormatNameW(format,name,name.Capacity);
+                        label=name.ToString();
+                        // OLE bookkeeping is not user data and contains source
+                        // object pointers, so it cannot be byte-copied safely.
+                        if(label is "Ole Private Data" or "DataObject" or "Ole Clipboard Persist On Flush")continue;
+                        if(label is "Link Source" or "Embed Source" or "Embedded Object")
+                            throw new InvalidOperationException("Цей формат буфера обміну неможливо безпечно зберегти. Збережи його вміст перед тестом.");
+                    }
+                    if(backup.entries.Count>=256)throw new InvalidOperationException("Too many clipboard formats.");
+                    SetLastError(0);
+                    var handle=GetClipboardData(format);
+                    if(handle==IntPtr.Zero)
+                    {
+                        int error=Marshal.GetLastWin32Error();
+                        if(MaySkipFileContents(label,error,physicalFileDrop)){backup.skippedFileContents.Add(format);continue;}
+                        throw new ClipboardFormatException(format,label,error);
+                    }
+                    backup.entries.Add(new ClipboardEntry(format,handle).Copy());
+                }
+                if(advertised>0&&backup.entries.Count==0)throw new InvalidOperationException("Cannot preserve clipboard data.");
+                backup.Sequence=ClipboardSequence();
+            }
+            catch{backup.Dispose();throw;}
+            finally{CloseClipboard();}
+            if(ClipboardSequence()!=backup.Sequence)
+            {backup.Dispose();throw new Win32Exception(1460,"Cannot preserve clipboard data.");}
+            return backup;
+        }
+        internal bool Restore(uint expectedSequence)
+        {
+            var owner=restoreOwner??=new ClipboardWriteWindow();ClipboardOpen(owner.Handle);
+            var copies=new List<ClipboardEntry>();
+            bool interrupted=false;
+            try
+            {
+                uint current=ClipboardSequence();
+                if(current!=expectedSequence&&(current!=interruptedRestoreSequence||ClipboardOwner()!=owner.Handle))return false;
+                // Keep the backup intact until all copies have transferred, so
+                // a transient restore failure can retry the complete snapshot.
+                foreach(var entry in entries)copies.Add(entry.Copy());
+                if(!EmptyClipboard())throw new Win32Exception(Marshal.GetLastWin32Error());
+                while(copies.Count>0)
+                {
+                    var entry=copies[0];
+                    if(SetClipboardData(entry.Format,entry.Handle)==IntPtr.Zero)throw new Win32Exception(Marshal.GetLastWin32Error());
+                    copies.RemoveAt(0); // Windows owns this duplicate now.
+                }
+                return true;
+            }
+            catch
+            {
+                interrupted=ClipboardOwner()==owner.Handle;
+                throw;
+            }
+            finally
+            {
+                foreach(var entry in copies)entry.Free();CloseClipboard();
+                if(interrupted&&ClipboardOwner()==owner.Handle)interruptedRestoreSequence=ClipboardSequence();
+            }
+        }
+        public void Dispose(){foreach(var entry in entries)entry.Free();entries.Clear();restoreOwner?.Dispose();restoreOwner=null;}
+    }
+}

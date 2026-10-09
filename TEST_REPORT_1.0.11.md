@@ -19,3 +19,4 @@ from before/after captures at 1/3/10/20. Adds conservative outer and inner margi
 rejects clipped or missing measurements. This screen-difference method can still
 be affected by animation/noise, contrast and game rendering. It is experimental.
 No claim of pixel-perfect real-game painting or measured speedup is made.
+

@@ -40,3 +40,4 @@ CanvasForge_CSharp_1.0.3_Windows_x64_Full.zip True
 CanvasForge_CSharp_1.0.7_Windows_x64_Full.zip False
 CanvasForge_CSharp_1.0.4_Windows_x64_Full.zip True
 CanvasForge_CSharp_1.0.8_Windows_x64_Full.zip True
+

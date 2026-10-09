@@ -1,4 +1,207 @@
-Pixora current source snapshot
-Git commit baseline: 2a04dd31ae6151d435ac0deb2b9a705dbb3c9493
-Includes: SpeedPatch + Pixora rebrand + CanvasFix + SliderCoordinateFix
-Source only; no compiled binaries included.
+Pixora 1.0.14-beta.54 — unified preparation, canonical readiness, palette-cell checks.
+408 Core / 148 WPF offline checks; inGameTest=false.
+Source branch: codex/pixora-1.0.14-beta-calibration (PR #2); based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef.
+Previously delivered beta.54 local ZIP retains its original pre-commit manifest.
+Palette selection, readiness and input verification changed; measured brush masks, boundary geometry and coverage acceptance preserved.
+See CHANGES_BETA54_UA.md and TESTING_BETA54_UA.md.
+
+Previous beta.53:
+Pixora 1.0.14-beta.53 — seven UI languages and first-launch guide.
+391 Core / 144 WPF offline checks; inGameTest=false.
+Local changes based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef, including beta.51/52; no new push.
+Core and input execution unchanged from beta.52.
+See CHANGES_BETA53_UA.md, TESTING_BETA53_UA.md and release/Steam.
+
+Previous beta.52:
+Pixora 1.0.14-beta.52 — universal Painting workflow and optional Rust compatibility settings.
+391 Core / 134 WPF offline checks; inGameTest=false.
+Local changes based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef, including beta.51; no new push or CI.
+All Core sources and input execution preserved from beta.51.
+See CHANGES_BETA52_UA.md and TESTING_BETA52_UA.md.
+
+Previous beta.51:
+Pixora 1.0.14-beta.51 — cancellable previews, bounded bit-map reuse, actionable preparation.
+391 Core / 134 WPF offline checks; inGameTest=false.
+Local changes based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef; no new push or CI.
+Commands, measured-color-boundaries-v1 revision, thresholds, timing and ETA rules preserved.
+Live painting quality, laptop clipboard-free setup, full duration and ETA still need a beta.51 run.
+See CHANGES_BETA51_UA.md and TESTING_BETA51_UA.md.
+
+Previous beta.50:
+Pixora 1.0.14-beta.50 — synchronized settings, palette choice, measured mixed color-boundary plan.
+388 Core / 125 WPF offline checks; inGameTest=false.
+Source published in draft PR #2; GitHub Actions builds the committed snapshot.
+The previously delivered local ZIP retains its original pre-commit manifest.
+Planner changed; contrast 80, tolerance 12, measured-mask intersection, speed/spatial/audit criteria unchanged.
+Size 3 default; optional verified Size 1; mixed painting can use current Size 3/10/20.
+Model unplanned pixels are not actual Rust audit results. New START required; beta.49 RESUME incompatible.
+See CHANGES_BETA50_UA.md and TESTING_BETA50_UA.md.
+
+Previous beta.49:
+Pixora 1.0.14-beta.49 — private calibration proof cache and complete-cycle ETA.
+375 Core / 118 WPF offline checks; inGameTest=false.
+Local changes only; no new GitHub commit or CI run.
+Measured operation overhead is additive; input waits and commands unchanged.
+Planner, contrast 80, tolerance 12, masks, probe criteria and coverage audit unchanged.
+See CHANGES_BETA49_UA.md and TESTING_BETA49_UA.md.
+
+Previous beta.48:
+Pixora 1.0.14-beta.48 — normal Size 3; Size 1 only for Adaptive calibration.
+365 Core / 116 WPF offline checks; inGameTest=false.
+Local changes only; no new GitHub commit or CI run.
+Old Size 1/Profile normal controls migrate to 3; existing Adaptive footprints are preserved.
+Painting formulas, contrast 80, tolerance 12, masks, probe criteria and coverage audit unchanged.
+See CHANGES_BETA48_UA.md and TESTING_BETA48_UA.md.
+
+Previous beta.47:
+Pixora 1.0.14-beta.47 — compact preparation and optional slow-laptop transport.
+361 Core / 114 WPF offline checks; inGameTest=false.
+Local changes only; no new GitHub commit or CI run.
+Two strict slider frames and a mandatory working brush imprint; numeric clipboard transport remains the default.
+HEX verification, contrast 80, RGB tolerance 12, brush masks, Speed Probe criteria, planner and coverage audit unchanged.
+See CHANGES_BETA47_UA.md and TESTING_BETA47_UA.md.
+
+Previous beta.46:
+Pixora 1.0.14-beta.46 — responsive clipboard owner and slider rejection evidence.
+346 Core / 107 WPF checks; fresh laptop Rust validation required.
+Live beta.45 copied Size correctly, then failed visual slider recognition before Interval.
+HEX owner-message pumping and empty intermediate-state handling fixed; slider acceptance unchanged.
+See CHANGES_BETA46_UA.md and TESTING_BETA46_UA.md.
+
+Previous beta.45:
+Pixora 1.0.14-beta.45 — bounded late clipboard readback and guarded UI clicks.
+343 Core / 104 WPF checks. New live laptop validation is required.
+No laptop brush imprints were measured in the attached beta.44 log; Interval/HEX copy failed first.
+Clipboard conflict policy, brush contrast/core and speed acceptance are unchanged.
+See CHANGES_BETA45_UA.md and TESTING_BETA45_UA.md.
+
+Previous beta.44:
+Pixora 1.0.14-beta.44 — fast cancellable START preparation and consistent working Size.
+339 Core / 103 WPF checks. Fresh live Rust validation required.
+1000 timing operations: 12.037 s -> 0.020 s on the recorded config; preparation only, no measured in-game speedup.
+Measured Size 3 can be selected without retesting Size 1. Adaptive/audit proof is unchanged.
+See CHANGES_BETA44_UA.md and TESTING_BETA44_UA.md.
+
+Previous beta.43:
+Pixora 1.0.14-beta.43 — select strong saturation anchors before validating stability.
+331 Core / 100 WPF checks. Fresh live Rust validation required.
+Recorded beta.42 Square Size 1 replay yields a 1x2 px command-relative core; old displaced or weak traces remain unverified.
+Contrast 80, RGB tolerance 12 and first-imprint intersection are unchanged. Existing successful profiles remain.
+See CHANGES_BETA43_UA.md and TESTING_BETA43_UA.md.
+
+Previous beta.42:
+Pixora 1.0.14-beta.42 — locally saturated first-imprint brush core.
+329 Core / 100 WPF checks. Fresh live Rust validation required.
+Per-dot local RGB is accepted only with a same-point saturation observation; solid coverage uses first-imprint pixels only.
+Contrast 80 and RGB tolerance 12 remain. Masks intersect at command coordinates without recentering.
+Old brush masks/speed proofs are stale; captures and user settings remain. Weak Size 1 is still unverified.
+See CHANGES_BETA42_UA.md and TESTING_BETA42_UA.md.
+
+Previous beta.41:
+Pixora 1.0.14-beta.41 — independent verified Size and moving-stroke scene guard.
+314 Core / 98 WPF checks passed. New live Rust validation required.
+Slow spatial controls measure connected paint reach before candidates, within the existing offset search cap.
+Core offsets/width, RGB tolerance, brush contrast, coverage acceptance, clipboard recovery and planner remain unchanged.
+Older spatial/speed profiles are stale; captures and dot masks remain. Size 1 is still required by Adaptive and edge repair.
+See CHANGES_BETA41_UA.md and TESTING_BETA41_UA.md. CI packages exact source and published DLL checks.
+
+Previous beta.40:
+Pixora 1.0.14-beta.40 — late clipboard responses, bounded HEX polling and text-field recovery.
+Expected Rust copies are reconciled before writes/restore; unrelated changes are preserved.
+Retry-only double-click focus and slower keys; successful first pass and motion timings unchanged.
+Clipboard sequence/owner diagnostics contain no clipboard payload.
+Fatal renderer allocation failures release input and stop, without repeated error rendering.
+See CHANGES_BETA40_UA.md and TESTING_BETA40_UA.md. Live laptop Interval validation is pending.
+305 Core / 95 WPF checks passed; build: 0 warnings, 0 errors. Native clipboard/game smoke not run locally.
+
+Previous beta.39:
+Preview is displayed before estimates. Read-only estimates validate routes once per shape.
+Recorded fixture: four calculations 157.70 s -> 0.194 s, unchanged drawing estimates.
+300 Core / 93 WPF checks passed, including packaged .NET 8.0.31 binaries.
+See CHANGES_BETA39_UA.md and TESTING_BETA39_UA.md. New in-game test required.
+
+Previous beta.38:
+300 Core / 92 WPF checks; latest-wins image loading, stale-plan failure, repeated START/RESUME, standalone STOP/close regressions.
+Reserve START before planning; cancelled planning never reaches native input. Failed launches dispose resources and unlock editing.
+Individual capture/controls/brush/probe actions share exclusivity, cancellation and completion; automatic setup keeps its existing linked token.
+Post-probe restore honors cancellation/closing; HEX checks geometry again before committing the final capture.
+Invariant validated legacy brush parsing and malformed shape-speed status are fail-closed; no weak proof promotion.
+Bounded planning cancellation and active-run progress callbacks. Proof thresholds, revisions and motion delays unchanged.
+New live Rust validation pending. See CODE_REVIEW_BETA38_UA.md, CHANGES_BETA38_UA.md and TESTING_BETA38_UA.md.
+
+Previous beta.37 — checked stationary dots and reviewable brush failures.
+294 Core / 83 WPF checks, including recorded beta.36 weak and empty-core fixtures.
+Move/settle/check -> down/hold/check -> same-point held refresh/check -> up/check; 64 ms phases, 256 ms total.
+Allow at most 1 px initial absolute-input normalization; held drift rejects and always releases the button.
+One worker per calibration; controls reused only after numeric proof plus matching visual slider state and shape.
+All repeats remain visible; measured trace without opaque intersection is NoSolidCore, never Adaptive-ready.
+Before/after diagnostic viewer survives restart and includes command-relative geometry and cursor telemetry.
+Speed status separates missing brush core, changed measurements, spatial mismatch and untested axis fallback.
+No recentering, tolerance relaxation, planner/audit changes or old failure promotion.
+Existing same-context proofs remain valid; changed measured masks still invalidate their dependent proofs.
+The new dot protocol needs live Rust validation. See CHANGES_BETA37_UA.md and TESTING_BETA37_UA.md.
+
+Previous beta.36 — prioritize safety-margin verification and retain certified partial routes.
+285 Core / 79 WPF checks; beta.35 stage-017 replay remains rejected at 23/24, Missing 0, Unknown 1.
+Separate outside +4 edge observation cannot replace the failed in-envelope +2 dark core or authorize fast input.
+After a faster candidate fails, verify the last 3/3 successful candidate at its margin, with 3/3 new pairs.
+Completed candidate + margin routes survive later failure/cancellation; candidates alone are never saved.
+One fresh retry for a partly verified uncertain local control, at most 8 per run and only from reserved extra clean tiles.
+Untested faster intervals are not claimed as the machine limit; a final invalid slow reference still stops the run.
+Existing probe-collinear-slow-v7 spatial/brush proofs remain valid in unchanged context. New live test pending.
+No RGB tolerance, coverage threshold, envelope, painter transport, planner, audit or motion-timing changes.
+See CHANGES_BETA36_UA.md and TESTING_BETA36_UA.md.
+
+Previous beta.35 — in-envelope slow references and collinear Speed Probe pairs.
+271 Core / 76 WPF checks; latest 27-stage live replay fixes one false rejection and keeps all 12 wrong-color candidates rejected.
+Square 4 / Size 1 and 3 measurements passed in beta.34; new speed layout requires live validation.
+Probe revision probe-collinear-slow-v7 invalidates spatial/speed proofs; brush masks remain valid.
+The preferred span is 31 px; limited-space fallback verifies at least 8 full-width slices and limits Shift to tested MaxLength.
+No RGB tolerance, coverage threshold, planner, audit or painting timing changes.
+See CHANGES_BETA35_UA.md and TESTING_BETA35_UA.md.
+
+Previous beta.34 — Explorer file-drop clipboard backup hotfix.
+266 Core / 76 WPF checks; native clipboard smoke runs only on isolated Windows CI.
+Read-only current Explorer backup succeeded: 11 formats retained, 1 unrenderable alternate FileContents omitted.
+Physical file paths and readable formats restored; virtual-only streams and unknown missing formats remain protected.
+Clipboard capture telemetry includes format ID/name/error without user payloads.
+Exact published DLL checks, source/docs version contract, portable packaging without PDB.
+Mode-aware seven-region capture; all individual functions retained.
+Colors -> controls -> brush -> six spatial controls -> single-Size Speed Probe.
+Round base failure tries Square once; weak contrast never certifies a brush.
+Separate clean regions across stages; original full-Canvas contexts remain in use.
+Cancellation or failure stops future stages and retains prior completed measurements.
+Probe probe-complete-core-v6 and brush command-masks-color-v2 criteria unchanged.
+No new in-game result: Square Size 1, full sequence and audited painting pending.
+See CHANGES_BETA34_UA.md and TESTING_BETA34_UA.md.
+
+Historical snapshot follows:
+
+Pixora 1.0.14-beta.28 — independent three-dot Size transactions and per-Size Probe readiness.
+223 Core / 60 WPF checks; recorded Round Size 1 contrast 69/70 versus required 80 remains rejected.
+Partial measurements do not certify Size 1, enable adaptive, or weaken audit requirements.
+See CHANGES_BETA28_UA.md and TESTING_BETA28_UA.md; Square 1 and beta.28 live verification pending.
+
+Previous beta.27 — guarded cursor parking and paired local slow controls.
+Spatial/speed evidence revision probe-local-slow-reference-v5; old proofs stale.
+Physical contrast and frozen-color acceptance are separate; thresholds not reduced.
+219 Core / 58 WPF checks; recorded failure replay preserves 36 rejects and weak dot 56/80.
+See CHANGES_BETA27_UA.md and TESTING_BETA27_UA.md; beta.27 live run pending.
+
+Previous beta.26 architecture — command-relative measured brush masks and seven shape profiles.
+Three independent dots: possible union / stable opaque intersection / separate safety bounds.
+Size is a Rust control value, not pixels. Calibration: 1/3/10/20 together; 40/60/100 separately.
+All seven slots selectable/calibratable; opt-in profitable measured-shape adaptive planning.
+Color-first grouping, shape-aware batches/ETA/reprime and independent per-shape speed evidence.
+Legacy repair now separates padded safety from physical reach. Mask repair uses actual stable offsets.
+UnreachablePixels and PossibleOnlyPixels are diagnostics, not audited coverage claims.
+Frozen-reference re-audit remains authoritative; Unknown not targets; no relaxed Probe tolerance.
+Progress/ETA/status survive language rebuild; new plan/START resets old results.
+Adaptive/schedule cancellation propagated. Old RESUME planner identities become incompatible.
+Expected validation 211 Core / 56 WPF, default runtime and exact published DLLs; see archive manifest.
+New beta.26 in-game verification pending; recorded PNG replays are offline evidence only.
+Temporary compile-host CLR flags remain process-local; local root cause remains open.
+Clean Windows CI run 37374418300 passed for product commit 1df06c2; see BETA26_CI_EVIDENCE.json.
+Static stamps do not prove swept motion; ordinary fallback still needs actual same-route audits.
+Product source is published in the existing codex/pixora-1.0.14-beta-calibration draft PR #2.
+See CHANGES_BETA26_UA.md, TESTING_BETA26_UA.md and KNOWN_ISSUES.md.

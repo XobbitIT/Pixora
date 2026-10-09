@@ -1,8 +1,10 @@
 namespace CanvasForge.Core;
 public static class Planner
 {
+    public const string PaletteRevision="palette-dominant-color-reservation-v2";
     public static PaintPlan Build(PixelImage source, Settings settings, IProgress<string>? progress = null, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         settings.Validate();
         var canvas = settings.Calibration.Rect("canvas");
         var cw = canvas.Valid ? canvas.Width : 512;
@@ -69,7 +71,10 @@ public static class Planner
             var ranked = full.Where(x => x >= 0).GroupBy(x => x).OrderByDescending(x => x.Count()).ThenBy(x => x.Key).Select(x => x.Key).ToList();
             var text = settings.Text("max_colors", "Auto");
             var cap = text == "Auto" ? palette.Length : Math.Min(int.Parse(text), palette.Length);
-            var forced = settings.Bool("skin_assist", true) ? Enumerable.Range(0, rgb.Length).Where(i => IsSkin(rgb[i])).Take(Math.Max(1, cap / 4)).ToArray() : [];
+            // Reserve skin shades only when they actually occur in the mapped
+            // image. Small logo palettes must retain their dominant colors.
+            var forced = settings.Bool("skin_assist", true) && cap >= 16
+                ? ranked.Where(i => IsSkin(rgb[i])).Take(Math.Max(1, cap / 4)).ToArray() : [];
             var allowed = forced.Concat(ranked).Distinct().Take(cap).ToArray();
             if (allowed.Length == 0)
                 allowed = [0];
@@ -203,6 +208,7 @@ public static class Planner
 
     public static void Cleanup(int[] grid, int w, int h, int passes, int minRegion, CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         for (var pass = 0; pass < passes; pass++)
         {
             var source = (int[])grid.Clone();
@@ -242,6 +248,7 @@ public static class Planner
             var border = new List<int>();
             while (q.Count > 0)
             {
+                if((cells.Count&1023)==0)token.ThrowIfCancellationRequested();
                 var i = q.Dequeue();
                 cells.Add(i);
                 foreach (var j in Neighbors(i, w, h))
@@ -268,6 +275,7 @@ public static class Planner
 
     public static Dictionary<int, List<Stroke>> Group(int[] grid, int w, int h, bool hybrid, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
         var result = new Dictionary<int, List<Stroke>>();
         var seen = new bool[grid.Length];
         for (var seed = 0; seed < grid.Length; seed++)
@@ -282,6 +290,7 @@ public static class Planner
             seen[seed] = true;
             while (q.Count > 0)
             {
+                if((cells.Count&1023)==0)token.ThrowIfCancellationRequested();
                 var i = q.Dequeue();
                 cells.Add(i);
                 foreach (var j in Neighbors(i, w, h))
@@ -297,6 +306,7 @@ public static class Planner
                 var strokes = new List<Stroke>();
                 foreach (var row in cells.GroupBy(i => vertical ? i % w : i / w).OrderBy(g => g.Key))
                 {
+                    token.ThrowIfCancellationRequested();
                     var coords = row.Select(i => vertical ? i / w : i % w).OrderBy(x => x).ToArray();
                     var a = coords[0];
                     var b = a;
@@ -332,6 +342,8 @@ public static class Planner
 
 public static class Coverage
 {
+    public static bool ShiftLine(Settings s,double size,ScreenLine line)
+        => SpeedCalibration.Resolve(s,size,line)?.Method==StrokeMethod.Shift;
     public static int[] Partition(int start, int end, int cells) => Enumerable.Range(0, cells + 1).Select(i => (int)Math.Round(start + (double)(end - start) * i / cells)).ToArray();
     public static List<ScreenLine> Expand(IEnumerable<Stroke> strokes, ScreenRect canvas, int w, int h, int pitch)
     {
@@ -425,26 +437,33 @@ public static class Coverage
         return groups;
     }
 
-    public static double EstimateSeconds(PaintPlan plan, Settings s, string? speedName = null)
+    public static double EstimateSeconds(PaintPlan plan, Settings s, string? speedName = null,Dictionary<int,List<PaintBatch>>? preparedGroups=null)
     {
         var copy = s.Clone();
         if (speedName is not null)
             copy.Set("speed_profile", speedName);
+        // This estimate is read-only. Parse and validate measured masks once,
+        // rather than repeating that work for every stroke and speed preset.
+        copy = BrushFootprints.Snapshot(copy);
         var speed = SpeedProfile.Get(copy.Text("speed_profile"));
-        var groups = AdaptiveBrush.Build(plan, copy);
-        double seconds = copy.Int("start_delay", 5);
-        foreach (var lines in groups.Values)
+        var groups = preparedGroups??TransferSchedule.Build(plan, copy);
+        var resolve = SpeedCalibration.CreateEstimateResolver(copy);
+        bool fast = TransferSchedule.Fast(copy);
+        double seconds = copy.Int("start_delay", 5)+3*StrokeTiming.SliderChangeEstimate(copy)+StrokeTiming.ClickEstimate(copy);
+        if(!StrokeTiming.Fast(copy) || copy.Bool("use_fixed_opacity",true)&&copy.Number("paint_opacity_value",1)!=1)
+            seconds+=StrokeTiming.SliderChangeEstimate(copy); // Final restore to Opacity 1.
+        double previousSize=PaintTimingPlan.DefaultSize(copy,speed);
+        var order=groups.Keys.OrderByDescending(i=>plan.Counts.GetValueOrDefault(i)).ToList();
+        if(plan.BackgroundColor is int bg){order.Remove(bg);order.Insert(0,bg);}
+        foreach (var color in order)
         {
-            seconds += copy.Mode == ColorMode.HexDirect ? StrokeTiming.HexChangeEstimate(copy) : StrokeTiming.ColorDelay(copy) + StrokeTiming.ClickEstimate(copy);
-            double previousSize = 0;
-            foreach (var op in lines)
+            seconds += copy.Mode == ColorMode.HexDirect ? StrokeTiming.HexChangeEstimate(copy)+StrokeTiming.ColorDelay(copy) : StrokeTiming.ColorDelay(copy) + StrokeTiming.ClickEstimate(copy);
+            foreach (var op in groups[color])
             {
-                if (op.Size != previousSize) seconds += StrokeTiming.SliderChangeEstimate(copy);
-                previousSize = op.Size;
-                var l = op.Line;
-                var length = Math.Max(Math.Abs(l.X2 - l.X1), Math.Abs(l.Y2 - l.Y1));
-                var shift = copy.Bool("line_mode") && copy.Text("coverage_mode") == "Fast" && length >= copy.Int("min_line_width", 4) * copy.Int("cell_px", 3);
-                seconds += StrokeTiming.Estimate(copy, speed, length, shift);
+                double size=op.Size>0?op.Size:PaintTimingPlan.DefaultSize(copy,speed);
+                if(copy.Bool("adaptive_brush")&&size!=previousSize)seconds+=StrokeTiming.SliderChangeEstimate(copy);
+                previousSize=size;
+                seconds += TransferSchedule.EstimateBatch(copy,speed,op,resolve,fast);
             }
         }
 
@@ -455,7 +474,8 @@ public static class Coverage
 public static class ControlCurve
 {
     public static bool IsMaximum(string kind, double value) => kind == "size" ? value >= 99.999 : value >= .99999;
-    public static readonly (double Value, double Fraction)[] Size = [(1, 0), (2, .0031), (3, .0062), (3.85, 1.0 / 99), (5.43, 2.0 / 99), (100, 1)];
+    // Fractions refer to the interactive track, excluding the numeric field.
+    public static readonly (double Value, double Fraction)[] Size = [(1, 0), (100, 1)];
     public static double Fraction(string kind, double value)
     {
         if (kind != "size")

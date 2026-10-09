@@ -16,6 +16,11 @@ internal sealed class CaptureWindow : Window
         Fill = new SolidColorBrush(Color.FromArgb(35, 255, 107, 0)),
         IsHitTestVisible = false
     };
+    private readonly Rectangle valueField = new()
+    {
+        Stroke = Brushes.LimeGreen, StrokeThickness = 2,
+        IsHitTestVisible = false, Visibility = Visibility.Collapsed
+    };
     private readonly ScreenRect origin;
     private readonly bool pointMode;
     private ScreenPoint start;
@@ -23,8 +28,9 @@ internal sealed class CaptureWindow : Window
     private readonly Image? live;
     public ScreenRect? Selected { get; private set; }
 
-    public CaptureWindow(PixelImage shot, ScreenRect screen, string title, bool point = false, PixelImage? preview = null, bool english = false)
+    public CaptureWindow(PixelImage shot, ScreenRect screen, string title, bool point = false, PixelImage? preview = null, bool english = false, bool sliderCapture = false, string? language = null)
     {
+        string Localize(string text) => Translations.ForLanguage(text, language ?? (english ? "English" : "Українська"));
         origin = screen;
         pointMode = point;
         Title = title;
@@ -44,6 +50,7 @@ internal sealed class CaptureWindow : Window
         grid.Children.Add(overlay);
         Content = grid;
         overlay.Children.Add(selection);
+        overlay.Children.Add(valueField);
         if (preview is not null)
         {
             live = new()
@@ -58,9 +65,11 @@ internal sealed class CaptureWindow : Window
 
         var label = new TextBlock
         {
-            Text = title + "\n" + (english
-                ? (point ? "Click the required point. ESC — cancel." : "Drag to select an area. ESC — cancel.")
-                : (point ? "Клікни потрібну точку. ESC — скасувати." : "Обведи область мишею. ESC — скасувати.")),
+            Text = title + "\n" + Localize(english
+                ? (sliderCapture ? "Select one full slider and its number with extra space. ESC — cancel."
+                    : point ? "Click the required point. ESC — cancel." : "Drag to select an area. ESC — cancel.")
+                : (sliderCapture ? "Обведи один повзунок із числом справа та запасом навколо. ESC — скасувати."
+                    : point ? "Клікни потрібну точку. ESC — скасувати." : "Обведи область мишею. ESC — скасувати.")),
             Foreground = Brushes.White,
             Background = new SolidColorBrush(Color.FromArgb(235, 24, 24, 28)),
             Padding = new Thickness(16),
@@ -81,6 +90,9 @@ internal sealed class CaptureWindow : Window
             }
 
             dragging = true;
+            Selected = null;
+            selection.Stroke = new SolidColorBrush(Color.FromRgb(255, 107, 0));
+            valueField.Visibility = Visibility.Collapsed;
             Mouse.Capture(this);
         };
         MouseMove += (_, _) =>
@@ -107,10 +119,43 @@ internal sealed class CaptureWindow : Window
             if (!dragging)
                 return;
             Mouse.Capture(null);
+            dragging = false;
             var end = Native.Cursor();
             var rect = new ScreenRect(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y), Math.Max(start.X, end.X), Math.Max(start.Y, end.Y));
             if (rect.Width > 2 && rect.Height > 2)
             {
+                if (sliderCapture)
+                {
+                    var area = new ScreenRect(rect.Left - origin.Left, rect.Top - origin.Top,
+                        rect.Right - origin.Left, rect.Bottom - origin.Top);
+                    var found = RustSlider.Find(shot, area);
+                    if (found.Count != 1)
+                    {
+                        Selected = null;
+                        label.Text = title + "\n" + Localize(found.Count == 0
+                            ? (english ? "No complete slider found. Include the whole bar and number; draw again."
+                                : "Повного повзунка не знайдено. Захопи смугу й число із запасом; обведи ще раз.")
+                            : (english ? "Several sliders found. Select just one with extra space."
+                                : "Знайдено кілька повзунків. Обведи один із запасом."));
+                        return;
+                    }
+                    void Mark(Rectangle box, ScreenRect local)
+                    {
+                        var p1 = PointFromScreen(new Point(local.Left + origin.Left, local.Top + origin.Top));
+                        var p2 = PointFromScreen(new Point(local.Right + origin.Left, local.Bottom + origin.Top));
+                        Canvas.SetLeft(box, p1.X); Canvas.SetTop(box, p1.Y);
+                        box.Width = p2.X - p1.X; box.Height = p2.Y - p1.Y;
+                    }
+                    Mark(selection, found[0].Track);
+                    selection.Stroke = Brushes.LimeGreen;
+                    Mark(valueField, found[0].ValueField);
+                    valueField.Visibility = Visibility.Visible;
+                    Selected = rect;
+                    label.Text = title + "\n" + Localize(english
+                        ? "Slider found. Green: track and number. Enter — save; draw again to adjust. ESC — cancel."
+                        : "Повзунок знайдено. Зеленим — доріжка й число. Enter — зберегти; можна обвести ще раз. ESC — скасувати.");
+                    return;
+                }
                 Selected = rect;
                 DialogResult = true;
             }
@@ -124,6 +169,8 @@ internal sealed class CaptureWindow : Window
                 Mouse.Capture(null);
                 DialogResult = false;
             }
+            else if (sliderCapture && e.Key == Key.Enter && Selected is not null && !dragging)
+                DialogResult = true;
         };
         Loaded += (_, _) =>
         {

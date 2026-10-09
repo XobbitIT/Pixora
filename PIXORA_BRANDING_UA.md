@@ -28,3 +28,4 @@
 
 ## Steam-позиціонування
 На capsule art краще показувати лише знак + **PIXORA**, а підзаголовок тримати в описі продукту. Робочий tagline: **Precision Raster Painting**.
+

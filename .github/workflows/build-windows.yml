@@ -10,24 +10,103 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    env:
+      PIXORA_NATIVE_CLIPBOARD_SMOKE: '1'
+      PIXORA_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
+      - name: Record clean runner runtime
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path verification -Force | Out-Null
+          dotnet --info | Out-File verification/dotnet-info.txt -Encoding utf8
+
       - name: Restore
         run: dotnet restore src/CanvasForge.App/CanvasForge.App.csproj
 
+      - name: Core regression tests
+        shell: pwsh
+        run: |
+          dotnet run --project tests/CanvasForge.Core.Tests/CanvasForge.Core.Tests.csproj -c Release | Tee-Object verification/core-tests.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: WPF adaptive UI checks
+        shell: pwsh
+        run: |
+          dotnet run --project tests/CanvasForge.App.Tests/CanvasForge.App.Tests.csproj -c Release -p:BuildInParallel=false -- ui-verification | Tee-Object verification/wpf-tests.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Read build version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
+          "PIXORA_VERSION=$version" >> $env:GITHUB_ENV
+
       - name: Publish win-x64 self-contained
-        run: dotnet publish src/CanvasForge.App/CanvasForge.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -o publish/windows-x64
+        run: dotnet publish src/CanvasForge.App/CanvasForge.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:SourceRevisionId=${{ env.PIXORA_SOURCE_SHA }} -o publish/windows-x64
+
+      - name: Check published DLLs
+        shell: pwsh
+        run: |
+          $verificationHost = 'verification/published-host'
+          New-Item -ItemType Directory -Path $verificationHost -Force | Out-Null
+          Copy-Item 'tests/CanvasForge.App.Tests/bin/Release/net8.0-windows/*' $verificationHost -Recurse -Force
+          Copy-Item 'tests/CanvasForge.Core.Tests/bin/Release/net8.0/*' $verificationHost -Recurse -Force
+          Copy-Item 'publish/windows-x64/*' $verificationHost -Recurse -Force
+          foreach ($assembly in @('Pixora.dll', 'CanvasForge.Core.dll')) {
+            $publishedHash = (Get-FileHash "publish/windows-x64/$assembly" -Algorithm SHA256).Hash
+            $testedHash = (Get-FileHash "$verificationHost/$assembly" -Algorithm SHA256).Hash
+            if ($publishedHash -ne $testedHash) { throw "Published DLL mismatch: $assembly" }
+          }
+          dotnet "$verificationHost/CanvasForge.Core.Tests.dll" | Tee-Object verification/published-core-tests.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet "$verificationHost/CanvasForge.App.Tests.dll" published-ui-verification | Tee-Object verification/published-wpf-tests.txt
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pixora_Windows_Validation
+          path: |
+            verification/dotnet-info.txt
+            verification/*-tests.txt
+            ui-verification/**
+            published-ui-verification/**
+          if-no-files-found: warn
+
+      - name: Check package documents and version contract
+        shell: pwsh
+        run: |
+          ./tools/Package-Version.ps1 -SelfTest -WriteDocuments -PackageDirectory "$PWD/publish/windows-x64" -SourceDirectory "$PWD"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Record exact source, tests and portable archive SHA
+        shell: pwsh
+        run: |
+          ./tools/Package-Manifest.ps1 -PackageDirectory "$PWD/publish/windows-x64" -SourceDirectory "$PWD"
+          $portable = "verification/Pixora_${env:PIXORA_VERSION}_Windows_x64.zip"
+          Compress-Archive -Path publish/windows-x64/* -DestinationPath $portable -Force
+          python tools/verify_package.py --self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/verify_package.py "$portable" --version "$env:PIXORA_VERSION" --commit "$env:PIXORA_SOURCE_SHA"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          (Get-FileHash -LiteralPath $portable -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content "$portable.sha256" -Encoding ascii
 
       - name: Upload Pixora portable
         uses: actions/upload-artifact@v4
         with:
-          name: Pixora_1.0.12_Windows_x64
-          path: publish/windows-x64/**
+          name: Pixora_${{ env.PIXORA_VERSION }}_Windows_x64
+          path: |
+            verification/Pixora_*_Windows_x64.zip
+            verification/Pixora_*_Windows_x64.zip.sha256
           if-no-files-found: error

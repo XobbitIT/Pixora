@@ -1,9 +1,61 @@
 using System.Text.Json;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CanvasForge.App;
 internal static class Translations
 {
+    private static readonly Dictionary<string, Dictionary<string, string>> Locales = LoadLocales();
+    private static readonly Dictionary<string, (Regex Pattern, string Target)[]> LocaleTemplates = Locales.ToDictionary(p => p.Key, p => Templates(p.Value));
+    private static readonly Dictionary<string, string> InternationalEnglish = Locales.Values.SelectMany(d => d)
+        .GroupBy(p => p.Value, StringComparer.Ordinal).ToDictionary(g => g.Key, g => g.First().Key, StringComparer.Ordinal);
+    private static readonly (Regex Pattern, string Target)[] ReverseLocaleTemplates = Templates(InternationalEnglish);
+    private static Dictionary<string, Dictionary<string, string>> LoadLocales()
+    {
+        using var stream = typeof(Translations).Assembly.GetManifestResourceStream("CanvasForge.International");
+        var rows = stream is null ? [] : JsonSerializer.Deserialize<string[][]>(stream) ?? [];
+        var locales = LanguageCatalog.Names.Skip(2).ToDictionary(n => n, _ => new Dictionary<string, string>(StringComparer.Ordinal));
+        foreach (var row in rows)
+        {
+            if (row.Length != 6) throw new InvalidDataException("Invalid translation row.");
+            for (int i = 0; i < 5; i++)
+            {
+                var sourceTokens = Regex.Matches(row[0], @"\{p[0-9]+\}").Select(m => m.Value).Order().ToArray();
+                var targetTokens = Regex.Matches(row[i + 1], @"\{p[0-9]+\}").Select(m => m.Value).Order().ToArray();
+                if (string.IsNullOrWhiteSpace(row[i + 1]) || !sourceTokens.SequenceEqual(targetTokens)) throw new InvalidDataException("Invalid translation placeholders.");
+                locales[LanguageCatalog.Names[i + 2]].Add(row[0], row[i + 1]);
+            }
+        }
+        return locales;
+    }
+    internal static int InternationalStringCount => Locales["Polski"].Count;
+    internal static bool HasInternationalEntry(string english) => Locales["Polski"].ContainsKey(english);
+    public static string ForLanguage(string text, string language, string? englishText = null)
+    {
+        language = LanguageCatalog.Normalize(language);
+        if(language == "Українська" && (englishText is not null || Map.ContainsKey(text) && Regex.IsMatch(text,"[А-Яа-яІіЇїЄєҐґ]"))) return ForLanguage(text,false,englishText);
+        if(englishText is null) text = InternationalEnglish.TryGetValue(text, out var canonical) ? canonical : FromTemplate(text, ReverseLocaleTemplates);
+        if (language == "Українська") return ForLanguage(text, false, englishText);
+        string english = ForLanguage(text, true, englishText);
+        if (language == "English") return english;
+        if (Locales[language].TryGetValue(english, out var translated)) return translated;
+        string template = FromTemplate(english, LocaleTemplates[language]);
+        if (template != english) return template;
+        var failure = Regex.Match(english, @"\ACould not measure Size ([0-9]+): ([\s\S]+)\z");
+        if (failure.Success) return ForLanguage("Could not measure Size", language) + " " + failure.Groups[1].Value + ": " + ForLanguage(failure.Groups[2].Value, language);
+        foreach (string stage in new[] { "Canvas and Rust regions", "Colors / HEX", "Brush and numeric fields", "Brush measurement", "Spatial offsets", "Speed Probe" })
+            if (english.StartsWith(stage + ": ", StringComparison.Ordinal)) return ForLanguage(stage, language) + ": " + ForLanguage(english[(stage.Length + 2)..], language);
+        if (english.Contains('\n')) return string.Join("\n", english.Split('\n').Select(line => ForLanguage(line, language)));
+        return english;
+    }
+    public static string Option(string key, string value, string language) => language == "Українська" ? Option(key, value, false) : ForLanguage(Option(key, value, true), language);
     private static readonly Dictionary<string, string> Map = Load();
+    private static readonly Dictionary<string, string> Ukrainian = Map
+        .Where(pair => Regex.IsMatch(pair.Key, "[А-Яа-яІіЇїЄєҐґ]"))
+        .GroupBy(pair => pair.Value, StringComparer.Ordinal)
+        .ToDictionary(group => group.Key, group => group.Last().Key, StringComparer.Ordinal);
+    private static readonly (Regex Pattern, string Target)[] EnglishTemplates = Templates(Map);
+    private static readonly (Regex Pattern, string Target)[] UkrainianTemplates = Templates(Ukrainian);
     private static Dictionary<string, string> Load()
     {
         using var stream = typeof(Translations).Assembly.GetManifestResourceStream("CanvasForge.Translations");
@@ -17,7 +69,103 @@ internal static class Translations
         foreach (var (pattern, replacement) in Patterns)
             if (System.Text.RegularExpressions.Regex.IsMatch(text, pattern))
                 return System.Text.RegularExpressions.Regex.Replace(text, pattern, replacement);
+        return FromTemplate(text, EnglishTemplates);
+    }
+
+    public static string ForLanguage(string text, bool english, string? englishText = null)
+    {
+        if (english && englishText is not null) return englishText;
+        if (!english && Map.ContainsKey(text) && Regex.IsMatch(text,"[А-Яа-яІіЇїЄєҐґ]")) return text;
+        // A cached calibration failure contains a second, independently localized error.
+        var failure = Regex.Match(text, @"\A(?:Не вдалося виміряти (?:Size|розмір)|Could not measure Size) ([0-9]+): ([\s\S]+)\z");
+        if (failure.Success)
+            return $"{(english ? "Could not measure Size" : "Не вдалося виміряти розмір")} {failure.Groups[1].Value}: {ForLanguage(failure.Groups[2].Value, english)}";
+        var translatedWhole=english?Get(text):Ukrainian.TryGetValue(text,out var fullUk)?fullUk:FromTemplate(text,UkrainianTemplates);
+        if(translatedWhole!=text)return translatedWhole;
+        // Setup failures retain their stage and independently translated diagnostics.
+        foreach(var (stageUk,stageEn) in new[]{("Полотно й області Rust","Canvas and Rust regions"),("Кольори / HEX","Colors / HEX"),
+            ("Пензель і числові поля","Brush and numeric fields"),("Вимірювання пензля","Brush measurement"),
+            ("Просторові зміщення","Spatial offsets"),("Тест швидкості","Speed Probe")})
+            foreach(var prefix in new[]{stageUk,stageEn})
+                if(text.StartsWith(prefix+": ",StringComparison.Ordinal))
+                    return (english?stageEn:stageUk)+": "+string.Join("\n",text[(prefix.Length+2)..].Split('\n').Select(line=>ForLanguage(line,english)));
+        if (english) return Get(text);
+        if (Map.TryGetValue(text, out var translated) && Ukrainian.TryGetValue(translated, out var normalized)) return normalized;
+        return Ukrainian.TryGetValue(text, out var uk) ? uk : FromTemplate(text, UkrainianTemplates);
+    }
+
+    private static (Regex, string)[] Templates(Dictionary<string, string> dictionary)
+    {
+        var result = new List<(Regex, string)>();
+        foreach (var pair in dictionary)
+        {
+            var tokens = Regex.Matches(pair.Key, @"\{p([0-9]+)\}");
+            if (tokens.Count == 0) continue;
+            var pattern = new StringBuilder("\\A"); int offset = 0;
+            foreach (Match token in tokens)
+            {
+                pattern.Append(Regex.Escape(pair.Key[offset..token.Index]));
+                pattern.Append($"(?<p{token.Groups[1].Value}>[\\s\\S]+?)");
+                offset = token.Index + token.Length;
+            }
+            pattern.Append(Regex.Escape(pair.Key[offset..])).Append("\\z");
+            result.Add((new Regex(pattern.ToString(), RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100)), pair.Value));
+        }
+        return result.ToArray();
+    }
+
+    private static string FromTemplate(string text, (Regex Pattern, string Target)[] templates)
+    {
+        foreach (var template in templates)
+        {
+            var match = template.Pattern.Match(text);
+            if (match.Success)
+                return Regex.Replace(template.Target, @"\{p([0-9]+)\}", token => match.Groups["p" + token.Groups[1].Value].Value);
+        }
         return text;
+    }
+
+    // Canonical values remain in JSON and planning; only their labels are translated.
+    public static string Option(string key, string value, bool english)
+    {
+        (string Uk, string En)? label = (key, value) switch
+        {
+            ("precision_brush_size", "Profile") => ("За профілем руху", "Movement profile default"),
+            ("input_engine", "Stable") => ("Стабільний", "Stable"),
+            ("input_engine", "Experimental 1 ms") => ("Експериментальний (8–16 мс)", "Experimental (8–16 ms)"),
+            ("speed_profile", "Safe") => ("Безпечний", "Safe"),
+            ("speed_profile", "Rapid") => ("Швидкий", "Rapid"),
+            ("speed_profile", "Turbo") => ("Турбо", "Turbo"),
+            ("speed_profile", "Max Speed") => ("Максимальна швидкість", "Max Speed"),
+            ("profile", "Anime / Line Art") => ("Ілюстрації та контури", "Illustrations and line art"),
+            ("profile", "Photo") => ("Фото", "Photo"),
+            ("profile", "Fast") => ("Швидкий", "Fast"),
+            ("profile", "Pixel Art") => ("Піксельна графіка", "Pixel Art"),
+            ("profile", "Custom") => ("Власний", "Custom"),
+            ("color_mode", "Rust Palette") => ("Палітра Rust", "Rust Palette"),
+            ("color_mode", "HEX Direct") => ("Прямий HEX", "HEX Direct"),
+            ("fit_mode", "fit square") => ("Вписати у квадрат", "Fit square"),
+            ("fit_mode", "fit whole") => ("Повне зображення", "Fit whole image"),
+            ("fit_mode", "crop") => ("Обрізати", "Crop"),
+            ("fit_mode", "smart") => ("Розумне розміщення", "Smart placement"),
+            ("background_mode", "preserve") => ("Зберегти", "Preserve"),
+            ("background_mode", "auto") => ("Автоматично", "Automatic"),
+            ("coverage_mode", "Precision") => ("Точний", "Precision"),
+            ("coverage_mode", "Fast") => ("Швидкий", "Fast"),
+            ("max_colors" or "hex_max_colors", "Auto") => ("Автоматично", "Automatic"),
+            ("stroke_method", "Paced") => ("Рух із затримками", "Paced movement"),
+            ("stroke_method", "Shift") => ("Лінія з Shift", "Shift line"),
+            ("palette_source", "main" or "palette") => ("Основна палітра", "Main palette"),
+            ("palette_source", "quick") => ("Швидкі кольори", "Quick Colors"),
+            ("palette_source", "hex") => ("HEX", "HEX"),
+            ("control", "size") => ("Розмір (Size)", "Size"),
+            ("control", "interval") => ("Інтервал (Interval)", "Interval"),
+            ("control", "opacity") => ("Прозорість (Opacity)", "Opacity"),
+            ("control_confirmation", "Clipboard") => ("Зчитування числа", "Number readback"),
+            ("control_confirmation", "Visual") => ("За смугою та відбитком", "Slider and imprint"),
+            _ => null
+        };
+        return label is { } pair ? english ? pair.En : pair.Uk : value;
     }
 
     private static readonly (string Pattern, string Replacement)[] Patterns =
@@ -25,6 +173,9 @@ internal static class Translations
         (@"^Старт через ([0-9]+) с…$", "Starting in $1 s…"),
         (@"^Rust не підтвердив HEX ([0-9A-Fa-f]{6})\. Малювання зупинено\.$", "Rust did not confirm HEX $1. Painting stopped."),
         (@"^Не знайдено повзунок (size|interval|opacity)\. Повтори захоплення його зеленої смуги\.$", "Could not find the $1 slider. Capture its green track again."),
-        (@"^Не підтверджено (size|interval|opacity)\. Перевір калібрування\.$", "$1 was not confirmed. Check calibration.")
+        (@"^Не підтверджено (size|interval|opacity)\. Перевір калібрування\.$", "$1 was not confirmed. Check calibration."),
+        (@"^Не вдалося прочитати (size|interval|opacity)\. Захопи повзунок із числом справа\.$", "Could not read $1. Capture the slider and its number on the right."),
+        (@"^Не підтверджено число (size|interval|opacity)\. Перевір числове поле справа й повтори тест controls\.$", "Could not confirm the $1 number. Check the numeric field on the right and repeat the controls test."),
+        (@"^Неприпустиме значення (size|interval|opacity)\.$", "Invalid $1 value.")
     };
 }
