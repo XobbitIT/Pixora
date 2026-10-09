@@ -15,7 +15,7 @@ namespace CanvasForge.App;
 
 internal sealed class PaletteComparisonWindow : Window
 {
-    private readonly bool english;
+    private readonly string language;
     private readonly Action<int> apply;
     private readonly CancellationTokenSource cancel = new();
     private readonly StackPanel body = new();
@@ -24,12 +24,13 @@ internal sealed class PaletteComparisonWindow : Window
     private readonly Button close;
     private PaletteComparisonResult? result;
     private bool closed;
-    private string T(string uk, string en) => Translations.ForLanguage(uk, english, en);
+    private string T(string uk, string en) => Translations.ForLanguage(uk, language, en);
     private static Brush Color(string hex) => (Brush)new BrushConverter().ConvertFromString(hex)!;
 
-    internal PaletteComparisonWindow(bool english, Action<int> apply)
+    internal PaletteComparisonWindow(bool english, Action<int> apply) : this(english ? "English" : "Українська", apply) { }
+    internal PaletteComparisonWindow(string language, Action<int> apply)
     {
-        this.english = english; this.apply = apply;
+        this.language = language; this.apply = apply;
         Title = T("Порівняння HEX-палітр", "HEX palette comparison");
         Width = 1060; Height = 840; MinWidth = 880; MinHeight = 620;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
@@ -76,7 +77,7 @@ internal sealed class PaletteComparisonWindow : Window
             notice.Text = T("Не вдалося побудувати порівняння.", "Could not build the comparison.");
             notice.Foreground = Color("#C85561");
             body.Children.Clear();
-            body.Children.Add(Label(Translations.ForLanguage(e.Message, english)));
+            body.Children.Add(Label(Translations.ForLanguage(e.Message, language)));
             close.Content = T("Закрити", "Close");
         }
     }
@@ -93,7 +94,7 @@ internal sealed class PaletteComparisonWindow : Window
         grid.ColumnDefinitions.Add(new()); grid.ColumnDefinitions.Add(new());
         grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
-        var culture = english ? CultureInfo.InvariantCulture : CultureInfo.GetCultureInfo("uk-UA");
+        var culture = LanguageCatalog.Culture(language);
         var baseline = comparison.Variants.Single(v => v.Limit == 256);
         for (int index = 0; index < comparison.Variants.Count; index++)
         {

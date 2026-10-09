@@ -41,6 +41,22 @@ public static class SetupSequence
         return paint.Rect("brush_shapes").Valid && new[]{"size","interval","opacity"}
             .All(k=>paint.Rect(k+"_track").Valid && paint.Rect(k+"_value_field").Valid);
     }
+
+    public static async Task<bool> Prepare(Func<SetupStage,CancellationToken,Task> execute,
+        Action<SetupStage,SetupStageState,string> report,CancellationToken token)
+    {
+        await Run(execute,report,token,DrawingStages);
+        // A failed acceleration check must not certify a route or discard the
+        // working brush. Stable painting is still available after required steps.
+        try { await Run(execute,report,token,[SetupStage.Spatial]); }
+        catch(SetupStageException)
+        {
+            report(SetupStage.Speed,SetupStageState.Pending,"Спочатку повтори просторову перевірку. Стабільне малювання доступне.");
+            return false;
+        }
+        try { await Run(execute,report,token,[SetupStage.Speed]); return true; }
+        catch(SetupStageException) { return false; }
+    }
 }
 
 // All automatic stages share one clean Canvas, using disjoint capture areas.

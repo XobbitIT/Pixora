@@ -21,12 +21,14 @@ internal static partial class Program
         var w=new MainWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(w,"pages");
         Assert(pages.Count==5&&pages.ContainsKey("adaptive")&&pages.ContainsKey("speed"),"Single interface lost advanced pages");
         var live=Field<Settings>(w,"settings");Assert(!live.Data.ContainsKey("drawing_mode")&&!live.Data.ContainsKey("manual_brush_controls")&&live.Bool("coverage_audit"),"Migration changed preferences or retained manual bypass");
-        var buttons=Field<List<Button>>(w,"allSetupButtons");Assert(buttons.Count==2&&buttons.All(b=>b.IsEnabled),"Fresh automatic setup is inaccessible");
+        var buttons=Field<List<Button>>(w,"allSetupButtons");Assert(buttons.Count==1&&buttons.All(b=>b.IsEnabled),"Fresh automatic setup is inaccessible");
         var results=Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults");
-        results[SetupStage.Capture]=(SetupStageState.Passed,"");results[SetupStage.Brush]=(SetupStageState.Failed,"Size 1");Invoke(w,"RefreshSetupStatus");
-        var rows=Field<List<Dictionary<SetupStage,TextBlock>>>(w,"setupRows").Single();
+        results[SetupStage.Capture]=(SetupStageState.Passed,"");results[SetupStage.Brush]=(SetupStageState.Failed,"Size 1");SetField(w,"setupRunning",true);Invoke(w,"RefreshSetupStatus");
+        var allRows=Field<List<Dictionary<SetupStage,TextBlock>>>(w,"setupRows");
+        Assert(allRows.Count==1&&allRows.All(r=>r[SetupStage.Brush].Text.Contains(en?"failed":"помилка")&&r[SetupStage.Brush].ToolTip?.ToString()?.Contains("Size 1")==true),"Main and capture steps did not synchronize their failure details");
+        var rows=allRows.Last();
         Assert(rows[SetupStage.Brush].Text.Contains(en?"failed":"помилка")&&Equals(rows[SetupStage.Brush].ToolTip,"Size 1"),"Failed stage has no explanation");
-        Assert(!rows.ContainsKey(SetupStage.Speed)&&!rows.ContainsKey(SetupStage.Spatial),"Optional speed stages still block the main setup UI");
+        Assert(rows.ContainsKey(SetupStage.Speed)&&rows.ContainsKey(SetupStage.Spatial),"Optional speed stages still block the main setup UI");
         Invoke(w,"BuildUi");Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults")[SetupStage.Brush].State==SetupStageState.Failed,"UI rebuild lost partial results");
         string failure="Вимірювання пензля: Size 1 не має підтвердженого суцільного ядра. Відкрий «Пензель» і переглянь причини; швидкі проби не запускалися.";
         SetField(w,"setupOutcome",failure);results=Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults");

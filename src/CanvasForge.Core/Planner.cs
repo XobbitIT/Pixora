@@ -1,6 +1,7 @@
 namespace CanvasForge.Core;
 public static class Planner
 {
+    public const string PaletteRevision="palette-dominant-color-reservation-v2";
     public static PaintPlan Build(PixelImage source, Settings settings, IProgress<string>? progress = null, CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
@@ -70,7 +71,10 @@ public static class Planner
             var ranked = full.Where(x => x >= 0).GroupBy(x => x).OrderByDescending(x => x.Count()).ThenBy(x => x.Key).Select(x => x.Key).ToList();
             var text = settings.Text("max_colors", "Auto");
             var cap = text == "Auto" ? palette.Length : Math.Min(int.Parse(text), palette.Length);
-            var forced = settings.Bool("skin_assist", true) ? Enumerable.Range(0, rgb.Length).Where(i => IsSkin(rgb[i])).Take(Math.Max(1, cap / 4)).ToArray() : [];
+            // Reserve skin shades only when they actually occur in the mapped
+            // image. Small logo palettes must retain their dominant colors.
+            var forced = settings.Bool("skin_assist", true) && cap >= 16
+                ? ranked.Where(i => IsSkin(rgb[i])).Take(Math.Max(1, cap / 4)).ToArray() : [];
             var allowed = forced.Concat(ranked).Distinct().Take(cap).ToArray();
             if (allowed.Length == 0)
                 allowed = [0];

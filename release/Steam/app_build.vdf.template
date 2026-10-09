@@ -1,0 +1,25 @@
+"AppBuild"
+{
+    "AppID" "APP_ID"
+    "Desc" "Pixora 1.0.14-beta.53 - international test"
+    "Preview" "1"
+    "ContentRoot" "..\content\"
+    "BuildOutput" "..\output\"
+    "Depots"
+    {
+        "DEPOT_ID"
+        {
+            "FileMapping"
+            {
+                "LocalPath" "*"
+                "DepotPath" "."
+                "Recursive" "1"
+            }
+            "FileExclusion" "*.pdb"
+            "FileExclusion" "config-csharp.json"
+            "FileExclusion" "session-csharp.jsonl"
+            "FileExclusion" "resume-csharp.json"
+            "FileExclusion" "crash.log"
+        }
+    }
+}

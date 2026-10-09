@@ -132,6 +132,7 @@ internal static partial class Program
     private static void CheckMalformedLegacyWindow(string output)
     {
         var window=LifecycleWindow(output,"lifecycle-malformed-calibration");var settings=Field<Settings>(window,"settings");
+        settings.Data.Remove("brush_footprints");
         settings.Data["brush_calibration_points"]=System.Text.Json.Nodes.JsonNode.Parse("[[1,null,1],[3,{},1],[10,21,null],[20,9,99]]");
         Invoke(window,"BuildUi");window.ShowPage("adaptive");Invoke(window,"UpdateReady");
         Assert(!AdaptiveBrush.CalibrationCurrent(settings)&&!SpeedCalibration.BrushReady(settings,1),"Malformed legacy calibration became proof");

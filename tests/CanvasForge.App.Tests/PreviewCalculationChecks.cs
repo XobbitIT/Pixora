@@ -13,7 +13,7 @@ internal static partial class Program
         var plan=Planner.Build(source,settings);
         SetField(window,"source",source);SetField(window,"plan",plan);
         settings.Set("adaptive_brush",true);
-        settings.Set("brush_calibration_context","obsolete");
+        window.MeasuredPlanner=(_,_,_)=>throw new InvalidOperationException("fixture timing failure");
         CompleteUiTask(async()=>
         {
             Invoke(window,"RenderPlan");

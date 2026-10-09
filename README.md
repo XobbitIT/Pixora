@@ -1,5 +1,17 @@
-# Pixora 1.0.14-beta.50 — normal working Size 3
+# Pixora 1.0.14-beta.54 — unified preparation and palette validation
 
+Beta.54 unifies preparation, readiness and recovery; validates Rust palette cells before clicks and preserves dominant colors for small logo palettes. A physical working-brush proof is required. Optional acceleration failure retains stable painting. 408 Core / 148 WPF offline checks; no new Rust test. Source branch: `codex/pixora-1.0.14-beta-calibration` ([PR #2](https://github.com/XobbitIT/Pixora/pull/2)). The previously delivered local ZIP retains its original pre-commit manifest. See [changes](CHANGES_BETA54_UA.md) and [live checklist](TESTING_BETA54_UA.md).
+
+Previous beta.53:
+Beta.53 adds seven UI languages, a three-step first-launch guide and an international beta distribution kit. The five new languages localize workflow and controls with English fallback for advanced diagnostics. 391 Core / 144 WPF offline checks; painting algorithms and timings are unchanged. See [changes](CHANGES_BETA53_UA.md), [test checklist](TESTING_BETA53_UA.md) and [Steam preparation](release/Steam/README_UA.md).
+
+Previous beta.52:
+Beta.52 uses one universal Painting workflow, with no PC/laptop choice. Optional numeric or visual verification and wait settings are in the collapsed Rust compatibility section. Saved preferences are retained; failure diagnostics appear when available. 391 Core / 134 WPF offline checks; no new Rust test or GitHub push. See [changes](CHANGES_BETA52_UA.md) and [checklist](TESTING_BETA52_UA.md).
+
+Previous beta.51:
+Beta.51 cancels superseded preview work, bounds it to one worker, and reuses compact measured-geometry bit maps without changing painting commands. Preparation shows four stages, PC/laptop presets and actionable readiness. Model gaps, physical brush dimensions and saved control-failure crops are visible. 391 Core / 134 WPF offline checks; no new Rust test or GitHub push. See [changes](CHANGES_BETA51_UA.md) and [checklist](TESTING_BETA51_UA.md).
+
+Previous beta.50:
 Beta.50 adds explicit Rust Palette / HEX choice, synchronized setting editors, mixed painting with verified Sizes 3/10/20 without mandatory Size 1, and command planning constrained by measured physical color boundaries. Size 1 remains optional and requires its own proof. Model gaps are shown before START. 388 Core / 125 WPF offline checks; no new live Rust test. Source is published in [PR #2](https://github.com/XobbitIT/Pixora/pull/2); GitHub Actions builds the portable archive. The previously delivered local ZIP retains its original pre-commit manifest. See [changes](CHANGES_BETA50_UA.md) and [checklist](TESTING_BETA50_UA.md).
 
 Previous beta.49:

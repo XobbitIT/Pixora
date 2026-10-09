@@ -1,3 +1,33 @@
+Pixora 1.0.14-beta.54 — unified preparation, canonical readiness, palette-cell checks.
+408 Core / 148 WPF offline checks; inGameTest=false.
+Source branch: codex/pixora-1.0.14-beta-calibration (PR #2); based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef.
+Previously delivered beta.54 local ZIP retains its original pre-commit manifest.
+Palette selection, readiness and input verification changed; measured brush masks, boundary geometry and coverage acceptance preserved.
+See CHANGES_BETA54_UA.md and TESTING_BETA54_UA.md.
+
+Previous beta.53:
+Pixora 1.0.14-beta.53 — seven UI languages and first-launch guide.
+391 Core / 144 WPF offline checks; inGameTest=false.
+Local changes based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef, including beta.51/52; no new push.
+Core and input execution unchanged from beta.52.
+See CHANGES_BETA53_UA.md, TESTING_BETA53_UA.md and release/Steam.
+
+Previous beta.52:
+Pixora 1.0.14-beta.52 — universal Painting workflow and optional Rust compatibility settings.
+391 Core / 134 WPF offline checks; inGameTest=false.
+Local changes based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef, including beta.51; no new push or CI.
+All Core sources and input execution preserved from beta.51.
+See CHANGES_BETA52_UA.md and TESTING_BETA52_UA.md.
+
+Previous beta.51:
+Pixora 1.0.14-beta.51 — cancellable previews, bounded bit-map reuse, actionable preparation.
+391 Core / 134 WPF offline checks; inGameTest=false.
+Local changes based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef; no new push or CI.
+Commands, measured-color-boundaries-v1 revision, thresholds, timing and ETA rules preserved.
+Live painting quality, laptop clipboard-free setup, full duration and ETA still need a beta.51 run.
+See CHANGES_BETA51_UA.md and TESTING_BETA51_UA.md.
+
+Previous beta.50:
 Pixora 1.0.14-beta.50 — synchronized settings, palette choice, measured mixed color-boundary plan.
 388 Core / 125 WPF offline checks; inGameTest=false.
 Source published in draft PR #2; GitHub Actions builds the committed snapshot.

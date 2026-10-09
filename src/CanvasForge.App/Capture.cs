@@ -11,8 +11,8 @@ internal sealed partial class MainWindow
         pages["capture"] = Scroll(page);
         page.Children.Add(Text(T("Захоплення Rust"), 24));
         page.Children.Add(Card("Налаштування Rust", out var hero));
-        hero.Children.Add(Text(T("Відкрий полотно Rust та обери інструмент пензля. Основна кнопка готує один робочий Size без тестів швидкості.", "Open the Rust Canvas and select the brush tool. The main button prepares one working Size without speed trials."), 12, Muted));
-        AddAutomaticSetup(hero,true);
+        hero.Children.Add(Text(T("Основна підготовка розміщена на екрані «Малювання». Тут можна повторити окреме виділення або перевірку.", "Main preparation is on the Painting page. Repeat individual captures or checks here."), 12, Muted));
+        hero.Children.Add(Button(T("До підготовки малювання","Go to painting preparation"),()=>ShowPage("paint")));
         hero.Children.Add(CheckButton(T("Лише захопити області", "Capture regions only"), CaptureWizard));
         hero.Children.Add(CheckButton(T("Лише змінити полотно", "Change Canvas only"), () => Capture("canvas", T("ПОЛОТНО", "CANVAS"))));
         page.Children.Add(Card(T("Полотно / палітра", "Canvas / palette"), out var info));
@@ -43,7 +43,7 @@ internal sealed partial class MainWindow
             extra.Children.Add(CheckButton(T("Інструмент пензля","Brush tool"),()=>CapturePoint("brush_tool",T("ІНСТРУМЕНТ ПЕНЗЛЯ","BRUSH TOOL"))));
             extra.Children.Add(CheckButton(T("Форми пензля","Brush shapes"),()=>Capture("brush_shapes",T("ФОРМИ ПЕНЗЛЯ","BRUSH SHAPES"))));
         }
-        manual.Children.Add(CheckButton(T("Повна перевірка з простором і швидкістю","Full checks with spatial calibration and speed"),RunAutomaticSetup));
+        manual.Children.Add(CheckButton(T("Лише обов'язкова підготовка","Required preparation only"),()=>RunSetup(true)));
         foreach (var kind in new[]
         {
             "size",
@@ -104,7 +104,7 @@ internal sealed partial class MainWindow
     private ScreenRect? Select(PixelImage shot, ScreenRect screen, string title, bool point = false, bool live = false, bool slider = false)
     {
         SetupToken.ThrowIfCancellationRequested();
-        var selector = new CaptureWindow(shot, screen, T(title), point, live ? plan?.Preview : null, English, slider);
+        var selector = new CaptureWindow(shot, screen, T(title), point, live ? plan?.Preview : null, English, slider, InterfaceLanguage);
         using var cancellation=SetupToken.Register(()=>selector.Dispatcher.BeginInvoke(()=>{if(selector.IsVisible)selector.Close();}));
         bool accepted=selector.ShowDialog()==true;
         SetupToken.ThrowIfCancellationRequested();
@@ -332,6 +332,21 @@ internal sealed partial class MainWindow
         }
 
         settings.SetPalette(entries);
+        settings.Set("palette_target_failed",false);
+    }
+
+    private async Task TestPaletteTargets()
+    {
+        ReadSettings();var target=AlignRustForTest();Hide();
+        try
+        {
+            await Task.Delay(1500,SetupToken);Native.SetForegroundWindow(target);
+            using var worker=new Painter(settings,target,ResumePath,LogPath,_=>{},SetupToken);
+            await Task.Run(worker.VerifyPaletteTargets,SetupToken);
+            settings.Set("palette_target_failed",false);
+        }
+        catch(InvalidOperationException){settings.Set("palette_target_failed",true);throw;}
+        finally{Native.Release();if(!closing){Show();Activate();}Save();}
     }
 
     private IntPtr AlignRustForTest()
@@ -415,12 +430,14 @@ internal sealed partial class MainWindow
             {
             }, SetupToken);
             await Task.Run(worker.ApplyControls);
+            settings.Set("controls_validation_failed",false);
             SetStatus(CalibrationReliability.Visual(settings)?T("Смуги підтверджені. Далі виміряй відбиток пензля.","Slider positions confirmed. Measure the brush imprint next."):
                 T("Керування Rust перевірено.", "Rust controls verified."));
         }
+        catch(InvalidOperationException){settings.Set("controls_validation_failed",true);throw;}
         finally
         {
-            Native.Release();
+            Native.Release();Save();
             if(!closing){Show();Activate();}
         }
     }

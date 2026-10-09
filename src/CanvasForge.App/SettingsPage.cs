@@ -16,19 +16,27 @@ internal sealed partial class MainWindow
         applyProfile.HorizontalAlignment = HorizontalAlignment.Left; basic.Children.Add(applyProfile);
         basic.Children.Add(Text(T("Профіль застосовується кнопкою: змінює деталізацію, розмиття, очищення та інші параметри обробки. Пресети на сторінці «Малювання» змінюють деталізацію та профіль руху. Ручні зміни мають пріоритет до наступного застосування профілю.", "Apply profile changes detail, blur, cleanup and other image processing settings. Painting presets change detail and movement profile. Manual edits remain in effect until you apply a profile again."), 11, Muted));
         basic.Children.Add(Text(T("Режим кольорів, ліміт кольорів, деталізація та режим вводу — на сторінці «Малювання».", "Color mode, color limit, detail, and Speed Engine are on the Painting page."), 11, Muted));
-        page.Children.Add(Card(T("Надійність налаштування","Setup reliability"),out var reliability));
+        var compatibility=new StackPanel();
+        page.Children.Add(new Expander{Header=T("Сумісність з Rust","Rust compatibility"),Tag="rust-compatibility",Content=compatibility});
+        compatibility.Children.Add(Card(T("Підтвердження значень","Value confirmation"),out var reliability));
+        reliability.Children.Add(Text(T("Якщо Rust не повертає числа, використай візуальну перевірку. Тут також можна змінити час очікування відповіді.","If Rust does not return numeric values, use visual verification. You can also adjust response waits here."),12,Muted));
         var presets=new UniformGridCompat(2);
-        void Preset(bool slow){ReadSettings();CalibrationReliability.ApplyPreset(settings,slow);Dirty();BuildUi();ShowPage("settings");}
-        presets.Add(Button(T("Звичайний ПК","Standard PC"),()=>Preset(false)));
-        var slowPreset=Button(T("Повільний ноутбук","Slow laptop"),()=>Preset(true));slowPreset.Tag="slow-laptop-preset";presets.Add(slowPreset);
+        foreach(bool visual in new[]{false,true})
+        {
+            var preset=Button(visual?T("Візуальна перевірка","Visual verification"):T("Зчитування чисел","Read numeric values"),()=>ApplyReliabilityPreset(visual,"settings"));
+            preset.Tag=visual?"confirmation-preset:Visual":"confirmation-preset:Clipboard";
+            preset.ToolTip=visual?T("Смуга та відбиток пензля; довші очікування і стабільний ввід.","Slider and brush imprint; longer waits and stable input."):
+                T("Числа з буфера обміну та знімок смуги; стандартні очікування.","Clipboard values and slider captures; standard waits.");
+            presets.Add(preset);
+        }
         reliability.Children.Add(presets.Panel);
-        AddCombo(reliability,"control_confirmation",T("Підтвердження керування","Control confirmation"),new[]{"Clipboard","Visual"});
+        AddCombo(reliability,"control_confirmation",T("Спосіб підтвердження","Confirmation method"),new[]{"Clipboard","Visual"});
         reliability.Children.Add(Text(CalibrationReliability.Visual(settings)
             ?T("Числа не зчитуються з Rust. Смуги перевіряються на двох знімках; для малювання потрібен підтверджений відбиток пензля. Відбиток сам по собі не доводить точне число Interval або Opacity.",
                 "Numbers are not copied from Rust. Slider positions are checked in two captures; painting requires a verified brush imprint. An imprint alone does not prove an exact Interval or Opacity number.")
             :T("Значення підтверджуються копіюванням числа та знімком смуги.","Values are confirmed by copying the number and capturing the slider."),12,
             CalibrationReliability.Visual(settings)?Warning:Muted));
-        var budgets=new StackPanel();reliability.Children.Add(new Expander{Header=T("Бюджети очікування","Wait budgets"),Content=budgets});
+        var budgets=new StackPanel();reliability.Children.Add(new Expander{Header=T("Таймінги перевірки","Verification timing"),Content=budgets});
         foreach(var (key,uk,en) in new[]{("readback_polls","Опитування копіювання (24–120)","Copy polls (24–120)"),
             ("readback_attempts","Спроби копіювання (1–5)","Copy attempts (1–5)"),
             ("readback_retry_pause_ms","Пауза наступної спроби, мс","Next-attempt pause, ms"),
@@ -36,7 +44,7 @@ internal sealed partial class MainWindow
             ("capture_stable_interval_ms","Інтервал кадрів, мс (40–1000)","Capture interval, ms (40–1000)")})
             AddNumber(budgets,key,T(uk,en));
         var advanced = new StackPanel();
-        page.Children.Add(new Expander { Header = T("Обробка зображення й сумісність", "Image processing and compatibility"), Content = advanced });
+        page.Children.Add(new Expander { Header = T("Додаткові налаштування малювання", "Advanced painting settings"), Content = advanced });
         advanced.Children.Add(Card(T("Якість зображення", "Image quality"), out var quality));
         AddCombo(quality, "fit_mode", T("Розміщення", "Image placement"), new[] { "fit square", "fit whole", "crop", "smart" }, true);
         foreach (var(key, title, english)in new[]
@@ -89,7 +97,7 @@ internal sealed partial class MainWindow
         )
             AddNumber(automation, key, T(title, english));
         automation.Children.Add(Button(T("Налаштувати швидкість на сторінці малювання", "Set movement timing on the Painting page"),()=>ShowPage("paint")));
-        automation.Children.Add(Text(T("20 мс — поточний режим. 16 мс — швидше; якщо Rust пропускає штрихи, поверни 20–25 мс.", "20 ms is the current default. 16 ms is faster; if Rust misses strokes, return to 20–25 ms."), 11, Muted));
+        automation.Children.Add(Text(T("Коротші затримки пришвидшують ввід. Якщо з’являються пропуски, збільш затримку або виконай тест швидкості.", "Shorter delays make input faster. If strokes are missed, increase the delay or run Speed Probe."), 11, Muted));
         automation.Children.Add(Text(T("Експериментальний ввід: кінці штрихів 8–16 мс, коротке натискання щонайменше 40 мс. Затримки числових полів і HEX мають окремий мінімум 16 мс та перевірку вводу.", "Experimental: stroke endpoints use 8–16 ms; short strokes hold for at least 40 ms. Numeric and HEX controls keep a separate minimum 16 ms interval and input verification."), 12, Muted));
         advanced.Children.Add(Card(T("Керування Rust", "Rust controls"), out var controls));
         controls.Children.Add(Button(T("Форма й значення пензля", "Brush shape and values"),()=>ShowPage("adaptive")));
@@ -119,7 +127,7 @@ internal sealed partial class MainWindow
         AddCheck(preview, "transfer_simulator", T("Прев’ю на матеріалі полотна", "Preview on Canvas material"));
         AddCheck(preview, "smooth_preview", T("Згладжувати прев’ю", "Smooth preview"));
         AddCheck(preview, "auto_insert_preview", T("Показувати вставку після захоплення полотна", "Show insertion after capturing Canvas"));
-        var about = Button(T("Про програму", "About"), () => ShowMessage($"Pixora {BuildInfo.Full}\n.NET 8 / WPF\n{Option("color_mode","Rust Palette")} + {T("Швидкі кольори","Quick Colors")} / {Option("color_mode","HEX Direct")}\n" + T("F6 — пауза • ESC — зупинити\n","F6 — pause • ESC — stop\n") + T("Ця версія потребує перевірки в Rust на Windows.", "This version needs Windows / Rust verification.")));
+        var about = Button(T("Про програму", "About"), () => ShowMessage($"Pixora {BuildInfo.Full}\n" + T("Перенесення зображень на полотна Rust.", "Transfer images onto Rust canvases.") + $"\n{Option("color_mode","Rust Palette")} + {T("Швидкі кольори","Quick Colors")} / {Option("color_mode","HEX Direct")}\n" + T("F6 — пауза • ESC — зупинити","F6 — pause • ESC — stop")));
         about.HorizontalAlignment = HorizontalAlignment.Left; page.Children.Add(about);
     }
 

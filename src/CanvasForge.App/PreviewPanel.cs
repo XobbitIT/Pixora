@@ -81,6 +81,7 @@ internal sealed partial class MainWindow
         }
         previewSurface.Children.Add(Frame(T("Оригінал", "Original"), T("Тут буде оригінал", "Your original image will appear here"), originalImage));
         previewSurface.Children.Add(Frame(T("Результат", "Result"), T("Тут буде результат", "Your result will appear here"), previewImage));
+        AddFirstRunGuide(preview);
         var footer = new DockPanel { Margin = new Thickness(0, 8, 0, 0) }; Grid.SetRow(footer, 1); preview.Children.Add(footer);
         void Layout()
         {

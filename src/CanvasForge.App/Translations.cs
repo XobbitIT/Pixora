@@ -5,6 +5,50 @@ using System.Text.RegularExpressions;
 namespace CanvasForge.App;
 internal static class Translations
 {
+    private static readonly Dictionary<string, Dictionary<string, string>> Locales = LoadLocales();
+    private static readonly Dictionary<string, (Regex Pattern, string Target)[]> LocaleTemplates = Locales.ToDictionary(p => p.Key, p => Templates(p.Value));
+    private static readonly Dictionary<string, string> InternationalEnglish = Locales.Values.SelectMany(d => d)
+        .GroupBy(p => p.Value, StringComparer.Ordinal).ToDictionary(g => g.Key, g => g.First().Key, StringComparer.Ordinal);
+    private static readonly (Regex Pattern, string Target)[] ReverseLocaleTemplates = Templates(InternationalEnglish);
+    private static Dictionary<string, Dictionary<string, string>> LoadLocales()
+    {
+        using var stream = typeof(Translations).Assembly.GetManifestResourceStream("CanvasForge.International");
+        var rows = stream is null ? [] : JsonSerializer.Deserialize<string[][]>(stream) ?? [];
+        var locales = LanguageCatalog.Names.Skip(2).ToDictionary(n => n, _ => new Dictionary<string, string>(StringComparer.Ordinal));
+        foreach (var row in rows)
+        {
+            if (row.Length != 6) throw new InvalidDataException("Invalid translation row.");
+            for (int i = 0; i < 5; i++)
+            {
+                var sourceTokens = Regex.Matches(row[0], @"\{p[0-9]+\}").Select(m => m.Value).Order().ToArray();
+                var targetTokens = Regex.Matches(row[i + 1], @"\{p[0-9]+\}").Select(m => m.Value).Order().ToArray();
+                if (string.IsNullOrWhiteSpace(row[i + 1]) || !sourceTokens.SequenceEqual(targetTokens)) throw new InvalidDataException("Invalid translation placeholders.");
+                locales[LanguageCatalog.Names[i + 2]].Add(row[0], row[i + 1]);
+            }
+        }
+        return locales;
+    }
+    internal static int InternationalStringCount => Locales["Polski"].Count;
+    internal static bool HasInternationalEntry(string english) => Locales["Polski"].ContainsKey(english);
+    public static string ForLanguage(string text, string language, string? englishText = null)
+    {
+        language = LanguageCatalog.Normalize(language);
+        if(language == "Українська" && (englishText is not null || Map.ContainsKey(text) && Regex.IsMatch(text,"[А-Яа-яІіЇїЄєҐґ]"))) return ForLanguage(text,false,englishText);
+        if(englishText is null) text = InternationalEnglish.TryGetValue(text, out var canonical) ? canonical : FromTemplate(text, ReverseLocaleTemplates);
+        if (language == "Українська") return ForLanguage(text, false, englishText);
+        string english = ForLanguage(text, true, englishText);
+        if (language == "English") return english;
+        if (Locales[language].TryGetValue(english, out var translated)) return translated;
+        string template = FromTemplate(english, LocaleTemplates[language]);
+        if (template != english) return template;
+        var failure = Regex.Match(english, @"\ACould not measure Size ([0-9]+): ([\s\S]+)\z");
+        if (failure.Success) return ForLanguage("Could not measure Size", language) + " " + failure.Groups[1].Value + ": " + ForLanguage(failure.Groups[2].Value, language);
+        foreach (string stage in new[] { "Canvas and Rust regions", "Colors / HEX", "Brush and numeric fields", "Brush measurement", "Spatial offsets", "Speed Probe" })
+            if (english.StartsWith(stage + ": ", StringComparison.Ordinal)) return ForLanguage(stage, language) + ": " + ForLanguage(english[(stage.Length + 2)..], language);
+        if (english.Contains('\n')) return string.Join("\n", english.Split('\n').Select(line => ForLanguage(line, language)));
+        return english;
+    }
+    public static string Option(string key, string value, string language) => language == "Українська" ? Option(key, value, false) : ForLanguage(Option(key, value, true), language);
     private static readonly Dictionary<string, string> Map = Load();
     private static readonly Dictionary<string, string> Ukrainian = Map
         .Where(pair => Regex.IsMatch(pair.Key, "[А-Яа-яІіЇїЄєҐґ]"))
@@ -31,6 +75,7 @@ internal static class Translations
     public static string ForLanguage(string text, bool english, string? englishText = null)
     {
         if (english && englishText is not null) return englishText;
+        if (!english && Map.ContainsKey(text) && Regex.IsMatch(text,"[А-Яа-яІіЇїЄєҐґ]")) return text;
         // A cached calibration failure contains a second, independently localized error.
         var failure = Regex.Match(text, @"\A(?:Не вдалося виміряти (?:Size|розмір)|Could not measure Size) ([0-9]+): ([\s\S]+)\z");
         if (failure.Success)
@@ -92,7 +137,7 @@ internal static class Translations
             ("speed_profile", "Rapid") => ("Швидкий", "Rapid"),
             ("speed_profile", "Turbo") => ("Турбо", "Turbo"),
             ("speed_profile", "Max Speed") => ("Максимальна швидкість", "Max Speed"),
-            ("profile", "Anime / Line Art") => ("Аніме / контури", "Anime / Line Art"),
+            ("profile", "Anime / Line Art") => ("Ілюстрації та контури", "Illustrations and line art"),
             ("profile", "Photo") => ("Фото", "Photo"),
             ("profile", "Fast") => ("Швидкий", "Fast"),
             ("profile", "Pixel Art") => ("Піксельна графіка", "Pixel Art"),

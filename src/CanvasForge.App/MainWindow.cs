@@ -45,6 +45,9 @@ internal sealed partial class MainWindow : Window
     private Button startButton = new(), resumeButton = new(), pauseButton = new(), stopButton = new();
     private Button paletteCompareButton = new();
     private CancellationTokenSource? planCancel, paintCancel;
+    private readonly PreviewCalculationQueue previewWork=new();
+    private bool measuredPlanning,measuredPlanFailed;
+    internal Func<PaintPlan,Settings,CancellationToken,MeasuredColorResult?> MeasuredPlanner {get;set;}=MeasuredColorPlan.TryBuild;
     private Task? paintTask;
     private Painter? painter;
     private int generation, renderGeneration;
@@ -56,8 +59,10 @@ internal sealed partial class MainWindow : Window
     private bool Painting => setupRunning || inputCheckRunning || startPreparing || imageLoading || paintTask is { IsCompleted: false };
     internal bool English => settings.Text("language") == "English";
 
-    private string T(string uk, string? en = null) => Translations.ForLanguage(uk, English, en);
-    private string Option(string key, string value) => Translations.Option(key, value, English);
+    internal string InterfaceLanguage => LanguageCatalog.Normalize(settings.Text("language"));
+    private ComboBox languageSelector = new();
+    private string T(string uk, string? en = null) => Translations.ForLanguage(uk, InterfaceLanguage, en);
+    private string Option(string key, string value) => Translations.Option(key, value, InterfaceLanguage);
     private static Brush BrushOf(string s) => (Brush)new BrushConverter().ConvertFromString(s)!;
     public MainWindow(string? dataFolder = null, Action<Window>? diagnosticPresenter = null)
     {
@@ -96,6 +101,8 @@ internal sealed partial class MainWindow : Window
         }
 
         DrawingWorkflow.Normalize(settings);
+        RestoreSetupHistory();
+        if (dataFolder is null && !File.Exists(ConfigPath)) settings.Set("language", LanguageCatalog.FromCulture(CultureInfo.CurrentUICulture));
         Title = $"Pixora • {BuildInfo.Full}";
         Icon=BitmapDecoder.Create(new Uri("pack://application:,,,/Pixora;component/app.ico"),BitmapCreateOptions.PreservePixelFormat,BitmapCacheOption.OnLoad).Frames.Last();
         Width = 1280;
@@ -156,6 +163,7 @@ internal sealed partial class MainWindow : Window
             Content = T(text),
             Background = accent ? Accent : Input
         };
+        ToolTipService.SetShowOnDisabled(b,true);
         b.Click += (_, _) => Guard(action);
         return b;
     }
@@ -189,6 +197,7 @@ internal sealed partial class MainWindow : Window
         }
         catch (Exception e)
         {
+            if(e is PaletteTargetException or PaletteLayoutException){settings.Set("palette_target_failed",true);Save();}
             Error(e);
         }
     }
@@ -218,7 +227,7 @@ internal sealed partial class MainWindow : Window
         {
             Margin = new Thickness(16)
         };
-        body.Children.Add(Text(T(title), 14));
+        body.Children.Add(Text(System.Text.RegularExpressions.Regex.Replace(T(title),@"^\d+\.\s*",""), 14));
         return new()
         {
             Child = body,
@@ -250,7 +259,7 @@ internal sealed partial class MainWindow : Window
         root.RowDefinitions.Add(new() { Height = new GridLength(62) });
         root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         root.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
-        root.RowDefinitions.Add(new() { Height = new GridLength(34) });
+        root.RowDefinitions.Add(new() { Height = GridLength.Auto, MinHeight=34 });
         var top = new DockPanel();
         root.Children.Add(top);
         var titles = new StackPanel
@@ -277,15 +286,14 @@ internal sealed partial class MainWindow : Window
         });
         DockPanel.SetDock(titles, Dock.Left);
         top.Children.Add(titles);
-        var language = new ComboBox
+        var language = languageSelector = new ComboBox
         {
-            ItemsSource = new[]
-            {
-                "Українська",
-                "English"
-            },
-            SelectedItem = settings.Text("language", "Українська"),
-            Width = 110,
+            ItemsSource = LanguageCatalog.Names,
+            SelectedItem = InterfaceLanguage,
+            Tag = "interface-language",
+            ToolTip = T("Мова інтерфейсу", "Interface language"),
+            Width = 128,
+            IsEnabled = !Painting,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(12, 0, 0, 0)
         };
@@ -362,7 +370,9 @@ internal sealed partial class MainWindow : Window
         Grid.SetRow(footer, 3);
         root.Children.Add(footer);
         status = Text(T("Завантаж зображення, захопи полотно й натисни «Почати».", "Load an image, capture Canvas, and press START."), 11, Muted);
-        footer.Child = status;
+        var footerBody=new StackPanel();footerProgress=Text("",11,Muted);footerProgress.Visibility=Visibility.Collapsed;footerBody.Children.Add(footerProgress);
+        footerProgressBar=new ProgressBar{Height=3,Maximum=100,Margin=new Thickness(0,2,0,4),Visibility=Visibility.Collapsed};footerBody.Children.Add(footerProgressBar);
+        footerBody.Children.Add(status);footer.Child=footerBody;
         Content = root;
         buildingUi = false;
         UpdateReady();
@@ -390,6 +400,7 @@ internal sealed partial class MainWindow : Window
         page.Drop+=async(_,e)=>{if(!Painting&&e.Data.GetData(DataFormats.FileDrop) is string[] files&&files.Length>0){try{await LoadImageFile(files[0]);}catch(Exception error){Error(error);}}};
         page.RowDefinitions.Add(new(){Height=GridLength.Auto});page.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});pages["paint"]=page;
         var header=new DockPanel{Margin=new Thickness(0,0,0,12)};
+        var help=Button(T("Як почати", "Getting started"), OpenFirstRunGuide); help.Tag="getting-started"; DockPanel.SetDock(help,Dock.Right);header.Children.Add(help);
         var open=Button(T("Відкрити зображення","Open image"),OpenImage);DockPanel.SetDock(open,Dock.Right);header.Children.Add(open);
         header.Children.Add(Text(T("Малювання","Painting"),24));page.Children.Add(header);
         contentArea=new Grid();contentArea.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
@@ -400,9 +411,12 @@ internal sealed partial class MainWindow : Window
         controlColumn.RowDefinitions.Add(new(){Height=GridLength.Auto});Grid.SetColumn(controlColumn,1);contentArea.Children.Add(controlColumn);controlColumn.Children.Add(scroll);
         right.Children.Add(Card(T("1. Підготовка","1. Preparation"),out var preparation));ready=Text("",13);preparation.Children.Add(ready);
         AddWorkingBrushRecovery(preparation);
-        AddAutomaticSetup(preparation);
+        preparationSelection=Text("",12,Muted);preparation.Children.Add(preparationSelection);
+        AddAutomaticSetup(preparation,true);
+        AddControlDiagnosisAction(preparation);
         preparation.Children.Add(Button(T("Окремі налаштування Rust","Individual Rust settings"),()=>ShowPage("capture")));
-        right.Children.Add(Card(T("2. Кольори","2. Colors"),out var colors));
+        var colorCard=Card(T("Кольори","Colors"),out var colors);
+        right.Children.Add(new Expander{Header=T("Кольори","Colors"),Tag="painting-colors",Content=colorCard});
         var modes=new UniformGridCompat(2);
         foreach(var mode in new[]{"Rust Palette","HEX Direct"})
         {
@@ -412,12 +426,13 @@ internal sealed partial class MainWindow : Window
         colors.Children.Add(modes.Panel);
         AddCombo(colors,"color_mode",T("Спосіб вибору кольору","Color selection"),new[]{"Rust Palette","HEX Direct"},true);
         colors.Children.Add(Text(settings.Mode==ColorMode.HexDirect?T("HEX вводить точний колір. Для палітри Rust натисни кнопку поруч.","HEX enters an exact color. Use the adjacent Rust Palette button for palette painting."):
-            T("Малювання палітрою Rust. Якщо статус Rust очікує, захопи палітру й керування для цього режиму.","Rust palette painting. If Rust is Pending, capture the palette and controls for this mode."),12,Muted));
-        AddCombo(colors,settings.Mode==ColorMode.HexDirect?"hex_max_colors":"max_colors",T("Кількість кольорів","Color count"),settings.Mode==ColorMode.HexDirect?new[]{"Auto","64","96","128","192","256"}:new[]{"Auto","16","32","64","96"},true);
+            T("Палітра Rust наближує кольори зображення. Для точніших відтінків вибери HEX. Антизгладжені краї можуть містити додаткові кольори.","Rust Palette approximates image colors. Choose HEX for closer shades. Antialiased edges may contain additional colors."),12,Muted));
+        AddCombo(colors,settings.Mode==ColorMode.HexDirect?"hex_max_colors":"max_colors",T("Кількість кольорів","Color count"),settings.Mode==ColorMode.HexDirect?new[]{"Auto","64","96","128","192","256"}:new[]{"Auto","2","3","4","8","16","32","64","96"},true);
         paletteCompareButton = Button(T("Порівняти 64 / 96 / 128 / 256", "Compare 64 / 96 / 128 / 256"), CompareHexPalettes);
         paletteCompareButton.ToolTip = T("Чотири прев’ю, операції, ΔE і плановий час для відкритого зображення.", "Four previews, operations, ΔE and planned time for the loaded image.");
         if (settings.Mode == ColorMode.HexDirect) colors.Children.Add(paletteCompareButton);
-        right.Children.Add(Card(T("3. Якість і швидкість","3. Quality and speed"),out var quality));
+        var qualityCard=Card(T("Якість і швидкість","Quality and speed"),out var quality);
+        right.Children.Add(new Expander{Header=T("Якість і швидкість","Quality and speed"),Tag="painting-quality",Content=qualityCard});
         var presets=new UniformGridCompat(2);
         foreach(var (label,cell,speed) in new[]{(T("Чітко · 1 px","Detail · 1 px"),1,"Rapid"),(T("Баланс · 3 px","Balanced · 3 px"),3,"Rapid"),(T("Швидко · 5 px","Fast · 5 px"),5,"Turbo"),(T("Чернетка · 8 px","Draft · 8 px"),8,"Max Speed")})
         {
@@ -431,8 +446,13 @@ internal sealed partial class MainWindow : Window
         AddCheck(quality,"fast_transfer",T("Максимальна швидкість перенесення","Maximum transfer speed"),true);
         adaptiveSummary=Text("",12,Muted);quality.Children.Add(adaptiveSummary);
         measuredPlanStatus=Text("",12,Warning);quality.Children.Add(measuredPlanStatus);
+        measuredPlanCompare=Button(T("Менше кольорів: порівняти плани","Fewer colors: compare plans"),CompareHexPalettes);
+        measuredPlanCompare.Tag="model-color-comparison";quality.Children.Add(measuredPlanCompare);
         measuredPlanDetails=Button(T("Показати ділянки без команд","Show areas without commands"),ShowMeasuredPlan);measuredPlanDetails.Tag="measured-plan-details";quality.Children.Add(measuredPlanDetails);
-        quality.Children.Add(Button(T("Тест швидкості й аудит","Speed Probe and audit"),ShowSpeedSetup));
+        var advancedPainting=new StackPanel();
+        advancedPainting.Children.Add(Button(T("Пензлі та Adaptive","Brushes and Adaptive"),()=>ShowPage("adaptive")));
+        advancedPainting.Children.Add(Button(T("Тест швидкості й аудит","Speed Probe and audit"),ShowSpeedSetup));
+        quality.Children.Add(new Expander{Header=T("Додаткове малювання","Advanced painting"),Content=advancedPainting});
         var timing=new StackPanel();quality.Children.Add(new Expander{Header=T("Точні параметри швидкості","Movement timing"),Content=timing});
         AddCombo(timing,"speed_profile",T("Профіль руху","Movement profile"),SpeedProfile.All.Select(x=>x.Name).ToArray(),true);
         AddCombo(timing,"input_engine",T("Режим вводу","Input timing"),new[]{"Stable","Experimental 1 ms"});
@@ -441,7 +461,7 @@ internal sealed partial class MainWindow : Window
         experimentalDelay.ToolTip=T("12 мс — початковий тест. 8 мс — швидше; якщо з’являються пропуски, поверни 12–16 мс. Тест швидкості окремо підтверджує маршрути.","Start by testing 12 ms. Try 8 ms for faster input; return to 12–16 ms if gaps appear. Speed Probe verifies routes separately.");
         AddNumber(timing,"fast_path_batch_points",T("Пакет швидкого руху (1–16)","Fast movement packet (1–16)"),true);
         timing.Children.Add(Text(T("Тест швидкості замінює ці затримки лише для перевірених розмірів і напрямків.","A verified Speed Probe replaces these waits only for tested Sizes and directions."),12,Muted));
-        eta=Text(T("Попередній розрахунок: —","Planned estimate: —"),13,Warning);quality.Children.Add(eta);
+        eta=Text(T("Попередній розрахунок: —","Planned estimate: —"),13,Warning);
         var paintingCard=Card(T("4. Малювання","4. Painting"),out var controls);Grid.SetRow(paintingCard,1);controlColumn.Children.Add(paintingCard);
         startButton=AsyncButton(T("Почати","Start"),()=>Start(false),true);controls.Children.Add(startButton);
         var actions=new UniformGridCompat(3);resumeButton=AsyncButton(T("Продовжити","Resume"),()=>Start(true));pauseButton=Button(T("Пауза","Pause"),()=>{if(painter is not null)painter.Paused=!painter.Paused;});
@@ -449,6 +469,7 @@ internal sealed partial class MainWindow : Window
         foreach(var action in new[]{resumeButton,pauseButton,stopButton}){action.Padding=new Thickness(5,9,5,9);action.FontSize=12;actions.Add(action);}controls.Children.Add(actions.Panel);
         progressBar=new(){Height=8,Minimum=0,Maximum=100,Foreground=Accent,Background=Input,Margin=new Thickness(0,12,0,6)};controls.Children.Add(progressBar);
         progressLabel=Text("0% · "+T("Залишилось","ETA")+" —",12,Muted);controls.Children.Add(progressLabel);controls.Children.Add(Text(T("F6 — пауза · ESC — зупинити","F6 — pause · ESC — stop"),12,Muted));
+        controls.Children.Add(eta);
         var advanced=new StackPanel();right.Children.Add(new Expander{Header=T("План і експорт","Plan and export"),Content=advanced});advanced.Children.Add(Card(T("План зображення","Image plan"),out var planDetails));
         stats=Text("—",12);planDetails.Children.Add(stats);planDetails.Children.Add(AsyncButton(T("Оновити прев’ю","Refresh preview"),BuildPlan));
         var improve=Button(T("Застосувати профіль чітких країв","Apply clear-edge profile"),AutoFix);improve.ToolTip=T("Швидкий профіль / точний режим, збереження контурів і відтінків шкіри, без згладжування та заливки фону.","Rapid / Precision, preserved edges and skin tones, no smoothing or background fill.");planDetails.Children.Add(improve);
@@ -637,6 +658,7 @@ internal sealed partial class MainWindow : Window
     private void Save() => settings.Save(ConfigPath);
     private void Dirty(bool refreshReady = true)
     {
+        CancelPreview();
         plan = null;
         previewMeasuredPlan=null;RefreshMeasuredPlan();
         resumeSchedule = null;
@@ -684,6 +706,9 @@ internal sealed partial class MainWindow : Window
     private void UpdateReady()
     {
         RefreshSetupStatus();
+        bool hasControlDiagnosis=LatestControlDiagnosis() is not null;
+        controlDiagnosisButton.IsEnabled=!Painting&&hasControlDiagnosis;
+        controlDiagnosisButton.Visibility=hasControlDiagnosis?Visibility.Visible:Visibility.Collapsed;
         paletteCompareButton.IsEnabled = !Painting && source is not null && numberErrors.Count == 0 && settings.Mode == ColorMode.HexDirect;
         experimentalDelay.IsEnabled=!Painting&&StrokeTiming.Experimental(settings);
         stableDelay.IsEnabled=!Painting&&!StrokeTiming.Experimental(settings);
@@ -692,33 +717,50 @@ internal sealed partial class MainWindow : Window
         bool color=settings.Mode==ColorMode.HexDirect?cal.HexReady&&settings.HexControlsReady:settings.Palette().Count>0&&cal.Rect("palette").Valid;
         bool controls=new[]{"size","interval","opacity"}.All(x=>cal.Rect(x+"_track").Valid && cal.Rect(x+"_value_field").Valid)
             &&(settings.Mode==ColorMode.HexDirect||cal.Point("brush_tool") is not null)&&(cal.Rect("brush_shapes").Valid||cal.Point(settings.Text("brush_shape")=="Square"?"square_brush":"hard_brush") is not null);
-        string? missing=source is null?T("Відкрий зображення.","Open an image."):!canvas?T("Захопи полотно.","Capture Canvas."):!color?T("Захопи палітру або перевір HEX.","Capture the palette or verify HEX."):!controls?T("Захопи пензель і три числові поля Rust.","Capture the brush and three Rust numeric fields."):null;
+        var preparationState=PaintingReadiness.Read(settings,source is not null);
+        string? missing=preparationState.FirstIncomplete?.Problem is {} preparationProblem?T(preparationProblem):null;
         if(numberErrors.Count>0)missing=numberErrors.Values.First();
-        if(CalibrationReliability.PaintingProblem(settings) is {} visualProblem)missing=T(visualProblem);
-        if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)missing=T(auditProblem);
+        if(CalibrationReliability.PaintingProblem(settings) is {} visualProblem)missing??=T(visualProblem);
+        if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)missing??=T(auditProblem);
         RefreshWorkingBrush();
         UpdateDetailPreset();
         RefreshAdaptiveStatus();
-        if(settings.Bool("adaptive_brush"))try{AdaptiveBrush.Validate(settings);}catch(InvalidOperationException e){missing=T(e.Message);}
-        if(previewMeasuredPlan is {TargetPixels:>0,CoveredPixels:0})missing=T("Жоден підтверджений пензель не поміщається у кольорові ділянки. Виміряй менший Size або зменш кількість кольорів.","No verified brush fits the color areas. Measure a smaller Size or reduce the color count.");
+        if(settings.Bool("adaptive_brush"))try{AdaptiveBrush.Validate(settings);}catch(InvalidOperationException e){missing??=T(e.Message);}
+        if(measuredPlanning&&plan is not null)missing??=T("Обчислюю безпечний план…","Calculating the safe plan…");
+        if(measuredPlanFailed&&plan is not null)missing??=T("Розрахунок плану не завершився. Повтори підготовку зображення.","Plan calculation failed. Prepare the image again.");
+        if(previewMeasuredPlan is {TargetPixels:>0,CoveredPixels:0})missing??=T("Жоден підтверджений пензель не поміщається у кольорові ділянки. Виміряй менший Size або зменш кількість кольорів.","No verified brush fits the color areas. Measure a smaller Size or reduce the color count.");
         RefreshMeasuredPlan();
         bool available=missing is null;
+        preparationSelection.Text=Option("color_mode",settings.Text("color_mode"))+" · Size "+PaintTimingPlan.DefaultSize(settings)+
+            (plan is not null?" · "+T("Кольорів","Colors")+": "+plan.ColorCount:"");
         ready.Text=missing??T("Усе готово. Можна починати.","Everything is ready. You can start.");ready.Foreground=available?Success:Warning;
         badge.Text=available?T("ГОТОВО","READY"):T("ПОТРІБНА ПІДГОТОВКА","SETUP REQUIRED");badge.Foreground=available?Success:Warning;badge.ToolTip=ready.Text;
+        if(available&&setupResults.Any(p=>p.Key is SetupStage.Spatial or SetupStage.Speed&&p.Value.State==SetupStageState.Failed))
+        {
+            ready.Text=T("Можна малювати стабільним вводом. Прискорення потребує повторної перевірки.","Stable painting is ready. Acceleration needs another check.");
+            ready.Foreground=Warning;badge.Foreground=Warning;badge.ToolTip=ready.Text;
+        }
         startButton.IsEnabled=!Painting&&available;startButton.ToolTip=available?T("Почати з нуля","Start from the beginning")+" · Size "+PaintTimingPlan.DefaultSize(settings):missing;
-        startButton.Content=startPreparing?T("Готую малювання…","Preparing painting…"):T("Почати","Start");
+        startButton.Content=painter is not null&&paintTask is {IsCompleted:false}?T("Малювання триває","Painting in progress"):
+            startPreparing?T("Готую малювання…","Preparing painting…"):T("Почати","Start");
         var resumeProblem=Painting?T("Малювання вже триває.","Painting is already running."):ResumeProblem();
         resumeButton.IsEnabled=!Painting&&available&&resumeProblem is null;
         resumeButton.ToolTip=resumeProblem??T("Продовжити збережений план","Continue the saved plan");
         pauseButton.IsEnabled=painter is not null&&paintTask is {IsCompleted:false}&&!setupRunning&&!inputCheckRunning;stopButton.IsEnabled=Painting;
         string State(bool value)=>value?T("готово","ready"):T("очікує","pending");
-        UpdateWorkflow(canvas,color,controls);
+        UpdateWorkflow(preparationState);
+        RefreshSetupStatus();
         captureStatus.Text=$"{T("Полотно","Canvas")}: {(canvas?$"{cal.Rect("canvas").Width} × {cal.Rect("canvas").Height} px":T("не захоплено","not captured"))}\n{T("Кольори","Colors")}: {(color?T("готові","ready"):T("потрібне налаштування","setup needed"))}\n{T("Пензель і числові поля","Brush and numeric fields")}: {State(controls)}";
     }
 
     private async void RenderPlan()
     {
+        if(source is not null)guideRequested=false;
+        RefreshFirstRunGuide();
+        previewWork.Cancel();
         var rid = ++renderGeneration;
+        previewMeasuredPlan=null;resumeSchedule=null;
+        measuredPlanFailed=false;measuredPlanning=plan is not null&&!Painting;RefreshMeasuredPlan();
         if (source is not null)
             fileLabel.Text = Path.GetFileName(imagePath) + $" • {source.Width}×{source.Height}";
         if (plan is null)
@@ -729,34 +771,42 @@ internal sealed partial class MainWindow : Window
         }
 
         var active = plan;
-        var snapshot = BrushFootprints.Snapshot(EffectiveSettings);
+        var snapshot = EffectiveSettings;
         var canvas = capturedCanvas;
         bool previewReady = false;
         try
         {
+            UpdateReady();
+            await previewWork.RunAsync(async token=>
+            {
+            token.ThrowIfCancellationRequested();
             var bitmap = await Task.Run(() =>
             {
                 var image = snapshot.Bool("transfer_simulator", true) && canvas is not null ? Images.MaterialPreview(canvas, active) : active.Preview;
-                return Images.Bitmap(image);
-            });
+                token.ThrowIfCancellationRequested();return Images.Bitmap(image);
+            },token);
+            token.ThrowIfCancellationRequested();
             if (closing || rid != renderGeneration || active != plan)
                 return;
             previewImage.Source = bitmap;
             previewReady = true;
+            if(Painting)return;
             System.Windows.Media.RenderOptions.SetBitmapScalingMode(previewImage, snapshot.Bool("smooth_preview", true) ? BitmapScalingMode.HighQuality : BitmapScalingMode.NearestNeighbor);
             if (!Painting && lastPaintProgress is null)
                 eta.Text = T("Обчислюю час…", "Calculating time…");
             var result = await Task.Run(() =>
             {
-                var measured=MeasuredColorPlan.TryBuild(active,snapshot);
-                var groups = measured is null?TransferSchedule.Build(active,snapshot):TransferSchedule.Build(active,snapshot,measured.Groups);
+                token.ThrowIfCancellationRequested();snapshot=BrushFootprints.Snapshot(snapshot);
+                var measured=MeasuredPlanner(active,snapshot,token);
+                var groups = measured is null?TransferSchedule.Build(active,snapshot,token:token):TransferSchedule.Build(active,snapshot,measured.Groups,token);
                 var text = $"{Option("color_mode", snapshot.Text("color_mode"))}\n{active.Width}×{active.Height} • {T("Кольорів","Colors")}: {active.ColorCount}\n{T("Штрихів","Strokes")}: {groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0}\n{T("Протягувань миші","Mouse drags")}: {groups.Values.Sum(x => x.Count):N0}\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{Option("speed_profile",s.Name)}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name,measured is null?null:groups))}"));
                 return (Stats: text, Eta: Coverage.EstimateSeconds(active, snapshot,preparedGroups:groups), GroupCounts: TransferSchedule.Order(active,groups).Select(color=>groups[color].Count).ToArray(),Measured:measured);
-            });
+            },token);
+            token.ThrowIfCancellationRequested();
             if (closing || rid != renderGeneration || active != plan)
                 return;
             resumeSchedule = (active,result.GroupCounts);
-            previewMeasuredPlan=result.Measured;RefreshMeasuredPlan();
+            previewMeasuredPlan=result.Measured;measuredPlanning=false;RefreshMeasuredPlan();
             stats.Text = result.Stats;
             if(!Painting&&lastPaintProgress is null)
             {
@@ -768,11 +818,14 @@ internal sealed partial class MainWindow : Window
             foreach (var i in active.Counts.OrderByDescending(x => x.Value).Select(x => x.Key))
                 swatches.Children.Add(new Border { Width = 23, Height = 23, Margin = new Thickness(2), Background = new SolidColorBrush(Color.FromRgb(active.Palette[i].Color.R, active.Palette[i].Color.G, active.Palette[i].Color.B)), ToolTip = $"#{active.Palette[i].Color.Hex} • {Option("palette_source",active.Palette[i].Source)} • {active.Counts[i]:N0}" });
             UpdateReady();
+            });
         }
+        catch(OperationCanceledException) { }
         catch (Exception e)
         {
             if (!closing && rid == renderGeneration)
             {
+                measuredPlanFailed=true;
                 if (previewReady && !Painting && lastPaintProgress is null)
                     eta.Text = T("Час недоступний", "Time unavailable");
                 SetStatus((previewReady
@@ -780,6 +833,16 @@ internal sealed partial class MainWindow : Window
                     : T("Не вдалося побудувати прев’ю: ", "Could not render preview: ")) + T(e.Message));
             }
         }
+        finally
+        {
+            if(rid==renderGeneration&&!closing){measuredPlanning=false;RefreshMeasuredPlan();UpdateReady();}
+        }
+    }
+
+    private void CancelPreview()
+    {
+        previewWork.Cancel();renderGeneration++;measuredPlanning=false;measuredPlanFailed=false;
+        previewMeasuredPlan=null;resumeSchedule=null;RefreshMeasuredPlan();
     }
 
     private string Duration(double seconds) => seconds >= 3600 ? $"{(int)seconds / 3600} {T("год","h")} {(int)seconds % 3600 / 60} {T("хв","min")}" : seconds >= 60 ? $"{(int)seconds / 60} {T("хв","min")} {(int)seconds % 60} {T("с","s")}" : $"{Math.Max(0, (int)seconds)} {T("с","s")}";
@@ -799,7 +862,7 @@ internal sealed partial class MainWindow : Window
     {
         if (setupRunning||inputCheckRunning||startPreparing||paintTask is {IsCompleted:false}||closing) return;
         int request=++imageLoadGeneration;
-        imageLoading=true;planCancel?.Cancel();generation++;renderGeneration++;
+        imageLoading=true;planCancel?.Cancel();generation++;CancelPreview();
         UpdateReady();
         try
         {
@@ -837,7 +900,7 @@ internal sealed partial class MainWindow : Window
         Save();
         planCancel?.Cancel();
         var cancel = planCancel = activeOperation?CancellationTokenSource.CreateLinkedTokenSource(SetupToken,startCancel?.Token??CancellationToken.None):new();
-        plan=null;resumeSchedule=null;renderGeneration++;
+        CancelPreview();plan=null;resumeSchedule=null;
         var id = ++generation;
         var snapshot = EffectiveSettings;
         var src = source;
@@ -919,7 +982,7 @@ internal sealed partial class MainWindow : Window
         ReadSettings();
         Save();
         var execution = EffectiveSettings;
-        if(CalibrationReliability.PaintingProblem(execution) is {} visualProblem)
+        if(PaintingReadiness.BrushProblem(execution) is {} visualProblem)
             throw new InvalidOperationException(T(visualProblem));
         try { AdaptiveBrush.Validate(execution); }
         catch (InvalidOperationException) { ShowPage("adaptive"); throw; }
@@ -989,6 +1052,7 @@ internal sealed partial class MainWindow : Window
         }
         catch (Exception e)
         {
+            if(e is PaletteTargetException or PaletteLayoutException){settings.Set("palette_target_failed",true);Save();}
             Error(e);
         }
         finally
@@ -1008,6 +1072,7 @@ internal sealed partial class MainWindow : Window
     internal void SetEditing(bool enabled)
     {
         enabled &= !setupRunning&&!inputCheckRunning&&!startPreparing&&!imageLoading;
+        languageSelector.IsEnabled = enabled;
         foreach (var p in pages)
             if (p.Key != "paint")
                 p.Value.IsEnabled = enabled;
@@ -1054,7 +1119,7 @@ internal sealed partial class MainWindow : Window
         imageLoadGeneration++;
         debounce.Stop();
         CancelActiveWork();
-        if (Painting)
+        if (Painting||!previewWork.WhenIdle.IsCompleted)
         {
             e.Cancel = true;
             try
@@ -1063,6 +1128,7 @@ internal sealed partial class MainWindow : Window
                 else if(inputCheckDone is not null)await inputCheckDone.Task;
                 else if(startDone is not null)await startDone.Task;
                 else if(paintTask is not null)await paintTask;
+                await previewWork.WhenIdle;
             }
             catch
             {

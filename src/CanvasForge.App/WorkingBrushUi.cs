@@ -8,7 +8,7 @@ internal sealed partial class MainWindow
     private Button useMeasuredBrush=new();
     private void AddWorkingBrush(StackPanel parent)
     {
-        AddCombo(parent,"precision_brush_size",T("Робочий розмір пензля (Size)","Working brush Size"),
+        AddCombo(parent,"precision_brush_size",T("Розмір пензля в Rust (Size)","Rust brush Size"),
             new[]{"1","3","10","20","40","60","100"},true);
         workingBrushSummary=Text("",12,Muted);parent.Children.Add(workingBrushSummary);
     }
@@ -26,8 +26,11 @@ internal sealed partial class MainWindow
     private void RefreshWorkingBrush()
     {
         double size=PaintTimingPlan.DefaultSize(settings);
-        bool verified=SpeedCalibration.BrushReady(settings,size);
+        bool verified=PaintingReadiness.BrushProblem(settings) is null;
         workingBrushSummary.Text="Size "+size+" · "+(verified?T("слід підтверджений","footprint verified"):T("слід не підтверджений","footprint unverified"));
+        if(BrushFootprints.Find(settings,size,settings.Int("brush_shape_slot",3)) is {} measured)
+            workingBrushSummary.Text+="\n"+T("Можливий слід: ","Possible footprint: ")+measured.SafetyBounds.Width+" × "+measured.SafetyBounds.Height+
+                " px · "+T("стабільне ядро: ","solid core: ")+measured.SolidCore.Width+" × "+measured.SolidCore.Height+" px";
         if(settings.Bool("adaptive_brush"))workingBrushSummary.Text+="\n"+T("Адаптивний режим вибирає розмір кожного штриха.","Adaptive mode selects each stroke's Size.");
         else workingBrushSummary.Text+="\n"+T("Це значення в Rust. Деталізація, px — окрема сітка зображення.","This is the Rust control value. Detail, px is the separate image grid.");
         if(settings.Bool("calibrated_strokes")&&!SpeedCalibration.Use(settings))

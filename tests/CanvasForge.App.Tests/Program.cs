@@ -18,10 +18,13 @@ internal static partial class Program
         var destination = Path.GetFullPath(args.Length > 0 ? args[0] : Path.Combine(AppContext.BaseDirectory, "ui-verification"));
         Directory.CreateDirectory(destination);
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        if(args.Length==4&&args[1]=="--palette-report"){WritePaletteSourceReport(destination,args[2],args[3]);return;}
+        if(args.Contains("--export-catalog")){ExportInternationalCatalog(destination);return;}
+        if(args.Contains("--international-only")){CheckInternationalCatalog();foreach(string language in LanguageCatalog.Names)CheckInternationalWindow(destination,language);CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);Console.WriteLine("INTERNATIONAL CHECKS PASSED");return;}
         if(args.Contains("--calibration-only"))
         {
             CheckCompactCapture(destination,"Українська");CheckCompactCapture(destination,"English");
-            CheckSlowLaptopPreset(destination,"Українська");CheckSlowLaptopPreset(destination,"English");
+            CheckVisualConfirmationPreset(destination,"Українська");CheckVisualConfirmationPreset(destination,"English");
             CheckVisualStartGate(destination,"Українська");CheckVisualStartGate(destination,"English");CheckQuickBrushIsolation(destination);
             CheckWorkingSizePolicy(destination,"Українська");CheckWorkingSizePolicy(destination,"English");
             Console.WriteLine("CALIBRATION CHECKS PASSED");return;
@@ -112,14 +115,22 @@ internal static partial class Program
         CheckSetupSize3WithoutBase(destination);CheckSetupFallbackSize3(destination);CheckSetupFailedFallback(destination);
         CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
         CheckCompactCapture(destination,"Українська");CheckCompactCapture(destination,"English");
-        CheckSlowLaptopPreset(destination,"Українська");CheckSlowLaptopPreset(destination,"English");
+        CheckVisualConfirmationPreset(destination,"Українська");CheckVisualConfirmationPreset(destination,"English");
         CheckVisualStartGate(destination,"Українська");CheckVisualStartGate(destination,"English");CheckQuickBrushIsolation(destination);
         CheckWorkingSizePolicy(destination,"Українська");CheckWorkingSizePolicy(destination,"English");
         CheckExecutionTimingUi(destination,"Українська");CheckExecutionTimingUi(destination,"English");
         CheckMixedReadiness(destination,"Українська");CheckMixedReadiness(destination,"English");
         CheckSynchronizedEditors(destination,"Українська");CheckSynchronizedEditors(destination,"English");
         CheckColorChoice(destination,"Українська");CheckColorChoice(destination,"English");CheckMeasuredPlanOverlay(destination);
-        Console.WriteLine("ALL 125 WPF UI CHECKS PASSED");
+        CheckPreviewQueueLatest();CheckPreviewQueueCancellation();CheckPreviewWorkerCancellation(destination);CheckPreviewModelFailure(destination);
+        CheckPreparationShortcuts(destination,"Українська");CheckPreparationShortcuts(destination,"English");
+        CheckControlDiagnosisAction(destination,"Українська");CheckControlDiagnosisAction(destination,"English");
+        CheckSupersededPreviewPublication(destination);
+        CheckInternationalCatalog();foreach(string language in LanguageCatalog.Names)CheckInternationalWindow(destination,language);
+        CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);
+        CheckCanonicalPreparation(destination,"Українська");CheckCanonicalPreparation(destination,"English");
+        CheckPreparationHistory(destination);CheckPreparationControlsAndFooter(destination);
+        Console.WriteLine("ALL 148 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -249,7 +260,7 @@ internal static partial class Program
     private static void CheckPartialBrushUi(string output,string language)
     {
         bool english=language=="English";string name="partial-brush-"+(english?"en":"ua");string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var s=ReadySettings(language);BrushSpan[] pixels=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(pixels,pixels,new(20,20,20));
+        var s=ReadySettings(language);s.Data.Remove("brush_footprints");BrushSpan[] pixels=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(pixels,pixels,new(20,20,20));
         BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[stamp,stamp,stamp])]);s.Set("probe_size",3);s.Set("adaptive_brush",false);s.Set("coverage_audit",false);s.Save(Path.Combine(directory,"config-csharp.json"));
         var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         Assert(AdaptiveBrush.CalibrationCurrent(Field<Settings>(window,"settings"))&&Field<CheckBox>(window,"auditEnabled").IsEnabled,"Verified Size 3 cannot use mask-based audit repair");
@@ -335,7 +346,7 @@ internal static partial class Program
         foreach(var expander in Descendants(root).OfType<Expander>().ToArray())expander.IsExpanded=true;
         root.UpdateLayout();var captions=string.Join("\n",Captions(root));
         Assert(captions.Contains("3/3")&&captions.Contains(english?"core":"ядро"),"Measured physical/solid geometry is invisible");
-        if(english)Assert(Captions(root).Where(t=>t!="Українська").All(t=>!System.Text.RegularExpressions.Regex.IsMatch(t,@"[\u0400-\u04FF]")),"New brush UI untranslated");
+        if(english)Assert(Captions(root).Where(t=>!LanguageCatalog.Names.Contains(t)).All(t=>!System.Text.RegularExpressions.Regex.IsMatch(t,@"[\u0400-\u04FF]")),"New brush UI untranslated");
         shapes.Single(b=>b.Tag?.ToString()=="brush-shape:4").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         Assert(Field<Settings>(window,"settings").Int("brush_shape_slot")==4&&!AdaptiveBrush.CalibrationCurrent(Field<Settings>(window,"settings")),"Changing shape reused another footprint");
         Console.WriteLine("PASS "+name);
@@ -539,9 +550,9 @@ internal static partial class Program
         window.SetEditing(false);window.SetEditing(true);
         Assert(checks[0].IsEnabled,"Adaptive help must remain accessible after operations");
         var text=string.Join("\n",Descendants(root).OfType<TextBlock>().Select(x=>x.Text));
-        Assert(text.Contains(language=="English"?"1. Preparation":"1. Підготовка"),"Preparation section missing");
-        Assert(text.Contains(language=="English"?"2. Automatic calibration":"2. Автоматичне калібрування"),"Calibration section missing");
-        Assert(text.Contains(language=="English"?"3. Adaptive painting":"3. Адаптивне малювання"),"Painting section missing");
+        Assert(text.Contains(language=="English"?"Preparation":"Підготовка"),"Preparation section missing");
+        Assert(text.Contains(language=="English"?"Automatic calibration":"Автоматичне калібрування"),"Calibration section missing");
+        Assert(text.Contains(language=="English"?"Adaptive painting":"Адаптивне малювання"),"Painting section missing");
         if(stale)Assert(text.Contains("Параметри змінилися"),"Stale calibration not explained");
         var bitmap=new RenderTargetBitmap(width,780,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
         var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));
@@ -559,6 +570,7 @@ internal static partial class Program
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
         string config=Path.Combine(directory,"config-csharp.json");settings.Save(config);
         var window=new MainWindow(directory);window.ShowPage("paint");var root=(FrameworkElement)window.Content;
+        foreach(var e in LogicalNodes(root).OfType<Expander>().Where(e=>Equals(e.Tag,"painting-quality")))e.IsExpanded=true;
         root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
         var checks=Descendants(root).OfType<CheckBox>().Where(x=>x.Content?.ToString()?.Contains(language=="English"?"Maximum transfer speed":"Максимальна швидкість перенесення")==true).ToArray();
         Assert(checks.Length==1&&checks[0].IsChecked==false,"Fast transfer toggle missing or enabled silently");
@@ -591,16 +603,21 @@ internal static partial class Program
         settings.SetPalette(new[]{new PaletteEntry(new(0,0,0),new(1100,400),"main")});
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[3,5,3],[10,21,13],[20,35,23]});
         settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));
+        var readyStamp=new BrushStamp(Enumerable.Range(-4,9).Select(y=>new BrushSpan(y,-4,5)).ToArray(),new[]{new BrushSpan(0,0,1)},new(20,20,20));
+        BrushFootprints.Save(settings,new[]{1d,3d,10d,20d}.Select(size=>size is 1 or 3?BrushFootprints.Build(settings,3,size,[readyStamp,readyStamp,readyStamp]):SetupStamp(settings,3,size)).ToArray());
         var axes=new List<SpatialAxis>();
-        foreach(bool vertical in new[]{false,true})axes.Add(new(vertical,0,Enumerable.Range(0,3).Select(i=>new SpatialAnchor(
+        foreach(bool vertical in new[]{false,true})axes.Add(new(vertical,SpeedCalibration.Footprint(settings,3).Inner,Enumerable.Range(0,3).Select(i=>new SpatialAnchor(
             vertical?new(100+i*300,100,100+i*300,135):new(100,100+i*300,135,100+i*300),0,new(0,0,0),12)).ToList()));
-        var spatial=new SpatialProbeProfile(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(settings),DateTimeOffset.UtcNow,3,5,axes);
+        var spatial=new SpatialProbeProfile(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(settings),DateTimeOffset.UtcNow,3,SpeedCalibration.Footprint(settings,3).Outer,axes);
         ProbeSpatialCalibration.Save(settings,spatial);
         settings.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(settings),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Shift,false,8,12,1,40,3,1,spatial.Id)]));
         return settings;
     }
-    private static void Render(MainWindow window,string path,int width,int height=780)
+    private static void Render(MainWindow window,string path,int width,int height=780,bool expandPaintingControls=true)
     {
+        // Existing control/layout checks inspect the expanded expert controls.
+        // Default-layout checks explicitly keep these sections collapsed.
+        if(expandPaintingControls)foreach(var section in LogicalNodes((DependencyObject)window.Content).OfType<Expander>().Where(e=>e.Tag is string tag&&tag is "painting-colors" or "painting-quality"))section.IsExpanded=true;
         var root=(FrameworkElement)window.Content;root.Measure(new Size(width,height));root.Arrange(new Rect(0,0,width,height));root.UpdateLayout();
         var bitmap=new RenderTargetBitmap(width,height,96,96,PixelFormats.Pbgra32);bitmap.Render(root);
         var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(bitmap));using var file=File.Create(path);encoder.Save(file);
@@ -1080,7 +1097,7 @@ internal static partial class Program
         bool english=language=="English";string name="spatial-workflow-"+(english?"en":"ua");
         var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
         var settings=ReadySettings(language);var model=ProbeSpatialCalibration.Read(settings,3)!;
-        settings.Data.Remove("probe_spatial_profiles");settings.Save(Path.Combine(directory,"config-csharp.json"));
+        settings.Data.Remove("probe_spatial_profiles");settings.Data.Remove("shape_spatial_profiles");settings.Save(Path.Combine(directory,"config-csharp.json"));
         var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");Render(window,Path.Combine(output,name+"-pending.png"),900);
         Assert(Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Fast probe starts without spatial evidence");
         var actual=Field<Settings>(window,"settings");ProbeSpatialCalibration.Save(actual,model);Invoke(window,"UpdateReady");
@@ -1243,9 +1260,9 @@ internal static partial class Program
     private static void CheckSmallCanvasProbePreflight(string output)
     {
         string name="spatial-small-canvas";var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
-        var settings=ReadySettings("English");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1396,1068));settings.SetCalibration(cal);
+        var settings=ReadySettings("English");settings.Data.Remove("brush_footprints");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1396,1068));settings.SetCalibration(cal);
         settings.Set("brush_calibration_points",new double[][]{[1,11,1],[3,15,3],[10,29,17],[20,53,29]});
-        settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));settings.Data.Remove("probe_spatial_profiles");
+        settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));settings.Data.Remove("probe_spatial_profiles");settings.Data.Remove("shape_spatial_profiles");
         foreach(double size in new[]{1d,3})
         {
             var footprint=SpeedCalibration.Footprint(settings,size);var tiles=ProbeSpatialCalibration.Tiles(cal.Rect("canvas"),footprint.Outer);
@@ -1451,7 +1468,7 @@ internal static partial class Program
         foreach(string key in new[]{"image","rust","brush","speed","coverage"})
         {
             var chip=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,[key])!;
-            var row=key=="coverage"?(Grid)((Button)chip.Parent).Parent:(Grid)chip.Parent;
+            var row=(Grid)((Button)chip.Parent).Parent;
             var label=row.Children.OfType<TextBlock>().Single();
             var point=chip.TransformToAncestor(row).Transform(new Point());
             Assert(point.X>=label.ActualWidth+6&&point.X+chip.ActualWidth<=row.ActualWidth+.1,"Compact workflow row overlaps or clips its chip: "+key);

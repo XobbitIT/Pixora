@@ -15,7 +15,7 @@ internal static class MeasuredColorChecks
         var masks=JsonSerializer.Deserialize<Mask[]>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"Fixtures","beta49-size3-10-20-masks.json")))!;
         BrushFootprints.Save(s,masks.Select(p=>BrushFootprints.Build(s,p.ShapeSlot,p.Size,Enumerable.Repeat(new BrushStamp(p.Possible,p.Solid,new(20,20,20)),3).ToArray())).ToArray());return s;
     }
-    private static PaintPlan Plan(Func<int,int,int>? label=null)
+    internal static PaintPlan Plan(Func<int,int,int>? label=null)
     {
         label??=(x,y)=>x<200?0:1;var indices=new int[400*320];var strokes=new Dictionary<int,List<Stroke>>{{0,[]},{1,[]}};
         for(int y=0;y<320;y++)

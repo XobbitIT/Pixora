@@ -21,6 +21,7 @@ internal static partial class Program
     {
         bool en=language=="English";string name="mixed-readiness-"+(en?"en":"ua");var s=ReadySettings(language);
         s.Set("precision_brush_size","3");s.Set("probe_size",3);s.Set("adaptive_brush",false);
+        s.Data.Remove("brush_footprints");
         BrushFootprints.Save(s,new[]{3d,10,20}.Select(size=>SetupStamp(s,3,size)).ToArray());
         BrushSpan[] support=[new(0,0,1)];var samples=Enumerable.Range(1,3).Select(i=>new BrushSignalSample(i,new(53,4,80,new(140,140,140),new(87,87,87)),1,support)).ToArray();
         BrushSignalDiagnostics.Save(s,[BrushSignalDiagnostics.Summarize(s,3,1,samples,null)]);
@@ -68,9 +69,13 @@ internal static partial class Program
         Pick("Rust Palette");Assert(Field<Settings>(w,"settings").Mode==ColorMode.RustPalette,"Palette button did not change canonical mode");
         Assert(!Field<Button>(w,"startButton").IsEnabled,"Palette mode reused HEX readiness without its brush-tool capture");
         var live=Field<Settings>(w,"settings");var c=live.Calibration;c.SetPoint("brush_tool",new(1050,80));live.SetCalibration(c);Invoke(w,"UpdateReady");
-        Assert(Field<Button>(w,"startButton").IsEnabled,"Captured Rust palette mode remains blocked");
+        Assert(!Field<Button>(w,"startButton").IsEnabled,"HEX imprint authorized a palette brush without its own proof");
+        BrushFootprints.Save(live,[SetupStamp(live,3,3)]);Invoke(w,"UpdateReady");
+        Assert(Field<Button>(w,"startButton").IsEnabled,"Measured Rust palette mode remains blocked");
         Render(w,Path.Combine(output,name+"-palette.png"),1280,780);
-        Pick("HEX Direct");Assert(Field<Settings>(w,"settings").Mode==ColorMode.HexDirect&&Field<Button>(w,"startButton").IsEnabled,"HEX button lost its independent captured controls");
+        Pick("HEX Direct");Assert(Field<Settings>(w,"settings").Mode==ColorMode.HexDirect&&!Field<Button>(w,"startButton").IsEnabled,"Changed color mode reused a physical imprint with another context");
+        live=Field<Settings>(w,"settings");
+        BrushFootprints.Save(live,[SetupStamp(live,3,3)]);Invoke(w,"UpdateReady");Assert(Field<Button>(w,"startButton").IsEnabled,"HEX button lost its independent captured controls");
         Assert(Settings.Load(Path.Combine(output,name,"config-csharp.json")).Mode==ColorMode.HexDirect,"Mode choice was not saved");
         Render(w,Path.Combine(output,name+"-hex.png"),1280,780);Console.WriteLine("PASS "+name);
     }

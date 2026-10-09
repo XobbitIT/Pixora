@@ -20,7 +20,7 @@ internal sealed partial class MainWindow
     private void CancelActiveWork()
     {
         setupCancel?.Cancel();inputCheckCancel?.Cancel();startCancel?.Cancel();
-        paintCancel?.Cancel();planCancel?.Cancel();
+        paintCancel?.Cancel();planCancel?.Cancel();CancelPreview();
         if(imageLoading)
         {
             imageLoadGeneration++;imageLoading=false;

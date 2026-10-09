@@ -26,7 +26,7 @@ internal sealed partial class MainWindow
     {
         var report=ProbeDiagnosticSession.Read(directory);
         var stages=(report?.Stages??[]).Where(x=>x is not null&&ProbeDiagnosticSession.ValidStage(x.Id)).ToArray();
-        var culture=CultureInfo.GetCultureInfo(English?"en-US":"uk-UA");
+        var culture=LanguageCatalog.Culture(InterfaceLanguage);
         var dialog=new Window{Title=T("Діагностика тесту швидкості","Speed Probe diagnostics"),Width=980,Height=820,
             MinWidth=640,MinHeight=600,Background=Bg,Foreground=Brushes.White,FontFamily=FontFamily,FontSize=13};
         dialog.Resources.MergedDictionaries.Add(new ResourceDictionary{Source=new Uri("/Pixora;component/Theme.xaml",UriKind.Relative)});

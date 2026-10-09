@@ -9,13 +9,22 @@ internal sealed partial class MainWindow
     private MeasuredColorResult? previewMeasuredPlan;
     private TextBlock measuredPlanStatus=new();
     private Button measuredPlanDetails=new();
+    private Button measuredPlanCompare=new();
     private void RefreshMeasuredPlan()
     {
         measuredPlanDetails.IsEnabled=!Painting&&previewMeasuredPlan is {UnplannedPixels:>0};
-        if(previewMeasuredPlan is not {} p){measuredPlanStatus.Text="";return;}
+        measuredPlanCompare.Visibility=previewMeasuredPlan is {UnplannedPixels:>0}&&settings.Mode==ColorMode.HexDirect?Visibility.Visible:Visibility.Collapsed;
+        measuredPlanCompare.IsEnabled=!Painting&&source is not null&&numberErrors.Count==0;
+        if(previewMeasuredPlan is not {} p)
+        {
+            measuredPlanStatus.Text=measuredPlanning?T("Обчислюю межі пензля…","Calculating brush boundaries…"):
+                measuredPlanFailed?T("Розрахунок не завершений; малювання заблоковане.","Calculation failed; painting is blocked."):
+                plan is not null?T("План без захисту за виміряними масками; фізичні межі кольорів не підтверджені. Для захисту потрібні Precision і актуальний відбиток.","Plan without measured-mask protection; physical color boundaries are unverified. Protection requires Precision and a current brush imprint."):"";
+            measuredPlanStatus.Foreground=Warning;return;
+        }
         measuredPlanStatus.Text=p.UnplannedPixels>0
-            ?T($"Пензель не поміщається: {p.UnplannedPixels:N0} px залишаться без команд. Виміряний Size 1 або менша кількість кольорів можуть зменшити пропуски.",
-                $"Brush does not fit: {p.UnplannedPixels:N0} px have no commands. A measured Size 1 or fewer colors may reduce gaps.")
+            ?T($"Без команд: {p.UnplannedPixels:N0} px ({100d*p.UnplannedPixels/Math.Max(1,p.TargetPixels):F1}%). Виміряний Size 1 або менша кількість кольорів можуть зменшити пропуски. Це модель, не аудит Rust.",
+                $"{p.UnplannedPixels:N0} px have no commands ({100d*p.UnplannedPixels/Math.Max(1,p.TargetPixels):F1}%). A measured Size 1 or fewer colors may reduce gaps. This is a model, not a Rust audit.")
             :T("План враховує виміряний слід і межі кольорів. Результат у грі ще потребує перевірки.","The plan accounts for measured footprints and color boundaries. The in-game result still needs verification.");
         measuredPlanStatus.Foreground=p.UnplannedPixels>0?Warning:Success;
     }

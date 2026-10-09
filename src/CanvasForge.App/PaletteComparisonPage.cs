@@ -14,7 +14,7 @@ internal partial class MainWindow
         // until the user explicitly applies one of the four limits.
         var snapshot = settings.Clone();
         var image = source.Clone();
-        var dialog = new PaletteComparisonWindow(English, ApplyPaletteLimit) { Owner = this };
+        var dialog = new PaletteComparisonWindow(InterfaceLanguage, ApplyPaletteLimit) { Owner = this };
         dialog.Loaded += async (_, _) => await dialog.BuildAsync(image, snapshot);
         dialog.ShowDialog();
     }

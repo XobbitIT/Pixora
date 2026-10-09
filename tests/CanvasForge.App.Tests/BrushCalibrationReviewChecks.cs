@@ -14,7 +14,7 @@ internal static partial class Program
     {
         bool english=language=="English";string name="brush-reasons-"+(english?"en":"ua");
         string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var s=ReadySettings(language);BrushSpan[] possible=[new(0,-2,3),new(1,-2,3)];var empty=new BrushStamp(possible,[],new(6,6,5));
+        var s=ReadySettings(language);s.Data.Remove("brush_footprints");BrushSpan[] possible=[new(0,-2,3),new(1,-2,3)];var empty=new BrushStamp(possible,[],new(6,6,5));
         var p=BrushFootprints.Build(s,3,1,[empty,empty,empty]);BrushFootprints.Save(s,[p]);
         var samples=Enumerable.Range(1,3).Select(n=>new BrushSignalSample(n,new(n==1?137:n==2?70:2,n==1?23:n==2?10:0,80,new(140,140,140),new(6,6,5)),0,possible)).ToArray();
         BrushSignalDiagnostics.Save(s,[BrushSignalDiagnostics.Summarize(s,3,1,samples,p)]);

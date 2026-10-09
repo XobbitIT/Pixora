@@ -28,8 +28,9 @@ internal sealed class CaptureWindow : Window
     private readonly Image? live;
     public ScreenRect? Selected { get; private set; }
 
-    public CaptureWindow(PixelImage shot, ScreenRect screen, string title, bool point = false, PixelImage? preview = null, bool english = false, bool sliderCapture = false)
+    public CaptureWindow(PixelImage shot, ScreenRect screen, string title, bool point = false, PixelImage? preview = null, bool english = false, bool sliderCapture = false, string? language = null)
     {
+        string Localize(string text) => Translations.ForLanguage(text, language ?? (english ? "English" : "Українська"));
         origin = screen;
         pointMode = point;
         Title = title;
@@ -64,7 +65,7 @@ internal sealed class CaptureWindow : Window
 
         var label = new TextBlock
         {
-            Text = title + "\n" + (english
+            Text = title + "\n" + Localize(english
                 ? (sliderCapture ? "Select one full slider and its number with extra space. ESC — cancel."
                     : point ? "Click the required point. ESC — cancel." : "Drag to select an area. ESC — cancel.")
                 : (sliderCapture ? "Обведи один повзунок із числом справа та запасом навколо. ESC — скасувати."
@@ -131,7 +132,7 @@ internal sealed class CaptureWindow : Window
                     if (found.Count != 1)
                     {
                         Selected = null;
-                        label.Text = title + "\n" + (found.Count == 0
+                        label.Text = title + "\n" + Localize(found.Count == 0
                             ? (english ? "No complete slider found. Include the whole bar and number; draw again."
                                 : "Повного повзунка не знайдено. Захопи смугу й число із запасом; обведи ще раз.")
                             : (english ? "Several sliders found. Select just one with extra space."
@@ -150,7 +151,7 @@ internal sealed class CaptureWindow : Window
                     Mark(valueField, found[0].ValueField);
                     valueField.Visibility = Visibility.Visible;
                     Selected = rect;
-                    label.Text = title + "\n" + (english
+                    label.Text = title + "\n" + Localize(english
                         ? "Slider found. Green: track and number. Enter — save; draw again to adjust. ESC — cancel."
                         : "Повзунок знайдено. Зеленим — доріжка й число. Enter — зберегти; можна обвести ще раз. ESC — скасувати.");
                     return;

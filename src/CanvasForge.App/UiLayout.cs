@@ -55,28 +55,37 @@ internal sealed partial class MainWindow
             workflowChips[key] = chip;
             FrameworkElement status = chip;
             if (key == "coverage") { workflowCoverageAction = CreateCoverageAction(chip); status = workflowCoverageAction; }
+            else
+            {
+                var action=Button("",()=>ShowPage(key switch {"image"=>"paint","rust"=>"capture","brush"=>"adaptive",_=>"speed"}));
+                action.Content=chip;action.Padding=new Thickness(0);action.Margin=new Thickness(0);
+                action.MinWidth=0;action.MinHeight=0;action.HorizontalAlignment=HorizontalAlignment.Right;
+                action.Background=System.Windows.Media.Brushes.Transparent;action.BorderThickness=new Thickness(0);
+                action.Tag="workflow-action:"+key;action.ToolTip=T("Відкрити розділ: ","Open section: ")+title;status=action;
+            }
             Grid.SetColumn(status, 2); row.Children.Add(status); parent.Children.Add(row);
         }
     }
 
-    private void UpdateWorkflow(bool canvas, bool colors, bool controls)
+    private void UpdateWorkflow(PaintingPreparation preparation)
     {
-        void Ready(string key, bool value) => workflowChips[key].Set(value ? T("Готово", "Ready") : T("Очікує", "Pending"), value ? Success : Warning);
-        Ready("image", source is not null);
-        Ready("rust", canvas && colors && controls);
-        var brush=workflowChips["brush"];double size=PaintTimingPlan.DefaultSize(settings);
-        brush.ToolTip=null;
-        if(settings.Bool("adaptive_brush")&&AdaptiveBrush.CalibrationCurrent(settings))Ready("brush",true);
-        else if(SpeedCalibration.BrushReady(settings,size))
+        void Set(string key,PreparationState state,string? problem=null,string? readyText=null)
         {
-            brush.Set("Size "+size,Success);
-            brush.ToolTip=T("Робочий Size підтверджений. Size 1 необов'язковий для комбінованого малювання.",
-                "Working Size is verified. Size 1 is optional for mixed painting.");
+            var chip=workflowChips[key];
+            chip.Set(state==PreparationState.Ready?readyText??T("Готово","Ready"):
+                state==PreparationState.Error?T("Помилка","Error"):state==PreparationState.Stale?T("Застаріло","Stale"):T("Очікує","Pending"),
+                state==PreparationState.Ready?Success:state==PreparationState.Error?Danger:Warning);
+            chip.ToolTip=problem is null?null:T(problem);
         }
-        else if(BrushSignalDiagnostics.Read(settings).Any(p=>p.Size==size&&p.State==BrushSignalState.Rejected))brush.Set(T("Помилка", "Error"),Danger);
-        else Ready("brush",false);
-        SetSpeedChip(workflowChips["speed"]);
-        RefreshCoverageStatus();
+        var image=preparation.Steps.Single(p=>p.Key=="image");Set("image",image.State,image.Problem);
+        var rust=preparation.Steps.Where(p=>p.Key is "capture" or "colors" or "controls").ToArray();
+        var missing=rust.FirstOrDefault(p=>p.State!=PreparationState.Ready);
+        Set("rust",missing?.State??PreparationState.Ready,missing?.Problem);
+        var brush=preparation.Steps.Single(p=>p.Key=="brush");
+        Set("brush",brush.State,brush.Problem,"Size "+PaintTimingPlan.DefaultSize(settings));
+        if(brush.State==PreparationState.Ready)workflowChips["brush"].ToolTip=T("Робочий Size підтверджений. Size 1 необов'язковий для комбінованого малювання.",
+            "Working Size is verified. Size 1 is optional for mixed painting.");
+        SetSpeedChip(workflowChips["speed"]);RefreshCoverageStatus();
     }
 
     private void UpdateDetailPreset()

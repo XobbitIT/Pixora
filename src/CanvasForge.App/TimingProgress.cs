@@ -6,9 +6,15 @@ internal sealed partial class MainWindow
 {
     private PaintProgress? lastPaintProgress;
     private string retainedStatus="";
+    private System.Windows.Controls.TextBlock footerProgress=new();
+    private System.Windows.Controls.TextBlock preparationSelection=new();
+    private System.Windows.Controls.ProgressBar footerProgressBar=new();
     private void ResetPaintProgress()
     {
         lastPaintProgress=null;progressBar.Value=0;progressLabel.Text="0% · "+T("Залишилось —","ETA —");
+        footerProgress.Text="";
+        footerProgress.Visibility=System.Windows.Visibility.Collapsed;
+        footerProgressBar.Value=0;footerProgressBar.Visibility=System.Windows.Visibility.Collapsed;
     }
     private void ApplyPaintProgress(PaintProgress p)
     {
@@ -31,6 +37,9 @@ internal sealed partial class MainWindow
                 PaintPhase.Completed=>T("Завершено","Complete"),_=>T("Малювання","Painting")
             };
             progressLabel.Text=$"{progressBar.Value:F1}% • {p.Done:N0}/{p.Total:N0} • {phase} • {T("Залишилось","ETA")} {remaining}";
+            footerProgress.Text=progressLabel.Text;
+            footerProgress.Visibility=System.Windows.Visibility.Visible;
+            footerProgressBar.Value=progressBar.Value;footerProgressBar.Visibility=System.Windows.Visibility.Visible;
             if(p.Estimate is { } estimate)
             {
                 string basis=estimate.Basis switch

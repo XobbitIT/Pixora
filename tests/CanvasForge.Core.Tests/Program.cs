@@ -2393,6 +2393,8 @@ CalibrationReliabilityChecks.Run(Test);
 WorkingSizePolicyChecks.Run(Test);
 ExecutionTimingChecks.Run(Test);
 MeasuredColorChecks.Run(Test);
+PreparationAndPaletteChecks.Run(Test);
+MeasuredPlanOptimizationChecks.Run(Test);
 DrawingWorkflowChecks.Run(Test);
 Test("Malformed legacy measurements never become brush or speed proof",()=>
 {

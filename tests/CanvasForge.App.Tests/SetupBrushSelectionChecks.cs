@@ -12,7 +12,7 @@ internal static partial class Program
     }
     private static MainWindow SetupSelectionWindow(string output,string name)
     {
-        string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var settings=ReadySettings("English");
+        string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var settings=ReadySettings("English");settings.Data.Remove("brush_footprints");
         settings.Set("probe_size",3);settings.Set("brush_shape_slot",3);settings.Set("brush_shape","Round");settings.Save(Path.Combine(directory,"config-csharp.json"));
         return new MainWindow(directory);
     }

@@ -518,10 +518,12 @@ public static class PlanIdentity
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(BrushFootprints.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(MeasuredColorPlan.Revision));
+        if(settings.Mode==ColorMode.RustPalette)hash.AppendData(System.Text.Encoding.UTF8.GetBytes(Planner.PaletteRevision));
         if (settings.Bool("auto_brush_size", true)
             && (settings.Text("coverage_mode", "Precision") != "Precision" || !settings.Bool("force_precision_controls", true)))
             hash.AppendData(System.Text.Encoding.UTF8.GetBytes(AutomaticBrush.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
+        foreach(var key in new[]{"preparation_history","palette_target_failed","controls_validation_failed"})paintSettings.Remove(key);
         foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance" })
             paintSettings.Remove(key);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + CanonicalJson.Serialize(paintSettings) + JsonSerializer.Serialize(palette)));

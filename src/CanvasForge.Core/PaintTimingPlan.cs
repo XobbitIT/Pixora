@@ -40,7 +40,7 @@ public static class PaintTimingPlan
         {
             token.ThrowIfCancellationRequested();
             var lines=groups[order[group]];
-            work.Add(new(Color(group),"color",s.Mode==ColorMode.HexDirect?StrokeTiming.HexChangeEstimate(s)+StrokeTiming.ColorDelay(s):StrokeTiming.ColorDelay(s)+StrokeTiming.ClickEstimate(s),false));
+            work.Add(new(Color(group),"color",s.Mode==ColorMode.HexDirect?StrokeTiming.HexChangeEstimate(s)+StrokeTiming.ColorDelay(s):StrokeTiming.ColorDelay(s)+StrokeTiming.ClickEstimate(s)+.16,false));
             if(s.Bool("coverage_audit"))work.Add(new(BeforeAudit(group),"capture",.2,false));
             for(int line=group==startGroup?startLine:0;line<lines.Count;line++)
             {

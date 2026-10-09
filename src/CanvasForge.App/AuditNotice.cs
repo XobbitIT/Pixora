@@ -64,9 +64,9 @@ internal sealed partial class MainWindow
         auditBanner.Background = new SolidColorBrush(Color.FromRgb((byte)((background.R * 9 + color.R) / 10), (byte)((background.G * 9 + color.G) / 10), (byte)((background.B * 9 + color.B) / 10)));
         auditBanner.BorderBrush = tone; auditHeadline.Foreground = tone;
         auditHeadline.Text = T("Аудит потребує уваги", "Coverage audit needs attention");
-        auditSummary.Text = English
+        auditSummary.Text = T(English
             ? string.Create(CultureInfo.GetCultureInfo("en-US"), $"Color {auditNotice.Group + 1} · coverage {auditNotice.Coverage:P1} · missing: {auditNotice.Missing:N0} px · uncertain: {auditNotice.Unknown:N0} px. Review the result; retry with a fresh START.")
-            : string.Create(CultureInfo.GetCultureInfo("uk-UA"), $"Колір {auditNotice.Group + 1} · покриття {auditNotice.Coverage:P1} · пропуски: {auditNotice.Missing:N0} px · невпевнено: {auditNotice.Unknown:N0} px. Перевір результат; для повтору натисни «Почати».");
+            : string.Create(CultureInfo.GetCultureInfo("uk-UA"), $"Колір {auditNotice.Group + 1} · покриття {auditNotice.Coverage:P1} · пропуски: {auditNotice.Missing:N0} px · невпевнено: {auditNotice.Unknown:N0} px. Перевір результат; для повтору натисни «Почати»."));
     }
 
     private void ShowAuditDiagnostics()

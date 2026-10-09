@@ -66,7 +66,7 @@ internal sealed partial class Painter : IDisposable
     // was recorded at calibration time onto the window's current position/DPI.
     // Strokes and controls read from settings.Calibration, so shifting those
     // keys fixes them; the palette click points baked into the plan are mapped
-    // separately via MapPoint. When the window has not moved (or no baseline was
+    // separately via PaletteSelection.ClickPoint. When the window has not moved (or no baseline was
     // captured) this is the identity transform and nothing changes.
     private CoordinateRebase SessionRebase()
     {
@@ -78,13 +78,6 @@ internal sealed partial class Painter : IDisposable
         if (!result.IsIdentity)
             Log("session_rebase", new { baseline, baseDpi = cal.SessionDpi, now, nowDpi = result.NowDpi, scale = result.Scale });
         return result;
-    }
-
-    private ScreenPoint MapPoint(ScreenPoint p)
-    {
-        if (rebase.IsIdentity) return p;
-        var (x, y) = rebase.Map(p.X, p.Y);
-        return new(x, y);
     }
 
     private void Log(string action, object? details = null)
@@ -521,21 +514,25 @@ internal sealed partial class Painter : IDisposable
             ?? throw new InvalidOperationException("Захопи палітру Rust.");
         if (RustSlider.Delta(entry.Color, background) < 40)
             throw new InvalidOperationException("У палітрі немає контрастного кольору для цього Canvas.");
-        ApplyPalette(entry);
+        ApplyPalette(entry,alreadyAligned:true);
         return entry.Color;
     }
 
-    private void ApplyPalette(PaletteEntry entry)
+    private void ApplyPalette(PaletteEntry entry,bool alreadyAligned=false)
     {
-        var point = MapPoint(entry.ClickPoint ?? throw new InvalidOperationException("Колір не має координат палітри."));
+        var point = PaletteSelection.ClickPoint(entry,rebase,alreadyAligned);
         var swatch = settings.Calibration.Rect("palette_swatch");
+        VerifyPaletteTarget(entry, point);
         for (var attempt = 0; attempt < 3; attempt++)
         {
             Click(point);
             Delay(ColorDelay() + attempt * .10);
             if (!swatch.Valid)
             {
-                Log("palette", new { target = entry.Color.Hex, point, attempt, verified = false, reason = "no active color swatch captured" });
+                // The target cell was checked before input. Do not mislabel
+                // that evidence as an active-color or final-paint RGB proof.
+                Log("palette", new { target = entry.Color.Hex, point, attempt, verified = false,
+                    targetVerified = true, verification = "palette-cell", reason = "active swatch unavailable; painted RGB unverified" });
                 return;
             }
             var actual = Native.Median(swatch);
@@ -544,6 +541,39 @@ internal sealed partial class Painter : IDisposable
             if (ok) return;
         }
         throw new InvalidOperationException($"Rust не підтвердив колір палітри {entry.Color.Hex}. Перевір зразок активного кольору.");
+    }
+
+    private void VerifyPaletteTarget(PaletteEntry entry, ScreenPoint point)
+    {
+        CheckBoundary();
+        try
+        {
+            // Move outside the palette before reading so hover/cursor pixels
+            // cannot masquerade as a changed color. The guard checks focus too.
+            var original=Native.Cursor();
+            var palette=settings.Calibration.Rect(entry.Source=="quick"?"quick":"palette");
+            var area=PaletteSelection.SampleArea(settings.Calibration,point,entry.Source);
+            if(area.Left<windowRect.Left||area.Top<windowRect.Top||area.Right>windowRect.Right||area.Bottom>windowRect.Bottom)
+                throw new PaletteLayoutException();
+            var park=CaptureCursor.ParkingPoint(palette,windowRect,original,48)
+                ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
+            if(park!=original){Native.ReleaseChecked();MoveCursor(park);Delay(.08);}
+            var evidence = PaletteSelection.Verify(settings.Calibration, entry, point, area =>
+            { CheckBoundary(); return Native.Median(area); }, () => Delay(.08));
+            Log("palette_target", new { color=entry.Color.Hex, point, evidence, activeColorVerified=false });
+        }
+        catch(InvalidOperationException e)
+        {
+            Log("palette_target_failed", new { color=entry.Color.Hex, point, reason=e.Message,
+                evidence=(e as PaletteTargetException)?.Evidence });
+            throw;
+        }
+    }
+
+    public void VerifyPaletteTargets()
+    {
+        foreach(var entry in settings.Palette())
+            VerifyPaletteTarget(entry, PaletteSelection.ClickPoint(entry,rebase,alreadyAligned:true));
     }
 
     private double? activeAdaptiveSize;
@@ -611,7 +641,7 @@ internal sealed partial class Painter : IDisposable
 
     public void Run(PaintPlan plan, ResumeCheckpoint? resume = null)
     {
-        if(CalibrationReliability.PaintingProblem(settings) is {} calibrationProblem)throw new InvalidOperationException(calibrationProblem);
+        if(PaintingReadiness.BrushProblem(settings) is {} calibrationProblem)throw new InvalidOperationException(calibrationProblem);
         token.ThrowIfCancellationRequested();
         Log("start_preparing",new{version=BuildInfo.Version,workingSize=PaintTimingPlan.DefaultSize(settings)});
         report(new(0,0,0,0,"Готую штрихи та час. Можна зупинити підготовку.",Phase:PaintPhase.Preparing));

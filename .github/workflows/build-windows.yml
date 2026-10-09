@@ -96,6 +96,10 @@ jobs:
           ./tools/Package-Manifest.ps1 -PackageDirectory "$PWD/publish/windows-x64" -SourceDirectory "$PWD"
           $portable = "verification/Pixora_${env:PIXORA_VERSION}_Windows_x64.zip"
           Compress-Archive -Path publish/windows-x64/* -DestinationPath $portable -Force
+          python tools/verify_package.py --self-test
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python tools/verify_package.py "$portable" --version "$env:PIXORA_VERSION" --commit "$env:PIXORA_SOURCE_SHA"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           (Get-FileHash -LiteralPath $portable -Algorithm SHA256).Hash.ToLowerInvariant() | Set-Content "$portable.sha256" -Encoding ascii
 
       - name: Upload Pixora portable
