@@ -28,7 +28,7 @@ internal static class MeasuredPlanOptimizationChecks
             var plan=new PaintPlan{Width=w,Height=h,Palette=[new(new(220,30,30),null,"main"),new(new(30,220,30),null,"main")],
                 Counts=Enumerable.Range(0,2).ToDictionary(c=>c,c=>indices.Count(i=>i==c)),Indices=indices,Strokes=strokes,
                 Identity="beta50-golden-"+name,Mode=ColorMode.RustPalette,Preview=new(w,h)};
-            var p=MeasuredColorPlan.TryBuild(plan,s)!;var schedule=TransferSchedule.Build(plan,s,p.Groups);
+            var p=MeasuredColorPlan.BuildGeometry(plan,s)!;var schedule=TransferSchedule.Build(plan,s,p.Groups);
             string Hash<T>(T data)=>Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(data)));
             result.Add(new(name+(mixed?"-mixed":"-size3"),p.TargetPixels,p.CoveredPixels,p.Groups.Values.Sum(g=>g.Count),
                 Hash(p.Groups.OrderBy(g=>g.Key).Select(g=>new{Color=g.Key,Strokes=g.Value})),Hash(p.UnplannedMask),
@@ -39,12 +39,12 @@ internal static class MeasuredPlanOptimizationChecks
     public static void Run(Action<string,Action> test)
     {
         foreach(bool mixed in new[]{false,true})test("Measured geometry uses bounded bit maps and reuses each profile: "+(mixed?"mixed":"Size 3"),()=>{
-            var p=MeasuredColorPlan.TryBuild(MeasuredColorChecks.Plan(),MeasuredColorChecks.Config(mixed))!;
+            var p=MeasuredColorPlan.BuildGeometry(MeasuredColorChecks.Plan(),MeasuredColorChecks.Config(mixed))!;
             var d=p.Diagnostics!;int profiles=mixed?3:1;
             if(d.SafeMapsBuilt!=profiles||d.SafeMapsReused!=profiles||d.PeakCachedBytes!=profiles*((128000L+63)/64)*8||d.PeakCachedBytes>8*1024*1024)
                 throw new Exception("Measured geometry was rebuilt or exceeded the bit-cache budget.");
         });
-        test("Optimized measured planner preserves beta50 commands, gaps and schedules across twelve frozen cases",()=>{
+        test("Geometry primitive preserves beta50 commands, gaps and schedules across twelve frozen cases",()=>{
             var expected=JsonSerializer.Deserialize<List<Golden>>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"Fixtures","beta50-measured-plan-goldens.json")))!;
             var actual=Capture();if(!actual.SequenceEqual(expected))throw new Exception("Measured planner changed the frozen beta50 output.");
         });

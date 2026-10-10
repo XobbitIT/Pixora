@@ -118,6 +118,8 @@ internal static partial class Program
         CheckVisualConfirmationPreset(destination,"Українська");CheckVisualConfirmationPreset(destination,"English");
         CheckVisualStartGate(destination,"Українська");CheckVisualStartGate(destination,"English");CheckQuickBrushIsolation(destination);
         CheckWorkingSizePolicy(destination,"Українська");CheckWorkingSizePolicy(destination,"English");
+        CheckCombinedSetupSelection(destination);
+        CheckGroupedSpeed(destination);
         CheckExecutionTimingUi(destination,"Українська");CheckExecutionTimingUi(destination,"English");
         CheckMixedReadiness(destination,"Українська");CheckMixedReadiness(destination,"English");
         CheckSynchronizedEditors(destination,"Українська");CheckSynchronizedEditors(destination,"English");
@@ -130,7 +132,7 @@ internal static partial class Program
         CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);
         CheckCanonicalPreparation(destination,"Українська");CheckCanonicalPreparation(destination,"English");
         CheckPreparationHistory(destination);CheckPreparationControlsAndFooter(destination);
-        Console.WriteLine("ALL 148 WPF UI CHECKS PASSED");
+        Console.WriteLine("ALL 160 WPF UI CHECKS PASSED");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -340,7 +342,7 @@ internal static partial class Program
         var size=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="adaptive_max_size");
         Assert(size.Items.Cast<object>().Any(v=>v.ToString()=="100"),"Large adaptive Size missing");
         var calibration=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="brush_calibration_size");
-        Assert(calibration.Items.Cast<object>().Select(v=>v.ToString()).SequenceEqual(new[]{"3","3/10/20","1","1/3/10/20","10","20","40","60","100"}),"Optional calibration Sizes missing");
+        Assert(calibration.Items.Cast<object>().Select(v=>v.ToString()).SequenceEqual(SetupBrushSelection.Options),"Optional calibration Sizes missing");
         var toggle=Descendants(root).OfType<CheckBox>().Single(b=>b.Content?.ToString()==(english?"Automatically choose measured shapes":"Автоматично вибирати виміряні форми"));
         Assert(toggle.IsChecked==false,"Automatic shape choice enabled without explicit selection");
         foreach(var expander in Descendants(root).OfType<Expander>().ToArray())expander.IsExpanded=true;

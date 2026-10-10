@@ -1,4 +1,17 @@
-# Known issues — current beta.38
+# Known issues — current beta.56
+
+The supplied beta.55 Palette runs verify the captured target cells, not final painted RGB or physical coverage. Gray FCB/BVB gaps also exist in the safe-command model. Beta.56 removes empty color selections and redundant solid-mask commands; it does not paint unsafe boundaries or turn Unknown audit pixels into verified coverage.
+
+Grouped Speed Probe retains full independent controls and requires clean Canvas confirmations between stages. Some Sizes may fail or lack enough clean space. Offline saved-config comparisons show fewer commands for local Adaptive masks but cannot establish live speed/ETA accuracy. Adaptive may still cost more for additional coverage. A new user-run Rust test is required; no beta.56 live test or native input was performed. See LIVE_ANALYSIS_BETA56_UA.md, PROBLEMS_STATUS_BETA56_UA.md and TESTING_BETA56_UA.md.
+
+Previous beta.55:
+# Known issues — current beta.55
+
+The October 9 beta.54 recordings and logs show adaptive planning can be slower than ordinary Size 3: 5,567 versus 3,484 strokes on the same image, with only 5,000 additional modeled pixels. A Size 20 measurement had a 3 × 21 solid core and 40 × 39 possible bounds. Size labels do not prove efficient fill coverage. Beta.55 compares equal-coverage alternatives and adds intermediate measurements, but does not guarantee Adaptive is faster than an ordinary plan with lower coverage.
+
+Beta.54 coverage audits still reported Missing and Unknown; no complete in-game coverage claim follows from the planner. New beta.55 routes and brush measurements require a fresh user-run Rust test. Delay constants, contrast and audit thresholds remain unchanged. Pause/STOP/RESUME were reported working by the user; new schedule revisions require a new START for old checkpoints.
+
+Historical beta.38 notes follow; they are retained as context, not current release evidence.
 
 Code review fixes cover asynchronous lifecycle and malformed calibration data; see CODE_REVIEW_BETA38_UA.md. Fresh Rust validation remains pending: stable three-dot Square Size 1 core, spatial/speed proofs, actual Palette/HEX adaptive coverage, STOP and closing during each standalone check. Strong/weak beta.36 failures are still not certified by offline replay. No reduced RGB/coverage thresholds, proof revisions or input delays are introduced. Current-context proofs remain usable; a static stamp is not proof of continuous swept coverage.
 

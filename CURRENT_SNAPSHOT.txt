@@ -1,3 +1,21 @@
+Pixora 1.0.14-beta.56 — grouped speed protocols, painted color groups, solid-mask redundancy removal.
+435 Core / 160 WPF offline checks; inGameTest=false; nativeClipboardSmoke=false.
+Source update based on b648355c32b2a7c3a24f424540581193ab221a85; the previously delivered local ZIP retains its pre-commit manifest.
+Contrast 80, RGB tolerance 12, triple-mask intersection, Probe and audit acceptance unchanged.
+Eight offline saved-config comparisons preserve the exact modeled coverage mask.
+New START required; existing fresh brush/spatial measurements may be reused.
+See CHANGES_BETA56_UA.md, LIVE_ANALYSIS_BETA56_UA.md, PROBLEMS_STATUS_BETA56_UA.md and TESTING_BETA56_UA.md.
+
+Previous beta.55:
+Pixora 1.0.14-beta.55 — combined Sizes and measured route cost selection.
+423 Core / 149 WPF offline checks passed; inGameTest=false.
+Local changes based on beta.54 commit b648355c32b2a7c3a24f424540581193ab221a85; no new push.
+Contrast 80, RGB tolerance 12, triple-mask intersection, probe and audit acceptance unchanged.
+Adaptive does not guarantee a faster run with narrow cores; intermediate Size measurements and live comparison required.
+New START required after the plan revision change.
+See CHANGES_BETA55_UA.md and TESTING_BETA55_UA.md.
+
+Previous beta.54:
 Pixora 1.0.14-beta.54 — unified preparation, canonical readiness, palette-cell checks.
 408 Core / 148 WPF offline checks; inGameTest=false.
 Source branch: codex/pixora-1.0.14-beta-calibration (PR #2); based on beta.50 commit 3a60cc8f94ee242f096e59b1e444bf7a696c28ef.

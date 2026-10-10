@@ -2766,5 +2766,197 @@
     "Un test de vitesse échoué laisse la peinture stable disponible. Adaptive et audit sont facultatifs ; les tests individuels restent sur leurs pages.",
     "Si falla la prueba de velocidad, sigue disponible la pintura estable. Adaptive y auditoría son opcionales; las pruebas individuales siguen en sus páginas.",
     "Неудачная проверка скорости оставляет стабильное рисование доступным. Adaptive и аудит необязательны; отдельные проверки остаются в своих разделах."
+  ],
+  [
+    "Combined plan: {p0} strokes; wide candidate: {p1}. Selected by time with the same coverage.",
+    "Plan mieszany: {p0} pociągnięć; wariant szeroki: {p1}. Wybór według czasu przy tym samym pokryciu.",
+    "Kombinierter Plan: {p0} Striche; breite Variante: {p1}. Auswahl nach Zeit bei gleicher Abdeckung.",
+    "Plan combiné : {p0} traits ; variante large : {p1}. Choix selon le temps, à couverture égale.",
+    "Plan combinado: {p0} trazos; variante ancha: {p1}. Selección por tiempo con la misma cobertura.",
+    "Комбинированный план: {p0} штрихов; широкий вариант: {p1}. Выбор по времени с тем же покрытием."
+  ],
+  [
+    "A verified route is used when faster than normal stable movement. Tested spans and delay margins remain unchanged.",
+    "Sprawdzona metoda jest używana, gdy jest szybsza od zwykłego stabilnego ruchu. Testowane odcinki i zapas opóźnienia nie zmieniają się.",
+    "Eine geprüfte Methode wird verwendet, wenn sie schneller als die normale stabile Bewegung ist. Geprüfte Strecken und Zeitreserven bleiben gleich.",
+    "Une méthode vérifiée est utilisée si elle est plus rapide que le mouvement stable normal. Les longueurs testées et les marges restent inchangées.",
+    "Se usa un método verificado cuando es más rápido que el movimiento estable normal. Las longitudes y los márgenes comprobados no cambian.",
+    "Проверенный маршрут используется, когда он быстрее обычного стабильного движения. Проверенные длины и запас задержки не меняются."
+  ],
+  [
+    "Combined calibration: 2/3/5/7/10/15/20, three imprints per Size. Sizes 30/40/60/100 can be tested separately.",
+    "Kalibracja łączona: 2/3/5/7/10/15/20, trzy ślady dla każdego Size. Rozmiary 30/40/60/100 można sprawdzić oddzielnie.",
+    "Kombinierte Kalibrierung: 2/3/5/7/10/15/20, drei Abdrücke pro Size. Größen 30/40/60/100 lassen sich einzeln prüfen.",
+    "Étalonnage combiné : 2/3/5/7/10/15/20, trois empreintes par Size. Les tailles 30/40/60/100 peuvent être testées séparément.",
+    "Calibración combinada: 2/3/5/7/10/15/20, tres huellas por Size. Los tamaños 30/40/60/100 se pueden probar por separado.",
+    "Комбинированная проверка: 2/3/5/7/10/15/20, три отпечатка каждого Size. Размеры 30/40/60/100 можно проверить отдельно."
+  ],
+  [
+    "Test multiple Sizes",
+    "Test wielu rozmiarów",
+    "Mehrere Größen prüfen",
+    "Tester plusieurs tailles",
+    "Probar varios tamaños",
+    "Проверка нескольких размеров"
+  ],
+  [
+    "Sizes for Speed Probe",
+    "Rozmiary do testu prędkości",
+    "Größen für den Geschwindigkeitstest",
+    "Tailles pour le test de vitesse",
+    "Tamaños para la prueba de velocidad",
+    "Размеры для теста скорости"
+  ],
+  [
+    "All measured Sizes",
+    "Wszystkie zmierzone rozmiary",
+    "Alle gemessenen Größen",
+    "Toutes les tailles mesurées",
+    "Todos los tamaños medidos",
+    "Все измеренные размеры"
+  ],
+  [
+    "Run grouped Speed Probe",
+    "Uruchom grupowy test prędkości",
+    "Gruppierten Geschwindigkeitstest starten",
+    "Lancer le test de vitesse groupé",
+    "Iniciar prueba de velocidad por grupo",
+    "Запустить групповой тест скорости"
+  ],
+  [
+    "One sequence for measured Sizes. Current spatial profiles are reused. Clear Canvas and confirm between stages; test criteria remain the same.",
+    "Jedna sekwencja dla zmierzonych rozmiarów. Aktualne profile przestrzenne są używane ponownie. Wyczyść płótno i potwierdź między etapami; kryteria testu pozostają bez zmian.",
+    "Eine Abfolge für gemessene Größen. Aktuelle räumliche Profile werden wiederverwendet. Leinwand zwischen den Schritten leeren und bestätigen; die Prüfkriterien bleiben gleich.",
+    "Une séquence pour les tailles mesurées. Les profils spatiaux actuels sont réutilisés. Effacez la toile et confirmez entre les étapes ; les critères restent identiques.",
+    "Una secuencia para los tamaños medidos. Se reutilizan los perfiles espaciales vigentes. Limpia el lienzo y confirma entre etapas; los criterios no cambian.",
+    "Одна последовательность для измеренных размеров. Актуальные пространственные профили используются повторно. Очистите полотно и подтвердите между этапами; критерии теста остаются прежними."
+  ],
+  [
+    "Available Sizes: ",
+    "Dostępne rozmiary: ",
+    "Verfügbare Größen: ",
+    "Tailles disponibles : ",
+    "Tamaños disponibles: ",
+    "Доступные размеры: "
+  ],
+  [
+    "No current footprint: ",
+    "Brak aktualnego odcisku: ",
+    "Kein aktueller Abdruck: ",
+    "Aucune empreinte actuelle : ",
+    "Sin huella vigente: ",
+    "Нет актуального отпечатка: "
+  ],
+  [
+    "Measure at least one Size on the Brush page first.",
+    "Najpierw zmierz co najmniej jeden rozmiar na stronie Pędzel.",
+    "Zuerst mindestens eine Größe auf der Pinselseite messen.",
+    "Mesurez d’abord au moins une taille sur la page Pinceau.",
+    "Mide primero al menos un tamaño en la página Pincel.",
+    "Сначала измерьте хотя бы один размер в разделе «Кисть»."
+  ],
+  [
+    "Grouped test: ",
+    "Test grupowy: ",
+    "Gruppentest: ",
+    "Test groupé : ",
+    "Prueba por grupo: ",
+    "Групповой тест: "
+  ],
+  [
+    "Saved routes: {p0} Sizes; failed: {p1}.",
+    "Zapisane ścieżki: {p0} rozmiarów; nieudane: {p1}.",
+    "Gespeicherte Pfade: {p0} Größen; fehlgeschlagen: {p1}.",
+    "Trajets enregistrés : {p0} tailles ; échecs : {p1}.",
+    "Rutas guardadas: {p0} tamaños; fallidos: {p1}.",
+    "Сохранены маршруты: {p0} размеров; отказов: {p1}."
+  ],
+  [
+    "Batch cancelled.",
+    "Grupa anulowana.",
+    "Gruppe abgebrochen.",
+    "Groupe annulé.",
+    "Grupo cancelado.",
+    "Группа отменена."
+  ],
+  [
+    "Test context changed; batch stopped.",
+    "Kontekst testu zmienił się; grupa zatrzymana.",
+    "Testkontext geändert; Gruppe gestoppt.",
+    "Le contexte a changé ; le groupe est arrêté.",
+    "Cambió el contexto de prueba; grupo detenido.",
+    "Контекст теста изменился; группа остановлена."
+  ],
+  [
+    "Size {p0}: clear Canvas before the next stage. Do not move the mouse during the test. Continue?",
+    "Rozmiar {p0}: wyczyść płótno przed kolejnym etapem. Nie ruszaj myszą podczas testu. Kontynuować?",
+    "Größe {p0}: Leinwand vor dem nächsten Schritt leeren. Maus während des Tests nicht bewegen. Fortfahren?",
+    "Taille {p0} : effacez la toile avant l’étape suivante. Ne déplacez pas la souris pendant le test. Continuer ?",
+    "Tamaño {p0}: limpia el lienzo antes de la siguiente etapa. No muevas el ratón durante la prueba. ¿Continuar?",
+    "Размер {p0}: очистите полотно перед следующим этапом. Не двигайте мышь во время теста. Продолжить?"
+  ],
+  [
+    "Spatial offsets were not verified.",
+    "Przesunięcia przestrzenne nie zostały potwierdzone.",
+    "Räumliche Versätze wurden nicht bestätigt.",
+    "Les décalages spatiaux n’ont pas été vérifiés.",
+    "Los desplazamientos espaciales no se verificaron.",
+    "Пространственные смещения не подтверждены."
+  ],
+  [
+    "No fast route passed verification.",
+    "Żadna szybka ścieżka nie przeszła weryfikacji.",
+    "Kein schneller Pfad hat die Prüfung bestanden.",
+    "Aucun trajet rapide n’a été validé.",
+    "Ninguna ruta rápida superó la verificación.",
+    "Ни один быстрый маршрут не прошёл проверку."
+  ],
+  [
+    "Palette: {p0} available; drawing: {p1} colors. No safe strokes: {p2} colors.",
+    "Paleta: {p0} dostępnych; rysowanie: {p1} kolorów. Bez bezpiecznych pociągnięć: {p2} kolorów.",
+    "Palette: {p0} verfügbar; Zeichnung: {p1} Farben. Keine sicheren Striche: {p2} Farben.",
+    "Palette : {p0} couleurs disponibles ; dessin : {p1} couleurs. Sans traits sûrs : {p2} couleurs.",
+    "Paleta: {p0} disponibles; dibujo: {p1} colores. Sin trazos seguros: {p2} colores.",
+    "Палитра: {p0} доступных; рисование: {p1} цветов. Без безопасных штрихов: {p2} цветов."
+  ],
+  [
+    "Redundant strokes removed: {p0}; shortened: {p1}. Solid-core coverage is preserved.",
+    "Usunięte zbędne pociągnięcia: {p0}; skrócone: {p1}. Pokrycie pełnym rdzeniem jest zachowane.",
+    "Überflüssige Striche entfernt: {p0}; verkürzt: {p1}. Die Abdeckung durch den festen Kern bleibt erhalten.",
+    "Traits superflus supprimés : {p0} ; raccourcis : {p1}. La couverture du noyau plein est préservée.",
+    "Trazos redundantes eliminados: {p0}; acortados: {p1}. Se conserva la cobertura del núcleo sólido.",
+    "Удалено лишних штрихов: {p0}; сокращено: {p1}. Покрытие сплошным ядром сохранено."
+  ],
+  [
+    "Small passes add coverage outside the wide brush's solid core. Partial overlap is needed for continuous fill; soft-edge paint is not counted as confirmed.",
+    "Drobne przejścia dodają pokrycie poza pełnym rdzeniem szerokiego pędzla. Częściowe nakładanie zapewnia ciągłe wypełnienie; miękkie krawędzie nie są uznawane za potwierdzone.",
+    "Feine Durchgänge ergänzen die Abdeckung außerhalb des festen Kerns des breiten Pinsels. Teilweise Überlappung ist für eine lückenlose Füllung nötig; weiche Ränder gelten nicht als bestätigt.",
+    "Les passages fins complètent la couverture hors du noyau plein du pinceau large. Un chevauchement partiel assure un remplissage continu ; les bords doux ne sont pas considérés comme confirmés.",
+    "Las pasadas finas añaden cobertura fuera del núcleo sólido del pincel ancho. El solapamiento parcial permite un relleno continuo; los bordes suaves no se consideran confirmados.",
+    "Мелкие проходы добавляют покрытие за пределами сплошного ядра широкой кисти. Частичное перекрытие нужно для сплошной заливки; мягкие края не считаются подтверждёнными."
+  ],
+  [
+    "Size {p0} · shape {p1}: {p2} strokes; new core: {p3} px; repeated: {p4} px.",
+    "Rozmiar {p0} · kształt {p1}: {p2} pociągnięć; nowy rdzeń: {p3} px; powtórzone: {p4} px.",
+    "Größe {p0} · Form {p1}: {p2} Striche; neuer Kern: {p3} px; wiederholt: {p4} px.",
+    "Taille {p0} · forme {p1} : {p2} traits ; nouveau noyau : {p3} px ; répété : {p4} px.",
+    "Tamaño {p0} · forma {p1}: {p2} trazos; núcleo nuevo: {p3} px; repetido: {p4} px.",
+    "Размер {p0} · форма {p1}: {p2} штрихов; новое ядро: {p3} px; повторное: {p4} px."
+  ],
+  [
+    "Completed tests: {p0} Sizes; failed: {p1}.",
+    "Zakończone testy: {p0} rozmiarów; nieudane: {p1}.",
+    "Abgeschlossene Tests: {p0} Größen; fehlgeschlagen: {p1}.",
+    "Tests terminés : {p0} tailles ; échecs : {p1}.",
+    "Pruebas completadas: {p0} tamaños; fallidos: {p1}.",
+    "Завершено проверок: {p0} размеров; отказов: {p1}."
+  ],
+  [
+    "Sizes with current routes: {p0}.",
+    "Rozmiary z aktualnymi ścieżkami: {p0}.",
+    "Größen mit aktuellen Pfaden: {p0}.",
+    "Tailles avec des trajets actuels : {p0}.",
+    "Tamaños con rutas vigentes: {p0}.",
+    "Размеры с актуальными маршрутами: {p0}."
   ]
 ]

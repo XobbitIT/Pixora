@@ -31,7 +31,7 @@ public sealed class BrushContrastException(BrushStampContrast metrics)
 public static class BrushFootprints
 {
     public const string Revision = "command-masks-local-saturation-v3";
-    public static readonly double[] Sizes = [1,3,10,20,40,60,100];
+    public static readonly double[] Sizes = [1,2,3,5,7,10,15,20,30,40,60,100];
     public const int Repeats = 3;
     private const int Limit = 256;
     private sealed record CachedRows(List<BrushFootprint> Rows);
@@ -80,12 +80,12 @@ public static class BrushFootprints
             CachedRows Parse(JsonNode n)
             {
                 var parsed=n.Deserialize<List<BrushFootprint>>();
-                if(parsed is null||parsed.Count>49||parsed.Any(p=>p is null)
+                if(parsed is null||parsed.Count>7*Sizes.Length||parsed.Any(p=>p is null)
                     ||parsed.GroupBy(p=>(p.ShapeSlot,p.Size)).Any(g=>g.Count()!=1))return new([]);
                 return new(parsed.Where(Valid).ToList());
             }
             var rows=(s.MeasurementSnapshot?cache.GetValue(node,Parse):Parse(node)).Rows;
-            if(rows is null||rows.Count>49||rows.Any(p=>p is null))return [];
+            if(rows is null||rows.Count>7*Sizes.Length||rows.Any(p=>p is null))return [];
             if(rows.GroupBy(p=>(p.ShapeSlot,p.Size)).Any(g=>g.Count()!=1))return [];
             return rows.Where(p=>p.Context==Context(s,p.ShapeSlot)
                 &&(allShapes||p.ShapeSlot==s.Int("brush_shape_slot",3))).ToList();
@@ -227,7 +227,7 @@ public static class BrushFootprints
     }
     public static List<BrushCalibrationTile> Tiles(ScreenRect canvas,IReadOnlyList<double> sizes)
     {
-        if(!canvas.Valid||sizes.Count==0||sizes.Count>7||sizes.Any(s=>!Sizes.Contains(s))||sizes.Distinct().Count()!=sizes.Count)
+        if(!canvas.Valid||sizes.Count==0||sizes.Count>Sizes.Length||sizes.Any(s=>!Sizes.Contains(s))||sizes.Distinct().Count()!=sizes.Count)
             throw new ArgumentException("Invalid calibration layout.");
         int tile=Math.Max(96,(int)sizes.Max()*4+48),cols=Math.Min(canvas.Width/tile,Math.Max(2,sizes.Count)),rows=canvas.Height/tile;
         int needed=sizes.Count*Repeats;

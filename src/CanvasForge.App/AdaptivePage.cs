@@ -45,7 +45,9 @@ internal sealed partial class MainWindow
         page.Children.Add(Card(T("2. Автоматичне калібрування", "2. Automatic calibration"), out var calibration));
         workingCalibrationStatus=Text("",13);calibration.Children.Add(workingCalibrationStatus);
         calibration.Children.Add(Text(T("Size — значення в Rust, а не діаметр у пікселях. Три незалежні крапки визначають слід від координати миші. Контрольне нанесення в ту саму точку перевіряє насичення; ядро береться лише з першого відбитка.", "Size is the Rust control value, not a diameter in pixels. Three independent dots measure the footprint relative to the mouse command. Another application at the same point checks saturation; the core uses only the first imprint."), 12, Muted));
-        AddCombo(calibration,"brush_calibration_size",T("Розміри для калібрування","Sizes to calibrate"),new[]{"3","3/10/20","1","1/3/10/20","10","20","40","60","100"});
+        AddCombo(calibration,"brush_calibration_size",T("Розміри для калібрування","Sizes to calibrate"),SetupBrushSelection.Options);
+        calibration.Children.Add(Text(T("Комбінована перевірка: 2/3/5/7/10/15/20, три відбитки кожного Size. Розміри 30/40/60/100 можна перевіряти окремо.",
+            "Combined calibration: 2/3/5/7/10/15/20, three imprints per Size. Sizes 30/40/60/100 can be tested separately."),12,Muted));
         adaptiveCalibrate = CheckButton(T("Калібрувати автоматично", "Calibrate automatically"), BeginBrushCalibration, true);
         calibration.Children.Add(adaptiveCalibrate);
         adaptiveRetry=CheckButton(T("Повторити лише невдалі вибрані Size","Retry only failed selected Sizes"),CalibrateFailedBrush);
@@ -92,7 +94,7 @@ internal sealed partial class MainWindow
             if (settings.Bool("adaptive_brush")) AdaptiveBrush.Prepare(settings);
             Dirty(); BuildUi();
         });
-        AddCombo(painting, "adaptive_max_size", T("Максимальний розмір широкого пензля", "Maximum wide brush Size"), new[] { "3", "10", "20", "40", "60", "100" }, true);
+        AddCombo(painting, "adaptive_max_size", T("Максимальний розмір широкого пензля", "Maximum wide brush Size"), SetupBrushSelection.SizeOptions.Where(size=>size!="1").ToArray(), true);
         AddCheck(painting,"adaptive_auto_shape",T("Автоматично вибирати виміряні форми","Automatically choose measured shapes"));
         painting.Children.Add(Text(T("Повний можливий слід залишається всередині свого кольору. Вузькі ділянки, куди підтверджені пензлі не поміщаються, показуються перед стартом. Текстури без стабільного ядра не використовуються.", "The full possible footprint stays inside its color. Narrow areas that verified brushes cannot fit are shown before START. Textures without a stable core are excluded."), 12, Muted));
         painting.Children.Add(Text(T("Режим вмикає точне покриття та прозорість 1. Підтверджені тестом швидкості лінії з Shift сумісні з адаптивним пензлем. Після зміни полотна, кольорового режиму або форми повтори калібрування.", "This mode sets Precision and Opacity 1. Shift lines verified by Speed Probe work with adaptive brushes. Recalibrate after changing Canvas, color mode, or brush shape."), 12, Muted));
@@ -105,6 +107,12 @@ internal sealed partial class MainWindow
         page.Children.Add(Button(T("Перейти до тесту швидкості", "Go to Speed Probe"), ShowSpeedSetup));
     }
 
+    private double[] SelectedCalibrationSizes()
+    {
+        try{return SetupBrushSelection.Sizes(settings.Text("brush_calibration_size","3"),false);}
+        // The visible ComboBox falls back to its first option, Size 3.
+        catch(ArgumentException){return [3];}
+    }
     private void RefreshAdaptiveStatus()
     {
         RefreshSpeedStatus();
@@ -118,9 +126,7 @@ internal sealed partial class MainWindow
         adaptiveCalibrate.IsEnabled = !Painting;
         adaptiveCalibrate.ToolTip = problem is null ? null : T(problem);
         adaptiveBaseCalibrate.IsEnabled=!Painting;adaptiveBaseCalibrate.ToolTip=problem is null?null:T(problem);
-        var selected=settings.Text("brush_calibration_size","3");
-        double[] requested=double.TryParse(selected,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var parsed)
-            &&BrushFootprints.Sizes.Contains(parsed)?[parsed]:[3,10,20];
+        var requested=SelectedCalibrationSizes();
         adaptiveRetry.IsEnabled=problem is null&&!Painting&&BrushSignalDiagnostics.RetrySizes(settings,requested).Length>0;
         brushDiagnosticButton.IsEnabled=!Painting&&LatestBrushDiagnostics() is not null;
         // A legacy/stale enabled setting must remain possible to turn off.
@@ -152,7 +158,7 @@ internal sealed partial class MainWindow
     {
         var diagnostics=BrushSignalDiagnostics.Read(settings);
         var speed=SpeedCalibration.Read(settings);
-        foreach(double size in (adaptiveBase?new double[]{1}:new double[]{3,10,20}.Union(diagnostics.Select(r=>r.Size)).Union(BrushFootprints.Read(settings).Select(r=>r.Size)).Where(size=>size>=3)).Order())
+        foreach(double size in (adaptiveBase?new double[]{1}:SelectedCalibrationSizes().Union(diagnostics.Select(r=>r.Size)).Union(BrushFootprints.Read(settings).Select(r=>r.Size)).Where(size=>size>=2)).Order())
         {
             var attempt=diagnostics.FirstOrDefault(r=>r.Size==size);var profile=BrushFootprints.Find(settings,size);
             var state=attempt?.State??(profile is {SolidCore.Valid:true}?BrushSignalState.Verified:

@@ -40,7 +40,7 @@ internal static class StartPreparationChecks
             AdaptiveBrush.Validate(s);
         });
         test("Timing and preview estimate use the actual Size 3 route",()=>{
-            var s=VerifiedSize3();var batch=new PaintBatch(0,[new(40,40,60,40)],1);var speed=SpeedProfile.Get("Rapid");
+            var s=VerifiedSize3();s.Set("input_frame_delay_ms",100);var batch=new PaintBatch(0,[new(40,40,60,40)],1);var speed=SpeedProfile.Get("Rapid");
             var sample=SpeedCalibration.Resolve(s,PaintTimingPlan.DefaultSize(s),batch.Segments[0]);Require(sample is not null);
             var work=PaintTimingPlan.Build(s,new(){{0,[batch]}},[0]).Single(w=>w.Motion);
             Require(work.RateKey==PaintTimingPlan.Route(s,batch,3)&&work.RateKey.Contains("3:probe_Paced"));
@@ -48,7 +48,7 @@ internal static class StartPreparationChecks
             Require(Math.Abs(work.PlannedSeconds-TransferSchedule.EstimateBatch(s,speed,batch))<1e-9);
         });
         test("Large startup timing avoids repeated proof parsing",()=>{
-            var s=VerifiedSize3();var batch=new PaintBatch(0,[new(40,40,60,40)],1);
+            var s=VerifiedSize3();s.Set("input_frame_delay_ms",100);var batch=new PaintBatch(0,[new(40,40,60,40)],1);
             var groups=new Dictionary<int,List<PaintBatch>>{{0,Enumerable.Repeat(batch,10000).ToList()}};
             var timer=Stopwatch.StartNew();var work=PaintTimingPlan.Build(s,groups,[0]);
             Require(work.Count==10003&&work.Count(w=>w.Motion)==10000&&work.Where(w=>w.Motion).All(w=>w.RateKey.Contains("3:probe_Paced")));
@@ -68,7 +68,7 @@ internal static class StartPreparationChecks
             Require(!AdaptiveBrush.CalibrationCurrent(effective));
         });
         test("Working Size validation rejects unsupported values",()=>{
-            var s=Settings.Defaults();s.Set("precision_brush_size","2");bool rejected=false;
+            var s=Settings.Defaults();s.Set("precision_brush_size","4");bool rejected=false;
             try{s.Validate();}catch(InvalidDataException){rejected=true;}Require(rejected);
         });
     }

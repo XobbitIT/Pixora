@@ -13,14 +13,22 @@ public sealed record MeasuredPlanDiagnostics(int SafeMapsBuilt,int SafeMapsReuse
     // Pass timings include their SafeMap requests; do not sum these with SafeMapMilliseconds.
     public double WidePassMilliseconds {get;init;}
     public double ResidualPassMilliseconds {get;init;}
+    public MeasuredPlanChoice? Choice {get;init;}
+    public MeasuredStrokeSavings? StrokeSavings {get;init;}
 }
+public sealed record MeasuredPlanChoice(int SingleStrokes,int MixedStrokes,int SelectedStrokes,
+    double SingleUnionSeconds,double MixedUnionSeconds,double SelectedSeconds,int SingleColors,int MixedColors,int AddedCoveragePixels);
 
 // Command coordinates retain the measured offset. The entire possible mask
 // must stay in one expected color; only the measured solid mask removes work.
 public static class MeasuredColorPlan
 {
-    public const string Revision="measured-color-boundaries-v1";
+    public const string Revision="measured-color-cost-selection-v3";
     public static MeasuredColorResult? TryBuild(PaintPlan plan,Settings source,CancellationToken token=default)
+        =>MeasuredPlanSelection.Build(plan,source,token);
+    // Geometry primitive retained independently of route optimization. Its
+    // possible-mask checks and solid-mask coverage are frozen by regression tests.
+    public static MeasuredColorResult? BuildGeometry(PaintPlan plan,Settings source,CancellationToken token=default)
     {
         var clock=System.Diagnostics.Stopwatch.StartNew();
         long allocated=GC.GetAllocatedBytesForCurrentThread();double safeMapMs=0;

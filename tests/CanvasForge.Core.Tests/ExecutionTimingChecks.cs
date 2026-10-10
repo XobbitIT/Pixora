@@ -10,7 +10,7 @@ internal static class ExecutionTimingChecks
     {
         var s=StartPreparationChecks.VerifiedSize3();var original=SpeedCalibration.Read(s)!;var id=original.Samples[0].SpatialId;
         s.Set("speed_probe_profile",original with{Samples=[new(3,StrokeMethod.Paced,false,8,12,1,15,3,1,id),new(3,StrokeMethod.Shift,false,8,12,1,15,3,1,id),new(3,StrokeMethod.Paced,true,8,12,1,15,3,1,id),new(3,StrokeMethod.Shift,true,8,12,1,15,3,1,id)]});
-        Require(SpeedCalibration.Use(s));return s;
+        s.Set("input_frame_delay_ms",100);Require(SpeedCalibration.Use(s));return s;
     }
     private sealed class Input:ICalibratedStrokeInput
     {
@@ -59,12 +59,14 @@ internal static class ExecutionTimingChecks
             foreach(bool v in new[]{false,true})foreach(int n in new[]{8,15,16,31,218})
             {
                 var l=v?new ScreenLine(10,10,10,10+n):new(10,10,10+n,10);var a=new Input();var b=new Input();
-                CalibratedMotion.Draw(l,SpeedCalibration.Resolve(s,3,l)!,a);CalibratedMotion.Draw(l,e.Resolve(3,l)!,b);
+                var route=SpeedCalibration.Resolve(s,3,l);
+                if(route is null){Require(e.Resolve(3,l) is null&&e.Estimate(new(3,[l],1))==StrokeTiming.Estimate(s,SpeedProfile.Get(s.Text("speed_profile")),n,false,false));continue;}
+                CalibratedMotion.Draw(l,route,a);CalibratedMotion.Draw(l,e.Resolve(3,l)!,b);
                 Require(a.Events.SequenceEqual(b.Events)&&a.Seconds==b.Seconds);
             }
         });
         test("Frozen proof is private and a new execution rejects changed source evidence",()=>{
-            var s=Fixture();var line=new ScreenLine(10,10,100,10);var e=new StrokeExecutionPlan(s);var before=e.Resolve(3,line);
+            var s=Fixture();var line=new ScreenLine(10,10,25,10);var e=new StrokeExecutionPlan(s);var before=e.Resolve(3,line);
             s.Data["speed_probe_profile"]!["Samples"]![0]!["Coverage"]=.9;
             Require(before is not null&&e.Resolve(3,line)==before&&new StrokeExecutionPlan(s).Resolve(3,line) is null&&SpeedCalibration.Resolve(s,3,line) is null);
         });

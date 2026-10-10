@@ -654,9 +654,15 @@ internal sealed partial class Painter : IDisposable
         var groups = measuredPlan is null?TransferSchedule.Build(plan,settings,token):TransferSchedule.Build(plan,settings,measuredPlan.Groups,token);
         if(measuredPlan is not null)
             Log("measured_color_plan",new{revision=MeasuredColorPlan.Revision,measuredPlan.TargetPixels,measuredPlan.CoveredPixels,measuredPlan.UnplannedPixels,
-                sizes=measuredPlan.Groups.Values.SelectMany(x=>x).Select(x=>x.Size).Distinct().Order().ToArray(),physicalResultVerified=false});
+                sizes=measuredPlan.Groups.Values.SelectMany(x=>x).Select(x=>x.Size).Distinct().Order().ToArray(),selection=measuredPlan.Diagnostics?.Choice,
+                strokeSavings=measuredPlan.Diagnostics?.StrokeSavings,physicalResultVerified=false});
         if(groups.Values.All(x=>x.Count==0))throw new InvalidOperationException("Жоден підтверджений пензель не поміщається у кольорові ділянки. Виміряй менший Size або зменш кількість кольорів.");
         var order = TransferSchedule.Order(plan, groups);
+        if(plan.Mode==ColorMode.RustPalette)
+            Log("palette_plan",new{available=plan.Palette.Length,expectedColors=plan.Counts.Count,scheduledColors=order.Count,
+                skippedColors=plan.Counts.Keys.Except(order).Select(i=>plan.Palette[i].Color.Hex).ToArray(),
+                paletteOnly=order.All(i=>plan.Palette[i].Source!="hex"&&plan.Palette[i].ClickPoint is not null),
+                unplannedPixels=measuredPlan?.UnplannedPixels,physicalResultVerified=false});
 
         var total = groups.Values.Sum(x => x.Count);
         var done = resume?.Done ?? 0;

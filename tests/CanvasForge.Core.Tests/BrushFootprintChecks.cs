@@ -98,7 +98,7 @@ internal static class BrushFootprintChecks
         });
         test("A verified shape route is available only with its own spatial ID and speed evidence",()=>
         {
-            var s=Config();s.Set("calibrated_strokes",true);var pixels=Rectangle(-1,-1,2,2);
+            var s=Config();s.Set("calibrated_strokes",true);s.Set("input_frame_delay_ms",100);var pixels=Rectangle(-1,-1,2,2);
             BrushFootprints.Save(s,[Profile(s,3,1,pixels,pixels),Profile(s,4,1,pixels,pixels)]);
             SpatialProbeProfile Spatial(Settings cfg)
             {
@@ -108,19 +108,19 @@ internal static class BrushFootprintChecks
                      new(true,fp.Inner,tiles.Skip(3).Take(3).Select(t=>new SpatialAnchor(t.Vertical,0,new(20,20,20),12)).ToList())]);
             }
             var spatial=Spatial(s);ProbeSpatialCalibration.Save(s,spatial);
-            var proof=new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,[new(1,StrokeMethod.Paced,false,8,12,1,40,3,1,spatial.Id)]);
+            var proof=new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,[new(1,StrokeMethod.Paced,false,8,12,3,40,3,1,spatial.Id)]);
             s.Set("shape_speed_profiles",new Dictionary<string,SpeedProbeProfile>{{"3",proof}});
-            Assert(SpeedCalibration.Use(s)&&SpeedCalibration.Resolve(s,1,new(20,20,100,20),3) is not null);
-            Assert(SpeedCalibration.Resolve(s,1,new(20,20,100,20),4) is null);
+            Assert(SpeedCalibration.Use(s)&&SpeedCalibration.Resolve(s,1,new(20,20,60,20),3) is not null);
+            Assert(SpeedCalibration.Resolve(s,1,new(20,20,60,20),4) is null);
             var other=BrushFootprints.ForShape(s,4);var own=Spatial(other);ProbeSpatialCalibration.Save(other,own);
             s.Data["shape_spatial_profiles"]=other.Data["shape_spatial_profiles"]!.DeepClone();
             var ownProof=new SpeedProbeProfile(SpeedCalibration.Context(other),DateTimeOffset.UtcNow,[new(1,StrokeMethod.Shift,false,8,12,1,40,3,1,own.Id)]);
             s.Set("shape_speed_profiles",new Dictionary<string,SpeedProbeProfile>{{"3",proof},{"4",ownProof}});
-            Assert(SpeedCalibration.Resolve(s,1,new(20,20,100,20),4)?.Method==StrokeMethod.Shift);
+            Assert(SpeedCalibration.Resolve(s,1,new(20,20,60,20),4)?.Method==StrokeMethod.Shift);
             var profile=BrushFootprints.Find(s,1,4)!;
             var replacement=Profile(s,4,1,Rectangle(-1,-1,3,2),pixels);BrushFootprints.Save(s,[replacement]);
-            Assert(replacement.Id!=profile.Id&&SpeedCalibration.Resolve(s,1,new(20,20,100,20),4) is null);
-            Assert(SpeedCalibration.Resolve(s,1,new(20,20,100,20),3) is not null,"Changing another shape invalidated this shape's proof");
+            Assert(replacement.Id!=profile.Id&&SpeedCalibration.Resolve(s,1,new(20,20,60,20),4) is null);
+            Assert(SpeedCalibration.Resolve(s,1,new(20,20,60,20),3) is not null,"Changing another shape invalidated this shape's proof");
         });
         test("Large calibration uses separate nonoverlapping triples and fails before input if Canvas is small",()=>
         {
@@ -133,7 +133,7 @@ internal static class BrushFootprintChecks
             try{BrushFootprints.Tiles(new(0,0,300,300),[100]);throw new Exception("Clipped calibration accepted");}catch(InvalidOperationException){}
             var cfg=Config();foreach(double size in BrushFootprints.Sizes){cfg.Set("probe_size",size);cfg.Validate();Assert(AdaptiveBrush.CalibrationSettings(cfg,size).Number("brush_size_value")==size);}
         });
-        test("Measured adaptive planning chooses profitable shapes and reports centres without solid coverage",()=>
+        test("Measured adaptive planning preserves safe mixed-shape coverage and reports centres without solid coverage",()=>
         {
             var s=Config();s.Set("adaptive_auto_shape",true);s.Set("fast_transfer",false);
             var small=Profile(s,3,1,Rectangle(0,2,2,4),Rectangle(0,2,2,4));
@@ -142,7 +142,8 @@ internal static class BrushFootprintChecks
             var strokes=new Dictionary<int,List<Stroke>>{{0,Enumerable.Range(0,320).Select(y=>new Stroke(0,0,y,199,y)).ToList()},
                 {1,Enumerable.Range(0,320).Select(y=>new Stroke(1,200,y,399,y)).ToList()}};
             var plan=new PaintPlan{Width=400,Height=320,Palette=s.Palette().ToArray(),Indices=indices,Strokes=strokes,Counts=new(){{0,64000},{1,64000}},Identity="mask-test",Mode=ColorMode.RustPalette,Preview=new PixelImage(400,320)};
-            var baseline=Coverage.Build(plan,s);var result=MeasuredColorPlan.TryBuild(plan,s)!;var ops=AdaptiveBrush.Build(plan,s);Assert(ops.Values.SelectMany(x=>x).Any(p=>p.ShapeSlot==4&&p.Size==40));
+            var baseline=Coverage.Build(plan,s);var result=MeasuredColorPlan.TryBuild(plan,s)!;var ops=AdaptiveBrush.Build(plan,s);Assert(ops.Values.SelectMany(x=>x).All(p=>p.ShapeSlot is 3 or 4));
+            Assert(result.Diagnostics!.Choice is { } choice&&choice.SelectedSeconds<=Math.Min(choice.SingleUnionSeconds,choice.MixedUnionSeconds));
             foreach(var (color,lines) in ops)
             {
                 var physical=new HashSet<ScreenPoint>();
@@ -165,7 +166,7 @@ internal static class BrushFootprintChecks
                 }
             }
             var groups=TransferSchedule.Build(plan,s,ops);var timing=PaintTimingPlan.Build(s,groups,TransferSchedule.Order(plan,groups));
-            Assert(timing.Any(p=>p.RateKey=="brush_shape")&&timing.Count(p=>p.RateKey=="color")==2);
+            Assert(timing.Any(p=>p.RateKey=="brush_shape")==ops.Values.SelectMany(x=>x).Any(p=>p.ShapeSlot!=3)&&timing.Count(p=>p.RateKey=="color")==2);
         });
         test("Transfer never joins strokes across different shapes or measurement IDs",()=>
         {

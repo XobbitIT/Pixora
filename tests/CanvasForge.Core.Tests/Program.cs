@@ -1489,14 +1489,14 @@ Test("Probe context rejects changed samples geometry DPI and color mode",()=>
 });
 Test("Probe routes are independent of Precision adaptive and legacy Shift flag",()=>
 {
-    var cfg=ProbeConfig();cfg.Set("adaptive_brush",true);cfg.Set("line_mode",true);AdaptiveBrush.Validate(cfg);
+    var cfg=ProbeConfig();cfg.Set("input_frame_delay_ms",100);cfg.Set("speed_profile","Safe");cfg.Set("adaptive_brush",true);cfg.Set("line_mode",true);AdaptiveBrush.Validate(cfg);
     Assert(Coverage.ShiftLine(cfg,1,new(0,0,32,0)));Assert(!Coverage.ShiftLine(cfg,3,new(0,0,32,0)));
     Assert(!Coverage.ShiftLine(cfg,1,new(0,0,0,32)));Assert(!Coverage.ShiftLine(cfg,1,new(0,0,1,0)));
     cfg.Set("paint_opacity_value",.5);Assert(!SpeedCalibration.Use(cfg));
 });
 Test("Long calibrated Shift lines split at measured lengths and release between pieces",()=>
 {
-    var cfg=ProbeConfig();var line=new ScreenLine(0,0,100,0);var sample=SpeedCalibration.Resolve(cfg,1,line)!;
+    var cfg=ProbeConfig();var line=new ScreenLine(0,0,100,0);var sample=SpeedCalibration.Read(cfg)!.Samples.Single(p=>p.Method==StrokeMethod.Shift&&!p.Vertical);
     var input=new RecordingStrokeInput();CalibratedMotion.Draw(line,sample,input);
     Assert(input.Downs==4&&input.Ups==4&&input.ShiftDowns==4&&input.ShiftUps==4&&!input.Held&&!input.ShiftHeld);
     Assert(input.Packets.All(x=>x.Length==1));
@@ -2281,7 +2281,7 @@ Test("Timing plan counts batch operations and captures actual adaptive Size tran
 });
 Test("Timing schedule and route keys preserve settings and reflect verified motion transport",()=>
 {
-    var cfg=ProbeConfig();cfg.Set("adaptive_brush",true);var before=cfg.Data.ToJsonString();
+    var cfg=ProbeConfig();cfg.Set("input_frame_delay_ms",100);cfg.Set("adaptive_brush",true);var before=cfg.Data.ToJsonString();
     var batch=new PaintBatch(1,new[]{new ScreenLine(0,0,32,0)},1);
     Assert(PaintTimingPlan.Route(cfg,batch,1)=="1:probe_Shift:H");
     PaintTimingPlan.Build(cfg,new(){[0]=new(){batch}},new[]{0});Assert(cfg.Data.ToJsonString()==before);
@@ -2395,6 +2395,8 @@ ExecutionTimingChecks.Run(Test);
 MeasuredColorChecks.Run(Test);
 PreparationAndPaletteChecks.Run(Test);
 MeasuredPlanOptimizationChecks.Run(Test);
+CombinedBrushPlanChecks.Run(Test);
+GroupedProbeAndCoverageChecks.Run(Test);
 DrawingWorkflowChecks.Run(Test);
 Test("Malformed legacy measurements never become brush or speed proof",()=>
 {
