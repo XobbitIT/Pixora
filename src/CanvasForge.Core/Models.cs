@@ -176,7 +176,7 @@ public sealed class Settings
         var motionPacket=Number("fast_path_batch_points",8);
         if(!double.IsFinite(motionPacket)||motionPacket is <1 or >16||motionPacket!=Math.Truncate(motionPacket))
             throw new InvalidDataException("Fast movement packet must be an integer from 1 to 16.");
-        if(!BrushFootprints.Sizes.Contains(Number("probe_size",3)))throw new InvalidDataException("Probe Size must be 1, 3, 10, 20, 40, 60 or 100.");
+        if(!BrushFootprints.Sizes.Contains(Number("probe_size",3)))throw new InvalidDataException("Unsupported probe Size.");
         if(Text("precision_brush_size","Profile")!="Profile"&&!BrushFootprints.Sizes.Contains(Number("precision_brush_size",double.NaN)))
             throw new InvalidDataException("Working brush Size must be Profile, 1, 3, 10, 20, 40, 60 or 100.");
         if(Number("audit_repair_passes",1) is not (1 or 2))throw new InvalidDataException("Repair passes must be 1 or 2.");
@@ -286,6 +286,7 @@ public sealed class Settings
             ["coverage_audit"] = false,
             ["audit_repair"] = false,
             ["audit_repair_passes"] = 1,
+            ["probe_sizes"] = ProbeBatchSequence.Measured,
             ["probe_size"] = 3,
             ["precision_brush_size"] = "3",
             ["adaptive_max_size"] = 20
@@ -514,6 +515,7 @@ public static class PlanIdentity
         hash.AppendData(image.Rgba);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes("canonical-plan-json-v1"));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(TransferSchedule.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeTiming.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(BrushFootprints.Revision));
@@ -523,7 +525,7 @@ public static class PlanIdentity
             && (settings.Text("coverage_mode", "Precision") != "Precision" || !settings.Bool("force_precision_controls", true)))
             hash.AppendData(System.Text.Encoding.UTF8.GetBytes(AutomaticBrush.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
-        foreach(var key in new[]{"preparation_history","palette_target_failed","controls_validation_failed"})paintSettings.Remove(key);
+        foreach(var key in new[]{"preparation_history","palette_target_failed","controls_validation_failed","probe_sizes"})paintSettings.Remove(key);
         foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance" })
             paintSettings.Remove(key);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + CanonicalJson.Serialize(paintSettings) + JsonSerializer.Serialize(palette)));

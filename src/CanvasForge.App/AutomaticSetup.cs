@@ -115,6 +115,15 @@ internal sealed partial class MainWindow
         }
     }
     private Task RunAutomaticSetup()=>RunSetup(false);
+    private void PrepareCombinedSetup()
+    {
+        AdaptiveBrush.Prepare(settings);
+        settings.Set("brush_calibration_size",SetupBrushSelection.AutomaticSelection(settings.Text("brush_calibration_size","3"),SetupSequence.DrawingSize(settings)));
+        settings.Set("fast_transfer",false);settings.Set("input_engine","Stable");settings.Set("calibrated_strokes",false);
+        // Later calibration stages read the editors again. Synchronize them
+        // now so the old single-Size ComboBox cannot erase the combined choice.
+        BuildUi();
+    }
     private async Task RunSetup(bool quick)
     {
         if(Painting||closing)return;ReadSettings();
@@ -126,9 +135,7 @@ internal sealed partial class MainWindow
         setupQuick=quick;
         if(!quick)
         {
-            AdaptiveBrush.Prepare(settings);
-            settings.Set("brush_calibration_size",SetupSequence.DrawingSize(settings)<=20?"3/10/20":settings.Text("precision_brush_size","3"));
-            settings.Set("fast_transfer",false);settings.Set("input_engine","Stable");settings.Set("calibrated_strokes",false);
+            PrepareCombinedSetup();
         }
         if(quick)
         {

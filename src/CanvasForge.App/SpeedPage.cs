@@ -14,7 +14,7 @@ internal sealed partial class MainWindow
     {
         var page=FormContent();pages["speed"]=Scroll(page);
         page.Children.Add(Text(T("Тест швидкості й аудит","Speed Probe and audit"),24));
-        BuildSpeedSections(page);
+        BuildCombinedSpeed(page);BuildSpeedSections(page);
     }
     private void SetSpeedChip(StatusChip chip)
     {
@@ -34,7 +34,7 @@ internal sealed partial class MainWindow
     private void BuildSpeedSections(StackPanel page)
     {
         page.Children.Add(Card(T("1. Просторове калібрування","1. Spatial calibration"),out var spatial));
-        AddCombo(spatial,"probe_size",T("Розмір пензля для тестів","Test brush Size"),new[]{"1","3","10","20","40","60","100"});
+        AddCombo(spatial,"probe_size",T("Розмір пензля для тестів","Test brush Size"),SetupBrushSelection.SizeOptions);
         spatial.Children.Add(Text(T("Шість повільних ліній у різних місцях полотна: три горизонтальні й три вертикальні. Вимірює темне суцільне ядро та зміщення його від координат курсора.",
             "Six slow lines across Canvas: three horizontal and three vertical. Measures the dark solid core and its offset from cursor coordinates."),12));
         spatialButton=CheckButton(T("Виміряти просторові зміщення","Measure spatial offsets"),RunSpatialProbe,true);spatial.Children.Add(spatialButton);
@@ -67,6 +67,7 @@ internal sealed partial class MainWindow
     }
     private void RefreshSpeedStatus()
     {
+        RefreshCombinedSpeed();
         bool current=SpeedCalibration.Current(settings),ready=AdaptiveBrush.SetupProblem(settings) is null&&SpeedCalibration.BrushReady(settings,settings.Number("probe_size",3));
         bool auditReady=AdaptiveBrush.SetupProblem(settings) is null&&AdaptiveBrush.CalibrationCurrent(settings);
         var model=ProbeSpatialCalibration.Read(settings,settings.Number("probe_size",3));
@@ -135,7 +136,7 @@ internal sealed partial class MainWindow
                 .Select(t=>new SpeedProbeTile(t.Area,t.Horizontal,t.Vertical,t.Horizontal,t.Vertical)).ToList()
             :setupWorkspace?.Speed(tileRadius)??SpeedCalibration.Tiles(settings.Calibration.Rect("canvas"),tileRadius);
         int maximumLines=spatialOnly?tiles.Count:2+2*(tiles.Count-2);
-        if(!setupRunning&&!ShowMessage(T($"Тест розміру {size} намалює до {maximumLines} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {maximumLines} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
+        if(!setupRunning&&!combinedProbeRunning&&!ShowMessage(T($"Тест розміру {size} намалює до {maximumLines} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {maximumLines} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
         var snapshot=AdaptiveBrush.CalibrationSettings(settings,size);snapshot.Set("coverage_audit",false);snapshot.Set("calibrated_strokes",false);
         // Never stamp unverified routes from an older detector/context as current.
         var old=SpeedCalibration.Current(settings)?SpeedCalibration.Read(settings):null;
@@ -267,7 +268,11 @@ internal sealed partial class MainWindow
             await paintTask;
             if(spatialOnly)
             {
-                ProbeSpatialCalibration.Save(settings,measuredSpatial!);lastProbeSucceeded=true;Dirty();
+                ProbeSpatialCalibration.Save(settings,measuredSpatial!);
+                // Rechecking one Size invalidates only its old movement proof.
+                // Other Sizes still refer to their unchanged spatial profiles.
+                if(old is not null)StoreProbeRoutes(settings,old,[],size,probeContext,measuredSpatial!.Id);
+                lastProbeSucceeded=true;Dirty();
                 File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_spatial_complete",details=measuredSpatial})+Environment.NewLine);
                 SetStatus(T("Просторове калібрування збережене. Очисти полотно, потім запусти тест швидкості.","Spatial calibration saved. Clear Canvas, then run Speed Probe."));return;
             }
@@ -282,14 +287,15 @@ internal sealed partial class MainWindow
         catch(OperationCanceledException e)
         {
             interrupted=true;
+            if(combinedProbeRunning&&cancel.IsCancellationRequested)throw;
             if(budget.IsCancellationRequested&&!cancel.IsCancellationRequested)
             {
                 var failure=new ProbeBudgetExceededException(T("Тест швидкості перевищив ліміт часу. Очисти полотно перед повтором.","Speed Probe exceeded its time budget. Clear Canvas before retrying."),e);
                 RecordFailure(failure);speedFailure=failure.Message;SetStatus(speedFailure);
                 File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_timeout",details=new{budgetSeconds}})+Environment.NewLine);
-                if(setupRunning)throw failure;
+                if(setupRunning||combinedProbeRunning)throw failure;
             }
-            else{RecordFailure(e);speedFailure=T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying.");SetStatus(speedFailure);if(setupRunning)throw;}
+            else{RecordFailure(e);speedFailure=T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying.");SetStatus(speedFailure);if(setupRunning||combinedProbeRunning)throw;}
         }
         catch(Exception e){RecordFailure(e);speedFailure=e.Message;throw;}
         finally

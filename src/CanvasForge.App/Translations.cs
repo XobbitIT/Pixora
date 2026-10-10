@@ -130,6 +130,7 @@ internal static class Translations
     {
         (string Uk, string En)? label = (key, value) switch
         {
+            ("probe_sizes", "Measured") => ("Усі виміряні Size", "All measured Sizes"),
             ("precision_brush_size", "Profile") => ("За профілем руху", "Movement profile default"),
             ("input_engine", "Stable") => ("Стабільний", "Stable"),
             ("input_engine", "Experimental 1 ms") => ("Експериментальний (8–16 мс)", "Experimental (8–16 ms)"),

@@ -9,7 +9,7 @@ internal sealed partial class MainWindow
     private void AddWorkingBrush(StackPanel parent)
     {
         AddCombo(parent,"precision_brush_size",T("Розмір пензля в Rust (Size)","Rust brush Size"),
-            new[]{"1","3","10","20","40","60","100"},true);
+            SetupBrushSelection.SizeOptions,true);
         workingBrushSummary=Text("",12,Muted);parent.Children.Add(workingBrushSummary);
     }
     private void AddWorkingBrushRecovery(StackPanel parent)
@@ -39,7 +39,7 @@ internal sealed partial class MainWindow
         {
             var routes=(SpeedCalibration.Read(settings)?.Samples??[]).Where(p=>p.Size==size).Select(p=>$"{(p.Vertical?"V":"H")} {Option("stroke_method",p.Method.ToString())} · {p.SafeMs:0} {T("мс","ms")} · {p.MaxLength} px").ToArray();
             if(routes.Length>0)workingBrushSummary.Text+="\n"+T("Перевірені маршрути: ","Verified routes: ")+string.Join("; ",routes);
-            workingBrushSummary.ToolTip=T("Короткі штрихи до 8 px використовують звичайний рух. Калібровані лінії діляться за перевіреною довжиною; об'єднання штрихів у пакети вимкнене.","Strokes shorter than 8 px use normal movement. Calibrated lines are split at the tested span; batch joining is disabled.");
+            workingBrushSummary.ToolTip=T("Перевірений маршрут використовується, коли він швидший за звичайний стабільний рух. Довжина відрізків і запас затримки не змінюються.","A verified route is used when faster than normal stable movement. Tested spans and delay margins remain unchanged.");
         }
         else workingBrushSummary.ToolTip=null;
         workingBrushSummary.Foreground=verified?Success:Warning;

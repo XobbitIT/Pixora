@@ -515,6 +515,7 @@ internal sealed partial class MainWindow : Window
             {
                 ReadSettingsCore(key,values[Math.Max(0,combo.SelectedIndex)]);
                 if(key=="probe_size")speedFailure="";
+                if(key=="probe_sizes")combinedProbeSummary="";
                 if (dirty)
                     Dirty();
                 else

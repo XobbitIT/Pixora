@@ -14,7 +14,7 @@ public static class SetupSequence
     public static string[] CaptureKeys(Settings s)=>s.Mode==ColorMode.HexDirect
         ?["canvas","hex","brush_shapes","size_track","interval_track","opacity_track"]
         :["canvas","palette","brush_tool","brush_shapes","size_track","interval_track","opacity_track"];
-    public static double DrawingSize(Settings s)=>PaintTimingPlan.DefaultSize(s) is 3 or 10 or 20?PaintTimingPlan.DefaultSize(s):3;
+    public static double DrawingSize(Settings s)=>PaintTimingPlan.DefaultSize(s) is var size&&size>=2&&BrushFootprints.Sizes.Contains(size)?size:3;
     public static async Task Run(Func<SetupStage, CancellationToken, Task> execute,
         Action<SetupStage, SetupStageState, string> report, CancellationToken token,IReadOnlyList<SetupStage>? stages=null)
     {

@@ -1,5 +1,13 @@
-# Pixora 1.0.14-beta.54 — unified preparation and palette validation
+# Pixora 1.0.14-beta.56 — grouped speed tests and useful brush passes
 
+Beta.56 skips empty color groups, removes/shortens redundant measured strokes without losing solid-mask coverage, and tests multiple measured Sizes in one sequence. Current spatial evidence is reused; another Size’s routes survive a retest. Accuracy thresholds are unchanged. 435 Core / 160 WPF offline checks; no new Rust execution. The previously delivered local ZIP retains its pre-commit manifest. Start a new plan. See [changes](CHANGES_BETA56_UA.md), [recorded test analysis](LIVE_ANALYSIS_BETA56_UA.md), [problem inventory](PROBLEMS_STATUS_BETA56_UA.md) and [live checklist](TESTING_BETA56_UA.md).
+
+Previous beta.55:
+# Pixora 1.0.14-beta.55 — combined brush calibration and route cost selection
+
+Beta.55 calibrates Size 2/3/5/7/10/15/20 together and compares safe mixed and ordinary plans with repair. Slow short-span Shift routes fall back to cheaper ordinary movement. 423 Core / 149 WPF offline checks passed; no new Rust run or GitHub push. Adaptive may still be slower with narrow measured cores. Start a new plan, then compare both modes on the same image. See [changes](CHANGES_BETA55_UA.md) and [live checklist](TESTING_BETA55_UA.md).
+
+Previous beta.54:
 Beta.54 unifies preparation, readiness and recovery; validates Rust palette cells before clicks and preserves dominant colors for small logo palettes. A physical working-brush proof is required. Optional acceleration failure retains stable painting. 408 Core / 148 WPF offline checks; no new Rust test. Source branch: `codex/pixora-1.0.14-beta-calibration` ([PR #2](https://github.com/XobbitIT/Pixora/pull/2)). The previously delivered local ZIP retains its original pre-commit manifest. See [changes](CHANGES_BETA54_UA.md) and [live checklist](TESTING_BETA54_UA.md).
 
 Previous beta.53:
