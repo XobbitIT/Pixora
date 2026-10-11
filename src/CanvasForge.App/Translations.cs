@@ -38,13 +38,22 @@ internal static class Translations
         if (language == "Українська") return ForLanguage(text, false, englishText);
         string english = ForLanguage(text, true, englishText);
         if (language == "English") return english;
+        // Wrappers contain an independently owned diagnostic, not user data.
+        // Translate it before substituting the wrapper's placeholders.
+        var failure = Regex.Match(english, @"\ACould not measure Size ([0-9]+): ([\s\S]+)\z");
+        if (failure.Success) return ForLanguage("Could not measure Size", language) + " " + failure.Groups[1].Value + ": " + ForLanguage(failure.Groups[2].Value, language);
+        var offset = Regex.Match(english, @"\A([\s\S]+)\n(Offset: [^\n]+)\z");
+        if (offset.Success) english = ForLanguage(offset.Groups[1].Value, language) + "\n" + offset.Groups[2].Value;
+        foreach (string stage in new[] { "Canvas and Rust regions", "Colors / HEX", "Brush and numeric fields", "Brush measurement", "Spatial offsets", "Speed Probe" })
+            if (english.StartsWith(stage + ": ", StringComparison.Ordinal)) return ForLanguage(stage, language) + ": " + ForLanguage(english[(stage.Length + 2)..], language);
         if (Locales[language].TryGetValue(english, out var translated)) return translated;
         string template = FromTemplate(english, LocaleTemplates[language]);
         if (template != english) return template;
-        var failure = Regex.Match(english, @"\ACould not measure Size ([0-9]+): ([\s\S]+)\z");
-        if (failure.Success) return ForLanguage("Could not measure Size", language) + " " + failure.Groups[1].Value + ": " + ForLanguage(failure.Groups[2].Value, language);
-        foreach (string stage in new[] { "Canvas and Rust regions", "Colors / HEX", "Brush and numeric fields", "Brush measurement", "Spatial offsets", "Speed Probe" })
-            if (english.StartsWith(stage + ": ", StringComparison.Ordinal)) return ForLanguage(stage, language) + ": " + ForLanguage(english[(stage.Length + 2)..], language);
+        // These owned diagnostics append a field name/value. Translate only
+        // the fixed prefix, preserving the supplied name and user data.
+        foreach(string prefix in new[]{"Invalid calibration integer: ","Invalid value "})
+            if(english.StartsWith(prefix,StringComparison.Ordinal)&&Locales[language].TryGetValue(prefix,out var localPrefix))
+                return localPrefix+english[prefix.Length..];
         if (english.Contains('\n')) return string.Join("\n", english.Split('\n').Select(line => ForLanguage(line, language)));
         return english;
     }
@@ -80,6 +89,11 @@ internal static class Translations
         var failure = Regex.Match(text, @"\A(?:Не вдалося виміряти (?:Size|розмір)|Could not measure Size) ([0-9]+): ([\s\S]+)\z");
         if (failure.Success)
             return $"{(english ? "Could not measure Size" : "Не вдалося виміряти розмір")} {failure.Groups[1].Value}: {ForLanguage(failure.Groups[2].Value, english)}";
+        foreach(string prefix in new[]{"Invalid calibration integer: ","Invalid value "})
+            if(text.StartsWith(prefix,StringComparison.Ordinal) && !english && Ukrainian.TryGetValue(prefix,out var localPrefix))
+                return localPrefix+text[prefix.Length..];
+        var offset = Regex.Match(text, @"\A([\s\S]+)\n((?:Offset|Зміщення): [^\n]+)\z");
+        if(offset.Success) text = ForLanguage(offset.Groups[1].Value,english)+"\n"+offset.Groups[2].Value;
         var translatedWhole=english?Get(text):Ukrainian.TryGetValue(text,out var fullUk)?fullUk:FromTemplate(text,UkrainianTemplates);
         if(translatedWhole!=text)return translatedWhole;
         // Setup failures retain their stage and independently translated diagnostics.

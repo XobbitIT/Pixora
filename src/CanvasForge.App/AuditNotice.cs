@@ -22,6 +22,7 @@ internal sealed partial class MainWindow
 {
     private AuditFailureException? auditNotice;
     private bool auditBannerDismissed;
+    private bool auditHistorical;
     private readonly Action<Window> presentAuditDiagnostics;
     private Border auditBanner = new();
     private TextBlock auditHeadline = new(), auditSummary = new();
@@ -63,7 +64,15 @@ internal sealed partial class MainWindow
         var background = ((SolidColorBrush)Bg).Color;
         auditBanner.Background = new SolidColorBrush(Color.FromRgb((byte)((background.R * 9 + color.R) / 10), (byte)((background.G * 9 + color.G) / 10), (byte)((background.B * 9 + color.B) / 10)));
         auditBanner.BorderBrush = tone; auditHeadline.Foreground = tone;
-        auditHeadline.Text = T("Аудит потребує уваги", "Coverage audit needs attention");
+        auditHeadline.Text = auditHistorical
+            ?T("Аудит попереднього малювання", "Previous painting audit")
+            :T("Аудит потребує уваги", "Coverage audit needs attention");
+        if(auditNotice.Group<0)
+        {
+            auditSummary.Text=T($"Фінальне покриття {auditNotice.Coverage:P1} · пропуски: {auditNotice.Missing:N0} px · непевно: {auditNotice.Unknown:N0} px.",
+                $"Final coverage {auditNotice.Coverage:P1} · missing: {auditNotice.Missing:N0} px · uncertain: {auditNotice.Unknown:N0} px.");
+            return;
+        }
         auditSummary.Text = T(English
             ? string.Create(CultureInfo.GetCultureInfo("en-US"), $"Color {auditNotice.Group + 1} · coverage {auditNotice.Coverage:P1} · missing: {auditNotice.Missing:N0} px · uncertain: {auditNotice.Unknown:N0} px. Review the result; retry with a fresh START.")
             : string.Create(CultureInfo.GetCultureInfo("uk-UA"), $"Колір {auditNotice.Group + 1} · покриття {auditNotice.Coverage:P1} · пропуски: {auditNotice.Missing:N0} px · невпевнено: {auditNotice.Unknown:N0} px. Перевір результат; для повтору натисни «Почати»."));
@@ -80,7 +89,7 @@ internal sealed partial class MainWindow
 
     private void ClearAuditDiagnostics()
     {
-        auditNotice = null; auditBannerDismissed = false;
+        auditNotice = null; auditBannerDismissed = false;auditHistorical=false;
         RefreshAuditBanner(); RefreshCoverageStatus();
     }
 
@@ -92,8 +101,8 @@ internal sealed partial class MainWindow
         var root = new Grid { Margin = new Thickness(16), Background = Bg };
         root.RowDefinitions.Add(new() { Height = GridLength.Auto }); root.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) }); root.RowDefinitions.Add(new() { Height = GridLength.Auto });
         var heading = new StackPanel(); heading.Children.Add(Text(T("Полотно і пропуски", "Canvas and gaps"), 24));
-        heading.Children.Add(Text(T("Підтверджені пропуски позначені контрастними маркерами. Маркер трохи збільшений для видимості; невпевнені пікселі не позначені й не є цілями дофарбування.", "Confirmed gaps use contrasting markers, enlarged slightly for visibility. Uncertain pixels are not marked or targeted for repair."), 12, Muted));
-        var choices = new ComboBox { ItemsSource = new[] { T("Пропуски", "Gaps"), T("Після малювання", "After painting"), T("До малювання", "Before painting") }, SelectedIndex = 0, Width = 260, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 10) };
+        heading.Children.Add(Text(T("Пропуски позначені контрастними маркерами. Непевні пікселі показані окремо помаранчевим і не є цілями дофарбування.", "Gaps use contrasting markers. Uncertain pixels are shown separately in orange and are not repair targets."), 12, Muted));
+        var choices = new ComboBox { ItemsSource = new[] { T("Пропуски", "Gaps"), T("Після малювання", "After painting"), T("До малювання", "Before painting"),T("Непевні пікселі","Uncertain pixels") }, SelectedIndex = 0, Width = 260, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 8, 0, 10) };
         var tools=new StackPanel{Orientation=Orientation.Horizontal};tools.Children.Add(choices);
         var zoom=new ComboBox{ItemsSource=new[]{T("Вмістити","Fit"),"100%","200%","400%"},SelectedIndex=0,Width=130,
             Margin=new Thickness(10,8,0,10)};
@@ -105,7 +114,7 @@ internal sealed partial class MainWindow
         var viewer=new ScrollViewer{Content=image,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Disabled};
         var frame = new Grid { Background = Panel };frame.Children.Add(viewer);frame.Children.Add(unavailable);Grid.SetRow(frame,1);root.Children.Add(frame);
         // Decode immediately so open viewers do not change when a later START replaces files.
-        var snapshots = new[] { "gaps", "after", "before" }.Select(kind =>
+        var snapshots = new[] { "gaps", "after", "before", "unknown" }.Select(kind =>
         {
             string path = Path.Combine(notice.DirectoryPath, $"group-{notice.Group}-{kind}.png");
             try { return File.Exists(path) ? Images.Bitmap(Images.Load(path)) : null; }

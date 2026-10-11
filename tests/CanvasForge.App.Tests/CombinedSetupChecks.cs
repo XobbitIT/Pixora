@@ -18,5 +18,14 @@ internal static partial class Program
             Assert(PaintTimingPlan.DefaultSize(live)==3,"Combined preparation changed ordinary default Size");
         }
         Console.WriteLine("PASS combined-setup-editor-persistence-without-input");
+        foreach(int shape in new[]{1,2,3,4,7})
+        {
+            var s=ReadySettings("English");s.Set("brush_shape_slot",shape);s.Set("brush_calibration_size",SetupBrushSelection.Combined);
+            var w=PaintingUiWindow(output,"required-setup-shape-"+shape,s);Invoke(w,"PrepareDrawingSetup");Invoke(w,"ReadSettings");
+            var live=Field<Settings>(w,"settings");
+            Assert(live.Text("brush_calibration_size")=="3"&&!live.Bool("adaptive_brush")&&!live.Bool("calibrated_strokes"),"Required preparation still asks for all Sizes or speed");
+            Assert(live.Int("brush_shape_slot",3)==(shape is 3 or 4?shape:3),"Required preparation selected a soft or textured brush");
+        }
+        Console.WriteLine("PASS required preparation selects one solid working brush and does not require speed");
     }
 }

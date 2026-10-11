@@ -51,7 +51,7 @@ internal static class StartPreparationChecks
             var s=VerifiedSize3();s.Set("input_frame_delay_ms",100);var batch=new PaintBatch(0,[new(40,40,60,40)],1);
             var groups=new Dictionary<int,List<PaintBatch>>{{0,Enumerable.Repeat(batch,10000).ToList()}};
             var timer=Stopwatch.StartNew();var work=PaintTimingPlan.Build(s,groups,[0]);
-            Require(work.Count==10003&&work.Count(w=>w.Motion)==10000&&work.Where(w=>w.Motion).All(w=>w.RateKey.Contains("3:probe_Paced")));
+            Require(work.Count==10005&&work.Count(w=>w.Motion)==10000&&work.Where(w=>w.Motion).All(w=>w.RateKey.Contains("3:probe_Paced")));
             Require(timer.Elapsed.TotalSeconds<5); // The old implementation takes over a minute for this case.
         });
         test("Startup timing respects cancellation before producing work",()=>{

@@ -18,6 +18,7 @@ void Assert(bool condition, string message = "Assertion failed")
 Settings Config(ColorMode mode, int width = 16, int height = 12)
 {
     var s = Settings.Defaults();
+    s.Set("edge_merge",false); // Preserve the beta.56 target fixtures; new default is tested separately.
     s.Set("color_mode", mode == ColorMode.HexDirect ? "HEX Direct" : "Rust Palette");
     s.Set("cell_px", 1);
     s.Set("fit_mode", "fit whole");
@@ -2325,7 +2326,8 @@ Test("Palette comparison counts execution batches and timing including colors, s
         Assert(variant.Operations == batches.Length && variant.SourceStrokes == batches.Sum(x => x.SourceStrokes));
         Assert(variant.ColorChanges == groups.Count && variant.WideOperations == batches.Count(x => x.Size > 0));
         Assert(Math.Abs(variant.PlannedSeconds - (7 + timing.Sum(x => x.PlannedSeconds))) < 1e-9);
-        Assert(timing.Count(x => x.RateKey == "audit") == groups.Count && variant.SizeChanges == 0);
+        Assert(timing.Count(x => x.RateKey == "audit"&&x.Id!=PaintTimingPlan.FinalAudit) == groups.Count && variant.SizeChanges == 0);
+        Assert(timing.Any(x=>x.Id==PaintTimingPlan.FinalAudit)&&timing.Any(x=>x.Id==PaintTimingPlan.FinalBefore));
     }
 });
 Test("Palette comparison publishes no partial result after cancellation", () =>
@@ -2386,6 +2388,7 @@ BrushSignalChecks.Run(Test);
 BrushCalibrationRegressionChecks.Run(Test);
 BrushColorChecks.Run(Test);
 BrushLocalColorChecks.Run(Test);
+CalibrationUsabilityChecks.Run(Test);
 BrushAnchorSelectionChecks.Run(Test);
 StartPreparationChecks.Run(Test);
 ReviewRegressionChecks.Run(Test);
@@ -2398,6 +2401,7 @@ MeasuredPlanOptimizationChecks.Run(Test);
 CombinedBrushPlanChecks.Run(Test);
 GroupedProbeAndCoverageChecks.Run(Test);
 DrawingWorkflowChecks.Run(Test);
+ProductAccuracyChecks.Run(Test);
 Test("Malformed legacy measurements never become brush or speed proof",()=>
 {
     var s=ProbeConfig();s.Data["brush_calibration_points"]=JsonNode.Parse("[[1,null,1],[3,{},1],[10,21,null],[20,9,99],[40,\"NaN\",1],[],null]");
@@ -2454,6 +2458,7 @@ Test("Alternate brush route ignores malformed shape speed container",()=>
         Assert(SpeedCalibration.Resolve(s,3,new(10,10,50,10),4) is null);
     }
 });
+LiveLifecycleRegressionChecks.Run(Test);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 
 static SpatialProbeProfile SpatialFixtureProfile(Settings cfg,double size)

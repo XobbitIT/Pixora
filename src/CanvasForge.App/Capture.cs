@@ -43,7 +43,7 @@ internal sealed partial class MainWindow
             extra.Children.Add(CheckButton(T("Інструмент пензля","Brush tool"),()=>CapturePoint("brush_tool",T("ІНСТРУМЕНТ ПЕНЗЛЯ","BRUSH TOOL"))));
             extra.Children.Add(CheckButton(T("Форми пензля","Brush shapes"),()=>Capture("brush_shapes",T("ФОРМИ ПЕНЗЛЯ","BRUSH SHAPES"))));
         }
-        manual.Children.Add(CheckButton(T("Лише обов'язкова підготовка","Required preparation only"),()=>RunSetup(true)));
+        manual.Children.Add(CheckButton(T("Повна підготовка з додатковими пензлями та швидкістю","Full preparation with additional brushes and speed"),()=>RunSetup(false)));
         foreach (var kind in new[]
         {
             "size",
@@ -424,6 +424,7 @@ internal sealed partial class MainWindow
         {
             await Task.Delay(1500,SetupToken);
             Native.SetForegroundWindow(target);
+            RefreshLiveBrushControls(target);
             var s = settings.Clone();
             s.Set("verify_controls", true);
             using var worker = new Painter(s, target, ResumePath, LogPath, _ =>
@@ -454,6 +455,8 @@ internal sealed partial class MainWindow
         var problem = AdaptiveBrush.SetupProblem(settings);
         if (problem is not null) throw new InvalidOperationException(T(problem));
         var target = AlignRustForTest();
+        if(settings.Mode==ColorMode.RustPalette&&!settings.Calibration.Rect("palette_swatch").Valid)
+            await Capture("palette_swatch",T("Виділи зразок активного кольору Rust для перевірки після вибору палітри.","Select Rust's active color swatch to verify palette selections."));
         var cal = settings.PaintCalibration();
         var r = settings.Calibration.Rect("canvas");
         var origin = cal.SessionClient!.Value;
@@ -476,6 +479,7 @@ internal sealed partial class MainWindow
                 throw new InvalidOperationException(T("Вікно Rust змінило розмір або положення. Повтори захоплення."));
         }
         AdaptiveBrush.Prepare(settings);
+        BrushFootprints.Invalidate(settings,settings.Int("brush_shape_slot",3),sizes);
         if(sizes.Contains(PaintTimingPlan.DefaultSize(settings)))CalibrationReliability.BeginBrushCheck(settings);
         settings.Set("adaptive_brush", false);
         Dirty();
@@ -489,11 +493,13 @@ internal sealed partial class MainWindow
         {
             await Task.Delay(1500,SetupToken);
             Native.SetForegroundWindow(target);
+            RefreshLiveBrushControls(target);
             var batch = await Task.Run(() =>
             {
                 CheckFrame();
                 using var worker = new Painter(AdaptiveBrush.CalibrationSettings(settings, sizes[0]), target, ResumePath, LogPath, _ => { }, SetupToken);
                 worker.VerifyControlLayout();
+                worker.PrepareBrushCalibration(CalibrationPaintSource.ReadableSize(sizes[0]));
                 var color = worker.SelectCalibrationColor(Native.Median(new(r.Left + r.Width / 4 - 4, r.Top + r.Height / 4 - 4, r.Left + r.Width / 4 + 5, r.Top + r.Height / 4 + 5)));
                 var measurements=new BrushCalibrationBatch(settings,settings.Int("brush_shape_slot",3),sizes);
                 var diagnostic=Path.Combine(folder,"brush-calibration","run-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N"));
@@ -508,6 +514,7 @@ internal sealed partial class MainWindow
                     currentRepeat=tile.Repeat+1;
                     CheckFrame();
                     worker.PrepareBrushCalibration(tile.Size); CheckFrame();
+                    bool sourceBefore=worker.VerifyCalibrationPaint(color);
                     var p=tile.Command;var area=tile.Area;
                     // Calibration dots use the same guarded movement and settled,
                     // cursor-free capture as spatial controls and coverage audits.
@@ -557,7 +564,9 @@ internal sealed partial class MainWindow
                             shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
                             inputFailure=e.Message,phase="saturation",motion,saturationMotion}));throw;
                     }
-                    var signal=measurements.RecordLocal(tile.Size,tile.Repeat+1,background,before,after,saturation,new(p.X-area.Left,p.Y-area.Top),color);
+                    bool sourceAfter=worker.VerifyCalibrationPaint(color);CheckFrame();
+                    var paintSource=new BrushPaintSourceProof(color,sourceBefore,sourceAfter);
+                    var signal=measurements.RecordLocal(tile.Size,tile.Repeat+1,background,before,after,saturation,new(p.X-area.Left,p.Y-area.Top),color,paintSource);
                     File.WriteAllText(Path.Combine(diagnostic,stem+"-metrics.json"),System.Text.Json.JsonSerializer.Serialize(new{
                         shape=settings.Int("brush_shape_slot",3),size=tile.Size,repeat=tile.Repeat+1,command=p,tile.Area,
                         contrast=BrushFootprints.Contrast(before,after),backgroundNoise=BrushFootprints.Contrast(background,before),requestedColor=color.Hex,

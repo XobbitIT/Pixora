@@ -1,11 +1,19 @@
 namespace CanvasForge.Core;
 
+// Independent source readback before and after the physical transaction. This
+// proves which paint was selected, not that rendered Canvas RGB equals HEX.
+public sealed record BrushPaintSourceProof(Rgb Requested,bool Before,bool After)
+{
+    public bool Passed=>Before&&After;
+}
 public sealed record BrushLocalColorProof(Rgb Requested,Rgb Reference,Rgb ConfirmedReference,
     int AnchorPixels,int StableAnchorPixels,int StablePixels,bool FirstColorPassed,bool ConfirmedColorPassed,
     bool ReferenceColorPassed,bool ConfirmedReferenceColorPassed)
 {
+    public BrushPaintSourceProof? PaintSource { get; init; }
     public bool Passed=>AnchorPixels>0&&StableAnchorPixels==AnchorPixels&&StablePixels>0
-        &&FirstColorPassed&&ConfirmedColorPassed&&ReferenceColorPassed&&ConfirmedReferenceColorPassed
+        &&FirstColorPassed&&ConfirmedColorPassed
+        &&(ReferenceColorPassed&&ConfirmedReferenceColorPassed||PaintSource is {Passed:true} source&&source.Requested==Requested)
         &&RustSlider.Delta(Reference,ConfirmedReference)<=12;
 }
 
@@ -16,6 +24,7 @@ public sealed record BrushLocalColorProof(Rgb Requested,Rgb Reference,Rgb Confir
 // contributes to conservative possible bounds, never to guaranteed coverage.
 public static class BrushLocalColor
 {
+    public const string SourceRevision="source-confirmed-local-saturation-v1";
     private static bool ReferenceMatches(Rgb requested,Rgb observed)
     {
         // Permit a neutral local brightness shift, not an arbitrary new hue or
@@ -35,7 +44,7 @@ public static class BrushLocalColor
     }
 
     public static BrushStamp Measure(PixelImage before,PixelImage first,PixelImage? confirmed,
-        ScreenPoint command,double size,Rgb requested)
+        ScreenPoint command,double size,Rgb requested,BrushPaintSourceProof? paintSource=null)
     {
         var initial=BrushFootprints.Measure(before,first,command,size);
         if(confirmed is null)return initial with{Solid=[]};
@@ -63,7 +72,7 @@ public static class BrushLocalColor
             &&RustSlider.Delta(first.Color(Index(p)),confirmed.Color(Index(p)))<=12).ToArray();
         var proof=new BrushLocalColorProof(requested,reference,confirmation,anchors.Length,stableAnchors,solid.Length,
             BrushColorGuard.Inspect(before,first,requested).Passed,BrushColorGuard.Inspect(before,confirmed,requested).Passed,
-            ReferenceMatches(requested,reference),ReferenceMatches(requested,confirmation));
+            ReferenceMatches(requested,reference),ReferenceMatches(requested,confirmation)){PaintSource=paintSource};
         return new(BrushFootprints.Spans(changed.Concat(second is null?[]:BrushFootprints.Points(second.Possible))),
             proof.Passed?BrushFootprints.Spans(solid):[],reference){LocalColor=proof};
     }

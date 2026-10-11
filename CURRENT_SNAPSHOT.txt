@@ -1,3 +1,21 @@
+Pixora 1.0.14-beta.59
+
+Beta.59: lifecycle, guarded cursor transport, readable calibration source proof and current/history state fixes from beta.58 review. 478 Core / 173 WPF checks; 84 layouts. Independent Core rerun: 478 PASS. Release builds: 0 warnings / 0 errors. No new Rust execution or native clipboard smoke. 14 critical formula/acceptance files unchanged from saved beta.58 source. New START required for checkpoints from the previous motion protocol. Physical coverage, Adaptive speedup and numerical initial ETA remain unverified. Publication identity is recorded in Git and the package manifest. See CHANGES_BETA59_UA.md, ARCHITECTURE_UA.md and TESTING_BETA59_UA.md.
+
+Previous beta.58:
+
+Local beta.58: one solid working brush preparation; optional acceleration. Independent source-confirmed local saturation; strict contrast/tolerance/intersection unchanged. 470 Core / 169 WPF; 84 layouts. No new Rust execution or GitHub push. See CHANGES_BETA58_UA.md, LIVE_ANALYSIS_BETA58_UA.md and TESTING_BETA58_UA.md.
+
+Previous beta.57:
+459 Core / 168 WPF offline checks; inGameTest=false; nativeClipboardSmoke=false.
+Local changes based on 5c347c2652f4eb6a90fe8baaad7327bc42d27673; not a published beta57 commit.
+Contrast 80, RGB tolerance 12, triple-mask intersection, Probe and CoverageAudit.Read unchanged.
+Edge merge OFF preserves beta56 identity, labels, commands and modeled coverage on eight saved scenarios.
+Identical white on white remains Unknown; beta57 ETA accuracy needs a new live run.
+946 international templates; 834 active UI, worker status and owned diagnostic keys; seven languages.
+See CHANGES_BETA57_UA.md, LIVE_ANALYSIS_BETA57_UA.md and TESTING_BETA57_UA.md.
+
+Previous beta.56:
 Pixora 1.0.14-beta.56 — grouped speed protocols, painted color groups, solid-mask redundancy removal.
 435 Core / 160 WPF offline checks; inGameTest=false; nativeClipboardSmoke=false.
 Source update based on b648355c32b2a7c3a24f424540581193ab221a85; the previously delivered local ZIP retains its pre-commit manifest.

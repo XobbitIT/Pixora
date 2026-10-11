@@ -48,17 +48,17 @@ public sealed class BrushCalibrationBatch
     public BrushSignalSample Record(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,Rgb? requested=null)
         =>Record(size,repeat,background,before,after,command,requested,null,false);
     public BrushSignalSample RecordLocal(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,
-        PixelImage? confirmed,ScreenPoint command,Rgb requested)
-        =>Record(size,repeat,background,before,after,command,requested,confirmed,true);
+        PixelImage? confirmed,ScreenPoint command,Rgb requested,BrushPaintSourceProof? paintSource=null)
+        =>Record(size,repeat,background,before,after,command,requested,confirmed,true,paintSource);
     private BrushSignalSample Record(double size,int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,
-        Rgb? requested,PixelImage? confirmed,bool local)
+        Rgb? requested,PixelImage? confirmed,bool local,BrushPaintSourceProof? paintSource=null)
     {
         CheckSequence(size,repeat);
         var signal=BrushSignalDiagnostics.Inspect(repeat,background,before,after,command,size,requested);
         // Always validate clipping/scene changes through the strict measurement
         // path; these remain fatal and abort the whole transaction.
         BrushStamp? stamp=null;BrushContrastException? weak=null;
-        try{stamp=local?BrushLocalColor.Measure(before,after,confirmed,command,size,requested!.Value)
+        try{stamp=local?BrushLocalColor.Measure(before,after,confirmed,command,size,requested!.Value,paintSource)
             :BrushFootprints.Measure(before,after,command,size,Reference(size));}
         catch(BrushContrastException e){weak=e;}
         if(stamp is not null)

@@ -23,12 +23,12 @@ internal sealed partial class Painter
     {
         if(message is not null)timingStatus=message;
         var estimate=timing!.Estimate(ActiveSeconds);
-        if(countdown>0)estimate=estimate with{Seconds=estimate.Seconds+countdown};
-        report(new(timingDone,timingTotal,ActiveSeconds,estimate.Seconds,timingStatus,estimate,timingPhase));
+        if(countdown>0)estimate=estimate with{Seconds=estimate.Seconds+countdown,LowerSeconds=estimate.LowerSeconds+countdown,UpperSeconds=estimate.UpperSeconds+countdown};
+        report(new(timingDone,timingTotal,ActiveSeconds,estimate.Seconds,timingStatus,estimate,timingPhase,FinalCoverage,finalAuditDirectory));
         if(ActiveSeconds>=nextEtaLog||lastEtaBasis!=estimate.Basis||timingPhase==PaintPhase.Completed)
         {
             nextEtaLog=ActiveSeconds+2;lastEtaBasis=estimate.Basis;
-            Log("eta_update",new{revision="rolling-timing-v2-operation-overhead",done=timingDone,total=timingTotal,
+            Log("eta_update",new{revision="rolling-timing-v3-full-cycle-range",done=timingDone,total=timingTotal,
                 phase=timingPhase.ToString(),activeSeconds=ActiveSeconds,estimate,rates=timing.Rates(),
                 warmup=RemainingTime.Warmup,motionWindow=RemainingTime.MotionWindow});
         }

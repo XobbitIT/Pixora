@@ -109,6 +109,12 @@ public static class BrushFootprints
         var kept=Read(s,true).Where(p=>!profiles.Any(n=>n.ShapeSlot==p.ShapeSlot&&n.Size==p.Size)).ToList();
         kept.AddRange(profiles);s.Set("brush_footprints",kept.OrderBy(p=>p.ShapeSlot).ThenBy(p=>p.Size));
     }
+    public static void Invalidate(Settings s,int shape,IReadOnlyList<double> sizes)
+    {
+        // A failed new transaction cannot silently keep an old PASS for the
+        // Size just tested. Untested Sizes and shapes stay independently usable.
+        s.Set("brush_footprints",Read(s,true).Where(p=>p.ShapeSlot!=shape||!sizes.Contains(p.Size)).ToArray());
+    }
     private static bool SpansValid(BrushSpan[]? spans,bool empty=false)
     {
         if(spans is null||spans.Length>263169||(!empty&&spans.Length==0))return false;

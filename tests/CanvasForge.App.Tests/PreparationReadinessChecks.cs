@@ -29,7 +29,10 @@ internal static partial class Program
     private static void CheckPreparationHistory(string output)
     {
         var directory=Path.Combine(output,"preparation-history");Directory.CreateDirectory(directory);
-        var s=ReadySettings("English");s.Save(Path.Combine(directory,"config-csharp.json"));var w=new MainWindow(directory);
+        var s=ReadySettings("English");
+        // Historical failures remain relevant only when no newer manual proof exists.
+        foreach(string key in new[]{"speed_probe_profile","shape_speed_profiles","probe_spatial_profiles","shape_spatial_profiles"})s.Data.Remove(key);
+        s.Save(Path.Combine(directory,"config-csharp.json"));var w=new MainWindow(directory);
         var results=Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults");
         results[SetupStage.Speed]=(SetupStageState.Failed,"No verified route");Invoke(w,"SaveSetupHistory");Field<Settings>(w,"settings").Save(Path.Combine(directory,"config-csharp.json"));
         var reopened=new MainWindow(directory);Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(reopened,"setupResults")[SetupStage.Speed].State==SetupStageState.Failed,"Restart discarded optional-stage results");

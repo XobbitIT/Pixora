@@ -5,7 +5,8 @@ using CanvasForge.Core;
 
 namespace CanvasForge.App;
 internal sealed record PaintProgress(int Done, int Total, double Elapsed, double Eta, string Status,
-    EtaEstimate? Estimate=null,PaintPhase Phase=PaintPhase.Drawing);
+    EtaEstimate? Estimate=null,PaintPhase Phase=PaintPhase.Drawing,
+    PhysicalCoverageResult? PhysicalCoverage=null,string? CoverageDirectory=null);
 internal sealed partial class Painter : IDisposable
 {
     private readonly Settings settings;
@@ -351,11 +352,8 @@ internal sealed partial class Painter : IDisposable
     {
         var hint = calibration.Rect(kind + "_track");
         if (!hint.Valid) return null;
-        var bounds = new ScreenRect(
-            Math.Max(windowRect.Left, hint.Left - Math.Max(48, hint.Width / 4)),
-            Math.Max(windowRect.Top, hint.Top - 12),
-            Math.Min(windowRect.Right, hint.Right + Math.Max(120, hint.Width / 2)),
-            Math.Min(windowRect.Bottom, hint.Bottom + 12));
+        ParkForControlCapture(calibration);
+        var bounds = ControlCapture.Bounds(hint,windowRect);
         if (!bounds.Valid) return null;
         var local = new ScreenRect(hint.Left - bounds.Left, hint.Top - bounds.Top,
             hint.Right - bounds.Left, hint.Bottom - bounds.Top);
@@ -418,14 +416,6 @@ internal sealed partial class Painter : IDisposable
     {
         bool visual=CalibrationReliability.Visual(settings);
         var number = VisualControlVerification.ReadNumber(settings,()=>ReadControlNumber(kind,geometry.ValueField,value));
-        var original=Native.Cursor();
-        var area=new ScreenRect(Math.Min(geometry.Track.Left,geometry.ValueField.Left),Math.Min(geometry.Track.Top,geometry.ValueField.Top),
-            Math.Max(geometry.Track.Right,geometry.ValueField.Right),Math.Max(geometry.Track.Bottom,geometry.ValueField.Bottom));
-        var park=CaptureCursor.ParkingPoint(area,windowRect,original,(int)Math.Ceiling(48*windowDpi/96d))
-            ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
-        if(park!=original){Native.ReleaseChecked();MoveCursor(park);}
-        Log("control_cursor_park",new{kind,original,park,transport="guarded SendInput"});
-        Delay(StrokeTiming.CursorPark(settings));
         VisualControlEvidence? evidence=visual?VisualControlVerification.Read(kind,value,()=>ReadSlider(kind),Delay,CalibrationReliability.StableInterval(settings)):null;
         var after = visual?evidence!.Second:ReadSlider(kind);
         var ok = visual?evidence!.Verified:ControlNumber.Matches(number, value) && after is { } result
@@ -497,6 +487,10 @@ internal sealed partial class Painter : IDisposable
     }
 
     public Rgb SelectCalibrationColor(Rgb background)
+        =>CalibrationPaintSource.Read(verifiedControls.GetValueOrDefault("size",DesiredControls().Size),
+            settings.Mode==ColorMode.RustPalette,PrepareBrushCalibration,()=>SelectCalibrationColorAtReadableSize(background));
+
+    private Rgb SelectCalibrationColorAtReadableSize(Rgb background)
     {
         var cal = settings.PaintCalibration();
         if(settings.Mode==ColorMode.RustPalette)
@@ -514,15 +508,45 @@ internal sealed partial class Painter : IDisposable
             ?? throw new InvalidOperationException("Захопи палітру Rust.");
         if (RustSlider.Delta(entry.Color, background) < 40)
             throw new InvalidOperationException("У палітрі немає контрастного кольору для цього Canvas.");
-        ApplyPalette(entry,alreadyAligned:true);
+        ApplyPalette(entry,alreadyAligned:true,requireAppliedProof:true);
         return entry.Color;
     }
 
-    private void ApplyPalette(PaletteEntry entry,bool alreadyAligned=false)
+    // Read independently without reapplying paint. A field/swatch disagreement
+    // aborts calibration rather than turning a different paint into a footprint.
+    public bool VerifyCalibrationPaint(Rgb expected)
+        =>CalibrationPaintSource.Verify(verifiedControls.GetValueOrDefault("size",DesiredControls().Size),
+            settings.Mode==ColorMode.RustPalette,PrepareBrushCalibration,()=>ReadCalibrationPaint(expected));
+
+    private bool ReadCalibrationPaint(Rgb expected)
+    {
+        CheckBoundary();bool passed;
+        if(settings.Mode==ColorMode.HexDirect)
+        {
+            var point=settings.Calibration.HexPoint??throw new InvalidOperationException("Захопи поле HEX.");
+            var lease=BeginClipboard();
+            try{passed=ReadHex(point,expected)==expected.Hex;}
+            finally{RestoreClipboard(lease);}
+        }
+        else
+        {
+            var swatch=settings.Calibration.Rect("palette_swatch");
+            passed=swatch.Valid&&PaletteSelection.Applied(expected,swatch,
+                area=>{CheckBoundary();return Native.Median(area);},()=>Delay(.08)).Passed;
+        }
+        Log("brush_paint_source",new{revision=BrushLocalColor.SourceRevision,requested=expected.Hex,mode=settings.Mode.ToString(),passed,
+            proofSize=verifiedControls.GetValueOrDefault("size",DesiredControls().Size),
+            proofSource=settings.Mode==ColorMode.HexDirect?"fresh HEX readback":"two active swatch frames",paintedRgbVerified=false});
+        if(!passed)throw new InvalidOperationException("Активний колір змінився під час вимірювання пензля. Повтори перевірку кольорів і калібрування.");
+        return true;
+    }
+
+    private void ApplyPalette(PaletteEntry entry,bool alreadyAligned=false,bool requireAppliedProof=false)
     {
         var point = PaletteSelection.ClickPoint(entry,rebase,alreadyAligned);
         var swatch = settings.Calibration.Rect("palette_swatch");
         VerifyPaletteTarget(entry, point);
+        PaletteAppliedEvidence? applied=null;
         for (var attempt = 0; attempt < 3; attempt++)
         {
             Click(point);
@@ -533,14 +557,14 @@ internal sealed partial class Painter : IDisposable
                 // that evidence as an active-color or final-paint RGB proof.
                 Log("palette", new { target = entry.Color.Hex, point, attempt, verified = false,
                     targetVerified = true, verification = "palette-cell", reason = "active swatch unavailable; painted RGB unverified" });
+                if(requireAppliedProof)throw new PaletteAppliedException(new(entry.Color,null,null,swatch));
                 return;
             }
-            var actual = Native.Median(swatch);
-            var ok = RustSlider.Delta(actual, entry.Color) <= Math.Clamp(settings.Int("hex_verify_tolerance", 22), 0, 40);
-            Log("palette", new { target = entry.Color.Hex, actual = actual.Hex, point, attempt, verified = ok });
-            if (ok) return;
+            applied=PaletteSelection.Applied(entry.Color,swatch,area=>{CheckBoundary();return Native.Median(area);},()=>Delay(.08));
+            Log("palette_cell_proof",new{point,attempt,evidence=applied,proofSource="active swatch after selection",tolerance=12,activeColorVerified=applied.Passed,paintedRgbVerified=false});
+            if(applied.Passed)return;
         }
-        throw new InvalidOperationException($"Rust не підтвердив колір палітри {entry.Color.Hex}. Перевір зразок активного кольору.");
+        throw new PaletteAppliedException(applied??new(entry.Color,null,null,swatch));
     }
 
     private void VerifyPaletteTarget(PaletteEntry entry, ScreenPoint point)
@@ -673,6 +697,7 @@ internal sealed partial class Painter : IDisposable
         clock.Start();
         timing=new(PaintTimingPlan.Build(settings,groups,order,resume?.Group??0,resume?.Line??0,token));
         timingDone=done;timingTotal=total;timingPhase=PaintPhase.Countdown;
+        FinalAuditBaseline.BeginRun(logPath,plan.Identity,resume is not null);
         checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0));
         FlushCheckpoint("start");
         bool completed = false;
@@ -705,7 +730,13 @@ internal sealed partial class Painter : IDisposable
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
             timing.Complete(PaintTimingPlan.Setup,ActiveSeconds-setupStart);
-            Log("adaptive_plan", new { enabled = settings.Bool("adaptive_brush"), wide = groups.Values.SelectMany(x => x).Count(x => x.Size > 0), total,
+            BeginTiming(PaintTimingPlan.FinalBefore,PaintPhase.Auditing,"Знімаю початкове полотно…");
+            double baselineStart=ActiveSeconds;
+            BeginFinalAudit(plan,resume is not null);
+            timing.Complete(PaintTimingPlan.FinalBefore,ActiveSeconds-baselineStart);
+            Log("adaptive_plan", new { enabled = settings.Bool("adaptive_brush"), wide = groups.Values.SelectMany(x => x).Count(x => x.Size > PaintTimingPlan.DefaultSize(settings)),
+                baseSize=PaintTimingPlan.DefaultSize(settings),bySize=groups.Values.SelectMany(x=>x).GroupBy(x=>x.Size)
+                    .Select(g=>new{size=g.Key,operations=g.Count()}).ToArray(),total,
                 footprintRevision=BrushFootprints.Revision,shapeSlots=groups.Values.SelectMany(x=>x).Select(x=>x.ShapeSlot>0?x.ShapeSlot:settings.Int("brush_shape_slot",3)).Distinct().Order().ToArray() });
             string? lastHex = null;
             for (var group = resume?.Group ?? 0; group < order.Count; group++)
@@ -715,6 +746,7 @@ internal sealed partial class Painter : IDisposable
                 WaitReady();
                 BeginTiming(PaintTimingPlan.Color(group),PaintPhase.Preparing,$"#{entry.Color.Hex}");
                 double colorStart=ActiveSeconds;
+                bool skippedColor=false;
                 for (;;)
                     try
                     {
@@ -728,7 +760,7 @@ internal sealed partial class Painter : IDisposable
                             }
                         }
                         else
-                            ApplyPalette(entry);
+                            ApplyPalette(entry,requireAppliedProof:true);
                         if (plan.Mode == ColorMode.HexDirect)
                             Delay(ColorDelay());
                         break;
@@ -738,8 +770,27 @@ internal sealed partial class Painter : IDisposable
                         WaitReady();
                         lastHex = null;
                     }
+                    catch(PaletteAppliedException error)
+                    {
+                        skippedColor=true;
+                        Log("palette_group_skipped",new{group,color=entry.Color.Hex,error.Evidence,reason="active color not confirmed",paintedRgbVerified=false});
+                        break;
+                    }
 
                 timing.Complete(PaintTimingPlan.Color(group),ActiveSeconds-colorStart);
+                if(skippedColor)
+                {
+                    int firstLine=group==(resume?.Group??-1)?resume!.Line:0;
+                    for(int skippedLine=firstLine;skippedLine<groups[color].Count;skippedLine++)
+                    {
+                        timing.Skip(PaintTimingPlan.Shape(group,skippedLine));timing.Skip(PaintTimingPlan.Size(group,skippedLine));
+                        timing.Skip(PaintTimingPlan.Motion(group,skippedLine));done++;skippedPaletteOperations++;
+                    }
+                    timing.Skip(PaintTimingPlan.BeforeAudit(group));timing.Skip(PaintTimingPlan.Audit(group));
+                    timingDone=done;checkpoint.Update(new(plan.Identity,group+1,0,done));FlushCheckpoint("unconfirmed_color_skipped");
+                    ReportTiming("Колір не підтверджено. Групу пропущено; перевір зразок активного кольору.");
+                    continue;
+                }
                 Log("color_group", new { group, mode = plan.Mode.ToString(), color = entry.Color.Hex, point = entry.ClickPoint, strokes = groups[color].Count });
                 PixelImage? auditBefore=null;
                 if(settings.Bool("coverage_audit"))
@@ -757,11 +808,13 @@ internal sealed partial class Painter : IDisposable
                 InputCosts costs=default;
                 for (var line = group == (resume?.Group ?? -1) ? resume!.Line : 0; line < lines.Count; line++)
                 {
-                    double cycleStart=0,excludedSeconds=0,actualMotion=0;
+                    double cycleStart=0,excludedSeconds=0,actualMotion=0,recoverySeconds=0;
+                    bool retriedCycle=false;
+                    double plannedCycle=timing.Planned(PaintTimingPlan.Motion(group,line),PaintTimingPlan.Shape(group,line),PaintTimingPlan.Size(group,line));
                     while (true)
                         try
                         {
-                            cycleStart=ActiveSeconds;excludedSeconds=0;
+                            cycleStart=ActiveSeconds;excludedSeconds=0;recoverySeconds=0;
                             WaitReady();
                             var op = lines[line];
                             var targetSize = settings.Bool("adaptive_brush") ? (op.Size > 0 ? op.Size : PaintTimingPlan.DefaultSize(settings)) : (double?)null;
@@ -778,9 +831,9 @@ internal sealed partial class Painter : IDisposable
                                     lastHex = entry.Color.Hex;
                                 }
                                 else
-                                    ApplyPalette(entry);
+                                    ApplyPalette(entry,requireAppliedProof:true);
                                 needsReprime = false;
-                                excludedSeconds+=ActiveSeconds-reprimeStart;
+                                recoverySeconds=ActiveSeconds-reprimeStart;excludedSeconds+=recoverySeconds;
                             }
 
                             if(activeShape!=targetShape)
@@ -803,7 +856,7 @@ internal sealed partial class Painter : IDisposable
                                     double sizeSeconds=ActiveSeconds-sizeStart;excludedSeconds+=sizeSeconds;
                                     timing.Complete(PaintTimingPlan.Size(group,line),sizeSeconds);
                                     activeAdaptiveSize = size;
-                                    Log("adaptive_size", new { group, line, size, wide = op.Size > 0 });
+                                    Log("adaptive_size", new { group, line, size, baseSize=PaintTimingPlan.DefaultSize(settings),wide = size > PaintTimingPlan.DefaultSize(settings) });
                                 }
                             }
                             // Reprime after a pause may have already set the pending Size.
@@ -836,9 +889,28 @@ internal sealed partial class Painter : IDisposable
                         }
                         catch (InputInterrupted)
                         {
+                            retriedCycle=true;
                             Native.Release();
                             WaitReady();
                         }
+                        catch(PaletteAppliedException error)
+                        {
+                            // A resumed color must satisfy the same proof as
+                            // its initial selection. Never emit its next stroke.
+                            skippedColor=true;
+                            Log("palette_group_skipped",new{group,line,color=entry.Color.Hex,error.Evidence,reason="active color not confirmed after pause",paintedRgbVerified=false});
+                            for(int skippedLine=line;skippedLine<lines.Count;skippedLine++)
+                            {
+                                timing.Skip(PaintTimingPlan.Shape(group,skippedLine));timing.Skip(PaintTimingPlan.Size(group,skippedLine));
+                                timing.Skip(PaintTimingPlan.Motion(group,skippedLine));done++;skippedPaletteOperations++;
+                            }
+                            timing.Skip(PaintTimingPlan.Audit(group));timingDone=done;
+                            checkpoint.Update(new(plan.Identity,group+1,0,done));FlushCheckpoint("unconfirmed_color_skipped_after_pause");
+                            ReportTiming("Колір не підтверджено. Групу пропущено; перевір зразок активного кольору.");
+                            break;
+                        }
+
+                    if(skippedColor)break;
 
                     done++;
                     timingDone=done;
@@ -862,24 +934,35 @@ internal sealed partial class Painter : IDisposable
                     }
                     double overhead=Math.Max(0,ActiveSeconds-cycleStart-excludedSeconds-actualMotion);
                     timing.RecordOperationOverhead(PaintTimingPlan.Motion(group,line),overhead);
+                    if(!retriedCycle&&recoverySeconds==0)
+                        timing.RecordFullCycle(PaintTimingPlan.Motion(group,line),plannedCycle,Math.Max(0,ActiveSeconds-cycleStart));
                     operationOverheadSeconds+=overhead;
                 }
                 Log("motion_group",new{group,motionBatches,motionSeconds,plannedMotionSeconds,operationOverheadSeconds,
                     resolutionSeconds,estimateSeconds,etaModelSeconds,checkpointSeconds,reportSeconds,executionRevision=StrokeExecutionPlan.Revision,
                     routes,shiftParts,lengthHistogram, lengthHistogramRanges=new[]{"0-7","8-15","16-31","32-63","64-127","128+"},
                     delayTransport=DelayTimer.Transport,inputCosts=costs,meanStrokeMs=motionBatches>0?motionSeconds*1000/motionBatches:0,plannedMeanStrokeMs=motionBatches>0?plannedMotionSeconds*1000/motionBatches:0});
-                if(auditBefore is not null)
+                if(auditBefore is not null&&!skippedColor)
                 {
                     BeginTiming(PaintTimingPlan.Audit(group),PaintPhase.Auditing,"Перевіряю покриття…");
                     double auditStart=ActiveSeconds;
                     for(;;)try{AuditGroup(plan,color,group,auditBefore);break;}
                         catch(InputInterrupted){WaitReady();ReprimeControls(activeAdaptiveSize);}
+                        catch(PaletteAppliedException error)
+                        {
+                            Log("palette_repair_skipped",new{group,color=entry.Color.Hex,error.Evidence,reason="active color not confirmed during repair",paintedRgbVerified=false});
+                            ReportTiming("Колір не підтверджено. Групу пропущено; перевір зразок активного кольору.");
+                            break;
+                        }
                     timing.Complete(PaintTimingPlan.Audit(group),ActiveSeconds-auditStart);
                     checkpoint.Update(new(plan.Identity,group+1,0,done));
                     FlushCheckpoint("audited_group");
                 }
             }
 
+            BeginTiming(PaintTimingPlan.FinalAudit,PaintPhase.Auditing,"Перевіряю фінальне покриття…");
+            double finalAuditStart=ActiveSeconds;CompleteFinalAudit(plan);
+            timing.Complete(PaintTimingPlan.FinalAudit,ActiveSeconds-finalAuditStart);
             BeginTiming(PaintTimingPlan.Finish,PaintPhase.Finishing,"Завершую перенесення…");
             double finishStart=ActiveSeconds;
             FinishControls(settings, () => Native.GetForegroundWindow() == window, value => Slider("opacity", value));
@@ -889,8 +972,8 @@ internal sealed partial class Painter : IDisposable
             timing.Complete(PaintTimingPlan.Finish,ActiveSeconds-finishStart);
             completed = true;
             timingPhase=PaintPhase.Completed;
-            ReportTiming(settings.Bool("coverage_audit")?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди виконано. Перевір результат у Rust.");
-            Log("complete", new { done, total, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), calibratedMotion=SpeedCalibration.Use(settings),coverageVerified=settings.Bool("coverage_audit"),resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
+            ReportTiming(FinalCoverage?.Passed==true?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди оброблено. Фінальний аудит потребує уваги.");
+            Log("complete", new { done, total, skippedPaletteOperations, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), calibratedMotion=SpeedCalibration.Use(settings),coverageVerified=FinalCoverage?.Passed==true,resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
         }
         finally
         {
@@ -931,55 +1014,7 @@ internal sealed partial class Painter : IDisposable
             lastPaintPoint=Native.Cursor();
             return;
         }
-        var a = new ScreenPoint(reverse ? line.X2 : line.X1, reverse ? line.Y2 : line.Y1);
-        var b = new ScreenPoint(reverse ? line.X1 : line.X2, reverse ? line.Y1 : line.Y2);
-        var length = Math.Max(Math.Abs(b.X - a.X), Math.Abs(b.Y - a.Y));
-        var shift = settings.Bool("line_mode") && settings.Text("coverage_mode") == "Fast" && length >= settings.Int("min_line_width", 4) * settings.Int("cell_px", 3);
-        Native.SetCursorPos(a.X, a.Y);
-        var frame = StrokeTiming.Frame(settings);
-        Delay(StrokeTiming.Settle(settings, speed));
-        CheckBoundary();
-        if (shift)
-            Native.Key(0x10);
-        Native.Mouse(false);
-        var heldFrom = Stopwatch.GetTimestamp();
-        try
-        {
-            Delay(frame);
-            var batch = new List<ScreenPoint>();
-            if (shift)
-            {
-                Native.SetCursorPos(b.X, b.Y);
-                Delay(settings.Number("stroke_speed", .028) * Math.Max(1, length) / 100);
-            }
-            else
-                for (var step = speed.Pitch; step < length + speed.Pitch; step += speed.Pitch)
-                {
-                    Check();
-                    if (Paused)
-                        throw new InputInterrupted();
-                    var f = Math.Min(step, length) / (double)Math.Max(1, length);
-                    batch.Add(new((int)Math.Round(a.X + (b.X - a.X) * f), (int)Math.Round(a.Y + (b.Y - a.Y) * f)));
-                    if (batch.Count >= speed.BatchSize || step >= length)
-                    {
-                        MovePathMeasured(batch);
-                        Delay(speed.PointDelay * batch.Count);
-                        batch.Clear();
-                    }
-                }
-
-            Delay(StrokeTiming.EndHold(settings, speed));
-            var held = (Stopwatch.GetTimestamp() - heldFrom) / (double)Stopwatch.Frequency;
-            if (held < .04) Delay(.04 - held);
-        }
-        finally
-        {
-            Native.Mouse(true);
-            if (shift)
-                Native.Key(0x10, true);
-        }
-
-        Delay(StrokeTiming.Release(settings));
+        StandardStrokeMotion.Draw(line,settings,speed,reverse,motionInput);
         lastPaintPoint=Native.Cursor();
     }
 

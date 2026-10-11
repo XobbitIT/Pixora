@@ -166,6 +166,8 @@ public sealed class Settings
             throw new InvalidDataException("Input frame delay must be 16–100 ms.");
         if (Number("input_experimental_delay_ms",12) is <8 or >16)
             throw new InvalidDataException("Experimental input delay must be 8–16 ms.");
+        if(Number("edge_merge_thickness",2) is <1 or >4||Number("edge_merge_thickness",2)!=Math.Truncate(Number("edge_merge_thickness",2)))
+            throw new InvalidDataException("Edge merge thickness must be an integer from 1 to 4.");
         var hexLimit = Text("hex_max_colors", "128");
         if (hexLimit != "Auto" && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 256))
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
@@ -280,6 +282,8 @@ public sealed class Settings
             ["adaptive_threshold"] = 1.0,
             ["min_line_width"] = 4,
             ["adaptive_brush"] = false,
+            ["edge_merge"] = true,
+            ["edge_merge_thickness"] = 2,
             ["fast_transfer"] = false,
             ["fast_path_batch_points"] = 8,
             ["calibrated_strokes"] = false,
@@ -503,6 +507,8 @@ public sealed class PaintPlan
     public required string Identity { get; init; }
     public int? BackgroundColor { get; init; }
     public double Error { get; init; }
+    public int[]? BeforeEdgeMerge { get; init; }
+    public EdgeMergeResult? EdgeMerge { get; init; }
     public int ColorCount => Counts.Count;
     public int StrokeCount => Strokes.Values.Sum(x => x.Count) + (BackgroundColor.HasValue ? Height : 0);
 }
@@ -515,6 +521,7 @@ public static class PlanIdentity
         hash.AppendData(image.Rgba);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes("canonical-plan-json-v1"));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StandardStrokeMotion.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(TransferSchedule.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeTiming.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
@@ -525,6 +532,9 @@ public static class PlanIdentity
             && (settings.Text("coverage_mode", "Precision") != "Precision" || !settings.Bool("force_precision_controls", true)))
             hash.AppendData(System.Text.Encoding.UTF8.GetBytes(AutomaticBrush.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
+        if(!settings.Bool("edge_merge",true))
+        {paintSettings.Remove("edge_merge");paintSettings.Remove("edge_merge_thickness");}
+        else hash.AppendData(System.Text.Encoding.UTF8.GetBytes(EdgeRegionMerge.Revision));
         foreach(var key in new[]{"preparation_history","palette_target_failed","controls_validation_failed","probe_sizes"})paintSettings.Remove(key);
         foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance" })
             paintSettings.Remove(key);

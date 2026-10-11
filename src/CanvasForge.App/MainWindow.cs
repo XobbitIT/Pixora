@@ -443,6 +443,7 @@ internal sealed partial class MainWindow : Window
         detailInput=AddNumber(quality,"cell_px",T("Деталізація, px","Detail, px"),true);
         detailState=Text("",12,Muted);quality.Children.Add(detailState);
         AddWorkingBrush(quality);
+        BuildTargetPlanningUi(quality);
         AddCheck(quality,"fast_transfer",T("Максимальна швидкість перенесення","Maximum transfer speed"),true);
         adaptiveSummary=Text("",12,Muted);quality.Children.Add(adaptiveSummary);
         measuredPlanStatus=Text("",12,Warning);quality.Children.Add(measuredPlanStatus);
@@ -469,6 +470,7 @@ internal sealed partial class MainWindow : Window
         foreach(var action in new[]{resumeButton,pauseButton,stopButton}){action.Padding=new Thickness(5,9,5,9);action.FontSize=12;actions.Add(action);}controls.Children.Add(actions.Panel);
         progressBar=new(){Height=8,Minimum=0,Maximum=100,Foreground=Accent,Background=Input,Margin=new Thickness(0,12,0,6)};controls.Children.Add(progressBar);
         progressLabel=Text("0% · "+T("Залишилось","ETA")+" —",12,Muted);controls.Children.Add(progressLabel);controls.Children.Add(Text(T("F6 — пауза · ESC — зупинити","F6 — pause · ESC — stop"),12,Muted));
+        BuildPhysicalCoverage(controls);
         controls.Children.Add(eta);
         var advanced=new StackPanel();right.Children.Add(new Expander{Header=T("План і експорт","Plan and export"),Content=advanced});advanced.Children.Add(Card(T("План зображення","Image plan"),out var planDetails));
         stats=Text("—",12);planDetails.Children.Add(stats);planDetails.Children.Add(AsyncButton(T("Оновити прев’ю","Refresh preview"),BuildPlan));
@@ -1030,7 +1032,7 @@ internal sealed partial class MainWindow : Window
                 if(snapshot.Bool("minimize",true)&&p.Phase==PaintPhase.Countdown)WindowState=WindowState.Minimized;
             }
         }), cancellation.Token);
-        BeginCoverageCheck(snapshot.Bool("coverage_audit"));
+        BeginCoverageCheck(true);
         SetEditing(false);
         SetStatus(T("Готую штрихи та час. Можна зупинити підготовку.","Preparing strokes and timing. You can stop preparation."));
         if (!resume && File.Exists(ResumePath))
@@ -1041,12 +1043,13 @@ internal sealed partial class MainWindow : Window
         try
         {
             await paintTask;
-            CompleteCoverageCheck(snapshot.Bool("coverage_audit"));
+            if(worker.FinalCoverage is {} finalCoverage)RenderPhysicalCoverage(finalCoverage,worker.FinalAuditDirectory);
+            else CompleteCoverageCheck(false);
             transferCompleted=true;
         }
         catch (OperationCanceledException)
         {
-            if(snapshot.Bool("coverage_audit")){coverageState=CoverageState.Interrupted;RefreshCoverageStatus();}
+            coverageState=CoverageState.Interrupted;RefreshCoverageStatus();
             SetStatus(snapshot.Bool("coverage_audit")
                 ? T("Зупинено. Покриття не підтверджене; потрібен новий запуск.", "Stopped. Coverage is unverified; a fresh START is required.")
                 : T("Зупинено. Прогрес збережено для продовження.", "Stopped. Progress saved for RESUME."));

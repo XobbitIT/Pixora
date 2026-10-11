@@ -4,7 +4,13 @@ public enum EtaBasis { Planned, Measured, Mixed, Complete }
 public sealed record TimedWork(string Id,string RateKey,double PlannedSeconds,bool Motion);
 public sealed record EtaEstimate(double Seconds,EtaBasis Basis,int MotionSamples,int WindowSamples,
     int RemainingOperations,int UnmeasuredOperations,double MeanMotionMs,double MotionRatio,
-    double OperationOverheadMs=0,int OperationOverheadSamples=0);
+    double OperationOverheadMs=0,int OperationOverheadSamples=0)
+{
+    public double LowerSeconds {get;init;}
+    public double UpperSeconds {get;init;}
+    public double FullCycleRatio {get;init;}=1;
+    public int FullCycleSamples {get;init;}
+}
 public sealed record EtaRate(string Key,bool Motion,int WindowSamples,double MeanSeconds,double Ratio);
 
 // Forecasts remaining work, not elapsed / lifetime Done. A fresh instance is used
@@ -36,6 +42,9 @@ public sealed class RemainingTime
     private readonly Queue<double> operationOverhead=new();
     private double overheadSum;
     private string? completedMotion;
+    private string? fullCycleReady;
+    private readonly Queue<(double Planned,double Actual)> cycles=new();
+    private double cyclePlanned,cycleActual;
     private (string Id,double Started)? active;
     public RemainingTime(IEnumerable<TimedWork> work)
     {
@@ -60,7 +69,7 @@ public sealed class RemainingTime
         CheckSeconds(actualSeconds);
         if(!pending.Remove(id,out var work))return false;
         Remove(work);var bucket=buckets[work.RateKey];bucket.Observe(work.PlannedSeconds,actualSeconds);
-        if(work.Motion){motionSamples++;recentMotion.Observe(work.PlannedSeconds,actualSeconds);completedMotion=id;}
+        if(work.Motion){motionSamples++;recentMotion.Observe(work.PlannedSeconds,actualSeconds);completedMotion=id;fullCycleReady=id;}
         return true;
     }
     // Called once after the completed stroke's checkpoint/report work. Controls,
@@ -78,6 +87,15 @@ public sealed class RemainingTime
         if(!pending.Remove(id,out var work))return false;
         Remove(work);return true;
     }
+    public double Planned(params string[] ids)=>ids.Sum(id=>pending.TryGetValue(id,out var work)?work.PlannedSeconds:0);
+    public bool RecordFullCycle(string id,double planned,double actual)
+    {
+        CheckSeconds(planned);CheckSeconds(actual);
+        if(planned<=0||fullCycleReady!=id)return false;fullCycleReady=null;
+        cycles.Enqueue((planned,actual));cyclePlanned+=planned;cycleActual+=actual;
+        if(cycles.Count>MotionWindow){var old=cycles.Dequeue();cyclePlanned-=old.Planned;cycleActual-=old.Actual;}
+        return true;
+    }
     private void Remove(TimedWork work)
     {
         var b=buckets[work.RateKey];b.Count--;b.Planned=b.Count==0?0:Math.Max(0,b.Planned-work.PlannedSeconds);
@@ -93,7 +111,13 @@ public sealed class RemainingTime
             double confidence=Math.Min(1,b.Samples.Count/(double)MinimumRouteSamples);
             return planned*(1+confidence*(b.SampleActual/b.SamplePlanned-1));
         }
-        return Measured(b)?count*b.SampleActual/b.Samples.Count:planned;
+        if(Measured(b))return count*b.SampleActual/b.Samples.Count;
+        double fallback=planned*(cycles.Count>=Warmup?cycleActual/cyclePlanned:1);
+        // Full-cycle samples already contain checkpoint/report overhead. The
+        // common per-operation overhead is added once by Estimate below.
+        if(b.Motion&&cycles.Count>=Warmup&&operationOverhead.Count>0)
+            fallback=Math.Max(0,fallback-count*overheadSum/operationOverhead.Count);
+        return fallback;
     }
     public EtaEstimate Estimate(double activeSeconds)
     {
@@ -111,7 +135,9 @@ public sealed class RemainingTime
         return new(Math.Max(0,seconds),basis,motionSamples,recentMotion.Samples.Count,operations,unknown,
             recentMotion.Samples.Count==0?0:recentMotion.SampleActual*1000/recentMotion.Samples.Count,
             recentMotion.SamplePlanned==0?1:recentMotion.SampleActual/recentMotion.SamplePlanned,
-            overheadMean*1000,operationOverhead.Count);
+            overheadMean*1000,operationOverhead.Count)
+        {LowerSeconds=Math.Max(0,seconds)*.9,UpperSeconds=Math.Max(0,seconds)*(motionSamples<Warmup?1.5:1.15),
+            FullCycleRatio=cyclePlanned>0?cycleActual/cyclePlanned:1,FullCycleSamples=cycles.Count};
     }
     public List<EtaRate> Rates()=>buckets.Select(x=>new EtaRate(x.Key,x.Value.Motion,x.Value.Samples.Count,
         x.Value.Samples.Count==0?0:x.Value.SampleActual/x.Value.Samples.Count,

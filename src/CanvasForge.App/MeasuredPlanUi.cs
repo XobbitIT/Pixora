@@ -12,6 +12,7 @@ internal sealed partial class MainWindow
     private Button measuredPlanCompare=new();
     private void RefreshMeasuredPlan()
     {
+        RefreshTargetPlanningUi();
         measuredPlanDetails.IsEnabled=!Painting&&previewMeasuredPlan is not null;
         measuredPlanCompare.Visibility=previewMeasuredPlan is {UnplannedPixels:>0}&&settings.Mode==ColorMode.HexDirect?Visibility.Visible:Visibility.Collapsed;
         measuredPlanCompare.IsEnabled=!Painting&&source is not null&&numberErrors.Count==0;

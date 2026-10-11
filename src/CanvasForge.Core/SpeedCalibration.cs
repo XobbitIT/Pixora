@@ -165,6 +165,10 @@ public static class SpeedCalibration
         // only execute the actual tested span (MaxLength), never extrapolate it.
         int tile=Math.Max(64,4*outer+80);var areas=Areas(tile);
         if(areas.Count<needed){tile=Math.Max(64,4*outer+48);areas=Areas(tile);}
+        // Preserve separate envelopes and all 3 repetitions + margin trials.
+        // A shorter tested span fits ordinary ~1000px Canvases; execution still
+        // cannot extrapolate Shift beyond this actual MaxLength.
+        if(areas.Count<needed){tile=Math.Max(64,4*outer+36);areas=Areas(tile);}
         if(areas.Count<needed)throw new InvalidOperationException($"Для цього Size потрібно {needed} чистих ділянок {tile}×{tile} px. Збільш Canvas або вибери менший Size.");
         var result=new List<SpeedProbeTile>();
         for(int i=0;i<Math.Min(areas.Count,needed+ProbeControlRetry.MaximumRetries);i++)

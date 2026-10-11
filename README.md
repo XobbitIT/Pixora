@@ -1,4 +1,16 @@
-# Pixora 1.0.14-beta.56 — grouped speed tests and useful brush passes
+# Pixora 1.0.14-beta.59 — calibration transport and operation lifecycle fixes
+
+Beta.59 preserves Stop/Resume state, keeps the cursor outside captured control regions, verifies tiny-brush paint sources at a readable Size before restoring the requested Size, and reconciles current readiness and historical audit evidence. Ordinary movement now uses guarded SendInput. 478 Core / 173 WPF offline checks passed, including 84 layouts; an independent agent repeated all 478 Core checks. Release builds have zero warnings and errors. Physical edge coverage, Adaptive speedup and initial numerical ETA still need a new Rust run. Start a new plan after updating: the motion protocol identity changed. See [changes](CHANGES_BETA59_UA.md), [architecture](ARCHITECTURE_UA.md) and [live checklist](TESTING_BETA59_UA.md).
+
+Previous beta.58:
+
+Beta.58 makes the main preparation measure one solid working brush; Speed Probe and additional Sizes are optional. It locates shifted Rust controls, confirms paint source before and after each dot, revokes a retested Size’s previous proof, and fits all speed trials into the recorded Size 20 Canvas using shorter independent spans. 470 Core / 169 WPF offline checks, 84 DPI/language/state layouts. Live Rust validation of beta.58 is pending. See [changes](CHANGES_BETA58_UA.md), [recorded evidence](LIVE_ANALYSIS_BETA58_UA.md), and [live checklist](TESTING_BETA58_UA.md). No GitHub push in this release.
+
+Previous beta.57:
+
+Beta.57 adds optional thin-region merging, a mandatory final physical coverage report, ETA ranges, explicit ordinary/adaptive comparisons, applied-palette evidence and complete active diagnostics in five additional languages. 459 Core / 168 WPF offline checks, including 84 DPI/language/state renders. Merging can improve coverage while increasing drawing time; identical white-on-white remains uncertain. New live Rust validation is required. See [changes](CHANGES_BETA57_UA.md), [evidence limits](LIVE_ANALYSIS_BETA57_UA.md) and [live checklist](TESTING_BETA57_UA.md). Local snapshot from beta.56 commit `5c347c2`; not yet pushed.
+
+Previous beta.56:
 
 Beta.56 skips empty color groups, removes/shortens redundant measured strokes without losing solid-mask coverage, and tests multiple measured Sizes in one sequence. Current spatial evidence is reused; another Size’s routes survive a retest. Accuracy thresholds are unchanged. 435 Core / 160 WPF offline checks; no new Rust execution. The previously delivered local ZIP retains its pre-commit manifest. Start a new plan. See [changes](CHANGES_BETA56_UA.md), [recorded test analysis](LIVE_ANALYSIS_BETA56_UA.md), [problem inventory](PROBLEMS_STATUS_BETA56_UA.md) and [live checklist](TESTING_BETA56_UA.md).
 

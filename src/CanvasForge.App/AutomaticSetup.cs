@@ -53,7 +53,7 @@ internal sealed partial class MainWindow
     };
     private void AddAutomaticSetup(StackPanel parent,bool details=false)
     {
-        var button=AsyncButton(T("Підготувати до малювання","Prepare for painting"),()=>RunSetup(false),true);
+        var button=AsyncButton(T("Підготувати до малювання","Prepare for painting"),()=>RunSetup(true),true);
         button.Tag="automatic-setup";allSetupButtons.Add(button);parent.Children.Add(button);
         var summary=Text("",12,Muted);setupSummaries.Add(summary);parent.Children.Add(summary);
         if(details)
@@ -74,6 +74,15 @@ internal sealed partial class MainWindow
     }
     private void RefreshSetupStatus()
     {
+        if(!setupRunning)foreach(var stage in new[]{SetupStage.Spatial,SetupStage.Speed})
+        {
+            bool verified=stage==SetupStage.Spatial
+                ?ProbeSpatialCalibration.Read(settings,settings.Number("probe_size",3)) is not null
+                :SpeedCalibration.Current(settings);
+            if(verified)setupResults[stage]=(SetupStageState.Passed,"");
+            else if(setupResults.TryGetValue(stage,out var prior)&&prior.State==SetupStageState.Passed)
+                setupResults[stage]=(SetupStageState.Pending,T("Застаріло","Stale"));
+        }
         setupStop.Visibility=setupRunning||inputCheckRunning?Visibility.Visible:Visibility.Collapsed;
         foreach(var button in allSetupButtons)button.IsEnabled=!Painting;
         var current=PaintingReadiness.Read(settings,source is not null);
@@ -81,8 +90,8 @@ internal sealed partial class MainWindow
             current.FirstIncomplete?.Problem is { } problem?T(problem):
             setupResults.Any(p=>p.Key is SetupStage.Spatial or SetupStage.Speed&&p.Value.State==SetupStageState.Failed)?
                 T("Можна малювати стабільним вводом. Прискорення потребує повторної перевірки.","Stable painting is ready. Acceleration needs another check."):
-                T("Одна підготовка: області, кольори, пензлі та швидкість. Невдала перевірка прискорення залишає стабільний ввід.",
-                    "One preparation: regions, colors, brushes and speed. If acceleration fails, stable input remains available.");
+                T("Одна підготовка: області, кольори та один робочий пензель. Тест швидкості й додаткові розміри — окремо.",
+                    "One preparation: regions, colors and one working brush. Speed tests and additional Sizes are optional.");
         foreach(var summary in setupSummaries)summary.Text=summaryText;
         foreach(var rows in setupRows)foreach(var stage in rows.Keys)
         {
@@ -114,7 +123,7 @@ internal sealed partial class MainWindow
             rows[stage].IsEnabled=!Painting;
         }
     }
-    private Task RunAutomaticSetup()=>RunSetup(false);
+    private Task RunAutomaticSetup()=>RunSetup(true);
     private void PrepareCombinedSetup()
     {
         AdaptiveBrush.Prepare(settings);
@@ -122,6 +131,17 @@ internal sealed partial class MainWindow
         settings.Set("fast_transfer",false);settings.Set("input_engine","Stable");settings.Set("calibrated_strokes",false);
         // Later calibration stages read the editors again. Synchronize them
         // now so the old single-Size ComboBox cannot erase the combined choice.
+        BuildUi();
+    }
+    private void PrepareDrawingSetup()
+    {
+        double size=SetupSequence.DrawingSize(settings);AdaptiveBrush.Prepare(settings);
+        if(settings.Int("brush_shape_slot",3) is not (3 or 4))
+        {settings.Set("brush_shape_slot",3);settings.Set("brush_shape","Round");}
+        settings.Set("precision_brush_size",size.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        settings.Set("probe_size",size);settings.Set("brush_calibration_size",size.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        settings.Set("adaptive_brush",false);settings.Set("coverage_audit",false);settings.Set("audit_repair",false);
+        settings.Set("calibrated_strokes",false);settings.Set("fast_transfer",false);settings.Set("input_engine","Stable");
         BuildUi();
     }
     private async Task RunSetup(bool quick)
@@ -139,12 +159,7 @@ internal sealed partial class MainWindow
         }
         if(quick)
         {
-            double size=SetupSequence.DrawingSize(settings);AdaptiveBrush.Prepare(settings);
-            settings.Set("precision_brush_size",size.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            settings.Set("probe_size",size);settings.Set("brush_calibration_size",size.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            settings.Set("adaptive_brush",false);settings.Set("coverage_audit",false);settings.Set("audit_repair",false);
-            settings.Set("calibrated_strokes",false);settings.Set("fast_transfer",false);settings.Set("input_engine","Stable");
-            BuildUi();
+            PrepareDrawingSetup();
         }
         CalibrationReliability.BeginBrushCheck(settings);
         setupRunning=true;setupDone=new(TaskCreationOptions.RunContinuationsAsynchronously);setupCancel=new();paintCancel=setupCancel;setupOutcome="";setupResults.Clear();SetEditing(false);
@@ -208,6 +223,8 @@ internal sealed partial class MainWindow
                         await Capture("palette",T("ПАЛІТРА 4×16","PALETTE 4×16"));
                         await TestPaletteTargets();
                     }
+                    if(!settings.Calibration.Rect("palette_swatch").Valid)
+                        await Capture("palette_swatch",T("Виділи зразок активного кольору Rust для перевірки після вибору палітри.","Select Rust's active color swatch to verify palette selections."));
                 }
                 break;
             case SetupStage.Controls:await TestControls();break;
