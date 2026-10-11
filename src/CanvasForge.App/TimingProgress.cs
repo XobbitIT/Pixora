@@ -34,7 +34,7 @@ internal sealed partial class MainWindow
                 ?T("триває","in progress"):"≈ "+Duration(Math.Ceiling(p.Eta));
             if(p.Phase!=PaintPhase.Completed&&p.Estimate is {UpperSeconds:>0} range)
                 remaining=range.MotionSamples<RemainingTime.Warmup
-                    ?T("≈ ","≈ ")+Duration(Math.Ceiling(range.Seconds))+" · "+T("уточнюється","learning pace")
+                    ?"≈ "+Duration(Math.Ceiling(range.Seconds))+" · "+T("уточнюється","learning pace")
                     :Duration(Math.Ceiling(range.LowerSeconds))+"–"+Duration(Math.Ceiling(range.UpperSeconds));
             string phase=p.Phase switch
             {
