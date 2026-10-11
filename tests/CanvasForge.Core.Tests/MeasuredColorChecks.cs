@@ -26,7 +26,7 @@ internal static class MeasuredColorChecks
         return new PaintPlan{Width=400,Height=320,Palette=[new(new(220,30,30),null,"main"),new(new(30,220,30),null,"main")],Indices=indices,Strokes=strokes,
             Counts=Enumerable.Range(0,2).ToDictionary(i=>i,i=>indices.Count(x=>x==i)),Identity="measured-colors",Mode=ColorMode.RustPalette,Preview=new(400,320)};
     }
-    private static void Verify(PaintPlan plan,Settings s,Dictionary<int,List<PaintBatch>> groups)
+    internal static void Verify(PaintPlan plan,Settings s,Dictionary<int,List<PaintBatch>> groups)
     {
         foreach(var (color,ops) in groups)foreach(var op in ops)
         {

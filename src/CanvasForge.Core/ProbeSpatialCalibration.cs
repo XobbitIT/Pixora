@@ -44,7 +44,7 @@ public static class ProbeSpatialCalibration
         try
         {
             var profiles=(s.Data["shape_spatial_profiles"]?[s.Int("brush_shape_slot",3).ToString()]??s.Data["probe_spatial_profiles"])?.Deserialize<List<SpatialProbeProfile>>();
-            if(profiles is null||profiles.Count>7||profiles.Any(x=>x is null))return null;
+            if(profiles is null||profiles.Count>BrushFootprints.Sizes.Length||profiles.Any(x=>x is null))return null;
             if(profiles.Count(x=>x.Size==size)!=1)return null;
             var p=profiles.Single(x=>x.Size==size);var footprint=SpeedCalibration.Footprint(s,size);
             if(!SpeedCalibration.BrushReady(s,size)||p.Context!=Context(s)||!Guid.TryParseExact(p.Id,"N",out _)

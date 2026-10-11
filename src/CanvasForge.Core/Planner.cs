@@ -145,6 +145,12 @@ public static class Planner
                 }
         }
 
+        int[]? beforeMerge=null;EdgeMergeResult? merge=null;
+        if(settings.Bool("edge_merge",true))
+        {
+            beforeMerge=(int[])indices.Clone();
+            merge=EdgeRegionMerge.Apply(indices,w,h,settings.Int("edge_merge_thickness",2),EdgeRegionMerge.MinimumArea(settings,w,h),token);
+        }
         var counts = indices.Where(i => i >= 0).GroupBy(i => i).ToDictionary(g => g.Key, g => g.Count());
         var preview = new PixelImage(w, h);
         for (var i = 0; i < indices.Length; i++)
@@ -186,7 +192,9 @@ public static class Planner
             Counts = counts,
             BackgroundColor = background,
             Error = Quantization.Error(reference, indices, palette.Select(x => x.Color).ToArray()),
-            Identity = PlanIdentity.Compute(source, settings, palette)
+            Identity = PlanIdentity.Compute(source, settings, palette),
+            BeforeEdgeMerge = beforeMerge,
+            EdgeMerge = merge
         };
     }
 

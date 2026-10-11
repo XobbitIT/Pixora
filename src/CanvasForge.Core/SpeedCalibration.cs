@@ -82,15 +82,19 @@ public static class SpeedCalibration
             s=BrushFootprints.ForShape(s,shapeSlot);
         }
         if(!Allowed(s)||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
-        return Select(Read(s),size,line);
+        return Select(s,Read(s),size,line);
     }
-    private static SpeedSample? Select(SpeedProbeProfile? profile,double size,ScreenLine line)
+    private static SpeedSample? Select(Settings s,SpeedProbeProfile? profile,double size,ScreenLine line)
     {
         if(profile is null||line.X1!=line.X2&&line.Y1!=line.Y2)return null;
         int length=TransferSchedule.Length(line);bool vertical=line.X1==line.X2&&line.Y1!=line.Y2;
         if(length<8)return null;
-        return profile.Samples.Where(x=>x.Size==size&&x.Vertical==vertical)
+        var sample=profile.Samples.Where(x=>x.Size==size&&x.Vertical==vertical)
             .OrderBy(x=>CalibratedMotion.Estimate(line,x)).FirstOrDefault();
+        // The normal stable route remains available. A short certified span
+        // must not force hundreds of slower Shift pieces on a long line.
+        double normal=TransferSchedule.EstimateNormalBatch(s,SpeedProfile.Get(s.Text("speed_profile","Rapid")),new(size,[line],1),TransferSchedule.Fast(s));
+        return sample is not null&&CalibratedMotion.Estimate(line,sample)<normal?sample:null;
     }
     // Private estimate/execution copies cannot be edited by UI settings. The
     // execution owner separately checks the live Rust geometry before input.
@@ -109,7 +113,7 @@ public static class SpeedCalibration
                 profile=Allowed(config)?Read(config):null;
                 profiles[slot]=profile;
             }
-            return Select(profile,size,line);
+            return Select(snapshot,profile,size,line);
         };
     }
     public static (int Outer,int Inner) Footprint(Settings s,double size)
@@ -161,6 +165,10 @@ public static class SpeedCalibration
         // only execute the actual tested span (MaxLength), never extrapolate it.
         int tile=Math.Max(64,4*outer+80);var areas=Areas(tile);
         if(areas.Count<needed){tile=Math.Max(64,4*outer+48);areas=Areas(tile);}
+        // Preserve separate envelopes and all 3 repetitions + margin trials.
+        // A shorter tested span fits ordinary ~1000px Canvases; execution still
+        // cannot extrapolate Shift beyond this actual MaxLength.
+        if(areas.Count<needed){tile=Math.Max(64,4*outer+36);areas=Areas(tile);}
         if(areas.Count<needed)throw new InvalidOperationException($"Для цього Size потрібно {needed} чистих ділянок {tile}×{tile} px. Збільш Canvas або вибери менший Size.");
         var result=new List<SpeedProbeTile>();
         for(int i=0;i<Math.Min(areas.Count,needed+ProbeControlRetry.MaximumRetries);i++)

@@ -23,7 +23,7 @@ internal static partial class Program
         var advanced=Descendants(page).OfType<Expander>().Single();Assert(!advanced.IsExpanded,"Individual capture actions are not collapsed");
         advanced.IsExpanded=true;Render(w,Path.Combine(output,name+"-expanded.png"),1280,780);
         string text=string.Join("\n",Captions(page));
-        Assert(text.Contains(en?"Go to painting preparation":"До підготовки малювання")&&text.Contains(en?"Required preparation only":"Лише обов'язкова підготовка"),"Main/advanced actions are missing");
+        Assert(text.Contains(en?"Go to painting preparation":"До підготовки малювання")&&text.Contains(en?"Full preparation with additional brushes and speed":"Повна підготовка з додатковими пензлями та швидкістю"),"Main/advanced actions are missing");
         foreach(string unused in new[]{"SAVE / CANCEL","ЗНАРЯДДЯ (3)","TOOLS (3)","TOP BAR","ВЕРХНЯ ПАНЕЛЬ","FULL UI","Палітра і прев’ю","Palette and preview"})
             Assert(!text.Contains(unused),"Unused HEX action remains: "+unused);
         var rows=Field<List<Dictionary<SetupStage,TextBlock>>>(w,"setupRows");Assert(rows.Count==1&&rows.All(r=>r.Keys.SequenceEqual(SetupSequence.Stages)),"Main setup still requires speed or spatial proof");

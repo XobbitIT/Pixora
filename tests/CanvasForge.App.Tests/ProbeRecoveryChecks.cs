@@ -56,7 +56,7 @@ internal static partial class Program
         MainWindow.StoreProbeRoutes(settings,old,[sample],3,context,spatial.Id);
         var saved=SpeedCalibration.Read(settings)!;
         Assert(saved.Samples.Count==2&&saved.Samples.Any(x=>x.Size==1)&&saved.Samples.Single(x=>x.Size==3)==sample,"Certified partial save erased another Size or retained old untested route");
-        Assert(SpeedCalibration.Resolve(settings,3,new(100,100,135,100))==sample&&SpeedCalibration.Resolve(settings,3,new(100,100,100,135)) is null,"Untested direction resolved as verified");
+        Assert(SpeedCalibration.Current(settings)&&SpeedCalibration.Resolve(settings,3,new(100,100,135,100)) is null&&SpeedCalibration.Resolve(settings,3,new(100,100,100,135)) is null,"Slow saved proof forced an inefficient route or verified an untested direction");
         string unchanged=settings.Data.ToJsonString();
         foreach(var bad in new[]{sample with{SafeMs=20},sample with{Repeats=2},sample with{Coverage=.99},sample with{SpatialId=one.Id}})
         {
@@ -65,6 +65,11 @@ internal static partial class Program
         }
         try{MainWindow.StoreProbeRoutes(settings,saved,[sample],3,"changed",spatial.Id);throw new Exception("Changed context saved");}
         catch(InvalidOperationException){Assert(settings.Data.ToJsonString()==unchanged,"Changed context mutated settings");}
+        var refreshed=spatial with{Id=Guid.NewGuid().ToString("N")};ProbeSpatialCalibration.Save(settings,refreshed);
+        MainWindow.StoreProbeRoutes(settings,saved,[],3,context,refreshed.Id);
+        var retained=SpeedCalibration.Read(settings)!;
+        Assert(retained.Samples.Count==1&&retained.Samples[0].Size==1&&ProbeSpatialCalibration.Read(settings,1)?.Id==one.Id,
+            "Refreshing one Size erased another Size's spatial/speed proof or retained its obsolete route");
         Console.WriteLine("PASS probe-route-persistence");
     }
 }

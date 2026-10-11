@@ -25,7 +25,9 @@ internal sealed partial class MainWindow
 
     private void ResetCoverageState()
     {
-        coverageState = CoverageState.Pending; RefreshCoverageStatus();
+        auditHistorical=auditNotice is not null;
+        ResetPaintProgress();
+        coverageState = CoverageState.Pending; RefreshCoverageStatus();RefreshAuditBanner();
     }
 
     private void BeginCoverageCheck(bool audited)
@@ -47,7 +49,7 @@ internal sealed partial class MainWindow
             CoverageState.NeedsReview => (T("Потребує уваги", "Needs review"), coverageHasGaps ? Danger : Warning),
             CoverageState.Interrupted => (T("Перервано", "Interrupted"), Warning),
             CoverageState.Unchecked => (T("Без аудиту", "Not audited"), Muted),
-            _ => settings.Bool("coverage_audit") ? (T("Очікує", "Pending"), Warning) : (T("Вимкнено", "Disabled"), Muted)
+            _ => (T("Очікує", "Pending"), Warning)
         };
         if (chip.Compact) text = coverageState switch
         {
@@ -70,9 +72,7 @@ internal sealed partial class MainWindow
             CoverageState.NeedsReview => T("Останнє малювання не пройшло аудит. Діагностика зберігається локально; наступний тест почни кнопкою «Почати».", "The last START failed its audit. Diagnostics are stored locally; retry with a fresh START."),
             CoverageState.Interrupted => T("Перевірку перервано. Покриття всього малюнка не підтверджене.", "The audit was interrupted. Coverage of the entire painting is unverified."),
             CoverageState.Unchecked => T("Останнє малювання було без аудиту. Виконання команд не підтверджує покриття.", "The last START ran without an audit. Completed commands do not verify coverage."),
-            _ => settings.Bool("coverage_audit")
-                ? T("Очікує нового запуску. Тест швидкості перевіряє ввід; покриття малюнка перевіряється окремо.", "Waiting for a fresh START. Speed Probe checks input timing; painting coverage is audited separately.")
-                : T("Увімкни аудит нижче, щоб перевіряти покриття після кожного кольору. Тест швидкості не підтверджує покриття малюнка.", "Enable auditing below to check coverage after each color. Speed Probe does not verify painting coverage.")
+            _ => T("Фінальний аудит виконується після малювання. Перевірку після кожного кольору можна увімкнути додатково.", "The final audit runs after painting. Per-color checks are optional.")
         };
         bool available = HasAuditSnapshots();
         string hint = available

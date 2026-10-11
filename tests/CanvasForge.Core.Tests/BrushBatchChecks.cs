@@ -35,12 +35,12 @@ internal static class BrushBatchChecks
             var moved=s.Clone();var c=moved.Calibration;c.SetSession(new(1,0),96,new(1920,1440));moved.SetCalibration(c);Require(!SpeedCalibration.BrushReady(moved,3));
         });
         test("A Size 3 proof works independently and cannot verify missing Size 1",()=>{
-            var s=Config();s.Set("calibrated_strokes",true);BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[Stamp(),Stamp(),Stamp()])]);
+            var s=Config();s.Set("input_frame_delay_ms",100);s.Set("calibrated_strokes",true);BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[Stamp(),Stamp(),Stamp()])]);
             var fp=SpeedCalibration.Footprint(s,3);var tiles=ProbeSpatialCalibration.Tiles(s.Calibration.Rect("canvas"),fp.Outer);
             var model=new SpatialProbeProfile(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(s),DateTimeOffset.UtcNow,3,fp.Outer,
                 new[]{false,true}.Select(v=>new SpatialAxis(v,fp.Inner,tiles.Skip(v?3:0).Take(3).Select(t=>new SpatialAnchor(v?t.Vertical:t.Horizontal,0,new(20,20,20),12)).ToList())).ToList());
             ProbeSpatialCalibration.Save(s,model);Require(ProbeSpatialCalibration.Read(s,3) is not null);
-            s.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Paced,false,8,12,1,40,3,1,model.Id)]));
+            s.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,[new(3,StrokeMethod.Shift,false,8,12,1,40,3,1,model.Id)]));
             Require(SpeedCalibration.Resolve(s,3,new(20,20,60,20)) is not null&&SpeedCalibration.Resolve(s,1,new(20,20,60,20)) is null);
             Require(AdaptiveBrush.CalibrationCurrent(s)&&!SpeedCalibration.BrushReady(s,1));
         });

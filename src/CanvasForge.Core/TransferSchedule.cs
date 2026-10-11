@@ -6,9 +6,10 @@ public sealed record PaintBatch(double Size, IReadOnlyList<ScreenLine> Segments,
 // inside a same-color area large enough for the calibrated wide brush.
 public static class TransferSchedule
 {
+    public const string Revision="painted-groups-only-v2";
     public const int MaximumStrokes = 16;
     public const int MaximumConnector = 32;
-    public static bool Fast(Settings s) => s.Bool("fast_transfer") && !SpeedCalibration.Use(s) && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
+    public static bool Fast(Settings s) => s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
     public static bool FastBatch(Settings s,PaintBatch batch)=>Fast(s)
         &&(batch.Segments.Count!=1||SpeedCalibration.Resolve(s,batch.Size>0?batch.Size:PaintTimingPlan.DefaultSize(s),batch.Segments[0],batch.ShapeSlot) is null);
     public static int Length(ScreenLine l) => Math.Max(Math.Abs(l.X2-l.X1), Math.Abs(l.Y2-l.Y1));
@@ -16,10 +17,9 @@ public static class TransferSchedule
 
     public static List<int> Order(PaintPlan plan, Dictionary<int,List<PaintBatch>> groups)
     {
-        var order = groups.Keys.OrderByDescending(i => plan.Counts.GetValueOrDefault(i)).ToList();
-        if (plan.BackgroundColor is int background)
+        var order = groups.Keys.Where(i=>groups[i].Count>0).OrderByDescending(i => plan.Counts.GetValueOrDefault(i)).ToList();
+        if (plan.BackgroundColor is int background && order.Remove(background))
         {
-            order.Remove(background);
             order.Insert(0, background);
         }
         return order;
@@ -62,6 +62,14 @@ public static class TransferSchedule
             for(int k=0;k<=Length(line);k++)if(!SafePoint(line.X1+k*dx,line.Y1+k*dy,radius,color))return false;
             return true;
         }
+        IEnumerable<ScreenLine[]> Connectors(ScreenPoint from,ScreenPoint to)
+        {
+            int distance=Math.Abs(to.X-from.X)+Math.Abs(to.Y-from.Y);
+            if(distance>MaximumConnector)yield break;
+            if(from.X==to.X||from.Y==to.Y){yield return [new(from.X,from.Y,to.X,to.Y)];yield break;}
+            yield return [new(from.X,from.Y,to.X,from.Y),new(to.X,from.Y,to.X,to.Y)];
+            yield return [new(from.X,from.Y,from.X,to.Y),new(from.X,to.Y,to.X,to.Y)];
+        }
         foreach(var(color,strokes)in source)
         {
             token.ThrowIfCancellationRequested();
@@ -79,40 +87,43 @@ public static class TransferSchedule
                     }
                 }
             }
-            List<ScreenLine>? segments=null;double size=0;int count=0,shape=0;string? profileId=null;
+            List<ScreenLine>? segments=null;double size=0;int count=0,shape=0;string? profileId=null;bool priorNormal=false;
             void Flush(){if(segments is not null)batches.Add(new(size,segments,count,shape,profileId));segments=null;count=0;}
             foreach(var op in strokes)
             {
                 token.ThrowIfCancellationRequested();
                 var next=op.Line;
+                bool normal=join&&SpeedCalibration.Resolve(s,op.Size>0?op.Size:PaintTimingPlan.DefaultSize(s),op.Line,op.ShapeSlot) is null;
                 bool connected=false;
-                if(join&&segments is not null&&op.Size==size&&op.ShapeSlot==shape&&op.ProfileId==profileId&&count<MaximumStrokes
-                    &&SpeedCalibration.Resolve(s,op.Size>0?op.Size:PaintTimingPlan.DefaultSize(s),op.Line,op.ShapeSlot) is null)
+                if(normal&&priorNormal&&segments is not null&&op.Size==size&&op.ShapeSlot==shape&&op.ProfileId==profileId&&count<MaximumStrokes)
                 {
                     var end=segments[^1];
                     foreach(var candidate in new[]{next,Reverse(next)}.OrderBy(l=>Math.Abs(l.X1-end.X2)+Math.Abs(l.Y1-end.Y2)))
                     {
-                        var connector=new ScreenLine(end.X2,end.Y2,candidate.X1,candidate.Y1);
-                        if(op.ProfileId is not null)
+                        foreach(var path in Connectors(new(end.X2,end.Y2),new(candidate.X1,candidate.Y1)))
                         {
-                            var p=BrushFootprints.Find(s,op.Size,op.ShapeSlot);
-                            if(p is null||p.Id!=op.ProfileId||connector.X1!=connector.X2&&connector.Y1!=connector.Y2||Length(connector)>MaximumConnector)continue;
                             bool safe=true;
-                            for(int k=0;k<=Length(connector);k++)
+                            if(op.ProfileId is not null)
                             {
-                                int cx=connector.X1+k*Math.Sign(connector.X2-connector.X1)-rect.Left,cy=connector.Y1+k*Math.Sign(connector.Y2-connector.Y1)-rect.Top;
-                                safe&=BrushFootprints.Safe(p,cx,cy,rect.Width,rect.Height,(px,py)=>plan.Indices[Cell(yb,py+rect.Top)*plan.Width+Cell(xb,px+rect.Left)]==color);
-                                if(!safe)break;
+                                var p=BrushFootprints.Find(s,op.Size,op.ShapeSlot);
+                                if(p is null||p.Id!=op.ProfileId)continue;
+                                foreach(var connector in path)for(int k=0;k<=Length(connector);k++)
+                                {
+                                    int cx=connector.X1+k*Math.Sign(connector.X2-connector.X1)-rect.Left,cy=connector.Y1+k*Math.Sign(connector.Y2-connector.Y1)-rect.Top;
+                                    if(!BrushFootprints.Safe(p,cx,cy,rect.Width,rect.Height,(px,py)=>plan.Indices[Cell(yb,py+rect.Top)*plan.Width+Cell(xb,px+rect.Left)]==color))
+                                    {safe=false;break;}
+                                }
                             }
+                            else safe=path.All(connector=>SafeConnector(connector,op.Size>0?op.OuterRadius:0,color));
                             if(!safe)continue;
+                            foreach(var connector in path)if(Length(connector)>0)segments.Add(connector);
+                            next=candidate;connected=true;break;
                         }
-                        else if(!SafeConnector(connector,op.Size>0?op.OuterRadius:0,color))continue;
-                        if(Length(connector)>0)segments.Add(connector);
-                        next=candidate;connected=true;break;
+                        if(connected)break;
                     }
                 }
                 if(!connected){Flush();segments=[];size=op.Size;shape=op.ShapeSlot;profileId=op.ProfileId;}
-                segments!.Add(next);count++;
+                segments!.Add(next);count++;priorNormal=normal;
             }
             Flush();
         }
@@ -127,7 +138,13 @@ public static class TransferSchedule
             ?SpeedCalibration.Resolve(s,size,batch.Segments[0],batch.ShapeSlot)
             :resolve(size,batch.Segments[0],batch.ShapeSlot)) is { } sample)
             return CalibratedMotion.Estimate(batch.Segments[0],sample);
-        if(!(fast??Fast(s)))
+        return EstimateNormalBatch(s,speed,batch,fast??Fast(s));
+    }
+    // Pure ordinary-route estimate: no proof resolution, so calibrated route
+    // selection can compare costs without recursion or changing input waits.
+    public static double EstimateNormalBatch(Settings s,SpeedProfile speed,PaintBatch batch,bool fast)
+    {
+        if(!fast)
         {
             int length=Length(batch.Segments[0]);
             bool shift=s.Bool("line_mode")&&s.Text("coverage_mode")=="Fast"&&length>=s.Int("min_line_width",4)*s.Int("cell_px",3);

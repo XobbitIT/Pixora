@@ -12,6 +12,7 @@ internal sealed partial class MainWindow
     private void ResetPaintProgress()
     {
         lastPaintProgress=null;progressBar.Value=0;progressLabel.Text="0% · "+T("Залишилось —","ETA —");
+        physicalCoverageLabel.Text=T("Фінальне покриття: очікує малювання.","Final coverage: waiting for painting.");
         footerProgress.Text="";
         footerProgress.Visibility=System.Windows.Visibility.Collapsed;
         footerProgressBar.Value=0;footerProgressBar.Visibility=System.Windows.Visibility.Collapsed;
@@ -25,11 +26,16 @@ internal sealed partial class MainWindow
     }
     private void RenderPaintProgress(PaintProgress p)
     {
+        if(p.PhysicalCoverage is {} coverage)RenderPhysicalCoverage(coverage,p.CoverageDirectory);
         if(p.Total>0)
         {
             progressBar.Value=p.Done*100.0/p.Total;
             string remaining=p.Phase==PaintPhase.Completed?Duration(0):p.Eta<=0
                 ?T("триває","in progress"):"≈ "+Duration(Math.Ceiling(p.Eta));
+            if(p.Phase!=PaintPhase.Completed&&p.Estimate is {UpperSeconds:>0} range)
+                remaining=range.MotionSamples<RemainingTime.Warmup
+                    ?"≈ "+Duration(Math.Ceiling(range.Seconds))+" · "+T("уточнюється","learning pace")
+                    :Duration(Math.Ceiling(range.LowerSeconds))+"–"+Duration(Math.Ceiling(range.UpperSeconds));
             string phase=p.Phase switch
             {
                 PaintPhase.Countdown=>T("Відлік","Countdown"),PaintPhase.Preparing=>T("Підготовка","Preparing"),

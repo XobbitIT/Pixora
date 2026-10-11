@@ -118,6 +118,8 @@ internal static partial class Program
         CheckVisualConfirmationPreset(destination,"Українська");CheckVisualConfirmationPreset(destination,"English");
         CheckVisualStartGate(destination,"Українська");CheckVisualStartGate(destination,"English");CheckQuickBrushIsolation(destination);
         CheckWorkingSizePolicy(destination,"Українська");CheckWorkingSizePolicy(destination,"English");
+        CheckCombinedSetupSelection(destination);
+        CheckGroupedSpeed(destination);
         CheckExecutionTimingUi(destination,"Українська");CheckExecutionTimingUi(destination,"English");
         CheckMixedReadiness(destination,"Українська");CheckMixedReadiness(destination,"English");
         CheckSynchronizedEditors(destination,"Українська");CheckSynchronizedEditors(destination,"English");
@@ -130,7 +132,9 @@ internal static partial class Program
         CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);
         CheckCanonicalPreparation(destination,"Українська");CheckCanonicalPreparation(destination,"English");
         CheckPreparationHistory(destination);CheckPreparationControlsAndFooter(destination);
-        Console.WriteLine("ALL 148 WPF UI CHECKS PASSED");
+        CheckProductUi(destination);CheckProductRenderMatrix(destination);
+        CheckStoppedPainterRetainsResume(destination);CheckFreshAuditBaseline(destination);CheckHistoricalAuditState(destination);CheckManualProbeClearsFailedHistory(destination);
+        Console.WriteLine("ALL 173 WPF UI CHECKS PASSED (including an 84-layout DPI matrix)");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -340,7 +344,7 @@ internal static partial class Program
         var size=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="adaptive_max_size");
         Assert(size.Items.Cast<object>().Any(v=>v.ToString()=="100"),"Large adaptive Size missing");
         var calibration=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="brush_calibration_size");
-        Assert(calibration.Items.Cast<object>().Select(v=>v.ToString()).SequenceEqual(new[]{"3","3/10/20","1","1/3/10/20","10","20","40","60","100"}),"Optional calibration Sizes missing");
+        Assert(calibration.Items.Cast<object>().Select(v=>v.ToString()).SequenceEqual(SetupBrushSelection.Options),"Optional calibration Sizes missing");
         var toggle=Descendants(root).OfType<CheckBox>().Single(b=>b.Content?.ToString()==(english?"Automatically choose measured shapes":"Автоматично вибирати виміряні форми"));
         Assert(toggle.IsChecked==false,"Automatic shape choice enabled without explicit selection");
         foreach(var expander in Descendants(root).OfType<Expander>().ToArray())expander.IsExpanded=true;
@@ -590,7 +594,7 @@ internal static partial class Program
     }
 
     private static T Field<T>(MainWindow window,string name) => (T)typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
-    private static void SetField(MainWindow window,string name,object value) => typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(window,value);
+    private static void SetField(MainWindow window,string name,object? value) => typeof(MainWindow).GetField(name,BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(window,value);
     private static object? Invoke(MainWindow window,string name,params object[] args) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,args);
     private static Settings ReadySettings(string language)
     {
@@ -746,7 +750,7 @@ internal static partial class Program
         var root=(FrameworkElement)dialog.Content;root.Measure(new Size(960,740));root.Arrange(new Rect(0,0,960,740));root.UpdateLayout();
         var auditImages=Descendants(root).OfType<Image>().ToArray();
         Assert(auditImages.Length==1,"Audit viewer image missing; visual controls: "+string.Join(",",Descendants(root).Select(x=>x.GetType().Name)));
-        var image=auditImages.Single();var selector=Descendants(root).OfType<ComboBox>().Single(x=>x.Items.Count==3);
+        var image=auditImages.Single();var selector=Descendants(root).OfType<ComboBox>().Single(x=>x.Items.Count==4&&x.Width==260);
         Rgb FirstPixel() {byte[] pixel=new byte[4];((BitmapSource)image.Source).CopyPixels(new Int32Rect(0,0,1,1),pixel,4,0);return new(pixel[2],pixel[1],pixel[0]);}
         Assert(FirstPixel()==new Rgb(255,40,70),"Diagnostics did not load the red gaps overlay");
         selector.SelectedIndex=1;Assert(FirstPixel()==new Rgb(0,220,0),"After snapshot could not be selected");
@@ -756,7 +760,7 @@ internal static partial class Program
         // Missing files produce an inline unavailable state rather than a modal failure.
         var missing=(Window)typeof(MainWindow).GetMethod("CreateAuditDiagnosticWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null)!;
         var missingRoot=(FrameworkElement)missing.Content;missingRoot.Measure(new Size(960,740));missingRoot.Arrange(new Rect(0,0,960,740));missingRoot.UpdateLayout();
-        Descendants(missingRoot).OfType<ComboBox>().Single(x=>x.Items.Count==3).SelectedIndex=2;
+        Descendants(missingRoot).OfType<ComboBox>().Single(x=>x.Items.Count==4&&x.Width==260).SelectedIndex=2;
         Assert(Descendants(missingRoot).OfType<Image>().Single().Source is null,"Missing snapshot was not handled");
         Assert(Descendants(missingRoot).OfType<TextBlock>().Any(x=>x.Visibility==Visibility.Visible&&x.Text.Contains(language=="English"?"Snapshot unavailable":"Знімок недоступний")),"Unavailable snapshot message missing");
         Field<Button>(window,"auditDismissButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -814,7 +818,7 @@ internal static partial class Program
         root.Measure(new Size(620,460));root.Arrange(new Rect(0,0,620,460));root.UpdateLayout();
         var viewer=Descendants(root).OfType<ScrollViewer>().Single();
         var image=Descendants(root).OfType<Image>().Single();var combos=Descendants(root).OfType<ComboBox>().ToArray();
-        var zoom=combos.Single(x=>x.Items.Count==4);var snapshots=combos.Single(x=>x.Items.Count==3);
+        var zoom=combos.Single(x=>x.Items.Count==4&&x.Width==130);var snapshots=combos.Single(x=>x.Items.Count==4&&x.Width==260);
         void Layout(string suffix)
         {
             root.Measure(new Size(620,460));root.Arrange(new Rect(0,0,620,460));root.UpdateLayout();
@@ -936,7 +940,7 @@ internal static partial class Program
         Render(window,Path.Combine(output,name+".png"),1280);
         Border Chip()=>Field<Border>(window,"coverageChip");string Label()=>((TextBlock)Chip().Child).Text;
         string Expected(string ua,string en)=>english?en:ua;
-        Assert(Label()==Expected("Вимкнено","Disabled"),"A disabled audit was presented as verified or pending");
+        Assert(Label()==Expected("Очікує","Pending"),"Mandatory final audit did not wait for a fresh painting");
         Assert(((TextBlock)Field<Border>(window,"speedChip").Child).Text==Expected("Перевірено","Verified"),"Fixture Speed Probe was not verified");
         Field<Settings>(window,"settings").Set("coverage_audit",true);Invoke(window,"UpdateReady");
         Assert(Label()==Expected("Очікує","Pending"),"Verified input timing falsely verified unpainted coverage");
@@ -1260,7 +1264,7 @@ internal static partial class Program
     private static void CheckSmallCanvasProbePreflight(string output)
     {
         string name="spatial-small-canvas";var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
-        var settings=ReadySettings("English");settings.Data.Remove("brush_footprints");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1396,1068));settings.SetCalibration(cal);
+        var settings=ReadySettings("English");settings.Data.Remove("brush_footprints");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1296,978));settings.SetCalibration(cal);
         settings.Set("brush_calibration_points",new double[][]{[1,11,1],[3,15,3],[10,29,17],[20,53,29]});
         settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));settings.Data.Remove("probe_spatial_profiles");settings.Data.Remove("shape_spatial_profiles");
         foreach(double size in new[]{1d,3})
@@ -1272,7 +1276,7 @@ internal static partial class Program
         }
         settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
         Assert(Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Size 3 speed test exceeds the real Canvas");
-        Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 88×88"),"Small Canvas requirement hidden or untranslated");
+        Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 76×76"),"Small Canvas requirement hidden or untranslated");
         Render(window,Path.Combine(output,name+".png"),900);
         var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");combo.SelectedIndex=0;
         var live=Field<Settings>(window,"settings");var model=ProbeSpatialCalibration.Read(live,1)!;bool fits=true;
@@ -1356,7 +1360,7 @@ internal static partial class Program
         for(int i=0;i<20;i++){timer.Complete($"m{i}",.2);timer.RecordOperationOverhead($"m{i}",.01);}Put("timingDone",3924);
         typeof(Painter).GetMethod("ReportTiming",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(worker,new object?[]{null,0d});
         Assert(seen[^1].Estimate!.Basis==EtaBasis.Measured&&Math.Abs(seen[^1].Eta-2.1)<1e-9&&seen[^1].Estimate!.OperationOverheadSamples==20,"Production callback ignored measured cycle overhead");
-        var rows=File.ReadAllLines(Path.Combine(directory,"session.jsonl"));Assert(rows.Length==2&&rows.All(x=>x.Contains("eta_update")&&x.Contains("rolling-timing-v2-operation-overhead")),"ETA evidence not logged");
+        var rows=File.ReadAllLines(Path.Combine(directory,"session.jsonl"));Assert(rows.Length==2&&rows.All(x=>x.Contains("eta_update")&&x.Contains("rolling-timing-v3-full-cycle-range")&&x.Contains("UpperSeconds")),"ETA evidence not logged");
         Console.WriteLine("PASS painter-timing-publisher");
     }
     private static (PixelImage Before,PixelImage After,ScreenLine Line) ProbeFixture()

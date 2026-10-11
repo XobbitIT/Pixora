@@ -4,7 +4,7 @@ namespace CanvasForge.Core;
 
 public static class PaintTimingPlan
 {
-    public const string Setup="setup",Finish="finish";
+    public const string Setup="setup",Finish="finish",FinalBefore="final-before",FinalAudit="final-audit";
     public static string Color(int group)=>$"color:{group}";
     public static string Size(int group,int line)=>$"size:{group}:{line}";
     public static string Shape(int group,int line)=>$"shape:{group}:{line}";
@@ -36,11 +36,12 @@ public static class PaintTimingPlan
         // does, instead of parsing/hashing it several times per operation.
         var resolve=SpeedCalibration.CreateEstimateResolver(s);bool fast=TransferSchedule.Fast(s);
         var work=new List<TimedWork>{new(Setup,"setup",3*StrokeTiming.SliderChangeEstimate(s)+StrokeTiming.ClickEstimate(s),false)};
+        work.Add(new(FinalBefore,"capture",.3,false));
         for(int group=startGroup;group<order.Count;group++)
         {
             token.ThrowIfCancellationRequested();
             var lines=groups[order[group]];
-            work.Add(new(Color(group),"color",s.Mode==ColorMode.HexDirect?StrokeTiming.HexChangeEstimate(s)+StrokeTiming.ColorDelay(s):StrokeTiming.ColorDelay(s)+StrokeTiming.ClickEstimate(s)+.16,false));
+            work.Add(new(Color(group),"color",s.Mode==ColorMode.HexDirect?StrokeTiming.HexChangeEstimate(s)+StrokeTiming.ColorDelay(s):StrokeTiming.ColorDelay(s)+StrokeTiming.ClickEstimate(s)+.24,false));
             if(s.Bool("coverage_audit"))work.Add(new(BeforeAudit(group),"capture",.2,false));
             for(int line=group==startGroup?startLine:0;line<lines.Count;line++)
             {
@@ -58,6 +59,7 @@ public static class PaintTimingPlan
         }
         double finish=StrokeTiming.Fast(s)&&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
             ?StrokeTiming.ControlFrame(s):StrokeTiming.SliderChangeEstimate(s);
+        work.Add(new(FinalAudit,"audit",.5,false));
         work.Add(new(Finish,"finish",finish,false));return work;
     }
     public static string Route(Settings s,PaintBatch batch,double size)

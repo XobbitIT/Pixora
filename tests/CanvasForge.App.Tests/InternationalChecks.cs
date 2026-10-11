@@ -43,6 +43,17 @@ internal static partial class Program
             Assert(Translations.ForLanguage(path,language)==path,"User path was translated");
             Assert(Translations.ForLanguage("#12ABEF",language)=="#12ABEF","HEX data changed");
             Assert(Translations.Option("unknown-setting","My custom value",language)=="My custom value","Unknown canonical option changed");
+            string diagnostic=Translations.ForLanguage("Canvas changes between snapshots. Stop camera movement and retry.",language);
+            string nested=Translations.ForLanguage("Could not measure Size 3: Canvas changes between snapshots. Stop camera movement and retry.",language);
+            Assert(nested.Contains(diagnostic)&&nested.Contains("3"),"Nested calibration diagnostic lost its translation");
+            string offset=Translations.ForLanguage("Canvas changes between snapshots. Stop camera movement and retry.\nOffset: 2 px; allowed: 4 px.",language);
+            Assert(offset.Contains(diagnostic)&&offset.Contains("2")&&offset.Contains("4"),"Spatial error wrapper did not translate its nested diagnostic");
+            string invalid=Translations.ForLanguage("Invalid calibration integer: my-field=17",language);
+            Assert(invalid.Contains("my-field=17"),"Diagnostic field data changed");
+            if(language!="English")
+                Assert(diagnostic!="Canvas changes between snapshots. Stop camera movement and retry."&&!invalid.StartsWith("Invalid calibration integer:"),"Owned technical diagnostic fell back to English");
+            foreach(string status in new[]{"Paused","Paused — return to Rust and press F6.","Changing brush Size…","Changing brush shape…","Checking coverage…","Coverage confirmed by the audit. Check its appearance in Rust.","The system did not respond to the input timer within 100 ms. Reduce the load and retry."})
+                if(language!="English")Assert(Translations.ForLanguage(status,language)!=status,"Worker status fell back to English: "+status);
             if(language is "Українська" or "English")continue;
             string dynamic=Translations.ForLanguage("Apply 128",language);
             Assert(dynamic.Contains("128")&&dynamic!="Apply 128","Template substitution missing");
@@ -66,7 +77,7 @@ internal static partial class Program
         Assert(buttons.Any(b=>b.Content!.ToString()==Translations.ForLanguage("Open image",language)),"Import action missing");
         if(language is not ("Українська" or "English"))
         {
-            string[] missing=buttons.Select(b=>System.Text.RegularExpressions.Regex.Replace(b.Content!.ToString()!,@"^\d+\.\s*","")).Where(t=>t.Any(char.IsLetter)&&t!="HEX" && !t.StartsWith("Size ") &&
+            string[] missing=buttons.Select(b=>System.Text.RegularExpressions.Regex.Replace(b.Content!.ToString()!,@"^(?:✓\s*|\d+\.\s*)","")).Where(t=>t.Any(char.IsLetter)&&t!="HEX" && !t.StartsWith("Size ") &&
                 Translations.ForLanguage(t,"English")==t && !Translations.HasInternationalEntry(t)).Distinct().ToArray();
             Assert(missing.Length==0,"Untranslated buttons in "+language+": "+string.Join(" | ",missing));
         }

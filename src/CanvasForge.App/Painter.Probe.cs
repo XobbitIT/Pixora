@@ -115,7 +115,7 @@ internal sealed partial class Painter
             ApplyBrushShape(operations[0].ShapeSlot);ApplyControls(operations[0].Size);
             if(plan.Mode==ColorMode.HexDirect)
             {if(!ApplyHex(plan.Palette[color].Color,true))throw new InvalidOperationException("HEX verification failed before repair.");}
-            else ApplyPalette(plan.Palette[color]);
+            else ApplyPalette(plan.Palette[color],requireAppliedProof:true);
             var slow=new SpeedSample(1,StrokeMethod.Paced,false,64,64,1,64,3,1);
             foreach(var operation in operations)
             {

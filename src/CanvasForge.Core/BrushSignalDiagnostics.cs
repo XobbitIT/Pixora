@@ -51,7 +51,7 @@ public static class BrushSignalDiagnostics
         try
         {
             var rows=s.Data["brush_signal_diagnostics"]?.Deserialize<BrushSignalSummary[]>();
-            if(rows is null||rows.Length>49||rows.Any(r=>r is null)||rows.GroupBy(r=>(r.ShapeSlot,r.Size)).Any(g=>g.Count()!=1))return [];
+            if(rows is null||rows.Length>7*BrushFootprints.Sizes.Length||rows.Any(r=>r is null)||rows.GroupBy(r=>(r.ShapeSlot,r.Size)).Any(g=>g.Count()!=1))return [];
             return rows.Where(r=>r.ShapeSlot is >=1 and <=7&&BrushFootprints.Sizes.Contains(r.Size)&&Enum.IsDefined(r.State)
                 &&r.Samples is {Length:3}&&r.Samples.All(p=>p is not null&&p.Contrast is not null&&p.Support is not null)
                 &&(allShapes||r.ShapeSlot==s.Int("brush_shape_slot",3)))

@@ -1,0 +1,19 @@
+[
+  "Capturing initial Canvas…",
+  "Checking final coverage…",
+  "Color not confirmed. Group skipped; check the active color swatch.",
+  "Commands processed. Final coverage needs review.",
+  "Edge merge thickness must be an integer from 1 to 4.",
+  "Final audit supports up to 4 million pixels.",
+  "Initial Canvas dimensions do not match.",
+  "Initial Canvas snapshot for this plan is unavailable.",
+  "Invalid value ",
+  "Number {p0} was not confirmed. Check the numeric field on the right and repeat the controls test.",
+  "Palette selection has no verified active color.",
+  "Paused",
+  "Rust did not confirm HEX {p0}. Painting stopped.",
+  "Scene changed outside the target.",
+  "Stable initial and final Canvas snapshots are required.",
+  "Starting in {p0} s…",
+  "{p0}\nOffset: {p1} px; allowed: {p2} px."
+]

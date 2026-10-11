@@ -19,8 +19,12 @@ internal sealed partial class MainWindow
 
     private void CancelActiveWork()
     {
+        // A stopped worker still owns an executable plan and its checkpoint.
+        // Cancelling a pending preview, by contrast, must discard its publication.
+        bool stoppingPainter=(paintTask is not null||painter is not null)&&!inputCheckRunning&&!setupRunning;
         setupCancel?.Cancel();inputCheckCancel?.Cancel();startCancel?.Cancel();
-        paintCancel?.Cancel();planCancel?.Cancel();CancelPreview();
+        paintCancel?.Cancel();planCancel?.Cancel();
+        if(!stoppingPainter)CancelPreview();
         if(imageLoading)
         {
             imageLoadGeneration++;imageLoading=false;

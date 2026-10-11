@@ -11,9 +11,20 @@ public sealed class PaletteTargetException(PaletteTargetEvidence evidence) : Inv
     public PaletteTargetEvidence Evidence {get;}=evidence;
 }
 public sealed class PaletteLayoutException() : InvalidOperationException("Палітра змістилася. Повтори підготовку або захоплення палітри.");
+public sealed record PaletteAppliedEvidence(Rgb Expected,Rgb? First,Rgb? Second,ScreenRect Area)
+{
+    public bool Passed=>Area.Valid&&First is {} first&&Second is {} second&&RustSlider.Delta(Expected,first)<=12
+        &&RustSlider.Delta(Expected,second)<=12&&RustSlider.Delta(first,second)<=12;
+}
+public sealed class PaletteAppliedException(PaletteAppliedEvidence evidence):InvalidOperationException("Palette selection has no verified active color.")
+{public PaletteAppliedEvidence Evidence {get;}=evidence;}
 
 public static class PaletteSelection
 {
+    public static PaletteAppliedEvidence Applied(Rgb expected,ScreenRect swatch,Func<ScreenRect,Rgb> read,Action settle)
+    {
+        if(!swatch.Valid)return new(expected,null,null,swatch);var first=read(swatch);settle();return new(expected,first,read(swatch),swatch);
+    }
     public static ScreenPoint ClickPoint(PaletteEntry entry, CoordinateRebase rebase, bool alreadyAligned=false)
     {
         var point=entry.ClickPoint??throw new InvalidOperationException("Capture the palette again.");

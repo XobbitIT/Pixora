@@ -30,15 +30,15 @@ internal static partial class Program
         Assert(Captions(brush).Contains("Size 3"),"Rejected Size 1 contaminated the working Size 3 chip");
         var combo=Editors<ComboBox>(w,"probe_size").Single();combo.SelectedIndex=0;
         Assert(!Field<Button>(w,"spatialButton").IsEnabled&&Field<Button>(w,"spatialButton").ToolTip is not null,"Unmeasured Size 1 enabled a spatial probe or lost its explanation");
-        combo.SelectedIndex=1;Assert(Field<Button>(w,"spatialButton").IsEnabled&&Captions(brush).Contains("Size 3"),"Probe Size changes altered the working brush chip");
+        combo.SelectedItem="3";Assert(Field<Button>(w,"spatialButton").IsEnabled&&Captions(brush).Contains("Size 3"),"Probe Size changes altered the working brush chip");
         var toggle=Field<CheckBox>(w,"adaptiveEnabled");toggle.IsChecked=true;toggle.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         var live=Field<Settings>(w,"settings");Assert(live.Bool("adaptive_brush")&&PaintTimingPlan.DefaultSize(live)==3&&AdaptiveBrush.CalibrationCurrent(live),"Verified Size 3 cannot activate mixed painting without Size 1");
         w.ShowPage("adaptive");Render(w,Path.Combine(output,name+".png"),1280,780);
         // A Size 3 route must not turn the Size 10 test chip green.
         var routeWindow=PaintingUiWindow(output,name+"-routes",ReadySettings(language));routeWindow.ShowPage("speed");Render(routeWindow,Path.Combine(output,name+"-routes.png"),900,780);
-        var sizes=Editors<ComboBox>(routeWindow,"probe_size").Single();sizes.SelectedIndex=2;
+        var sizes=Editors<ComboBox>(routeWindow,"probe_size").Single();sizes.SelectedItem="10";
         Assert(Captions(Field<Border>(routeWindow,"speedChip")).Contains(en?"Pending":"Очікує"),"A route for a different Size is presented as verified");
-        sizes.SelectedIndex=1;Assert(Captions(Field<Border>(routeWindow,"speedChip")).Contains(en?"Verified":"Перевірено"),"Returning to verified Size 3 lost its route");
+        sizes.SelectedItem="3";Assert(Captions(Field<Border>(routeWindow,"speedChip")).Contains(en?"Verified":"Перевірено"),"Returning to verified Size 3 lost its route");
         Console.WriteLine("PASS "+name);
     }
     private static void CheckSynchronizedEditors(string output,string language)
@@ -84,15 +84,18 @@ internal static partial class Program
         Window? shown=null;var w=PaintingUiWindow(output,"measured-plan-overlay",ReadySettings("English"),dialog=>shown=dialog);
         var image=new PixelImage(8,8);for(int i=0;i<64;i++)image.Set(i,new(0,0,0));var plan=Planner.Build(image,Field<Settings>(w,"settings"));
         SetField(w,"source",image);SetField(w,"plan",plan);var mask=new bool[1_000_000];mask[20_020]=true;
-        SetField(w,"previewMeasuredPlan",new MeasuredColorResult([],1_000_000,999_999,mask));Invoke(w,"UpdateReady");
+        SetField(w,"previewMeasuredPlan",new MeasuredColorResult([],1_000_000,999_999,mask){Diagnostics=new(1,0,100,1){
+            StrokeSavings=new(3,1,1,.5,.3,[new(3,3,2,7,4)])}});Invoke(w,"UpdateReady");
         Assert(Field<Button>(w,"measuredPlanDetails").IsEnabled&&Field<TextBlock>(w,"measuredPlanStatus").Text.Contains("no commands"),"Model gaps have no visible action");
         Field<Button>(w,"measuredPlanDetails").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         Assert(shown is not null,"Model overlay is inaccessible");var root=(FrameworkElement)shown!.Content;root.Measure(new Size(900,760));root.Arrange(new Rect(0,0,900,760));root.UpdateLayout();
         Assert(Captions(root).Any(t=>t.Contains("not an audit")),"Model overlay pretends to be a live audit");
+        Assert(Captions(root).Any(t=>t.Contains("new core: 7 px; repeated: 4 px"))&&Field<TextBlock>(w,"measuredPlanStatus").Text.Contains("Redundant strokes removed: 1; shortened: 1"),
+            "Model coverage contributions or redundant-command savings are inaccessible");
         SetField(w,"previewMeasuredPlan",new MeasuredColorResult([],1_000_000,0,Enumerable.Repeat(true,1_000_000).ToArray()));Invoke(w,"UpdateReady");
         Assert(!Field<Button>(w,"startButton").IsEnabled,"Empty safe plan left START enabled");
         SetField(w,"previewMeasuredPlan",new MeasuredColorResult([],1_000_000,1_000_000,new bool[1_000_000]));Invoke(w,"UpdateReady");
-        Assert(!Field<Button>(w,"measuredPlanDetails").IsEnabled&&Field<Button>(w,"startButton").IsEnabled,"Covered plan did not restore readiness");
+        Assert(Field<Button>(w,"measuredPlanDetails").IsEnabled&&Field<Button>(w,"startButton").IsEnabled,"Covered plan lost contributions or readiness");
         Console.WriteLine("PASS measured-plan-overlay");
     }
 }
