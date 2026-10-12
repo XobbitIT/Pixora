@@ -34,7 +34,7 @@ public static class CalibrationReliability
         {s.Set("coverage_mode","Precision");s.Set("force_precision_controls",true);s.Set("use_fixed_opacity",true);s.Set("paint_opacity_value",1);}
     }
     public static void BeginBrushCheck(Settings s)
-    {if(Visual(s))s.Set(PendingKey,true);}
+    {if(!ReleaseProfile.Standard(s)&&Visual(s))s.Set(PendingKey,true);}
     public static void ConfirmBrushCheck(Settings s,IReadOnlyList<BrushFootprint> measured)
     {
         double size=PaintTimingPlan.DefaultSize(s);int shape=s.Int("brush_shape_slot",3);
@@ -43,8 +43,9 @@ public static class CalibrationReliability
     }
     public static string? PaintingProblem(Settings s)
     {
-        if(PaintTimingPlan.DefaultSize(s)==1&&!SpeedCalibration.BrushReady(s,1))
-            return "Size 1 не підтверджений. Вибери Size 3 або виміряй Size 1 зі стабільним ядром.";
+        if(ReleaseProfile.Standard(s))return null;
+        if(s.Number("precision_brush_size",3)<DrawingWorkflow.MinimumSize||s.Number("brush_size_value",3)<DrawingWorkflow.MinimumSize)
+            return "Minimum painting brush Size is 2. Select a measured Size of 2 or larger.";
         if(!Visual(s))return null;
         if(s.Text("coverage_mode","Precision")!="Precision"||!s.Bool("force_precision_controls",true)||!s.Bool("use_fixed_opacity",true)||s.Number("paint_opacity_value",1)!=1)
             return "Візуальне підтвердження потребує Precision та Opacity 1. Застосуй профіль надійності або поверни зчитування чисел.";

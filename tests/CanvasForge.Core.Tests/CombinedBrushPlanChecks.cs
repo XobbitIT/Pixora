@@ -25,8 +25,8 @@ internal static class CombinedBrushPlanChecks
             Require(SetupBrushSelection.AutomaticSelection("3/10/20",3)=="3/10/20");
             Require(SetupBrushSelection.AutomaticSelection("60",60)=="60");
             Require(SetupBrushSelection.SizeOptions.Contains("30")&&SetupBrushSelection.SizeOptions.Contains("100"));
-            Require(SetupSequence.DrawingSize(Settings.Defaults())==3);
-            foreach(double size in BrushFootprints.Sizes){var s=Settings.Defaults();s.Set("probe_size",size);s.Set("precision_brush_size",size);s.Validate();}
+            Require(SetupSequence.DrawingSize(Settings.ExperimentalDefaults())==3);
+            foreach(double size in BrushFootprints.Sizes.Where(size=>size>=2)){var s=Settings.ExperimentalDefaults();s.Set("probe_size",size);s.Set("precision_brush_size",size);s.Validate();}
         });
         test("Combined selection rejects malformed duplicate and unsupported values",()=>{
             foreach(var text in new[]{"","3/","3/3","4/10","NaN","3/Infinity","3//10"})

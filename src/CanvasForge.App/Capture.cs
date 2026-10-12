@@ -43,7 +43,7 @@ internal sealed partial class MainWindow
             extra.Children.Add(CheckButton(T("Інструмент пензля","Brush tool"),()=>CapturePoint("brush_tool",T("ІНСТРУМЕНТ ПЕНЗЛЯ","BRUSH TOOL"))));
             extra.Children.Add(CheckButton(T("Форми пензля","Brush shapes"),()=>Capture("brush_shapes",T("ФОРМИ ПЕНЗЛЯ","BRUSH SHAPES"))));
         }
-        manual.Children.Add(CheckButton(T("Повна підготовка з додатковими пензлями та швидкістю","Full preparation with additional brushes and speed"),()=>RunSetup(false)));
+        manual.Children.Add(AsyncButton(T("Повна підготовка з додатковими пензлями та швидкістю","Full preparation with additional brushes and speed"),()=>RunSetup(false)));
         foreach (var kind in new[]
         {
             "size",
@@ -75,7 +75,7 @@ internal sealed partial class MainWindow
         if (!Native.IsRust(captureWindow) || !Native.GetWindowRect(captureWindow, out var bounds))
             throw new InvalidOperationException(T("Не знайдено вікно Rust. Переконайся, що гра відкрита, і повтори захоплення."));
         Native.SetForegroundWindow(captureWindow);
-        if(Native.GetForegroundWindow()!=captureWindow)throw new InvalidOperationException(T("Не вдалося передати фокус Rust. Повернись у гру і повтори тест."));
+        if(Native.GetForegroundWindow()!=captureWindow)throw new PreparationInterruptedException();
         await Task.Delay(300,SetupToken);
         captureOrigin = Native.ClientOrigin(captureWindow);
         captureWindowRect = bounds.ToScreen();
@@ -341,7 +341,7 @@ internal sealed partial class MainWindow
         try
         {
             await Task.Delay(1500,SetupToken);Native.SetForegroundWindow(target);
-            using var worker=new Painter(settings,target,ResumePath,LogPath,_=>{},SetupToken);
+            using var worker=new Painter(settings,target,ResumePath,LogPath,_=>{},SetupToken,preparation:true);
             await Task.Run(worker.VerifyPaletteTargets,SetupToken);
             settings.Set("palette_target_failed",false);
         }
@@ -381,10 +381,10 @@ internal sealed partial class MainWindow
             await Task.Delay(1500,linked.Token);
             using var worker = new Painter(settings, target, ResumePath, LogPath, _ =>
             {
-            }, linked.Token);
+            }, linked.Token,preparation:true);
             Native.SetForegroundWindow(target);
             if (Native.GetForegroundWindow() != target)
-                throw new InvalidOperationException("Не вдалося передати фокус Rust. Повернись у гру і повтори тест.");
+                throw new PreparationInterruptedException();
             var ok = await Task.Run(() =>
             {
                 foreach (var color in new[] { new Rgb(255, 51, 51), new Rgb(18, 172, 95), new Rgb(3, 151, 226) })
@@ -425,14 +425,14 @@ internal sealed partial class MainWindow
             await Task.Delay(1500,SetupToken);
             Native.SetForegroundWindow(target);
             RefreshLiveBrushControls(target);
-            var s = settings.Clone();
+            var s = EffectiveSettings;
             s.Set("verify_controls", true);
             using var worker = new Painter(s, target, ResumePath, LogPath, _ =>
             {
             }, SetupToken);
-            await Task.Run(worker.ApplyControls);
+            await Task.Run(worker.PrepareControls);
             settings.Set("controls_validation_failed",false);
-            SetStatus(CalibrationReliability.Visual(settings)?T("Смуги підтверджені. Далі виміряй відбиток пензля.","Slider positions confirmed. Measure the brush imprint next."):
+            SetStatus(ReleaseProfile.Standard(settings)?T("Standard: Size 3, Interval 0.01 та Opacity 1 застосовані; смуги підтверджені.","Standard: Size 3, Interval 0.01 and Opacity 1 applied; sliders verified."):CalibrationReliability.Visual(settings)?T("Смуги підтверджені. Далі виміряй відбиток пензля.","Slider positions confirmed. Measure the brush imprint next."):
                 T("Керування Rust перевірено.", "Rust controls verified."));
         }
         catch(InvalidOperationException){settings.Set("controls_validation_failed",true);throw;}
@@ -445,7 +445,7 @@ internal sealed partial class MainWindow
 
     private Task CalibrateBrush()=>CalibrateBrushSizes(false);
     private Task CalibrateFailedBrush()=>CalibrateBrushSizes(true);
-    private Task CalibrateAdaptiveBase()=>CalibrateBrushSizes(false,[1]);
+    private Task CalibrateAdaptiveBase()=>CalibrateBrushSizes(false,[2]);
     private async Task CalibrateBrushSizes(bool retryOnly,double[]? sizeOverride=null)
     {
         if (Painting && !setupRunning && !inputCheckRunning) return;
@@ -473,7 +473,7 @@ internal sealed partial class MainWindow
         {
             SetupToken.ThrowIfCancellationRequested();
             if (Native.Down(0x1B)) throw new OperationCanceledException();
-            if (!Native.IsRust(target) || Native.GetForegroundWindow() != target) throw new InvalidOperationException("Rust lost focus.");
+            if (!Native.IsRust(target) || Native.GetForegroundWindow() != target) throw new PreparationInterruptedException();
             if (Native.DpiOf(target) != dpi) throw new InvalidOperationException(CalibrationSession.DpiChangedMessage);
             if (Native.ClientOrigin(target) != origin || Native.ClientSize(target) != size)
                 throw new InvalidOperationException(T("Вікно Rust змінило розмір або положення. Повтори захоплення."));
@@ -608,11 +608,6 @@ internal sealed partial class MainWindow
                     $"Size {f.Size}, repeat {f.Repeat}/3: contrast {c.PeakDelta}/255, required {c.RequiredDelta}; changed pixels {c.ChangedPixels}. This Size was not saved.")
                 :T($"Size {f.Size}: три вимірювання неузгоджені; цей Size не збережено.",
                     $"Size {f.Size}: three measurements are inconsistent; this Size was not saved.")));
-            if(batch.Rejected.Any(f=>f.Size==1))adaptiveFailure+="\n"+(settings.Int("brush_shape_slot",3)==3
-                ?T("Size 1 не підтверджено. Комбіноване малювання доступне з іншими підтвердженими Size. Для тонких деталей можна окремо виміряти Size 1 квадратним пензлем №4 на чистому полотні.",
-                    "Size 1 was not verified. Mixed painting can use other verified Sizes. For fine details, measure Size 1 separately with square brush 4 on a clean Canvas.")
-                :T("Ця форма не підтвердила Size 1. Переглянь знімки й вимірювання; інші збережені Size можна перевіряти окремо.",
-                    "This shape did not verify Size 1. Review its snapshots and measurements; other saved Sizes can be tested separately."));
             var noCore=batch.Profiles.Where(p=>!p.SolidCore.Valid).Select(p=>p.Size).ToArray();
             if(noCore.Length>0)adaptiveFailure+="\n"+T($"Size {string.Join(", ",noCore)}: слід виміряно, але стабільного ядра немає. Не підтверджено насичення першого відбитка або спільне ядро трьох крапок; ці Size не вмикають адаптивне прискорення.",
                 $"Size {string.Join(", ",noCore)}: trace measured, but no stable core. First-stamp saturation or a shared core across three dots was not confirmed; these Sizes do not enable adaptive acceleration.");
@@ -634,6 +629,7 @@ internal sealed partial class MainWindow
             SetStatus(adaptiveFailure);
             if(setupRunning)throw;
         }
+        catch(PreparationInterruptedException){throw;}
         catch (Exception e)
         {
             // Before the first dot, a control/layout failure is not a failed

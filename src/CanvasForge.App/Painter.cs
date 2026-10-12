@@ -6,10 +6,13 @@ using CanvasForge.Core;
 namespace CanvasForge.App;
 internal sealed record PaintProgress(int Done, int Total, double Elapsed, double Eta, string Status,
     EtaEstimate? Estimate=null,PaintPhase Phase=PaintPhase.Drawing,
-    PhysicalCoverageResult? PhysicalCoverage=null,string? CoverageDirectory=null);
+    PhysicalCoverageResult? PhysicalCoverage=null,string? CoverageDirectory=null,RunTimeSummary? Times=null,bool TimesOnly=false);
 internal sealed partial class Painter : IDisposable
 {
     private readonly Settings settings;
+    private readonly PixelImage? diagnosticSource;
+    private string? runSnapshotDirectory,runSnapshotProblem,runIdentity;
+    private bool runSnapshotComplete;
     private readonly IntPtr window;
     private readonly ScreenRect windowRect;
     private readonly uint windowProcessId;
@@ -44,8 +47,10 @@ internal sealed partial class Painter : IDisposable
     private InputDelay DelayTimer => inputDelay??=new();
     public void Dispose()=>inputDelay?.Dispose();
 
-    public Painter(Settings s, IntPtr target, string checkpoint, string log, Action<PaintProgress> callback, CancellationToken cancel)
+    public Painter(Settings s, IntPtr target, string checkpoint, string log, Action<PaintProgress> callback, CancellationToken cancel,bool preparation=false,PixelImage? diagnosticSource=null)
     {
+        this.diagnosticSource=diagnosticSource;
+        probeMode=preparation;
         settings = s.Clone();
         window = target;
         token = cancel;
@@ -142,6 +147,9 @@ internal sealed partial class Painter : IDisposable
         FlushCheckpoint("pause");
         var start = clock.Elapsed.TotalSeconds;
         report(new(0, 0, 0, 0, "Пауза — повернись у Rust і натисни F6."));
+        runTimes?.Pause();
+        try
+        {
         while (Paused)
         {
             token.ThrowIfCancellationRequested();
@@ -154,7 +162,8 @@ internal sealed partial class Painter : IDisposable
             Thread.Sleep(15);
         }
 
-        pausedSeconds += clock.Elapsed.TotalSeconds - start;
+        }
+        finally{pausedSeconds += clock.Elapsed.TotalSeconds - start;runTimes?.Resume();}
         pauseReason=null;
         nextSafety = 0;
         Check();
@@ -179,7 +188,7 @@ internal sealed partial class Painter : IDisposable
         });
     }
 
-    private sealed class InputInterrupted : Exception
+    private sealed class InputInterrupted : PreparationInterruptedException
     {
         internal const string MessageText="Ввід призупинено: Rust втратив фокус або натиснуто F6. Повернись у Rust і повтори перевірку; під час малювання натисни F6 для продовження.";
         public InputInterrupted():base(MessageText){}
@@ -627,7 +636,7 @@ internal sealed partial class Painter : IDisposable
             size = BrushValue(Math.Max(1, settings.Int("cell_px", 3)));
         if (sizeOverride.HasValue)
             size = sizeOverride.Value;
-        return (size, precision ? .01 : settings.Number("interval_value", .25), settings.Bool("use_fixed_opacity", true) ? settings.Number("paint_opacity_value", 1) : 1);
+        return (Math.Max(DrawingWorkflow.MinimumSize,size), precision ? .01 : settings.Number("interval_value", .25), settings.Bool("use_fixed_opacity", true) ? settings.Number("paint_opacity_value", 1) : 1);
     }
 
     public void ApplyControls() => ApplyControls(null);
@@ -665,8 +674,41 @@ internal sealed partial class Painter : IDisposable
 
     public void Run(PaintPlan plan, ResumeCheckpoint? resume = null)
     {
+        string outcome="completed";
+        try{RunCore(plan,resume);}
+        catch(OperationCanceledException){outcome="cancelled";throw;}
+        catch{outcome="failed";throw;}
+        finally
+        {
+            if(runTimes is not null)
+            {
+                var times=runTimes.Read();Log("run_time_breakdown",new{outcome,times});SaveRunSnapshotMetadata(outcome);
+                try{report(new(timingDone,timingTotal,ActiveSeconds,0,"",Times:times,TimesOnly:true));}
+                catch(Exception e){Log("timing_publication_unavailable",new{reason=e.Message});}
+            }
+        }
+    }
+    private void SaveRunSnapshotMetadata(string outcome)
+    {
+        if(runSnapshotDirectory is null)return;
+        try{File.WriteAllText(Path.Combine(runSnapshotDirectory,"run.json"),JsonSerializer.Serialize(new{version=BuildInfo.Full,identity=runIdentity,outcome,snapshotComplete=runSnapshotComplete,problem=runSnapshotProblem,times=runTimes?.Read(),sourceAvailable=diagnosticSource is not null}));}
+        catch(Exception e) when(e is IOException or UnauthorizedAccessException){Log("run_snapshot_unavailable",new{reason=e.Message});}
+    }
+    private void RunCore(PaintPlan plan,ResumeCheckpoint? resume)
+    {
         if(PaintingReadiness.BrushProblem(settings) is {} calibrationProblem)throw new InvalidOperationException(calibrationProblem);
         token.ThrowIfCancellationRequested();
+        if(ReleaseProfile.Standard(settings)&&plan.Mode==ColorMode.RustPalette&&!settings.Calibration.Rect("palette_swatch").Valid)throw new InvalidOperationException("Capture the active palette color swatch before painting.");
+        clock.Start();runTimes=new(()=>clock.Elapsed.TotalSeconds);
+        try
+        {
+            runIdentity=plan.Identity;
+            string evidence=runSnapshotDirectory=Path.Combine(Path.GetDirectoryName(logPath)!,"last-run",DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(evidence);
+            File.WriteAllText(Path.Combine(evidence,"effective-settings.json"),settings.Data.ToJsonString());
+            Images.Save(plan.Preview,Path.Combine(evidence,"target.png"));
+            if(diagnosticSource is not null)Images.Save(diagnosticSource,Path.Combine(evidence,"source.png"));runSnapshotComplete=true;SaveRunSnapshotMetadata("preparing");
+        }
+        catch(Exception e) when(e is IOException or UnauthorizedAccessException){runSnapshotProblem=e.Message;SaveRunSnapshotMetadata("preparing");Log("run_snapshot_unavailable",new{reason=e.Message});}
         Log("start_preparing",new{version=BuildInfo.Version,workingSize=PaintTimingPlan.DefaultSize(settings)});
         report(new(0,0,0,0,"Готую штрихи та час. Можна зупинити підготовку.",Phase:PaintPhase.Preparing));
         settings.Validate();
@@ -694,10 +736,9 @@ internal sealed partial class Painter : IDisposable
             throw new InvalidDataException("Прогрес RESUME не відповідає плану. Виконай новий START.");
         var speed = SpeedProfile.Get(settings.Text("speed_profile", "Rapid"));
         double nextReport=0;
-        clock.Start();
         timing=new(PaintTimingPlan.Build(settings,groups,order,resume?.Group??0,resume?.Line??0,token));
         timingDone=done;timingTotal=total;timingPhase=PaintPhase.Countdown;
-        FinalAuditBaseline.BeginRun(logPath,plan.Identity,resume is not null);
+        if(!ReleaseProfile.Standard(settings))FinalAuditBaseline.BeginRun(logPath,plan.Identity,resume is not null);
         checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0));
         FlushCheckpoint("start");
         bool completed = false;
@@ -730,7 +771,7 @@ internal sealed partial class Painter : IDisposable
                 try { ApplyControls(); break; }
                 catch (InputInterrupted) { WaitReady(); }
             timing.Complete(PaintTimingPlan.Setup,ActiveSeconds-setupStart);
-            BeginTiming(PaintTimingPlan.FinalBefore,PaintPhase.Auditing,"Знімаю початкове полотно…");
+            if(!ReleaseProfile.Standard(settings))BeginTiming(PaintTimingPlan.FinalBefore,PaintPhase.Auditing,"Знімаю початкове полотно…");
             double baselineStart=ActiveSeconds;
             BeginFinalAudit(plan,resume is not null);
             timing.Complete(PaintTimingPlan.FinalBefore,ActiveSeconds-baselineStart);
@@ -772,12 +813,13 @@ internal sealed partial class Painter : IDisposable
                     }
                     catch(PaletteAppliedException error)
                     {
+                        if(ReleaseProfile.Standard(settings))throw;
                         skippedColor=true;
                         Log("palette_group_skipped",new{group,color=entry.Color.Hex,error.Evidence,reason="active color not confirmed",paintedRgbVerified=false});
                         break;
                     }
 
-                timing.Complete(PaintTimingPlan.Color(group),ActiveSeconds-colorStart);
+                timing.Complete(PaintTimingPlan.Color(group),ActiveSeconds-colorStart);runTimes?.Switch("service");
                 if(skippedColor)
                 {
                     int firstLine=group==(resume?.Group??-1)?resume!.Line:0;
@@ -822,6 +864,7 @@ internal sealed partial class Painter : IDisposable
 
                             if (needsReprime)
                             {
+                                runTimes?.Switch("service");
                                 double reprimeStart=ActiveSeconds;
                                 ReprimeControls(targetSize,targetShape);
                                 if (plan.Mode == ColorMode.HexDirect)
@@ -870,7 +913,7 @@ internal sealed partial class Painter : IDisposable
                             resolutionSeconds+=Stopwatch.GetElapsedTime(resolutionStart).TotalSeconds;
                             if(fastBatch)DrawBatch(op,speed);
                             else Draw(op.Segments[0], speed, line % 2 == 1,sample);
-                            actualMotion=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;
+                            actualMotion=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;runTimes?.Switch("service");
                             string route=fastBatch?"dense_path":sample is not null?$"probe_{sample.Method}":
                                 settings.Bool("line_mode")&&settings.Text("coverage_mode")=="Fast"&&TransferSchedule.Length(op.Segments[0])>=settings.Int("min_line_width",4)*settings.Int("cell_px",3)?"legacy_shift":"drag";
                             var first=op.Segments[0];route+=op.Segments.Count>1?":mixed":first.X1==first.X2&&first.Y1!=first.Y2?":V":":H";
@@ -895,6 +938,7 @@ internal sealed partial class Painter : IDisposable
                         }
                         catch(PaletteAppliedException error)
                         {
+                            if(ReleaseProfile.Standard(settings))throw;
                             // A resumed color must satisfy the same proof as
                             // its initial selection. Never emit its next stroke.
                             skippedColor=true;
@@ -960,7 +1004,7 @@ internal sealed partial class Painter : IDisposable
                 }
             }
 
-            BeginTiming(PaintTimingPlan.FinalAudit,PaintPhase.Auditing,"Перевіряю фінальне покриття…");
+            if(!ReleaseProfile.Standard(settings))BeginTiming(PaintTimingPlan.FinalAudit,PaintPhase.Auditing,"Перевіряю фінальне покриття…");
             double finalAuditStart=ActiveSeconds;CompleteFinalAudit(plan);
             timing.Complete(PaintTimingPlan.FinalAudit,ActiveSeconds-finalAuditStart);
             BeginTiming(PaintTimingPlan.Finish,PaintPhase.Finishing,"Завершую перенесення…");
@@ -972,8 +1016,8 @@ internal sealed partial class Painter : IDisposable
             timing.Complete(PaintTimingPlan.Finish,ActiveSeconds-finishStart);
             completed = true;
             timingPhase=PaintPhase.Completed;
-            ReportTiming(FinalCoverage?.Passed==true?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди оброблено. Фінальний аудит потребує уваги.");
-            Log("complete", new { done, total, skippedPaletteOperations, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), calibratedMotion=SpeedCalibration.Use(settings),coverageVerified=FinalCoverage?.Passed==true,resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
+            ReportTiming(ReleaseProfile.Standard(settings)?"Команди надіслано. Перевір результат у Rust.":FinalCoverage?.Passed==true?"Покриття підтверджено аудитом. Перевір вигляд у Rust.":"Команди оброблено. Фінальний аудит потребує уваги.");
+            Log("complete", new { profile=settings.Text("release_profile"),done, total, skippedPaletteOperations, elapsedSeconds=clock.Elapsed.TotalSeconds-pausedSeconds, fastTransfer=settings.Bool("fast_transfer"), calibratedMotion=SpeedCalibration.Use(settings),coverageVerified=FinalCoverage?.Passed==true,resultVerified = false, paletteSwatchAvailable = settings.Calibration.Rect("palette_swatch").Valid });
         }
         finally
         {

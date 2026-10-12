@@ -30,16 +30,25 @@ def verify(path, version, commit=None, base_commit=None):
         assert set(hashes) == set(names) - {"Build_Manifest.json"}, "Package hash inventory differs"
         for name, expected in hashes.items():
             assert hashlib.sha256(archive.read(name)).hexdigest() == expected, "File hash mismatch: " + name
-        sources = manifest["sourceFilesSha256"]
-        assert {"Source/" + name for name in sources} == {name for name in names if name.startswith("Source/")}, "Source inventory differs"
-        projects = {name for name in sources if name.endswith(".csproj")}
-        assert projects == {"src/CanvasForge.Core/CanvasForge.Core.csproj", "src/CanvasForge.App/CanvasForge.App.csproj",
-                            "tests/CanvasForge.Core.Tests/CanvasForge.Core.Tests.csproj", "tests/CanvasForge.App.Tests/CanvasForge.App.Tests.csproj"}, "Four source projects required"
-        assert any(name.endswith(".cs") for name in sources), "C# source missing"
-        for name, expected in sources.items():
-            assert hashlib.sha256(archive.read("Source/" + name)).hexdigest() == expected, "Source hash mismatch: " + name
-        props = ElementTree.fromstring(archive.read("Source/Directory.Build.props"))
-        assert props.findtext("PropertyGroup/Version") == version, "Source version mismatch"
+        sources = manifest.get("sourceFilesSha256", {})
+        kind = manifest.get("artifactKind", "review")
+        assert kind in ("user", "review"), "Unknown artifact kind"
+        if kind == "user":
+            assert not sources and not any(n.startswith(("Source/", "Testing/", "Release/")) for n in names), "Internal artifacts leaked into user ZIP"
+            assert not any(n.endswith(".Tests.dll") or n.rsplit("/",1)[-1] in ("config-csharp.json","session-csharp.jsonl","resume-csharp.json","crash.log") for n in names), "Test or personal data leaked"
+            assert {"Pixora.exe","Pixora.dll","CanvasForge.Core.dll","coreclr.dll","hostfxr.dll","PresentationFramework.dll","libSkiaSharp.dll","Quick_Start.md"} <= set(names), "Incomplete user runtime"
+            assert any(n.startswith("Licenses/") for n in names), "Dependency licenses missing"
+            assert manifest["selfContained"], "User runtime is not self-contained"
+        else:
+            assert {"Source/" + name for name in sources} == {name for name in names if name.startswith("Source/")}, "Source inventory differs"
+            projects = {name for name in sources if name.endswith(".csproj")}
+            assert projects == {"src/CanvasForge.Core/CanvasForge.Core.csproj", "src/CanvasForge.App/CanvasForge.App.csproj",
+                                "tests/CanvasForge.Core.Tests/CanvasForge.Core.Tests.csproj", "tests/CanvasForge.App.Tests/CanvasForge.App.Tests.csproj"}, "Four source projects required"
+            assert any(name.endswith(".cs") for name in sources), "C# source missing"
+            for name, expected in sources.items():
+                assert hashlib.sha256(archive.read("Source/" + name)).hexdigest() == expected, "Source hash mismatch: " + name
+            props = ElementTree.fromstring(archive.read("Source/Directory.Build.props"))
+            assert props.findtext("PropertyGroup/Version") == version, "Source version mismatch"
         assert manifest["packagedCoreChecksPassed"] and manifest["packagedWpfChecksPassed"], "Published DLL checks missing"
         return {"version": version, "sourceFiles": len(sources), "hashedFiles": len(hashes),
                 "commit": manifest["commit"], "localChanges": manifest["localChanges"], "crc": "passed"}
@@ -81,6 +90,15 @@ def self_test():
     try: verify(io.BytesIO(damaged), "1.0.14-beta.51")
     except (AssertionError, zipfile.BadZipFile): pass
     else: raise AssertionError("Corrupt CRC accepted")
+    user_files={n:b"runtime fixture" for n in ["Pixora.exe","Pixora.dll","CanvasForge.Core.dll","coreclr.dll","hostfxr.dll","PresentationFramework.dll","libSkiaSharp.dll","Quick_Start.md","Licenses/test.txt"]}
+    user={**manifest,"artifactKind":"user","selfContained":True,"sourceFilesSha256":{},"filesSha256":{n:hashlib.sha256(b).hexdigest() for n,b in user_files.items()}}
+    verify(zipped(user_files,user),"1.0.14-beta.51",base_commit=base)
+    for bad_name in ["Source/private.txt","Testing/review.md","CanvasForge.App.Tests.dll","session-csharp.jsonl"]:
+        bad_files={**user_files,bad_name:b"leak"};bad={**user,"filesSha256":{n:hashlib.sha256(b).hexdigest() for n,b in bad_files.items()}}
+        try:verify(zipped(bad_files,bad),"1.0.14-beta.51")
+        except AssertionError:pass
+        else:raise AssertionError("Internal or personal file accepted in user ZIP")
+    print("PASS clean user ZIP: valid runtime and four leak rejection cases")
     print("PASS final ZIP validator: valid fixture and eight rejection cases")
 
 

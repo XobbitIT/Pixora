@@ -28,7 +28,7 @@ internal static class CalibrationUsabilityChecks
             Require(BrushControlsLocator.Find(RecordedControls(),new(1980,100,2560,800),found)!.Rect("size_track")==found.Rect("size_track"));
         });
         foreach(int cap in new[]{4,8,16,64})test($"Palette {cap} color plan limit cannot affect live control location",()=>{
-            var s=Settings.Defaults();s.SetCalibration(OldControls());s.Set("max_colors",cap);
+            var s=Settings.ExperimentalDefaults();s.SetCalibration(OldControls());s.Set("max_colors",cap);
             Require(BrushControlsLocator.Find(RecordedControls(),new(1980,100,2560,800),s.PaintCalibration())?.Rect("size_track").Top==359);
         });
         test("Missing bars or missing brush row cannot manufacture a relocated control group",()=>{
@@ -54,12 +54,12 @@ internal static class CalibrationUsabilityChecks
                 Require(BrushLocalColor.Measure(before,dot,dot.Clone(),point,3,black,proof).Solid.Length==0);
             var stamp=BrushLocalColor.Measure(before,dot,dot.Clone(),point,3,black,new(black,true,true));
             Require(stamp.LocalColor is {Passed:true,ReferenceColorPassed:false}&&BrushFootprints.Points(stamp.Solid).Count()==16);
-            var profile=BrushFootprints.Build(Settings.Defaults(),3,3,[stamp,stamp,stamp]);Require(profile.SolidCore.Valid);
+            var profile=BrushFootprints.Build(Settings.ExperimentalDefaults(),3,3,[stamp,stamp,stamp]);Require(profile.SolidCore.Valid);
             var translucent=dot.Clone();for(int y=50;y<54;y++)for(int x=47;x<51;x++)translucent.Set(y*96+x,new(0,0,0));
             Require(BrushLocalColor.Measure(before,dot,translucent,point,3,black,new(black,true,true)).Solid.Length==0);
         });
         test("Failed recalibration cannot retain an old certified Size while untouched Sizes remain usable",()=>{
-            var s=Settings.Defaults();var spans=BrushFootprints.Spans(new[]{new ScreenPoint(0,0),new(1,0),new(0,1),new(1,1)});
+            var s=Settings.ExperimentalDefaults();var spans=BrushFootprints.Spans(new[]{new ScreenPoint(0,0),new(1,0),new(0,1),new(1,1)});
             var stamp=new BrushStamp(spans,spans,new(0,0,0));
             BrushFootprints.Save(s,new[]{3d,10d,20d}.Select(size=>BrushFootprints.Build(s,3,size,[stamp,stamp,stamp])).ToArray());
             BrushFootprints.Invalidate(s,3,[3,20]);

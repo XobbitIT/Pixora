@@ -5,17 +5,17 @@ internal static class BrushSignalChecks
     private static void Require(bool value){if(!value)throw new Exception("Brush signal regression");}
     private static Settings Config()
     {
-        var s=Settings.Defaults();var c=s.Calibration;c.SetRect("canvas",new(0,0,1200,1200));
+        var s=Settings.ExperimentalDefaults();var c=s.Calibration;c.SetRect("canvas",new(0,0,1200,1200));
         c.SetRect("size_track",new(1300,100,1550,140));c.SetRect("brush_shapes",new(1300,30,1650,70));
         c.SetSession(new(0,0),96,new(1920,1440));s.SetCalibration(c);AdaptiveBrush.Prepare(s);return s;
     }
     private static PixelImage Frame(byte level)
     {var im=new PixelImage(96,96);for(int i=0;i<96*96;i++)im.Set(i,new(level,level,level));return im;}
-    private static void Dot(BrushCalibrationBatch batch,int repeat,byte delta=70,int noise=0,int offset=0)
+    private static void Dot(BrushCalibrationBatch batch,int repeat,byte delta=70,int noise=0,int offset=0,double size=1)
     {
         var before=Frame(140);var background=Frame((byte)(140-noise));var after=before.Clone();
         for(int y=47;y<50;y++)for(int x=47+offset;x<50+offset;x++)after.Set(y*96+x,new((byte)(140-delta),(byte)(140-delta),(byte)(140-delta)));
-        batch.Record(1,repeat,background,before,after,new(48,48));
+        batch.Record(size,repeat,background,before,after,new(48,48));
     }
     public static void Run(Action<string,Action> test)
     {
@@ -28,10 +28,10 @@ internal static class BrushSignalChecks
             Require(BrushSignalDiagnostics.Read(s).Single().Samples.Select(p=>p.Contrast.PeakDelta).SequenceEqual(new[]{69,70,68}));
         });
         test("Three strong square dots still certify only their own shape",()=>{
-            var s=Config();var batch=new BrushCalibrationBatch(s,4,[1]);for(int i=1;i<=3;i++)Dot(batch,i,110);
+            var s=Config();var batch=new BrushCalibrationBatch(s,4,[2]);for(int i=1;i<=3;i++)Dot(batch,i,110,size:2);
             Require(batch.Diagnostics.Single().State==BrushSignalState.Verified&&batch.Profiles.Count==1);
             BrushFootprints.Save(s,batch.Profiles);BrushSignalDiagnostics.Save(s,batch.Diagnostics);
-            Require(!SpeedCalibration.BrushReady(s,1)&&SpeedCalibration.BrushReady(BrushFootprints.ForShape(s,4),1));
+            Require(!SpeedCalibration.BrushReady(s,2)&&SpeedCalibration.BrushReady(BrushFootprints.ForShape(s,4),2));
         });
         test("Incomplete mixed and displaced weak dots never certify or claim repeatability",()=>{
             var batch=new BrushCalibrationBatch(Config(),3,[1]);Dot(batch,1);Dot(batch,2);Require(batch.Diagnostics.Count==0&&batch.Profiles.Count==0);

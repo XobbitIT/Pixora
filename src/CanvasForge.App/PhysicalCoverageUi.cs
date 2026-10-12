@@ -10,6 +10,7 @@ internal sealed partial class MainWindow
     {
         physicalCoverageLabel=Text(T("Фінальне покриття: очікує малювання.","Final coverage: waiting for painting."),12,Muted);
         physicalCoverageLabel.Margin=new(0,8,0,4);controls.Children.Add(physicalCoverageLabel);
+        if(ReleaseProfile.Standard(settings)){physicalCoverageLabel.Text=T("Standard: перевір вигляд і покриття у Rust.","Standard: inspect appearance and coverage in Rust.");return;}
         if(lastPaintProgress?.PhysicalCoverage is {} saved)RenderPhysicalCoverage(saved,lastPaintProgress.CoverageDirectory);
     }
     private void RenderPhysicalCoverage(PhysicalCoverageResult result,string? directory)

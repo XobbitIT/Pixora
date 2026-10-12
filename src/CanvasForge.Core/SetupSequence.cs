@@ -1,7 +1,7 @@
 namespace CanvasForge.Core;
 
 public enum SetupStage { Capture, Colors, Controls, Brush, Spatial, Speed }
-public enum SetupStageState { Pending, Running, Passed, Failed, Cancelled }
+public enum SetupStageState { Pending, Running, Passed, Failed, Cancelled, Paused }
 public sealed class SetupStageException(SetupStage stage, Exception error) : Exception(error.Message, error)
 {
     public SetupStage Stage { get; } = stage;
@@ -10,6 +10,7 @@ public sealed class SetupStageException(SetupStage stage, Exception error) : Exc
 public static class SetupSequence
 {
     public static readonly SetupStage[] Stages = Enum.GetValues<SetupStage>();
+    public static readonly SetupStage[] StandardStages=[SetupStage.Capture,SetupStage.Colors,SetupStage.Controls];
     public static readonly SetupStage[] DrawingStages=[SetupStage.Capture,SetupStage.Colors,SetupStage.Controls,SetupStage.Brush];
     public static string[] CaptureKeys(Settings s)=>s.Mode==ColorMode.HexDirect
         ?["canvas","hex","brush_shapes","size_track","interval_track","opacity_track"]
@@ -27,6 +28,7 @@ public static class SetupSequence
                 report(stage, SetupStageState.Passed, "");
             }
             catch (OperationCanceledException e) { report(stage, SetupStageState.Cancelled, e.Message); throw; }
+            catch(PreparationInterruptedException e){report(stage,SetupStageState.Paused,e.Message);throw;}
             catch (Exception e) { report(stage, SetupStageState.Failed, e.Message); throw new SetupStageException(stage, e); }
         }
     }

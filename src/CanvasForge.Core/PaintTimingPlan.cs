@@ -13,22 +13,23 @@ public static class PaintTimingPlan
     public static string Audit(int group)=>$"audit:{group}";
     public static double DefaultSize(Settings s,SpeedProfile? speed=null)
     {
+        if(ReleaseProfile.Standard(s))return 3;
         speed??=SpeedProfile.Get(s.Text("speed_profile","Rapid"));
         if(s.Text("coverage_mode","Precision")=="Precision"&&s.Bool("force_precision_controls",true))
         {
             // An explicit working Size survives movement/detail presets. Mixed
-            // painting uses its smallest verified Size, including 1 if available.
+            // painting uses its smallest verified Size at or above the minimum.
             if(!s.Bool("adaptive_brush")&&s.Text("precision_brush_size","Profile")!="Profile")
-                return s.Number("precision_brush_size",speed.BrushSize);
-            return BrushFootprints.Read(s,s.Bool("adaptive_brush")&&s.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20))
-                .Select(p=>p.Size).DefaultIfEmpty(speed.BrushSize).Min();
+                return Math.Max(DrawingWorkflow.MinimumSize,s.Number("precision_brush_size",speed.BrushSize));
+            return DrawingWorkflow.PaintingProfiles(s,s.Bool("adaptive_brush")&&s.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20))
+                .Select(p=>p.Size).DefaultIfEmpty(Math.Max(DrawingWorkflow.MinimumSize,speed.BrushSize)).Min();
         }
-        return s.Bool("auto_brush_size",true)?AutomaticBrush.Value(s,Math.Max(1,s.Int("cell_px",3))):s.Number("brush_size_value",3);
+        return Math.Max(DrawingWorkflow.MinimumSize,s.Bool("auto_brush_size",true)?AutomaticBrush.Value(s,Math.Max(2,s.Int("cell_px",3))):s.Number("brush_size_value",3));
     }
     public static List<TimedWork> Build(Settings s,Dictionary<int,List<PaintBatch>> groups,IReadOnlyList<int> order,int startGroup=0,int startLine=0,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();
-        s=BrushFootprints.Snapshot(s);
+        s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):s);
         if(startGroup<0||startGroup>order.Count||startLine<0||startGroup==order.Count&&startLine!=0
             ||startGroup<order.Count&&startLine>groups[order[startGroup]].Count)throw new ArgumentException("Invalid timing resume position.");
         var speed=SpeedProfile.Get(s.Text("speed_profile","Rapid"));double previous=DefaultSize(s);int previousShape=s.Int("brush_shape_slot",3);
@@ -36,7 +37,7 @@ public static class PaintTimingPlan
         // does, instead of parsing/hashing it several times per operation.
         var resolve=SpeedCalibration.CreateEstimateResolver(s);bool fast=TransferSchedule.Fast(s);
         var work=new List<TimedWork>{new(Setup,"setup",3*StrokeTiming.SliderChangeEstimate(s)+StrokeTiming.ClickEstimate(s),false)};
-        work.Add(new(FinalBefore,"capture",.3,false));
+        if(!ReleaseProfile.Standard(s))work.Add(new(FinalBefore,"capture",.3,false));
         for(int group=startGroup;group<order.Count;group++)
         {
             token.ThrowIfCancellationRequested();
@@ -59,7 +60,7 @@ public static class PaintTimingPlan
         }
         double finish=StrokeTiming.Fast(s)&&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
             ?StrokeTiming.ControlFrame(s):StrokeTiming.SliderChangeEstimate(s);
-        work.Add(new(FinalAudit,"audit",.5,false));
+        if(!ReleaseProfile.Standard(s))work.Add(new(FinalAudit,"audit",.5,false));
         work.Add(new(Finish,"finish",finish,false));return work;
     }
     public static string Route(Settings s,PaintBatch batch,double size)

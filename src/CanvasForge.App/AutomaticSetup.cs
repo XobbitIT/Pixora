@@ -62,7 +62,7 @@ internal sealed partial class MainWindow
             var image=Button(T("Зображення → відкрити","Image → open"),OpenImage);
             image.Content="1. "+image.Content;
             image.Tag="preparation-image";image.HorizontalContentAlignment=HorizontalAlignment.Left;parent.Children.Add(image);
-            foreach(var stage in SetupSequence.Stages)
+            foreach(var stage in ReleaseProfile.Standard(settings)?SetupSequence.StandardStages:SetupSequence.Stages)
             {
                 var row=Text("",12,Muted);rows[stage]=row;parent.Children.Add(row);
                 row.Cursor=System.Windows.Input.Cursors.Hand;row.Focusable=true;
@@ -86,7 +86,7 @@ internal sealed partial class MainWindow
         setupStop.Visibility=setupRunning||inputCheckRunning?Visibility.Visible:Visibility.Collapsed;
         foreach(var button in allSetupButtons)button.IsEnabled=!Painting;
         var current=PaintingReadiness.Read(settings,source is not null);
-        string summaryText=setupRunning&&setupOutcome.Length>0?T(setupOutcome):
+        string summaryText=!setupRunning&&ReleaseProfile.Standard(settings)?T("Standard: області, кольори та керування Size 3. Вимірювання пензля необов’язкове.","Standard: regions, colors and Size 3 controls. Brush measurement is optional."):setupRunning&&setupOutcome.Length>0?T(setupOutcome):
             current.FirstIncomplete?.Problem is { } problem?T(problem):
             setupResults.Any(p=>p.Key is SetupStage.Spatial or SetupStage.Speed&&p.Value.State==SetupStageState.Failed)?
                 T("Можна малювати стабільним вводом. Прискорення потребує повторної перевірки.","Stable painting is ready. Acceleration needs another check."):
@@ -110,7 +110,7 @@ internal sealed partial class MainWindow
             string state=result.Item1 switch
             {
                 SetupStageState.Running=>T("виконується","running"),SetupStageState.Passed=>T("готово","passed"),
-                SetupStageState.Failed=>T("помилка","failed"),SetupStageState.Cancelled=>T("скасовано","cancelled"),_=>T("очікує","pending")
+                SetupStageState.Paused=>T("пауза","paused"),SetupStageState.Failed=>T("помилка","failed"),SetupStageState.Cancelled=>T("скасовано","cancelled"),_=>T("очікує","pending")
             };
             string detail=string.Join("\n",result.Item2.Split('\n').Select(line=>T(line)));
             string icon=result.Item1==SetupStageState.Passed?"✓":result.Item1==SetupStageState.Failed?"!":result.Item1==SetupStageState.Running?"→":"○";
@@ -147,17 +147,19 @@ internal sealed partial class MainWindow
     private async Task RunSetup(bool quick)
     {
         if(Painting||closing)return;ReadSettings();
-        var prompt=quick?T("Відкрий чисте полотно Rust та обери інструмент пензля. Програма перевірить кольори, керування і три відбитки одного робочого Size. Малювання використовуватиме Precision, Opacity 1 і стабільний ввід; Adaptive, аудит та прискорення вмикаються окремо. Очисти тестові крапки після завершення. Не рухай мишу; ESC — скасувати. Почати?",
+        bool standard=quick&&ReleaseProfile.Standard(settings);
+        var prompt=standard?T("Відкрий редактор Rust. Standard перевірить області, кольори та керування: круглий Size 3, Interval 0.01, Opacity 1. Повне вимірювання пензля не потрібне. Перевір результат у грі. ESC — скасувати. Почати?","Open Rust’s painting editor. Standard checks regions, colors and controls: round Size 3, Interval 0.01, Opacity 1. Full brush measurement is optional. Inspect the result in game. ESC cancels. Begin?"):quick?T("Відкрий чисте полотно Rust та обери інструмент пензля. Програма перевірить кольори, керування і три відбитки одного робочого Size. Малювання використовуватиме Precision, Opacity 1 і стабільний ввід; Adaptive, аудит та прискорення вмикаються окремо. Очисти тестові крапки після завершення. Не рухай мишу; ESC — скасувати. Почати?",
             "Open a clean Rust Canvas and select the brush tool. Pixora will check colors, controls and three imprints of one working Size. Painting will use Precision, Opacity 1 and stable input; Adaptive, audit and acceleration are enabled separately. Clear test dots afterwards. Do not move the mouse; ESC cancels. Begin?"):
             T("Відкрий чисте полотно Rust. Одна підготовка перевірить області, вибраний режим кольорів, керування, робочі пензлі та швидкість. Якщо прискорення не підтвердиться, залишиться стабільне малювання. Тестові крапки й лінії залишаться: очисти полотно перед малюванням. Не рухай мишу; ESC — скасувати. Почати?",
             "Open a clean Rust Canvas. One preparation checks regions, the selected color mode, controls, working brushes and speed. If acceleration cannot be verified, stable painting remains available. Test dots and lines remain: clear Canvas before painting. Do not move the mouse; ESC cancels. Begin?");
         if(!ShowMessage(prompt,T("Підготовка Rust","Rust setup"),true))return;
+        if(!quick)settings.Set("release_profile","Experimental");
         setupQuick=quick;
         if(!quick)
         {
             PrepareCombinedSetup();
         }
-        if(quick)
+        if(quick&&!standard)
         {
             PrepareDrawingSetup();
         }
@@ -178,10 +180,10 @@ internal sealed partial class MainWindow
                 File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_stage",details=new{stage=stage.ToString(),state=state.ToString(),detail}})+Environment.NewLine);
             };
             bool accelerated=false;
-            if(quick)await SetupSequence.Run(ExecuteSetupStage,report,SetupToken,SetupSequence.DrawingStages);
-            else accelerated=await SetupSequence.Prepare(ExecuteSetupStage,report,SetupToken);
+            if(quick)await SetupSequence.Run((stage,t)=>RunResumableCheck(()=>ExecuteSetupStage(stage,t),t),report,SetupToken,standard?SetupSequence.StandardStages:SetupSequence.DrawingStages);
+            else accelerated=await SetupSequence.Prepare((stage,t)=>RunResumableCheck(()=>ExecuteSetupStage(stage,t),t),report,SetupToken);
             if(!quick)settings.Set("calibrated_strokes",accelerated&&SpeedCalibration.Current(settings));
-            setupOutcome=quick?T("Пензель готовий. Очисти тестові крапки, відкрий зображення й натисни «Почати».",
+            setupOutcome=standard?T("Standard готовий. Відкрий зображення й натисни «Почати». Результат перевір у Rust.","Standard ready. Open an image and press Start. Inspect the result in Rust."):quick?T("Пензель готовий. Очисти тестові крапки, відкрий зображення й натисни «Почати».",
                 "Brush ready. Clear the test dots, open an image and press Start."):
                 accelerated?T("Підготовка завершена. Очисти тестові крапки й лінії та натисни «Почати».",
                     "Preparation completed. Clear test dots and lines and press Start."):

@@ -6,7 +6,7 @@ internal static class StartPreparationChecks
     private static void Require(bool value){if(!value)throw new Exception("Start preparation regression");}
     internal static Settings VerifiedSize3()
     {
-        var s=Settings.Defaults();s.Set("adaptive_brush",false);s.Set("calibrated_strokes",true);s.Set("precision_brush_size","3");
+        var s=Settings.ExperimentalDefaults();s.Set("adaptive_brush",false);s.Set("calibrated_strokes",true);s.Set("precision_brush_size","3");
         var c=s.Calibration;c.SetRect("canvas",new(0,0,256,256));c.SetSession(new(0,0),96,new(500,400));
         c.SetRect("size_track",new(300,100,450,120));s.SetCalibration(c);
         BrushSpan[] spans=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(spans,spans,new(10,10,10));
@@ -23,19 +23,19 @@ internal static class StartPreparationChecks
     public static void Run(Action<string,Action> test)
     {
         test("Working Size remains readable before HEX control capture",()=>{
-            var s=Settings.Defaults();s.Set("color_mode","HEX Direct");s.Set("coverage_mode","Fast");s.Set("cell_px",3);
+            var s=Settings.ExperimentalDefaults();s.Set("color_mode","HEX Direct");s.Set("coverage_mode","Fast");s.Set("cell_px",3);
             s.Set("brush_calibration_context","old palette geometry");s.Set("brush_calibration_points",new double[][]{[1,1],[20,20]});
             Require(PaintTimingPlan.DefaultSize(s)==3&&!SpeedCalibration.BrushReady(s,3));
         });
-        test("Full setup includes Size 3 after a manual Size 1 selection",()=>{
-            Require(SetupBrushSelection.Sizes("1",true).SequenceEqual(new double[]{1,3}));
-            Require(SetupBrushSelection.Sizes("1",false).SequenceEqual(new double[]{1}));
+        test("Full setup includes Size 3 after a manual Size 2 selection",()=>{
+            Require(SetupBrushSelection.Sizes("2",true).SequenceEqual(new double[]{2,3}));
+            Require(SetupBrushSelection.Sizes("2",false).SequenceEqual(new double[]{2}));
             Require(SetupBrushSelection.Sizes("20",true).SequenceEqual(new double[]{3,20}));
         });
         test("Working Size remains independent of movement presets and image grid",()=>{
             var s=VerifiedSize3();
             foreach(var profile in SpeedProfile.All){s.Set("speed_profile",profile.Name);s.Set("cell_px",8);Require(PaintTimingPlan.DefaultSize(s)==3);}
-            s.Set("precision_brush_size","1");Require(PaintTimingPlan.DefaultSize(s)==1&&!SpeedCalibration.BrushReady(s,1));
+            s.Set("precision_brush_size","1");Require(PaintTimingPlan.DefaultSize(s)==2&&!SpeedCalibration.BrushReady(s,1));
             s.Set("precision_brush_size","3");s.Set("adaptive_brush",true);s.Set("speed_profile","Rapid");Require(PaintTimingPlan.DefaultSize(s)==3&&!SpeedCalibration.BrushReady(s,1));
             AdaptiveBrush.Validate(s);
         });
@@ -68,7 +68,7 @@ internal static class StartPreparationChecks
             Require(!AdaptiveBrush.CalibrationCurrent(effective));
         });
         test("Working Size validation rejects unsupported values",()=>{
-            var s=Settings.Defaults();s.Set("precision_brush_size","4");bool rejected=false;
+            var s=Settings.ExperimentalDefaults();s.Set("precision_brush_size","4");bool rejected=false;
             try{s.Validate();}catch(InvalidDataException){rejected=true;}Require(rejected);
         });
     }

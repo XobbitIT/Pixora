@@ -73,7 +73,7 @@ internal static class MovingEnvelopeChecks
             });
         }
         test("Setup Size choice is independent of missing Size 1 and excludes invalid cores or other shapes",()=>{
-            var s=Settings.Defaults();BrushSpan[] rows=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(rows,rows,new(20,20,20));
+            var s=Settings.ExperimentalDefaults();BrushSpan[] rows=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(rows,rows,new(20,20,20));
             var p=BrushFootprints.Build(s,3,3,[stamp,stamp,stamp]);var empty=p with{Size=1,SolidCore=default};
             Require(SetupBrushSelection.Select([empty,p],3,3)==3&&SetupBrushSelection.Select([empty,p],3,1)==3);
             Require(SetupBrushSelection.Select([p],4,3) is null&&SetupBrushSelection.Select([empty],3,1) is null&&SetupBrushSelection.Select(null,3,3) is null);

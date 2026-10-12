@@ -14,7 +14,7 @@ public static class EdgeRegionMerge
         double scale=canvas.Valid?canvas.Width/(double)width*canvas.Height/height:1;
         // Preprocessing must not change merely because the user applies the
         // mode recommendation; both modes must receive the same target.
-        int core=BrushFootprints.Read(s,true)
+        int core=DrawingWorkflow.PaintingProfiles(s,true)
             .Where(p=>p.SolidCore.Valid).Select(p=>p.SolidCore.Width*p.SolidCore.Height).DefaultIfEmpty(1).Min();
         return Math.Max(1,(int)Math.Ceiling(core/scale));
     }

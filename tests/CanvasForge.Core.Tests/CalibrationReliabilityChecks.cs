@@ -13,7 +13,7 @@ internal static class CalibrationReliabilityChecks
     }
     internal static Settings Captured()
     {
-        var s=Settings.Defaults();s.Set("color_mode","HEX Direct");s.Set("precision_brush_size","3");var c=s.Calibration;
+        var s=Settings.ExperimentalDefaults();s.Set("color_mode","HEX Direct");s.Set("precision_brush_size","3");var c=s.Calibration;
         c.SetRect("canvas",new(0,0,640,640));c.SetSession(new(0,0),96,new(1280,720));c.SetPoint("hex_field",new(1100,600));
         c.SetRect("brush_shapes",new(900,100,1250,150));
         foreach(string kind in new[]{"size","interval","opacity"})
@@ -37,11 +37,11 @@ internal static class CalibrationReliabilityChecks
     public static void Run(Action<string,Action> test)
     {
         test("Calibration budgets preserve beta45 defaults",()=>{
-            var s=Settings.Defaults();s.Validate();Require(CalibrationReliability.Readback(s)==new ReadbackOptions());
+            var s=Settings.ExperimentalDefaults();s.Validate();Require(CalibrationReliability.Readback(s)==new ReadbackOptions());
             Require(CalibrationReliability.StableAttempts(s)==5&&CalibrationReliability.StableInterval(s)==.08&&!CalibrationReliability.Visual(s));
         });
         test("Slow laptop preset disables fast input and raises only calibration budgets",()=>{
-            var s=Settings.Defaults();s.Set("fast_transfer",true);s.Set("input_engine","Experimental 1 ms");
+            var s=Settings.ExperimentalDefaults();s.Set("fast_transfer",true);s.Set("input_engine","Experimental 1 ms");
             string color=s.Text("color_mode"),profile=s.Text("profile");CalibrationReliability.ApplyPreset(s,true);s.Validate();
             Require(!s.Bool("fast_transfer")&&s.Text("input_engine")=="Stable"&&CalibrationReliability.Visual(s));
             Require(CalibrationReliability.Readback(s)==new ReadbackOptions(54,3,.2)&&CalibrationReliability.StableAttempts(s)==10);
@@ -49,7 +49,7 @@ internal static class CalibrationReliabilityChecks
         });
         test("Slow numeric readback receives a two-second late copy without relaxing match",()=>{
             var normal=new Input{Latency=2};Require(!ControlReadback.Read("size",3,normal,.15).Verified);
-            var slow=new Input{Latency=2};var s=Settings.Defaults();CalibrationReliability.ApplyPreset(s,true);
+            var slow=new Input{Latency=2};var s=Settings.ExperimentalDefaults();CalibrationReliability.ApplyPreset(s,true);
             var result=ControlReadback.Read("size",3,slow,.15,options:CalibrationReliability.Readback(s));
             Require(result.Verified&&result.Attempts==1&&slow.Copies==1&&slow.Time>=2&&slow.Time<2.7);
             slow=new Input{Response="3.01"};Require(!ControlReadback.Read("size",3,slow,.15,options:CalibrationReliability.Readback(s)).Verified);
@@ -66,7 +66,7 @@ internal static class CalibrationReliabilityChecks
         test("Malformed calibration budgets fail validation",()=>{
             foreach(var (key,value) in new[]{("readback_polls",23d),("readback_polls",24.5),("readback_attempts",0d),
                 ("readback_retry_pause_ms",1001d),("capture_stable_attempts",4d),("capture_stable_interval_ms",39d)})
-            {var s=Settings.Defaults();s.Set(key,value);bool rejected=false;try{s.Validate();}catch(InvalidDataException){rejected=true;}Require(rejected);}
+            {var s=Settings.ExperimentalDefaults();s.Set(key,value);bool rejected=false;try{s.Validate();}catch(InvalidDataException){rejected=true;}Require(rejected);}
         });
         test("Visual controls retain precise slider geometry and reject drift or missing bands",()=>{
             foreach(string kind in new[]{"size","interval","opacity"})
@@ -110,7 +110,7 @@ internal static class CalibrationReliabilityChecks
         test("Extra stable capture attempts find the same two-frame criterion",()=>{
             PixelImage Read(bool slow)
             {
-                int n=0;var s=Settings.Defaults();if(slow)CalibrationReliability.ApplyPreset(s,true);
+                int n=0;var s=Settings.ExperimentalDefaults();if(slow)CalibrationReliability.ApplyPreset(s,true);
                 return StableCapture.Read(()=>Frame((byte)(++n<8?n%2==0?0:255:180)),_=>{},CalibrationReliability.StableAttempts(s),CalibrationReliability.StableInterval(s));
             }
             bool failed=false;try{Read(false);}catch(InvalidOperationException){failed=true;}Require(failed);Require(Read(true).Color(0).R==180);
@@ -122,7 +122,7 @@ internal static class CalibrationReliabilityChecks
             var calls=new List<SetupStage>();SetupSequence.Run((s,_)=>{calls.Add(s);return Task.CompletedTask;},(_,_,_)=>{},default,SetupSequence.DrawingStages).GetAwaiter().GetResult();
             Require(calls.SequenceEqual(new[]{SetupStage.Capture,SetupStage.Colors,SetupStage.Controls,SetupStage.Brush}));
             var s=Captured();Require(SetupSequence.CaptureReady(s)&&!SetupSequence.CaptureKeys(s).Contains("brush_tool")&&!SetupSequence.CaptureKeys(s).Contains("tool_row"));
-            Require(SetupSequence.DrawingSize(Settings.Defaults())==3);
+            Require(SetupSequence.DrawingSize(Settings.ExperimentalDefaults())==3);
         });
         test("Readback diagnostics retain only markers or valid control values",()=>{
             Require(ReadbackDiagnostics.SafeText(ControlNumber.Marker,"interval")==ControlNumber.Marker);

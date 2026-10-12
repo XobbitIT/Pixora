@@ -6,7 +6,7 @@ internal static class DrawingWorkflowChecks
     private static bool Overlap(ScreenRect a,ScreenRect b)=>a.Left<b.Right&&a.Right>b.Left&&a.Top<b.Bottom&&a.Bottom>b.Top;
     private static Settings Captured(bool hex=false)
     {
-        var s=Settings.Defaults();s.Set("color_mode",hex?"HEX Direct":"Rust Palette");var c=s.Calibration;
+        var s=Settings.ExperimentalDefaults();s.Set("color_mode",hex?"HEX Direct":"Rust Palette");var c=s.Calibration;
         c.SetRect("canvas",new(10,10,1058,1051));c.SetSession(new(0,0),96,new(1600,1200));
         c.SetPoint("brush_tool",new(1100,20));c.SetRect("palette",new(1100,100,1260,740));
         c.SetRect("brush_shapes",new(1100,40,1450,90));

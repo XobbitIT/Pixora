@@ -21,7 +21,7 @@ internal static class BrushLocalColorChecks
     public static void Run(Action<string,Action> test)
     {
         test("Independent saturated local colors replace frozen RGB without loosening tolerance",()=>{
-            var before=Frame();var batch=new BrushCalibrationBatch(Settings.Defaults(),3,[3]);
+            var before=Frame();var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[3]);
             int repeat=0;foreach(int level in new[]{5,28,10})
             {
                 var after=Dot(before,level);int calls=0;
@@ -34,7 +34,7 @@ internal static class BrushLocalColorChecks
             Require(batch.Diagnostics[0].Samples.Select(s=>s.LocalColor!.Reference.R).SequenceEqual(new byte[]{5,28,10}));
         });
         test("Local RGB without saturation evidence cannot certify a strong dot",()=>{
-            var before=Frame();var after=Dot(before,20);var batch=new BrushCalibrationBatch(Settings.Defaults(),3,[3]);
+            var before=Frame();var after=Dot(before,20);var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[3]);
             for(int i=1;i<=3;i++)batch.RecordLocal(3,i,before,before,after,null,Command,Black);
             Require(batch.Profiles.Single().SolidPixels==0&&batch.Diagnostics.Single().State==BrushSignalState.NoSolidCore);
         });
@@ -75,7 +75,7 @@ internal static class BrushLocalColorChecks
             Require(BrushFootprints.Points(stamp.Possible).Contains(new(0,7))&&!BrushFootprints.Points(stamp.Solid).Contains(new(0,6)));
         });
         test("Three locally verified but displaced cores still intersect at command coordinates",()=>{
-            var before=Frame();var s=Settings.Defaults();var stamps=new[]{-5,0,5}.Select(dx=>{
+            var before=Frame();var s=Settings.ExperimentalDefaults();var stamps=new[]{-5,0,5}.Select(dx=>{
                 var dot=Dot(before,20,dx);return BrushLocalColor.Measure(before,dot,dot.Clone(),Command,3,Black);
             }).ToArray();
             Require(stamps.All(p=>p.LocalColor is {Passed:true}));
@@ -84,7 +84,7 @@ internal static class BrushLocalColorChecks
         test("Weak Size 1 keeps threshold 80 and never triggers saturation paint",()=>{
             var before=Frame();var weak=Dot(before,111);int calls=0;
             Require(BrushLocalColor.Confirm(before,weak,Command,1,Black,0,()=>{calls++;return weak;}) is null&&calls==0);
-            var batch=new BrushCalibrationBatch(Settings.Defaults(),3,[1]);
+            var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[1]);
             for(int i=1;i<=3;i++)batch.RecordLocal(1,i,before,before,weak,null,Command,Black);
             Require(batch.Profiles.Count==0&&batch.Diagnostics.Single().State==BrushSignalState.WeakRepeatable);
             Require(batch.Rejected.Single().Contrast is {PeakDelta:69,RequiredDelta:80});
@@ -95,7 +95,7 @@ internal static class BrushLocalColorChecks
             Require(BrushLocalColor.Confirm(wrongBefore,wrong,Command,3,Black,0,()=>throw new Exception("Wrong color repainted")) is null);
             Require(BrushLocalColor.Confirm(before,right,Command,3,Black,13,()=>throw new Exception("Noise repainted")) is null);
             Require(BrushLocalColor.Measure(wrongBefore,wrong,wrong,Command,3,Black).Solid.Length==0);
-            var background=Frame();background.Set(0,new(160,160,160));var batch=new BrushCalibrationBatch(Settings.Defaults(),3,[3]);
+            var background=Frame();background.Set(0,new(160,160,160));var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[3]);
             for(int i=1;i<=3;i++)batch.RecordLocal(3,i,background,before,right,right,Command,Black);
             Require(batch.Profiles.Count==0&&batch.Diagnostics.Single().State==BrushSignalState.Rejected);
         });
@@ -110,7 +110,7 @@ internal static class BrushLocalColorChecks
             try{BrushLocalColor.Measure(before,after,new PixelImage(95,96),Command,3,Black);throw new Exception("Size mismatch accepted");}catch(ArgumentException){}
         });
         test("Interrupted saturation capture propagates with no partial Size publication",()=>{
-            var before=Frame();var after=Dot(before,20);var batch=new BrushCalibrationBatch(Settings.Defaults(),3,[3]);
+            var before=Frame();var after=Dot(before,20);var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[3]);
             batch.RecordLocal(3,1,before,before,after,after,Command,Black);
             try{BrushLocalColor.Confirm(before,after,Command,3,Black,0,()=>throw new OperationCanceledException());throw new Exception("Cancellation swallowed");}
             catch(OperationCanceledException){}
@@ -132,10 +132,10 @@ internal static class BrushLocalColorChecks
                 var local=BrushLocalColor.Measure(before,after,null,command,10,Black);
                 Require(local.Solid.Length==0&&local.LocalColor is null);stamps.Add(legacy);
             }
-            Require(lost>=1&&!BrushFootprints.Build(Settings.Defaults(),4,10,stamps).SolidCore.Valid);
+            Require(lost>=1&&!BrushFootprints.Build(Settings.ExperimentalDefaults(),4,10,stamps).SolidCore.Valid);
         });
         test("Local saturation revision invalidates old footprints and their speed readiness",()=>{
-            var s=Settings.Defaults();var cal=s.PaintCalibration();
+            var s=Settings.ExperimentalDefaults();var cal=s.PaintCalibration();
             string text=$"command-masks-color-v2:{s.Mode}:3:{s.Calibration.Rect("canvas")}:{cal.SessionClient}:{cal.SessionSize}:{cal.SessionDpi}:{cal.Rect("size_track")}:{cal.Rect("brush_shapes")}";
             var dot=Dot(Frame(),20);var stamp=BrushFootprints.Measure(Frame(),dot,Command,3);
             var current=BrushFootprints.Build(s,3,3,[stamp,stamp,stamp]);BrushFootprints.Save(s,[current]);Require(SpeedCalibration.BrushReady(s,3));

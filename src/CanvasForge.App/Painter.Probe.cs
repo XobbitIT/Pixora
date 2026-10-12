@@ -4,6 +4,7 @@ namespace CanvasForge.App;
 
 internal sealed partial class Painter
 {
+    public void PrepareControls(){probeMode=true;clock.Start();ApplyControls();CheckProbe();}
     public void PrepareProbe(double size)
     {
         probeMode=true;clock.Start();CheckProbe();ApplyControls(size);CheckProbe();
@@ -35,9 +36,7 @@ internal sealed partial class Painter
     public void CheckProbe()
     {
         Check();
-        if(Paused)throw new InvalidOperationException(pauseReason=="f6"
-            ?"Тест швидкості перервано клавішею F6. Очисти полотно й повтори тест."
-            :"Тест швидкості перервано: Rust втратив фокус. Повернись у Rust, очисти полотно й повтори тест.");
+        if(Paused){Native.Release();throw new PreparationInterruptedException();}
     }
     public void ProbeStroke(ScreenLine line,SpeedSample sample)
     {
@@ -93,35 +92,39 @@ internal sealed partial class Painter
             report(new(0,0,0,0,$"Покриття: {result.Coverage:P1}; пропуски {result.Missing}; невпевнено {result.Unknown}."));
             if(result.Passed)return;
             if(!settings.Bool("audit_repair")||pass>=settings.Int("audit_repair_passes",1)||result.Missing==0)break;
-            var profiles=BrushFootprints.Read(settings,settings.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid&&p.Possible.Sum(r=>r.Right-r.Left)<=4096)
-                .GroupBy(p=>p.ShapeSlot).Select(g=>g.OrderBy(p=>p.Size).First()).ToArray();
-            double repairSize=profiles.Length>0?profiles.Min(p=>p.Size):1;
-            var baseProfile=profiles.OrderBy(p=>p.Size).FirstOrDefault();
-            var repairSettings=BrushFootprints.ForShape(settings,baseProfile?.ShapeSlot??settings.Int("brush_shape_slot",3));
+            var profiles=DrawingWorkflow.RepairProfiles(settings);
+            if(profiles.Count==0)
+            {
+                Log("coverage_repair_skipped",new{group,reason="no_supported_measured_brush",missingPixels=result.Missing,
+                    missingBounds=CoverageAudit.GapBounds(result.MissingMask,canvas)});
+                break;
+            }
+            var baseProfile=profiles.OrderBy(p=>p.Size).First();
+            double repairSize=baseProfile.Size;
+            var repairSettings=BrushFootprints.ForShape(settings,baseProfile.ShapeSlot);
             var footprint=SpeedCalibration.Footprint(repairSettings,repairSize);
             int physicalReach=SpeedCalibration.PhysicalReach(repairSettings,repairSize);
-            var repairPlan=profiles.Length>0?CoverageAudit.PlanRepair(result.MissingMask,expected,canvas,profiles,token:token)
-                :CoverageAudit.PlanRepair(result.MissingMask,expected,canvas,footprint.Outer,physicalReach:physicalReach);
+            var repairPlan=CoverageAudit.PlanRepair(result.MissingMask,expected,canvas,profiles,token:token);
             var repairs=repairPlan.Strokes;
             Log("coverage_repair_plan",new{group,pass=pass+1,strokes=repairs.Count,
                 repairPlan.TargetPixels,repairPlan.UnreachablePixels,repairPlan.PossibleOnlyPixels,safetyRadius=footprint.Outer,physicalReach,maskProfiles=profiles.Select(p=>p.Id)});
-            if(repairs.Count==0)
+            if(repairs.Count==0||repairPlan.Operations.Count==0)
             {
                 Log("coverage_repair_skipped",new{group,reason="no_safe_footprint",outerRadius=footprint.Outer,missingPixels=result.Missing,missingBounds=CoverageAudit.GapBounds(result.MissingMask,canvas)});
                 break;
             }
-            var operations=repairPlan.Operations.Count>0?repairPlan.Operations:repairs.Select(l=>new BrushStroke(l,1,ShapeSlot:settings.Int("brush_shape_slot",3))).ToList();
+            var operations=repairPlan.Operations;
             double restoreSize=activeAdaptiveSize??DesiredControls().Size;int restoreShape=activeShape;
             ApplyBrushShape(operations[0].ShapeSlot);ApplyControls(operations[0].Size);
             if(plan.Mode==ColorMode.HexDirect)
             {if(!ApplyHex(plan.Palette[color].Color,true))throw new InvalidOperationException("HEX verification failed before repair.");}
             else ApplyPalette(plan.Palette[color],requireAppliedProof:true);
-            var slow=new SpeedSample(1,StrokeMethod.Paced,false,64,64,1,64,3,1);
+            var slow=new SpeedSample(repairSize,StrokeMethod.Paced,false,64,64,1,64,3,1);
             foreach(var operation in operations)
             {
                 Check();if(Paused)throw new InputInterrupted();
                 if(activeShape!=operation.ShapeSlot)ApplyBrushShape(operation.ShapeSlot);
-                if(activeAdaptiveSize!=operation.Size){Slider("size",operation.Size);activeAdaptiveSize=operation.Size;}
+                if(activeAdaptiveSize!=operation.Size)ApplyControls(operation.Size);
                 CalibratedMotion.Draw(operation.Line,slow with{Size=operation.Size},motionInput);
                 lastPaintPoint=Native.Cursor();
             }

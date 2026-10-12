@@ -29,7 +29,7 @@ internal static class PreparationAndPaletteChecks
         {c.SetRect("quick",new(50,200,90,600));c.Set("quick_rows",10);var p=c.GridCenters("quick",1,10)[3];Require(PaletteSelection.SampleArea(c,p,"quick").Width<40);});
         test("palette-logo-cap-preserves-dominant-colors-with-skin-assist",()=>
         {
-            var s=Settings.Defaults();var cal=s.Calibration;cal.SetRect("canvas",new(0,0,32,24));s.SetCalibration(cal);
+            var s=Settings.ExperimentalDefaults();var cal=s.Calibration;cal.SetRect("canvas",new(0,0,32,24));s.SetCalibration(cal);
             s.Set("cell_px",1);s.Set("max_colors","3");s.Set("preblur",0);s.Set("median_cleanup",false);s.Set("skin_assist",true);
             var colors=new[]{new Rgb(0,91,187),new Rgb(255,213,0),new Rgb(255,255,255)};
             s.SetPalette(colors.Append(new(220,160,110)).Select((rgb,i)=>new PaletteEntry(rgb,new(100+i,50),"main")));
@@ -37,13 +37,13 @@ internal static class PreparationAndPaletteChecks
             var plan=Planner.Build(im,s);Require(plan.ColorCount==3&&plan.Counts.Keys.All(i=>i<3),"Unused skin shade displaced a logo color");
         });
         test("readiness-rejects-legacy-diameter-only-brush",()=>
-        {var s=Settings.Defaults();s.Set("brush_calibration_points",new double[][]{[3,9,3]});s.Set("brush_calibration_context",AdaptiveBrush.Context(s));Require(PaintingReadiness.BrushProblem(s) is not null);});
+        {var s=Settings.ExperimentalDefaults();s.Set("brush_calibration_points",new double[][]{[3,9,3]});s.Set("brush_calibration_context",AdaptiveBrush.Context(s));Require(PaintingReadiness.BrushProblem(s) is not null);});
         test("readiness-has-one-canonical-set-of-required-steps",()=>
-        {var s=Settings.Defaults();var state=PaintingReadiness.Read(s,false);Require(!state.CanPaint&&state.FirstIncomplete?.Key=="image"&&state.Steps.Count==5&&state.Steps.All(p=>p.State!=PreparationState.Ready));});
+        {var s=Settings.ExperimentalDefaults();var state=PaintingReadiness.Read(s,false);Require(!state.CanPaint&&state.FirstIncomplete?.Key=="image"&&state.Steps.Count==5&&state.Steps.All(p=>p.State!=PreparationState.Ready));});
         test("readiness-can-switch-to-uncaptured-hex-without-throwing",()=>
-        {var s=Settings.Defaults();s.Set("color_mode","HEX Direct");var state=PaintingReadiness.Read(s,true);Require(!state.CanPaint&&state.Steps.Single(p=>p.Key=="colors").State!=PreparationState.Ready&&state.Steps.Single(p=>p.Key=="controls").State!=PreparationState.Ready);});
+        {var s=Settings.ExperimentalDefaults();s.Set("color_mode","HEX Direct");var state=PaintingReadiness.Read(s,true);Require(!state.CanPaint&&state.Steps.Single(p=>p.Key=="colors").State!=PreparationState.Ready&&state.Steps.Single(p=>p.Key=="controls").State!=PreparationState.Ready);});
         test("preparation-history-and-error-indicators-do-not-alter-plan-identity",()=>
-        {var s=Settings.Defaults();var image=new PixelImage(4,4);var id=PlanIdentity.Compute(image,s,s.Palette());s.Set("preparation_history",new{context="test",stages=new[]{"Brush"}});s.Set("palette_target_failed",true);s.Set("controls_validation_failed",true);Require(PlanIdentity.Compute(image,s,s.Palette())==id);});
+        {var s=Settings.ExperimentalDefaults();var image=new PixelImage(4,4);var id=PlanIdentity.Compute(image,s,s.Palette());s.Set("preparation_history",new{context="test",stages=new[]{"Brush"}});s.Set("palette_target_failed",true);s.Set("controls_validation_failed",true);Require(PlanIdentity.Compute(image,s,s.Palette())==id);});
         test("unified-preparation-orders-all-stages",()=>
         {var seen=new List<SetupStage>();var ok=SetupSequence.Prepare((s,t)=>{seen.Add(s);return Task.CompletedTask;},(s,state,d)=>{},default).GetAwaiter().GetResult();Require(ok&&seen.SequenceEqual(SetupSequence.Stages));});
         test("unified-preparation-spatial-failure-retains-basic-proof",()=>

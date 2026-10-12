@@ -20,6 +20,7 @@ internal static partial class Program
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         if(args.Length==4&&args[1]=="--palette-report"){WritePaletteSourceReport(destination,args[2],args[3]);return;}
         if(args.Contains("--export-catalog")){ExportInternationalCatalog(destination);return;}
+        if(args.Contains("--rc-only")){CheckReleaseCandidate(destination);Console.WriteLine("RC CHECKS PASSED");return;}
         if(args.Contains("--international-only")){CheckInternationalCatalog();foreach(string language in LanguageCatalog.Names)CheckInternationalWindow(destination,language);CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);Console.WriteLine("INTERNATIONAL CHECKS PASSED");return;}
         if(args.Contains("--calibration-only"))
         {
@@ -134,7 +135,8 @@ internal static partial class Program
         CheckPreparationHistory(destination);CheckPreparationControlsAndFooter(destination);
         CheckProductUi(destination);CheckProductRenderMatrix(destination);
         CheckStoppedPainterRetainsResume(destination);CheckFreshAuditBaseline(destination);CheckHistoricalAuditState(destination);CheckManualProbeClearsFailedHistory(destination);
-        Console.WriteLine("ALL 173 WPF UI CHECKS PASSED (including an 84-layout DPI matrix)");
+        CheckMinimumPaintingUi(destination);CheckReleaseCandidate(destination);CheckStandardLayouts(destination);
+        Console.WriteLine("ALL 186 WPF UI CHECKS PASSED (including an 84-layout DPI matrix)");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -176,7 +178,7 @@ internal static partial class Program
         var s=ReadySettings(language);s.Data.Remove("brush_footprints");
         BrushSpan[] narrow=[new(0,0,1),new(1,0,1)];BrushSpan[] wide=[new(0,0,3),new(1,0,3)];
         var small=new BrushStamp(narrow,narrow,new(20,20,20));var large=new BrushStamp(wide,wide,new(20,20,20));
-        BrushFootprints.Save(s,[BrushFootprints.Build(s,3,1,[small,small,small]),BrushFootprints.Build(s,3,3,[small,small,small]),BrushFootprints.Build(s,3,10,[large,large,large])]);
+        BrushFootprints.Save(s,[BrushFootprints.Build(s,3,2,[small,small,small]),BrushFootprints.Build(s,3,3,[small,small,small]),BrushFootprints.Build(s,3,10,[large,large,large])]);
         s.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         var root=Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"];
         var chips=Descendants(root).OfType<Border>().Where(b=>b.Tag?.ToString()?.StartsWith("brush-wide:")==true).ToArray();
@@ -185,7 +187,7 @@ internal static partial class Program
         Assert(((SolidColorBrush)thin.BorderBrush).Color==(Color)ColorConverter.ConvertFromString("#F2C46D"),"Narrow core is not a warning");
         Assert(thin.ToolTip.ToString()!.Contains("1 × 2 px"),"Measured dimensions missing from wide eligibility tooltip");
         Assert(((TextBlock)chips.Single(b=>b.Tag!.ToString()=="brush-wide:10").Child).Text.Contains(english?"eligible":"придатне"),"Valid wide core not shown");
-        Assert(((TextBlock)chips.Single(b=>b.Tag!.ToString()=="brush-wide:1").Child).Text.Contains(english?"Base brush":"Базовий пензель"),"Base brush conflated with wide acceleration");
+        Assert(((TextBlock)chips.First(b=>b.Tag!.ToString()=="brush-wide:2").Child).Text.Contains(english?"Base brush":"Базовий пензель"),"Base brush conflated with wide acceleration");
         if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(string.Join("\n",Captions(root)),@"[\u0400-\u04FF]"),"Wide core states untranslated");
         Console.WriteLine("PASS "+name);
     }
@@ -231,7 +233,7 @@ internal static partial class Program
         var s=ReadySettings(language);s.Data.Remove("brush_footprints");s.Data.Remove("brush_calibration_points");s.Data.Remove("brush_calibration_context");
         BrushSpan[] support=[new(0,0,2),new(1,0,2)];
         var samples=Enumerable.Range(1,3).Select(i=>new BrushSignalSample(i,new(69+i%2,4,80,new(140,140,140),new(70,70,70)),2,support)).ToArray();
-        var weak=BrushSignalDiagnostics.Summarize(s,3,1,samples,null);BrushSignalDiagnostics.Save(s,[weak]);s.Save(Path.Combine(directory,"config-csharp.json"));
+        var weak=BrushSignalDiagnostics.Summarize(s,3,2,samples,null);BrushSignalDiagnostics.Save(s,[weak]);s.Save(Path.Combine(directory,"config-csharp.json"));
         var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         CheckUnmeasuredAdaptiveClick(window);
         Assert(!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Weak evidence enabled exact painting");
@@ -335,7 +337,7 @@ internal static partial class Program
         bool english=language=="English";string name="measured-brush-"+(english?"en":"ua");
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var s=ReadySettings(language);
         BrushSpan[] pixels=[new(1,0,2),new(2,0,2)];
-        var p=BrushFootprints.Build(s,3,1,Enumerable.Repeat(new BrushStamp(pixels,pixels,new(20,20,20)),3).ToArray());
+        var p=BrushFootprints.Build(s,3,2,Enumerable.Repeat(new BrushStamp(pixels,pixels,new(20,20,20)),3).ToArray());
         BrushFootprints.Save(s,[p]);s.Save(Path.Combine(directory,"config-csharp.json"));
         var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         var root=(FrameworkElement)window.Content;
@@ -385,7 +387,7 @@ internal static partial class Program
     private static void CheckPaletteComparison(string output, string language, int width)
     {
         bool english = language == "English"; string name = "palette-comparison-" + (english ? "en" : "ua");
-        var cfg=Settings.Defaults();cfg.Set("drawing_mode","Advanced"); cfg.Set("color_mode", "HEX Direct"); cfg.Set("cell_px", 1);
+        var cfg=Settings.ExperimentalDefaults();cfg.Set("drawing_mode","Advanced"); cfg.Set("color_mode", "HEX Direct"); cfg.Set("cell_px", 1);
         cfg.Set("preblur", 0); cfg.Set("edge_preserve", false); cfg.Set("skin_assist", false); cfg.Set("fit_mode", "fit whole");
         var cal = cfg.Calibration; cal.SetRect("canvas", new(10, 10, 106, 106)); cfg.SetCalibration(cal);
         var comparison = PaletteComparison.Build(PaletteFixture(), cfg);
@@ -451,7 +453,7 @@ internal static partial class Program
         Assert(PaletteComparisonWindow.PercentDelta(120, 100, culture) == "↑20.0%", "Increased cost looks like a reduction");
         Assert(PaletteComparisonWindow.AbsoluteDelta(10, 7, 0, culture) == "+3" && PaletteComparisonWindow.AbsoluteDelta(3, 5, 0, culture) == "-2", "Wide/Size difference is not an absolute signed count");
         Assert(PaletteComparisonWindow.AbsoluteDelta(.0001, .0002, 2, culture) == "0.00", "Delta E shows a negative rounded zero");
-        var cfg=Settings.Defaults();cfg.Set("drawing_mode","Advanced"); cfg.Set("color_mode", "HEX Direct");
+        var cfg=Settings.ExperimentalDefaults();cfg.Set("drawing_mode","Advanced"); cfg.Set("color_mode", "HEX Direct");
         var cal = cfg.Calibration; cal.SetRect("canvas", new(0, 0, 16, 16)); cfg.SetCalibration(cal);
         var comparison = PaletteComparison.Build(new PixelImage(16, 16), cfg);
         var window = new PaletteComparisonWindow(true, _ => throw new Exception("Comparison auto-selected a palette")); window.ShowResults(comparison);
@@ -529,7 +531,7 @@ internal static partial class Program
     private static void CheckWindow(string output, bool calibrated, bool stale, string language, string name, int width, bool enabled = false)
     {
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);settings.Set("adaptive_brush",enabled);
+        var settings=Settings.ExperimentalDefaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);settings.Set("adaptive_brush",enabled);
         var cal=settings.Calibration;cal.SetRect("canvas",new(50,50,450,450));cal.SetSession(new(0,0),96,new(1280,720));
         cal.SetPoint("brush_tool",new(600,80));cal.SetRect("brush_shapes",new(500,100,850,140));
         foreach(var (kind,y) in new[]{("size",200),("interval",250),("opacity",300)})
@@ -570,7 +572,7 @@ internal static partial class Program
     {
         string name="fast-"+(language=="English"?"en":"ua")+"-"+width;
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);settings.Set("cell_px",3);settings.Set("speed_profile","Rapid");
+        var settings=Settings.ExperimentalDefaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);settings.Set("cell_px",3);settings.Set("speed_profile","Rapid");
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
         string config=Path.Combine(directory,"config-csharp.json");settings.Save(config);
         var window=new MainWindow(directory);window.ShowPage("paint");var root=(FrameworkElement)window.Content;
@@ -598,7 +600,7 @@ internal static partial class Program
     private static object? Invoke(MainWindow window,string name,params object[] args) => typeof(MainWindow).GetMethod(name,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,args);
     private static Settings ReadySettings(string language)
     {
-        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);
+        var settings=Settings.ExperimentalDefaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);
         var cal=settings.Calibration;cal.SetRect("canvas",new(10,10,1010,1010));cal.SetSession(new(0,0),96,new(1440,1080));
         cal.SetPoint("brush_tool",new(1050,80));cal.SetRect("brush_shapes",new(1050,100,1400,140));
         foreach(var (kind,y) in new[]{("size",200),("interval",250),("opacity",300)})
@@ -608,7 +610,7 @@ internal static partial class Program
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[3,5,3],[10,21,13],[20,35,23]});
         settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));
         var readyStamp=new BrushStamp(Enumerable.Range(-4,9).Select(y=>new BrushSpan(y,-4,5)).ToArray(),new[]{new BrushSpan(0,0,1)},new(20,20,20));
-        BrushFootprints.Save(settings,new[]{1d,3d,10d,20d}.Select(size=>size is 1 or 3?BrushFootprints.Build(settings,3,size,[readyStamp,readyStamp,readyStamp]):SetupStamp(settings,3,size)).ToArray());
+        BrushFootprints.Save(settings,new[]{1d,2d,3d,10d,20d}.Select(size=>size is 1 or 2 or 3?BrushFootprints.Build(settings,3,size,[readyStamp,readyStamp,readyStamp]):SetupStamp(settings,3,size)).ToArray());
         var axes=new List<SpatialAxis>();
         foreach(bool vertical in new[]{false,true})axes.Add(new(vertical,SpeedCalibration.Footprint(settings,3).Inner,Enumerable.Range(0,3).Select(i=>new SpatialAnchor(
             vertical?new(100+i*300,100,100+i*300,135):new(100,100+i*300,135,100+i*300),0,new(0,0,0),12)).ToList()));
@@ -715,7 +717,7 @@ internal static partial class Program
                 Render(window,Path.Combine(output,name+"-numeric.png"),width);
             }
         }
-        Assert(Field<Dictionary<string,Button>>(window,"navigation").Count==5,"Sidebar does not expose Speed Probe directly");
+        Assert(Field<Dictionary<string,Button>>(window,"navigation").Count==4&&Field<Dictionary<string,Button>>(window,"navigation").ContainsKey("experimental"),"Sidebar does not expose the Experimental hub");
         Console.WriteLine("PASS "+name);
     }
 
@@ -975,7 +977,7 @@ internal static partial class Program
 
     private static void CheckAutoBrushExecutor()
     {
-        var settings=Settings.Defaults();settings.Set("drawing_mode","Advanced");settings.Set("coverage_mode","Fast");settings.Set("cell_px",21);
+        var settings=Settings.ExperimentalDefaults();settings.Set("drawing_mode","Advanced");settings.Set("coverage_mode","Fast");settings.Set("cell_px",21);
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
         var worker=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
         typeof(Painter).GetField("settings",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(worker,settings);
@@ -1265,9 +1267,9 @@ internal static partial class Program
     {
         string name="spatial-small-canvas";var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
         var settings=ReadySettings("English");settings.Data.Remove("brush_footprints");var cal=settings.Calibration;cal.SetRect("canvas",new(676,428,1296,978));settings.SetCalibration(cal);
-        settings.Set("brush_calibration_points",new double[][]{[1,11,1],[3,15,3],[10,29,17],[20,53,29]});
+        settings.Set("brush_calibration_points",new double[][]{[2,11,1],[3,15,3],[10,29,17],[20,53,29]});
         settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));settings.Data.Remove("probe_spatial_profiles");settings.Data.Remove("shape_spatial_profiles");
-        foreach(double size in new[]{1d,3})
+        foreach(double size in new[]{2d,3})
         {
             var footprint=SpeedCalibration.Footprint(settings,size);var tiles=ProbeSpatialCalibration.Tiles(cal.Rect("canvas"),footprint.Outer);
             var axes=new List<SpatialAxis>();foreach(bool vertical in new[]{false,true})
@@ -1279,9 +1281,9 @@ internal static partial class Program
         Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 76×76"),"Small Canvas requirement hidden or untranslated");
         Render(window,Path.Combine(output,name+".png"),900);
         var combo=Descendants((FrameworkElement)window.Content).OfType<ComboBox>().Single(x=>x.Tag?.ToString()=="probe_size");combo.SelectedIndex=0;
-        var live=Field<Settings>(window,"settings");var model=ProbeSpatialCalibration.Read(live,1)!;bool fits=true;
+        var live=Field<Settings>(window,"settings");var model=ProbeSpatialCalibration.Read(live,2)!;bool fits=true;
         try{SpeedCalibration.Tiles(live.Calibration.Rect("canvas"),model.Axes.Max(a=>a.SceneGuard(model.OuterRadius)));}catch(InvalidOperationException){fits=false;}
-        Assert(combo.Items.Cast<object>().Any(item=>item.ToString()=="1")&&Field<Button>(window,"probeButton").IsEnabled==fits,"Optional Size 1 lost its unchanged clean-area requirement");
+        Assert(combo.Items.Cast<object>().Any(item=>item.ToString()=="2")&&!combo.Items.Cast<object>().Any(item=>item.ToString()=="1")&&Field<Button>(window,"probeButton").IsEnabled==fits,"Minimum Size 2 lost its clean-area requirement");
         Console.WriteLine("PASS "+name);
     }
     private static void CheckMeasuredEtaUi(string output,string language)

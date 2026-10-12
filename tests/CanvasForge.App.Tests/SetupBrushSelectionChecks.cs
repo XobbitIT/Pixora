@@ -30,7 +30,7 @@ internal static partial class Program
         Assert(AdaptiveBrush.CalibrationCurrent(settings)&&!settings.Bool("adaptive_brush"),"Size 3 was blocked or Adaptive enabled without selection");
         Assert(Field<Button>(window,"spatialButton").IsEnabled,"Measured Size 3 cannot start spatial checks");
         var brush=(Border)Field<System.Collections.IDictionary>(window,"workflowChips")["brush"]!;
-        Assert(Captions(brush).Contains("Size 3")&&brush.ToolTip?.ToString()?.Contains("Size 1 is optional")==true,"Usable Size 3 still shown as a generic brush error");
+        Assert(Captions(brush).Contains("Size 3")&&brush.ToolTip?.ToString()?.Contains("Minimum brush Size is 2")==true,"Usable Size 3 still shown as a generic brush error");
         Console.WriteLine("PASS setup-size3-without-base");
     }
     private static void CheckSetupFallbackSize3(string output)

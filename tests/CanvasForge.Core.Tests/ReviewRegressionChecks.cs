@@ -123,25 +123,25 @@ internal static class ReviewRegressionChecks
         });
         test("Corrupt numeric settings are rejected before fallback hides them",()=>{
             foreach(JsonNode? value in new JsonNode?[]{JsonValue.Create("abc"),JsonValue.Create("NaN"),new JsonObject(),null})
-            {var s=Settings.Defaults();s.Data["stroke_speed"]=value;try{s.Validate();throw new Exception("Corruption accepted");}catch(InvalidDataException){}}
-            var missing=Settings.Defaults();missing.Data.Remove("stroke_speed");missing.Validate();
-            var legacy=Settings.Defaults();legacy.Set("stroke_speed","0.028");legacy.Validate();Require(legacy.Number("stroke_speed")==.028);
+            {var s=Settings.ExperimentalDefaults();s.Data["stroke_speed"]=value;try{s.Validate();throw new Exception("Corruption accepted");}catch(InvalidDataException){}}
+            var missing=Settings.ExperimentalDefaults();missing.Data.Remove("stroke_speed");missing.Validate();
+            var legacy=Settings.ExperimentalDefaults();legacy.Set("stroke_speed","0.028");legacy.Validate();Require(legacy.Number("stroke_speed")==.028);
         });
         test("Fractional integer settings cannot pass truncated validation",()=>{
-            var s=Settings.Defaults();s.Set("cell_px",3.5);try{s.Validate();throw new Exception("Fraction accepted");}catch(InvalidDataException){}
+            var s=Settings.ExperimentalDefaults();s.Set("cell_px",3.5);try{s.Validate();throw new Exception("Fraction accepted");}catch(InvalidDataException){}
         });
         test("Plan identity ignores object order and equivalent numeric representation",()=>{
-            var s=Settings.Defaults();var json=new JsonObject();foreach(var p in s.Data.Reverse())json[p.Key]=p.Value?.DeepClone();
+            var s=Settings.ExperimentalDefaults();var json=new JsonObject();foreach(var p in s.Data.Reverse())json[p.Key]=p.Value?.DeepClone();
             json["cell_px"]=JsonNode.Parse("3.0");var reordered=new Settings(json);var image=Frame();
             Require(PlanIdentity.Compute(image,s,[])==PlanIdentity.Compute(image,reordered,[]));
             reordered.Set("cell_px",4);Require(PlanIdentity.Compute(image,s,[])!=PlanIdentity.Compute(image,reordered,[]));
         });
         test("Plan identity preserves semantic array order",()=>{
-            var s=Settings.Defaults();s.Set("test_order",new[]{1,2});var other=s.Clone();other.Set("test_order",new[]{2,1});
+            var s=Settings.ExperimentalDefaults();s.Set("test_order",new[]{1,2});var other=s.Clone();other.Set("test_order",new[]{2,1});
             Require(PlanIdentity.Compute(Frame(),s,[])!=PlanIdentity.Compute(Frame(),other,[]));
         });
         test("Legacy floating palette coordinates are rounded with a useful validation error",()=>{
-            var s=Settings.Defaults();s.SetPalette([new(new(1,2,3),new(1,2),"palette")]);s.Data["palette_click_points"]=new JsonArray(new JsonArray(45d,12.6));
+            var s=Settings.ExperimentalDefaults();s.SetPalette([new(new(1,2,3),new(1,2),"palette")]);s.Data["palette_click_points"]=new JsonArray(new JsonArray(45d,12.6));
             Require(s.Palette().Single().ClickPoint==new ScreenPoint(45,13));s.Data["palette_click_points"]=new JsonArray(new JsonArray("bad",12));
             try{s.Palette();throw new Exception("Invalid coordinate accepted");}catch(InvalidDataException){}
         });

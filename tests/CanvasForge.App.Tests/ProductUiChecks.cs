@@ -53,7 +53,7 @@ internal static partial class Program
         foreach(string language in LanguageCatalog.Names)foreach(int dpi in new[]{96,120,144})foreach(string state in new[]{"initial","ready","paused","audit"})
         {
             string name=$"matrix-{LanguageCatalog.Code(language)}-{dpi}-{state}",data=Path.Combine(output,name);Directory.CreateDirectory(data);
-            var settings=state=="initial"?Settings.Defaults():ReadySettings(language);settings.Set("language",language);settings.Save(Path.Combine(data,"config-csharp.json"));
+            var settings=state=="initial"?Settings.ExperimentalDefaults():ReadySettings(language);settings.Set("language",language);settings.Save(Path.Combine(data,"config-csharp.json"));
             var window=new MainWindow(data,_=>{});
             if(state!="initial")
             {

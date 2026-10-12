@@ -1,3 +1,39 @@
+# Оновлення beta.60: робочий мінімум Size 2
+
+## Release candidate: межа Standard / Experimental
+
+`ReleaseProfile` та `DrawingWorkflow.Effective` створюють знімок Standard Size 3, не стираючи експериментальні налаштування. `PaintingReadiness`, UI і Painter застосовують одну політику; Standard обходить виміряний planner та не створює підтвердження покриття. Підтвердження активного кольору залишається обов’язковим.
+
+```mermaid
+flowchart TD
+  UI[MainWindow / UI] --> Policy[ReleaseProfile + Effective Settings]
+  Policy --> Ready[PaintingReadiness]
+  Policy --> Standard[Standard: existing ordinary route]
+  Policy --> Experimental[Experimental: measured planner / proof]
+  Ready --> Setup[Capture → Colors → Controls]
+  Setup --> Painter[Painter / guarded input]
+  Standard --> Painter
+  Experimental --> Painter
+  Painter --> Timing[RunTimeBreakdown: exclusive phases]
+  Painter --> Snapshot[Unique run snapshot + outcome]
+  Snapshot --> Export[DiagnosticBundle ZIP]
+```
+
+`PreparationInterruptedException` відокремлює паузу від помилки. Перерваний worker відпускає ввід і clipboard lease; `RunResumableCheck` повторює цілу транзакцію після Resume. Геометрія повторно перевіряється. Неповна фізична проба не стає доказом.
+
+`RunTimeBreakdown` — окремий монотонний годинник фаз. ETA зберігає існуючу модель. Вкладені InputCosts не підсумовуються вдруге. Terminal TimesOnly callback оновлює підсумок при STOP/error без статусу Complete чи прогресу 100%.
+
+`DiagnosticBundle` експортує лише відомі журнали/конфігурацію та діагностичні каталоги, пропускає reparse points, перевіряє ZIP paths і атомарно замінює файл. Snapshot фактичного запуску належить Painter після SessionRebase; кожен каталог має identity/outcome/snapshotComplete. Runtime та review пакети перевіряються різними явними contracts.
+
+Це точкові доповнення. Повний поділ MainWindow/Painter на сервіси залишається окремою роботою після стабільного релізу.
+
+
+`DrawingWorkflow.PaintingProfiles` є спільним фільтром активних масок від Size 2; `RepairProfiles` додатково відбирає власне тверде ядро і бюджет маски. UI, вибір робочого Size, Adaptive, пакетні проби та аудит використовують цей контракт. Архівне читання `BrushFootprints.Read` не змінено, тому історична діагностика Size 1 лишається доступною.
+
+`Painter.AuditGroup` не вигадує операцій без виміряної маски: за порожнього вибору зберігає причину й відмову аудиту. Новий revision входить в ідентичність плану та забороняє продовження старого checkpoint.
+
+Подальша архітектура і зауваження beta.59 зберігають силу:
+
 # Архітектура Pixora: поточний стан і захист від регресій
 
 Дата перевірки: 2026-10-11. Поточний локальний стан: beta.59 на основі beta.58 та виправлень за попереднім живим тестом.

@@ -2,11 +2,17 @@ using System.Text.Json.Nodes;
 using CanvasForge.Core;
 
 var passed = 0;
+var failures = new List<Exception>();
 void Test(string name, Action action)
 {
-    action();
-    Console.WriteLine("PASS " + name);
-    passed++;
+    try
+    {
+        action();Console.WriteLine("PASS " + name);passed++;
+    }
+    catch(Exception error)
+    {
+        failures.Add(new Exception(name,error));Console.Error.WriteLine("FAIL " + name + ": " + error);
+    }
 }
 
 void Assert(bool condition, string message = "Assertion failed")
@@ -17,7 +23,7 @@ void Assert(bool condition, string message = "Assertion failed")
 
 Settings Config(ColorMode mode, int width = 16, int height = 12)
 {
-    var s = Settings.Defaults();
+    var s = Settings.ExperimentalDefaults();
     s.Set("edge_merge",false); // Preserve the beta.56 target fixtures; new default is tested separately.
     s.Set("color_mode", mode == ColorMode.HexDirect ? "HEX Direct" : "Rust Palette");
     s.Set("cell_px", 1);
@@ -316,6 +322,7 @@ Test("Stress: 50 repeated settings saves reload exact palette and identity", () 
         for (var i = 0; i < 50; i++)
         {
             var cfg = Config(ColorMode.RustPalette);
+            cfg.Set("cell_px",2);
             cfg.SetPalette([new(new(12, 34, 56), new(i, -i), "quick")]);
             cfg.Save(path);
             var read = Settings.Load(path);
@@ -568,7 +575,7 @@ Test("Option labels localize without exposing legacy canonical UI names", () =>
 });
 Test("Input delay defaults, bounds, and ETA agree", () =>
 {
-    var cfg = Settings.Defaults();
+    var cfg = Settings.ExperimentalDefaults();
     Assert(StrokeTiming.Frame(cfg) == .020);
     var speed = SpeedProfile.All.Last();
     var oldTime = StrokeTiming.Estimate(cfg, speed, 100, false);
@@ -585,7 +592,7 @@ Test("Input delay defaults, bounds, and ETA agree", () =>
 });
 Test("Both engines preserve their configured release and short-stroke hold", () =>
 {
-    var cfg = Settings.Defaults();
+    var cfg = Settings.ExperimentalDefaults();
     foreach (var engine in new[] { "Stable", "Experimental 1 ms" })
     {
         cfg.Set("input_engine", engine);
@@ -607,7 +614,7 @@ Test("Both engines preserve their configured release and short-stroke hold", () 
 });
 Test("UI clicks, color changes and HEX never inherit fast stroke timing", () =>
 {
-    var cfg = Settings.Defaults();
+    var cfg = Settings.ExperimentalDefaults();
     var click = StrokeTiming.ClickEstimate(cfg);
     var slider = StrokeTiming.SliderChangeEstimate(cfg);
     var color = StrokeTiming.ColorDelay(cfg);
@@ -636,7 +643,7 @@ Test("Experimental timing keeps planned pixels and changes the ETA", () =>
 Test("Adaptive strokes stay within colors and preserve every baseline center", () =>
 {
     const int w = 384, h = 320;
-    var cfg = Settings.Defaults();
+    var cfg = Settings.ExperimentalDefaults();
     cfg.Set("color_mode", "Rust Palette"); cfg.Set("speed_profile", "Safe");
     cfg.Set("coverage_mode", "Precision"); cfg.Set("force_precision_controls", true);
     var cal = cfg.Calibration; cal.SetRect("canvas", new(-30, 20, w - 30, h + 20)); cfg.SetCalibration(cal);
@@ -685,7 +692,7 @@ Test("Adaptive strokes stay within colors and preserve every baseline center", (
 });
 Test("Adaptive brush rejects missing or stale calibration and translucent painting", () =>
 {
-    var cfg=Settings.Defaults(); cfg.Set("adaptive_brush",true);
+    var cfg=Settings.ExperimentalDefaults(); cfg.Set("adaptive_brush",true);
     void Reject() { try { AdaptiveBrush.Validate(cfg); throw new Exception("Invalid adaptive settings accepted"); } catch(InvalidOperationException) {} }
     Reject();
     cfg.Set("paint_opacity_value",.5); Reject();
@@ -693,7 +700,7 @@ Test("Adaptive brush rejects missing or stale calibration and translucent painti
     cfg.Set("coverage_mode","Precision"); cfg.Set("force_precision_controls",true);
     cfg.Set("color_mode","Rust Palette");
     var cal=cfg.Calibration; cal.SetRect("canvas",new(10,10,510,510)); cfg.SetCalibration(cal);
-    cfg.Set("brush_calibration_points",new double[][] { [1,3,1], [10,21,13] });
+    cfg.Set("brush_calibration_points",new double[][] { [2,3,1], [10,21,13] });
     cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg)); AdaptiveBrush.Validate(cfg);
     cal.SetRect("canvas",new(10,10,520,510)); cfg.SetCalibration(cal); Reject();
 });
@@ -760,7 +767,7 @@ Settings SessionFixture()
     hex.SetPoint("size_anchor_3", new(715, 505));
     s.Data["hex_controls"] = hex.Data.DeepClone();
     s.SetPalette([new(new(243, 198, 183), new(410, 210), "main"), new(new(21, 26, 34), new(430, 330), "quick")]);
-    s.Set("brush_calibration_points", new double[][] { [1, 3, 1], [10, 21, 13] });
+    s.Set("brush_calibration_points", new double[][] { [2, 3, 1], [10, 21, 13] });
     s.Set("brush_calibration_context", AdaptiveBrush.Context(s));
     return s;
 }
@@ -913,7 +920,7 @@ Test("Transparent black edges retain black RGB through resampling and filters", 
 {
     var source = new PixelImage(8, 8);
     for (var y = 2; y < 6; y++) for (var x = 2; x < 6; x++) source.Set(y * 8 + x, new(0, 0, 0));
-    var cfg = Settings.Defaults();
+    var cfg = Settings.ExperimentalDefaults();
     cfg.Set("fill_subject", false); cfg.Set("fit_mode", "fit whole");
     var prepared = ImageProcessing.Prepare(source, 31, 29, cfg, default);
     Assert(Enumerable.Range(0, 31 * 29).Any(i => prepared.Alpha(i) is > 16 and < 255));
@@ -933,7 +940,7 @@ Test("Four-color transparent PNG stays four colors with video quality settings",
             for (var x = 8 + k % 2 * 32; x < 24 + k % 2 * 32; x++) source.Set(y * 64 + x, colors[k]);
     foreach (var mode in new[] { ColorMode.RustPalette, ColorMode.HexDirect })
     {
-        var cfg = Settings.Defaults(); cfg.Set("color_mode", mode == ColorMode.HexDirect ? "HEX Direct" : "Rust Palette");
+        var cfg = Settings.ExperimentalDefaults(); cfg.Set("color_mode", mode == ColorMode.HexDirect ? "HEX Direct" : "Rust Palette");
         cfg.Set("cell_px", 8); cfg.Set("fit_mode", "smart"); cfg.Set("fill_subject", true);
         cfg.Set("hex_max_colors", "Auto"); cfg.Set("speed_profile", "Max Speed");
         var cal = cfg.Calibration; cal.SetRect("canvas", new(465,150,1509,1191)); cfg.SetCalibration(cal);
@@ -949,7 +956,7 @@ Test("Transparent hidden RGB cannot contaminate the neighboring foreground", () 
     var source = new PixelImage(7,7);
     for (var i=0;i<49;i++) source.Set(i,new(255,255,255),0);
     source.Set(24,new(12,34,56),180);
-    var cfg=Settings.Defaults(); cfg.Set("fill_subject",false); cfg.Set("fit_mode","fit whole");
+    var cfg=Settings.ExperimentalDefaults(); cfg.Set("fill_subject",false); cfg.Set("fit_mode","fit whole");
     var resized=ImageProcessing.Prepare(source,21,21,cfg,default);
     var filtered=ImageProcessing.Filter(resized,cfg,default);
     for (var i=0;i<441;i++) if (filtered.Alpha(i)>=16)
@@ -1098,7 +1105,7 @@ Test("Numeric controls support decimal comma without accepting malformed text", 
 });
 Test("Calibration uses four independent exact settings without mutating the user", () =>
 {
-    var cfg = Settings.Defaults(); cfg.Set("adaptive_brush", true); cfg.Set("paint_opacity_value", .3);
+    var cfg = Settings.ExperimentalDefaults(); cfg.Set("adaptive_brush", true); cfg.Set("paint_opacity_value", .3);
     cfg.Set("line_mode", true); cfg.Set("background_fill", true); cfg.Set("speed_profile", "Max Speed");
     var before = cfg.Data.ToJsonString();
     var recipes = new[] { 1d, 3, 10, 20 }.Select(x => AdaptiveBrush.CalibrationSettings(cfg, x)).ToArray();
@@ -1139,7 +1146,7 @@ Test("Round brush measurement keeps outer diameter and conservative inner covera
 });
 Test("Adaptive maximum brush Size limits wide strokes and still preserves baseline centers", () =>
 {
-    var cfg=Settings.Defaults();var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,384,320));cfg.SetCalibration(cal);
+    var cfg=Settings.ExperimentalDefaults();var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,384,320));cfg.SetCalibration(cal);
     cfg.Set("speed_profile","Safe");cfg.Set("adaptive_brush",true);cfg.Set("adaptive_max_size",10);
     cfg.Set("brush_calibration_points",new double[][] { [1,3,1],[3,5,3],[10,21,13],[20,35,23] });
     cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg));
@@ -1165,9 +1172,9 @@ Test("Adaptive maximum brush Size limits wide strokes and still preserves baseli
 });
 Test("Adaptive calibration readiness detects stale geometry and incomplete HEX setup", () =>
 {
-    var cfg=Settings.Defaults();Assert(!AdaptiveBrush.CalibrationCurrent(cfg));Assert(AdaptiveBrush.SetupProblem(cfg) is not null);
+    var cfg=Settings.ExperimentalDefaults();Assert(!AdaptiveBrush.CalibrationCurrent(cfg));Assert(AdaptiveBrush.SetupProblem(cfg) is not null);
     var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,400,400));cal.SetRect("size_track",new(500,10,750,50));cfg.SetCalibration(cal);
-    cfg.Set("brush_calibration_points",new double[][] { [1,3,1],[10,21,13] });cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg));
+    cfg.Set("brush_calibration_points",new double[][] { [2,3,1],[10,21,13] });cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg));
     Assert(AdaptiveBrush.CalibrationCurrent(cfg));
     cal.SetRect("canvas",new(0,0,401,400));cfg.SetCalibration(cal);Assert(!AdaptiveBrush.CalibrationCurrent(cfg));
     cfg.Set("color_mode","HEX Direct");Assert(!AdaptiveBrush.CalibrationCurrent(cfg));Assert(AdaptiveBrush.SetupProblem(cfg) is not null);
@@ -1297,7 +1304,7 @@ Test("Adaptive fast schedule retains calibrated geometry including fine edges",(
 });
 Test("Fast timing keeps frame waits and verifies faster numeric input",()=>
 {
-    var cfg=Settings.Defaults();double numeric=StrokeTiming.SliderChangeEstimate(cfg),hex=StrokeTiming.HexChangeEstimate(cfg);
+    var cfg=Settings.ExperimentalDefaults();double numeric=StrokeTiming.SliderChangeEstimate(cfg),hex=StrokeTiming.HexChangeEstimate(cfg);
     cfg.Set("fast_transfer",true);cfg.Set("input_engine","Experimental 1 ms");
     Assert(StrokeTiming.SliderChangeEstimate(cfg)<numeric/2&&StrokeTiming.HexChangeEstimate(cfg)<hex/2);
     Assert(StrokeTiming.ClickHold(cfg)>=2*StrokeTiming.Frame(cfg)&&StrokeTiming.KeyHold(cfg)>=2*StrokeTiming.Frame(cfg));
@@ -1317,10 +1324,10 @@ Test("Fast motion packet validation rejects unsupported values",()=>
 {
     foreach(double value in new[]{0d,17,1.5,double.NaN})
     {
-        var cfg=Settings.Defaults();if(double.IsFinite(value))cfg.Set("fast_path_batch_points",value);else cfg.Set("fast_path_batch_points","NaN");
+        var cfg=Settings.ExperimentalDefaults();if(double.IsFinite(value))cfg.Set("fast_path_batch_points",value);else cfg.Set("fast_path_batch_points","NaN");
         try{cfg.Validate();throw new Exception("Invalid motion packet accepted");}catch(InvalidDataException){}
     }
-    foreach(int value in new[]{1,8,16}){var cfg=Settings.Defaults();cfg.Set("fast_path_batch_points",value);cfg.Validate();}
+    foreach(int value in new[]{1,8,16}){var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_path_batch_points",value);cfg.Validate();}
 });
 Test("Slider diagnostics preserve acceptance and geometry on captured fixtures",()=>
 {
@@ -1384,7 +1391,7 @@ Test("Actual fast input fills four synthetic blocks rather than their left edges
 });
 Test("Long horizontal and vertical drags send every physical pixel in either direction",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);
     foreach(var line in new[]{new ScreenLine(-30,7,1100,7),new ScreenLine(1100,7,-30,7),new ScreenLine(9,-20,9,1060),new ScreenLine(9,1060,9,-20)})
     {
         var input=new RecordingStrokeInput();StrokeMotion.Draw(new(0,new[]{line},1),cfg,SpeedProfile.Get("Max Speed"),input);
@@ -1395,14 +1402,14 @@ Test("Long horizontal and vertical drags send every physical pixel in either dir
 });
 Test("Connected turns preserve endpoints with a single mouse press",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);
     ScreenLine[] lines=[new(10,10,80,10),new(80,10,80,11),new(80,11,10,11)];
     var input=new RecordingStrokeInput();StrokeMotion.Draw(new(0,lines,2),cfg,SpeedProfile.Get("Rapid"),input);
     Assert(input.Painted.SetEquals(Centres(lines))&&input.Downs==1&&input.Ups==1&&!input.Held);
 });
 Test("Packet settings alter delivery size without altering the painted path",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);ScreenLine line=new(1,2,1002,2);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);ScreenLine line=new(1,2,1002,2);
     var expected=Centres(new[]{line});
     foreach(int size in new[]{1,4,8,16})
     {
@@ -1414,7 +1421,7 @@ Test("Packet settings alter delivery size without altering the painted path",()=
 });
 Test("Dots keep the minimum hold and game-frame release in both engines",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);
     foreach(string engine in new[]{"Stable","Experimental 1 ms"})
     {
         cfg.Set("input_engine",engine);var input=new RecordingStrokeInput();
@@ -1425,7 +1432,7 @@ Test("Dots keep the minimum hold and game-frame release in both engines",()=>
 });
 Test("Motion and pause failures release the held mouse and propagate",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);
     foreach(bool failMove in new[]{true,false})
     {
         var input=new RecordingStrokeInput{FailHeldMove=failMove,FailHeldWait=!failMove};
@@ -1439,14 +1446,14 @@ Test("Invalid paths are rejected before any input is sent",()=>
     foreach(ScreenLine[] lines in new ScreenLine[][]{[],[new(0,0,1,1)],[new(0,0,4,0),new(8,0,12,0)]})
     {
         var input=new RecordingStrokeInput();
-        try{StrokeMotion.Draw(new(0,lines,1),Settings.Defaults(),SpeedProfile.Get("Rapid"),input);throw new Exception("Invalid batch accepted");}
+        try{StrokeMotion.Draw(new(0,lines,1),Settings.ExperimentalDefaults(),SpeedProfile.Get("Rapid"),input);throw new Exception("Invalid batch accepted");}
         catch(ArgumentException){}
         Assert(input.Packets.Count==0&&input.Downs==0&&input.Ups==0);
     }
 });
 Test("Fast ETA matches the delays used by the actual stroke executor",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);
     foreach(var speed in SpeedProfile.All)foreach(int packet in new[]{1,8,16})foreach(int length in new[]{0,1,7,8,9,257,1024})
     {
         cfg.Set("fast_path_batch_points",packet);
@@ -1457,7 +1464,7 @@ Test("Fast ETA matches the delays used by the actual stroke executor",()=>
 });
 Test("Legacy cursor-jump settings no longer affect identity or motion",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]);
     foreach(int legacy in new[]{32,256,512})
     {
         cfg.Set("fast_move_span_px",legacy);cfg.Validate();Assert(PlanIdentity.Compute(image,cfg,[])==identity);
@@ -1470,15 +1477,15 @@ Test("Legacy cursor-jump settings no longer affect identity or motion",()=>
 Settings ProbeConfig()
 {
     var cfg=SessionFixture();cfg.Set("calibrated_strokes",true);
-    var spatial=SpatialFixtureProfile(cfg,1);ProbeSpatialCalibration.Save(cfg,spatial);
-    var samples=new List<SpeedSample>{new(1,StrokeMethod.Paced,false,12,17,1,32,3,1,spatial.Id),new(1,StrokeMethod.Shift,false,8,12,1,32,3,1,spatial.Id),new(1,StrokeMethod.Paced,true,20,27,1,32,3,1,spatial.Id)};
+    var spatial=SpatialFixtureProfile(cfg,2);ProbeSpatialCalibration.Save(cfg,spatial);
+    var samples=new List<SpeedSample>{new(2,StrokeMethod.Paced,false,12,17,1,32,3,1,spatial.Id),new(2,StrokeMethod.Shift,false,8,12,1,32,3,1,spatial.Id),new(2,StrokeMethod.Paced,true,20,27,1,32,3,1,spatial.Id)};
     cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,samples));return cfg;
 }
 Test("Probe accepts repeated full coverage and rejects unvalidated profiles",()=>
 {
     var cfg=ProbeConfig();Assert(SpeedCalibration.Use(cfg));
-    foreach(var invalid in new[]{new SpeedSample(1,StrokeMethod.Shift,false,8,8,1,32,3,1),new(1,StrokeMethod.Shift,false,8,12,1,32,2,1),new(1,StrokeMethod.Shift,false,8,12,1,32,3,.99),new(1,StrokeMethod.Paced,false,8,12,64,32,3,1)})
-    {cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,[invalid with{SpatialId=ProbeSpatialCalibration.Read(cfg,1)!.Id}]));Assert(!SpeedCalibration.Current(cfg));}
+    foreach(var invalid in new[]{new SpeedSample(2,StrokeMethod.Shift,false,8,8,1,32,3,1),new(2,StrokeMethod.Shift,false,8,12,1,32,2,1),new(2,StrokeMethod.Shift,false,8,12,1,32,3,.99),new(2,StrokeMethod.Paced,false,8,12,64,32,3,1)})
+    {cfg.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(cfg),DateTimeOffset.UtcNow,[invalid with{SpatialId=ProbeSpatialCalibration.Read(cfg,2)!.Id}]));Assert(!SpeedCalibration.Current(cfg));}
 });
 Test("Probe context rejects changed samples geometry DPI and color mode",()=>
 {
@@ -1491,8 +1498,8 @@ Test("Probe context rejects changed samples geometry DPI and color mode",()=>
 Test("Probe routes are independent of Precision adaptive and legacy Shift flag",()=>
 {
     var cfg=ProbeConfig();cfg.Set("input_frame_delay_ms",100);cfg.Set("speed_profile","Safe");cfg.Set("adaptive_brush",true);cfg.Set("line_mode",true);AdaptiveBrush.Validate(cfg);
-    Assert(Coverage.ShiftLine(cfg,1,new(0,0,32,0)));Assert(!Coverage.ShiftLine(cfg,3,new(0,0,32,0)));
-    Assert(!Coverage.ShiftLine(cfg,1,new(0,0,0,32)));Assert(!Coverage.ShiftLine(cfg,1,new(0,0,1,0)));
+    Assert(Coverage.ShiftLine(cfg,2,new(0,0,32,0)));Assert(!Coverage.ShiftLine(cfg,3,new(0,0,32,0)));
+    Assert(!Coverage.ShiftLine(cfg,2,new(0,0,0,32)));Assert(!Coverage.ShiftLine(cfg,2,new(0,0,1,0)));
     cfg.Set("paint_opacity_value",.5);Assert(!SpeedCalibration.Use(cfg));
 });
 Test("Long calibrated Shift lines split at measured lengths and release between pieces",()=>
@@ -1507,7 +1514,7 @@ Test("Paced probe emits individually timed endpoints in both directions",()=>
 {
     foreach(var line in new[]{new ScreenLine(50,20,0,20),new ScreenLine(10,60,10,0)})
     {
-        var sample=new SpeedSample(1,StrokeMethod.Paced,line.X1==line.X2,20,27,3,32,3,1);var input=new RecordingStrokeInput();
+        var sample=new SpeedSample(2,StrokeMethod.Paced,line.X1==line.X2,20,27,3,32,3,1);var input=new RecordingStrokeInput();
         CalibratedMotion.Draw(line,sample,input);Assert(input.Cursor==new ScreenPoint(line.X2,line.Y2));
         Assert(input.Packets.All(x=>x.Length==1)&&input.WaitDurations.All(x=>x>=.027));
         Assert(Math.Abs(input.Seconds-CalibratedMotion.Estimate(line,sample))<1e-9);
@@ -1582,7 +1589,7 @@ Test("Expected audit mask scales cells exactly and preserves transparent holes",
 });
 Test("Audit and repair validation rejects unsupported settings",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("coverage_audit",true);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("coverage_audit",true);
     cfg.Validate();Assert(CoverageAudit.SetupProblem(cfg) is not null,"Audit without calibration accepted");
     cfg.Set("coverage_audit",false);cfg.Set("audit_repair_passes",3);
     try{cfg.Validate();throw new Exception("Unbounded repair accepted");}catch(InvalidDataException){}
@@ -1598,14 +1605,14 @@ Test("Malformed or null probe samples are rejected without enabling input",()=>
 });
 Test("Calibrated input validates before sending and releases Shift during key settling failure",()=>
 {
-    foreach(var sample in new[]{new SpeedSample(1,(StrokeMethod)99,false,8,12,1,32,3,1),new(1,StrokeMethod.Paced,false,8,0,1,32,3,1),new(1,StrokeMethod.Paced,false,8,12,0,32,3,1)})
+    foreach(var sample in new[]{new SpeedSample(2,(StrokeMethod)99,false,8,12,1,32,3,1),new(2,StrokeMethod.Paced,false,8,0,1,32,3,1),new(2,StrokeMethod.Paced,false,8,12,0,32,3,1)})
     {
         var input=new RecordingStrokeInput();
         try{CalibratedMotion.Draw(new(0,0,32,0),sample,input);throw new Exception("Invalid input accepted");}catch(ArgumentException){}
         Assert(input.Downs==0&&input.ShiftDowns==0&&input.Packets.Count==0);
     }
     var failure=new RecordingStrokeInput{FailShiftWait=true};
-    try{CalibratedMotion.Draw(new(0,0,32,0),new(1,StrokeMethod.Shift,false,8,12,1,32,3,1),failure);throw new Exception("Failure swallowed");}catch(OperationCanceledException){}
+    try{CalibratedMotion.Draw(new(0,0,32,0),new(2,StrokeMethod.Shift,false,8,12,1,32,3,1),failure);throw new Exception("Failure swallowed");}catch(OperationCanceledException){}
     Assert(!failure.Held&&!failure.ShiftHeld&&failure.ShiftUps==1&&failure.Downs==0);
 });
 Test("Stale audit setup remains editable while execution readiness fails",()=>
@@ -1618,7 +1625,7 @@ Test("Stale audit setup remains editable while execution readiness fails",()=>
 
 Test("Experimental delay is configurable below Stable while numeric verification waits stay unchanged",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("fast_transfer",true);cfg.Set("input_frame_delay_ms",16);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("fast_transfer",true);cfg.Set("input_frame_delay_ms",16);
     double numeric=StrokeTiming.SliderChangeEstimate(cfg),hex=StrokeTiming.HexChangeEstimate(cfg);
     var batch=new PaintBatch(0,new[]{new ScreenLine(0,0,512,0)},1);double stable=TransferSchedule.EstimateBatch(cfg,SpeedProfile.Get("Max Speed"),batch);
     cfg.Set("input_engine","Experimental 1 ms");Assert(StrokeTiming.Frame(cfg)==.012);
@@ -1637,7 +1644,7 @@ Test("Experimental delay is configurable below Stable while numeric verification
 });
 Test("Experimental timing rejects invalid persisted values and changes checkpoint identity",()=>
 {
-    var cfg=Settings.Defaults();var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]);
+    var cfg=Settings.ExperimentalDefaults();var image=Fixture();string identity=PlanIdentity.Compute(image,cfg,[]);
     cfg.Set("input_experimental_delay_ms",8);Assert(PlanIdentity.Compute(image,cfg,[])!=identity);
     foreach(string value in new[]{"0","7","17","NaN","Infinity"})
     {
@@ -1727,7 +1734,7 @@ Test("Auto brush reads legacy and current calibration using outer diameter", () 
 {
     foreach(var points in new[]{new double[][]{[1,3],[10,21],[20,43]},new double[][]{[1,3,1],[10,21,13],[20,43,23]}})
     {
-        var s=Settings.Defaults();s.Set("brush_calibration_points",points);
+        var s=Settings.ExperimentalDefaults();s.Set("brush_calibration_points",points);
         Assert(AutomaticBrush.Value(s,21)==10,"21 px must use calibrated Size 10, not Size 21");
         Assert(AutomaticBrush.Value(s,12)==5.5,"Outer diameter interpolation differs between formats");
         Assert(AutomaticBrush.Value(s,1)==1&&AutomaticBrush.Value(s,100)==20);
@@ -1735,7 +1742,7 @@ Test("Auto brush reads legacy and current calibration using outer diameter", () 
 });
 Test("Auto brush rejects stale malformed and nonmonotonic measurements", () =>
 {
-    var s=Settings.Defaults();s.Data["brush_calibration_points"]=JsonNode.Parse("[[1,3,1], [10,21,13], [null,9,1], [20,9,99], [\"bad\",15], [], [1,3,1]]");
+    var s=Settings.ExperimentalDefaults();s.Data["brush_calibration_points"]=JsonNode.Parse("[[1,3,1], [10,21,13], [null,9,1], [20,9,99], [\"bad\",15], [], [1,3,1]]");
     Assert(AutomaticBrush.Value(s,21)==10,"Bad rows discarded valid calibration");
     s.Set("brush_calibration_context","v2:stale");Assert(AutomaticBrush.Value(s,21)==21,"Stale measurements were used");
     s.Set("brush_calibration_context","");s.Set("brush_calibration_points",new double[][]{[10,3,1],[1,21,13]});
@@ -1986,26 +1993,26 @@ Test("Spatial model requires six complete controls at distinct positions",()=>
         var result=ProbeAnalysis.SpatialControl(before,after,local,7,0);
         controls.Add((vertical?new(130+n*50,220,130+n*50,255):new(120,220+n*40,155,220+n*40),result));
     }
-    var model=ProbeSpatialCalibration.Build(cfg,1,controls);ProbeSpatialCalibration.Save(cfg,model);
-    Assert(ProbeSpatialCalibration.Read(cfg,1) is not null&&model.Axes.All(x=>x.Offsets.SequenceEqual(new[]{-1,0,1})));
+    var model=ProbeSpatialCalibration.Build(cfg,2,controls);ProbeSpatialCalibration.Save(cfg,model);
+    Assert(ProbeSpatialCalibration.Read(cfg,2) is not null&&model.Axes.All(x=>x.Offsets.SequenceEqual(new[]{-1,0,1})));
     foreach(var bad in new[]{controls.Take(5).ToList(),controls.Select(x=>(controls[0].Requested,x.Result)).ToList()})
-    {try{ProbeSpatialCalibration.Build(cfg,1,bad);throw new Exception("Incomplete geometry accepted");}catch(InvalidOperationException){}}
+    {try{ProbeSpatialCalibration.Build(cfg,2,bad);throw new Exception("Incomplete geometry accepted");}catch(InvalidOperationException){}}
 });
 Test("Spatial persistence rejects moved geometry DPI and corrupted models",()=>
 {
-    var cfg=ProbeConfig();Assert(ProbeSpatialCalibration.Read(cfg,1) is not null);
+    var cfg=ProbeConfig();Assert(ProbeSpatialCalibration.Read(cfg,2) is not null);
     var changed=cfg.Clone();var cal=changed.Calibration;cal.SetRect("canvas",new(101,200,301,350));changed.SetCalibration(cal);
-    Assert(ProbeSpatialCalibration.Read(changed,1) is null&&!SpeedCalibration.Current(changed));
-    changed=cfg.Clone();cal=changed.Calibration;cal.SetSession(new(1,0),96,new(2000,1200));changed.SetCalibration(cal);Assert(ProbeSpatialCalibration.Read(changed,1) is null);
+    Assert(ProbeSpatialCalibration.Read(changed,2) is null&&!SpeedCalibration.Current(changed));
+    changed=cfg.Clone();cal=changed.Calibration;cal.SetSession(new(1,0),96,new(2000,1200));changed.SetCalibration(cal);Assert(ProbeSpatialCalibration.Read(changed,2) is null);
     foreach(string json in new[]{"null","[null]","{}","[{}]"})
-    {changed=cfg.Clone();changed.Data["probe_spatial_profiles"]=System.Text.Json.Nodes.JsonNode.Parse(json);Assert(ProbeSpatialCalibration.Read(changed,1) is null);}
+    {changed=cfg.Clone();changed.Data["probe_spatial_profiles"]=System.Text.Json.Nodes.JsonNode.Parse(json);Assert(ProbeSpatialCalibration.Read(changed,2) is null);}
 });
 Test("Speed routes cannot reuse a missing or replaced spatial model",()=>
 {
     var cfg=ProbeConfig();var old=SpeedCalibration.Read(cfg)!;
     cfg.Data.Remove("probe_spatial_profiles");Assert(!SpeedCalibration.Current(cfg));
-    ProbeSpatialCalibration.Save(cfg,SpatialFixtureProfile(cfg,1));Assert(!SpeedCalibration.Current(cfg));
-    var id=ProbeSpatialCalibration.Read(cfg,1)!.Id;cfg.Set("speed_probe_profile",old with{Samples=old.Samples.Select(x=>x with{SpatialId=id}).ToList()});
+    ProbeSpatialCalibration.Save(cfg,SpatialFixtureProfile(cfg,2));Assert(!SpeedCalibration.Current(cfg));
+    var id=ProbeSpatialCalibration.Read(cfg,2)!.Id;cfg.Set("speed_probe_profile",old with{Samples=old.Samples.Select(x=>x with{SpatialId=id}).ToList()});
     Assert(SpeedCalibration.Current(cfg));
     cfg.Set("speed_probe_profile",old with{Context="probe-solid-core-diagnostics-v2"});Assert(!SpeedCalibration.Current(cfg));
 });
@@ -2264,7 +2271,7 @@ Test("ETA rejects invalid observations before consuming pending work",()=>
 });
 Test("Timing plan starts fresh at a resume position without counting past operations",()=>
 {
-    var cfg=Settings.Defaults();var groups=new Dictionary<int,List<PaintBatch>>{
+    var cfg=Settings.ExperimentalDefaults();var groups=new Dictionary<int,List<PaintBatch>>{
         [0]=Enumerable.Range(0,40).Select(i=>new PaintBatch(0,new[]{new ScreenLine(0,i,20,i)},1)).ToList(),
         [1]=Enumerable.Range(0,40).Select(i=>new PaintBatch(0,new[]{new ScreenLine(0,i,20,i)},1)).ToList()};
     var resumed=PaintTimingPlan.Build(cfg,groups,new[]{0,1},1,30);var timer=new RemainingTime(resumed);
@@ -2274,7 +2281,7 @@ Test("Timing plan starts fresh at a resume position without counting past operat
 });
 Test("Timing plan counts batch operations and captures actual adaptive Size transitions",()=>
 {
-    var cfg=Settings.Defaults();cfg.Set("adaptive_brush",true);cfg.Set("coverage_audit",true);
+    var cfg=Settings.ExperimentalDefaults();cfg.Set("adaptive_brush",true);cfg.Set("coverage_audit",true);
     var groups=new Dictionary<int,List<PaintBatch>>{[0]=new(){new(20,new[]{new ScreenLine(0,0,20,0)},8),new(20,new[]{new ScreenLine(0,1,20,1)},8),new(0,new[]{new ScreenLine(0,2,20,2)},1)}};
     var work=PaintTimingPlan.Build(cfg,groups,new[]{0});Assert(work.Count(x=>x.Motion)==3&&work.Count(x=>x.RateKey=="brush")==2);
     Assert(work.Any(x=>x.Id==PaintTimingPlan.BeforeAudit(0))&&work.Any(x=>x.Id==PaintTimingPlan.Audit(0)));
@@ -2283,10 +2290,10 @@ Test("Timing plan counts batch operations and captures actual adaptive Size tran
 Test("Timing schedule and route keys preserve settings and reflect verified motion transport",()=>
 {
     var cfg=ProbeConfig();cfg.Set("input_frame_delay_ms",100);cfg.Set("adaptive_brush",true);var before=cfg.Data.ToJsonString();
-    var batch=new PaintBatch(1,new[]{new ScreenLine(0,0,32,0)},1);
-    Assert(PaintTimingPlan.Route(cfg,batch,1)=="1:probe_Shift:H");
+    var batch=new PaintBatch(1,new[]{new ScreenLine(0,0,32,0)},2);
+    Assert(PaintTimingPlan.Route(cfg,batch,2)=="2:probe_Shift:H");
     PaintTimingPlan.Build(cfg,new(){[0]=new(){batch}},new[]{0});Assert(cfg.Data.ToJsonString()==before);
-    cfg.Set("calibrated_strokes",false);Assert(PaintTimingPlan.Route(cfg,batch,1)=="1:drag:H");
+    cfg.Set("calibrated_strokes",false);Assert(PaintTimingPlan.Route(cfg,batch,2)=="2:drag:H");
 });
 Test("Timing default Size agrees with precision, manual and calibrated automatic controls",()=>
 {
@@ -2394,6 +2401,7 @@ StartPreparationChecks.Run(Test);
 ReviewRegressionChecks.Run(Test);
 CalibrationReliabilityChecks.Run(Test);
 WorkingSizePolicyChecks.Run(Test);
+ReleaseCandidateChecks.Run(Test);
 ExecutionTimingChecks.Run(Test);
 MeasuredColorChecks.Run(Test);
 PreparationAndPaletteChecks.Run(Test);
@@ -2420,9 +2428,9 @@ Test("Numeric legacy strings have consistent invariant brush geometry",()=>
     try
     {
         System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("de-DE");
-        var s=ProbeConfig();s.Data["brush_calibration_points"]=JsonNode.Parse("[[\"1\",\"9.0\",\"1\"],[\"10\",\"21\",\"13\"]]");
+        var s=ProbeConfig();s.Data["brush_calibration_points"]=JsonNode.Parse("[[\"1\",\"9.0\",\"1\"],[\"2\",\"9.0\",\"1\"],[\"10\",\"21\",\"13\"]]");
         s.Set("brush_calibration_context",AdaptiveBrush.Context(s));Assert(AdaptiveBrush.CalibrationCurrent(s));
-        Assert(SpeedCalibration.BrushReady(s,1)&&SpeedCalibration.BrushReady(s,10));
+        Assert(!SpeedCalibration.BrushReady(s,1)&&SpeedCalibration.BrushReady(s,10));
         Assert(SpeedCalibration.Footprint(s,1)==(7,0)&&SpeedCalibration.PhysicalReach(s,1)==4);
         Assert(SpeedCalibration.Footprint(s,10)==(13,5)&&SpeedCalibration.PhysicalReach(s,10)==10);
     }
@@ -2459,6 +2467,7 @@ Test("Alternate brush route ignores malformed shape speed container",()=>
     }
 });
 LiveLifecycleRegressionChecks.Run(Test);
+if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 
 static SpatialProbeProfile SpatialFixtureProfile(Settings cfg,double size)

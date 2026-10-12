@@ -24,7 +24,7 @@ internal static partial class Program
         s.Data.Remove("brush_footprints");
         BrushFootprints.Save(s,new[]{3d,10,20}.Select(size=>SetupStamp(s,3,size)).ToArray());
         BrushSpan[] support=[new(0,0,1)];var samples=Enumerable.Range(1,3).Select(i=>new BrushSignalSample(i,new(53,4,80,new(140,140,140),new(87,87,87)),1,support)).ToArray();
-        BrushSignalDiagnostics.Save(s,[BrushSignalDiagnostics.Summarize(s,3,1,samples,null)]);
+        BrushSignalDiagnostics.Save(s,[BrushSignalDiagnostics.Summarize(s,3,2,samples,null)]);
         var w=PaintingUiWindow(output,name,s);SetField(w,"adaptiveFailure","Size 1 unavailable");Invoke(w,"UpdateReady");
         var brush=(Border)Field<System.Collections.IDictionary>(w,"workflowChips")["brush"]!;
         Assert(Captions(brush).Contains("Size 3"),"Rejected Size 1 contaminated the working Size 3 chip");

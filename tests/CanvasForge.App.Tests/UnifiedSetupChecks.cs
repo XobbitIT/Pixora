@@ -17,9 +17,9 @@ internal static partial class Program
     private static void CheckUnifiedSetup(string output,string language,int width)
     {
         bool en=language=="English";string name="unified-"+(en?"en":"ua"),directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var s=Settings.Defaults();s.Set("language",language);s.Set("drawing_mode","Simple");s.Set("manual_brush_controls",true);s.Set("coverage_audit",true);s.Save(Path.Combine(directory,"config-csharp.json"));
+        var s=Settings.ExperimentalDefaults();s.Set("language",language);s.Set("drawing_mode","Simple");s.Set("manual_brush_controls",true);s.Set("coverage_audit",true);s.Save(Path.Combine(directory,"config-csharp.json"));
         var w=new MainWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(w,"pages");
-        Assert(pages.Count==5&&pages.ContainsKey("adaptive")&&pages.ContainsKey("speed"),"Single interface lost advanced pages");
+        Assert(pages.Count==6&&pages.ContainsKey("adaptive")&&pages.ContainsKey("speed"),"Single interface lost advanced pages");
         var live=Field<Settings>(w,"settings");Assert(!live.Data.ContainsKey("drawing_mode")&&!live.Data.ContainsKey("manual_brush_controls")&&live.Bool("coverage_audit"),"Migration changed preferences or retained manual bypass");
         var buttons=Field<List<Button>>(w,"allSetupButtons");Assert(buttons.Count==1&&buttons.All(b=>b.IsEnabled),"Fresh automatic setup is inaccessible");
         var results=Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults");
@@ -54,7 +54,7 @@ internal static partial class Program
     }
     private static void CheckUnifiedHexWindow(string output)
     {
-        string d=Path.Combine(output,"unified-hex");Directory.CreateDirectory(d);var s=Settings.Defaults();s.Set("language","English");s.Set("color_mode","HEX Direct");s.Set("drawing_mode","Simple");s.Set("manual_brush_controls",true);s.Save(Path.Combine(d,"config-csharp.json"));
+        string d=Path.Combine(output,"unified-hex");Directory.CreateDirectory(d);var s=Settings.ExperimentalDefaults();s.Set("language","English");s.Set("color_mode","HEX Direct");s.Set("drawing_mode","Simple");s.Set("manual_brush_controls",true);s.Save(Path.Combine(d,"config-csharp.json"));
         var w=new MainWindow(d);SetField(w,"source",new PixelImage(8,8));Invoke(w,"UpdateReady");
         Assert(!Field<Button>(w,"startButton").IsEnabled,"Legacy Simple HEX bypasses capture");
         Assert(Field<List<Button>>(w,"allSetupButtons").All(b=>b.IsEnabled),"Missing HEX disables setup action");
@@ -62,7 +62,7 @@ internal static partial class Program
     }
     private static void CheckUnifiedFinish()
     {
-        var s=Settings.Defaults();int writes=0;
+        var s=Settings.ExperimentalDefaults();int writes=0;
         Painter.FinishControls(s,()=>false,_=>writes++);Assert(writes==0,"Finish ignored foreground guard");
         Painter.FinishControls(s,()=>true,value=>{Assert(value==1,"Finish changed opacity target");writes++;});Assert(writes==1,"Finish stopped restoring opacity");
         Console.WriteLine("PASS unified-finish");
@@ -78,7 +78,7 @@ internal static partial class Program
     }
     private static void CheckUnifiedImageImport(string output)
     {
-        string d=Path.Combine(output,"unified-import");Directory.CreateDirectory(d);var s=Settings.Defaults();s.Set("language","English");s.Save(Path.Combine(d,"config-csharp.json"));
+        string d=Path.Combine(output,"unified-import");Directory.CreateDirectory(d);var s=Settings.ExperimentalDefaults();s.Set("language","English");s.Save(Path.Combine(d,"config-csharp.json"));
         var w=new MainWindow(d);var image=new PixelImage(32,32);for(int i=0;i<1024;i++)image.Set(i,i%32<16?new(255,0,0):new(0,255,0));
         string path=Path.Combine(d,"two-colors.png");Images.Save(image,path);
         CompleteUiTask(()=>(Task)typeof(MainWindow).GetMethod("LoadImageFile",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(w,[path])!);

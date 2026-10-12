@@ -9,7 +9,7 @@ public static class TransferSchedule
     public const string Revision="painted-groups-only-v2";
     public const int MaximumStrokes = 16;
     public const int MaximumConnector = 32;
-    public static bool Fast(Settings s) => s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
+    public static bool Fast(Settings s) => !ReleaseProfile.Standard(s)&&s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
     public static bool FastBatch(Settings s,PaintBatch batch)=>Fast(s)
         &&(batch.Segments.Count!=1||SpeedCalibration.Resolve(s,batch.Size>0?batch.Size:PaintTimingPlan.DefaultSize(s),batch.Segments[0],batch.ShapeSlot) is null);
     public static int Length(ScreenLine l) => Math.Max(Math.Abs(l.X2-l.X1), Math.Abs(l.Y2-l.Y1));
@@ -30,7 +30,7 @@ public static class TransferSchedule
 
     public static Dictionary<int,List<PaintBatch>> Build(PaintPlan plan, Settings s, Dictionary<int,List<BrushStroke>> source,CancellationToken token=default)
     {
-        s=BrushFootprints.Snapshot(s);
+        s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):s);
         var output = new Dictionary<int,List<PaintBatch>>();
         var rect=s.Calibration.Rect("canvas");
         bool join=Fast(s) && s.Int("brush_shape_slot",3) is 3 or 4

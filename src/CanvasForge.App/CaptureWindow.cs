@@ -37,7 +37,9 @@ internal sealed class CaptureWindow : Window
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;
         Topmost = true;
-        ShowInTaskbar = false;
+        // The main window is hidden while selecting a Rust region. Expose the
+        // picker as a separate window for task switching and accessibility.
+        ShowInTaskbar = true;
         Background = Brushes.Black;
         // Window dimensions are DIPs; physical coordinates always come from GetCursorPos.
         var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(Application.Current.MainWindow);

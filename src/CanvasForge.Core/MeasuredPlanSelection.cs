@@ -12,7 +12,7 @@ internal static class MeasuredPlanSelection
         var mixed=MeasuredColorPlan.BuildGeometry(plan,s,token);
         if(mixed is null)return null;
         if(!s.Bool("adaptive_brush"))return MeasuredStrokeOptimization.Apply(plan,s,mixed,token);
-        var profiles=BrushFootprints.Read(s,s.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20)).ToArray();
+        var profiles=DrawingWorkflow.PaintingProfiles(s,s.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20)).ToArray();
         if(profiles.Length<2)return MeasuredStrokeOptimization.Apply(plan,s,mixed,token);
         double preferred=s.Number("precision_brush_size",3);int shape=s.Int("brush_shape_slot",3);
         var baseProfile=profiles.OrderByDescending(p=>p.Size==preferred&&p.ShapeSlot==shape)

@@ -8,7 +8,7 @@ internal static class MeasuredColorChecks
     private static void Require(bool ok,string message="Measured color regression"){if(!ok)throw new Exception(message);}
     internal static Settings Config(bool mixed=true)
     {
-        var s=Settings.Defaults();var c=s.Calibration;c.SetRect("canvas",new(0,0,400,320));c.SetSession(new(0,0),96,new(1920,1080));
+        var s=Settings.ExperimentalDefaults();var c=s.Calibration;c.SetRect("canvas",new(0,0,400,320));c.SetSession(new(0,0),96,new(1920,1080));
         c.SetRect("size_track",new(500,200,750,230));c.SetRect("brush_shapes",new(500,100,850,140));s.SetCalibration(c);
         s.SetPalette([new(new(220,30,30),new(600,400),"main"),new(new(30,220,30),new(640,400),"main")]);
         s.Set("adaptive_brush",mixed);s.Set("precision_brush_size","3");s.Set("fast_transfer",false);AdaptiveBrush.Prepare(s);
@@ -61,10 +61,10 @@ internal static class MeasuredColorChecks
             var s=Config();var plan=Plan((x,y)=>x==200&&y==160?1:-1);var r=MeasuredColorPlan.TryBuild(plan,s)!;
             Require(r.TargetPixels==1&&r.CoveredPixels==0&&r.UnplannedPixels==1&&r.Groups.Values.All(x=>x.Count==0));
         });
-        test("A genuine one-pixel measurement restores fine targets in mixed painting",()=>{
+        test("Archived Size 1 measurement cannot restore removed fine targets",()=>{
             var s=Config();BrushSpan[] dot=[new(0,0,1)];BrushFootprints.Save(s,[BrushFootprints.Build(s,3,1,Enumerable.Repeat(new BrushStamp(dot,dot,new(20,20,20)),3).ToArray())]);
             var plan=Plan((x,y)=>x==200&&y==160?1:-1);var r=MeasuredColorPlan.TryBuild(plan,s)!;
-            Require(r.CoveredPixels==1&&r.UnplannedPixels==0&&r.Groups[1].Single().Size==1&&PaintTimingPlan.DefaultSize(s)==1);
+            Require(r.CoveredPixels==0&&r.UnplannedPixels==1&&r.Groups.Values.All(group=>group.Count==0)&&PaintTimingPlan.DefaultSize(s)==3);
         });
         test("Weak Size 1 evidence does not turn into a solid proof",()=>{
             var s=Config();BrushSpan[] possible=[new(0,0,1)];BrushFootprints.Save(s,[BrushFootprints.Build(s,3,1,Enumerable.Repeat(new BrushStamp(possible,[],new(20,20,20)),3).ToArray())]);

@@ -1,3 +1,18 @@
+# Pixora 1.0.14-rc.1 — Standard release candidate
+
+Default: round Size 3, stable input, one minimal preparation for Rust regions, colors and controls. Brush imprints and Speed Probe are optional. Adaptive, Size 2, accelerated routes and measured auditing are under Experimental. Standard does not certify physical color boundaries or full coverage: inspect the result in Rust.
+
+Focus loss pauses preparation and resumes a whole transaction; incomplete physical trials must be cleared before retrying. Diagnostic export includes logs/config/images and identified, rebased run snapshots. Exclusive timing separates colors, strokes, service and pause. User runtime contains only executable dependencies, licenses and Quick Start. No new RC live test has been performed; the user runs it.
+
+Use the fixed release candidate branch and v1.0.14-rc.1 tag. Change only reproduced release blockers. Full MainWindow/Painter refactoring is deferred. See [RC changes](CHANGES_RC_UA.md), [test checklist](TESTING_RC_UA.md) and [architecture](ARCHITECTURE_UA.md).
+
+## Historical beta.60 notes
+
+
+Painting, Adaptive selection, calibration, speed probes and repair use brush Sizes of 2 or larger. Default Size remains 3. Archived Size 1 measurements remain readable but cannot authorize painting. Repair stops when no supported measured footprint is available. Contrast 80, RGB tolerance 12 and triple-mask intersection are unchanged. Start a new plan after updating. See [changes](CHANGES_BETA60_UA.md) and [tests](TESTING_BETA60_UA.md). Live verification is recorded separately.
+
+Previous beta.59:
+
 # Pixora 1.0.14-beta.59 — calibration transport and operation lifecycle fixes
 
 Beta.59 preserves Stop/Resume state, keeps the cursor outside captured control regions, verifies tiny-brush paint sources at a readable Size before restoring the requested Size, and reconciles current readiness and historical audit evidence. Ordinary movement now uses guarded SendInput. 478 Core / 173 WPF offline checks passed, including 84 layouts; an independent agent repeated all 478 Core checks. Release builds have zero warnings and errors. Physical edge coverage, Adaptive speedup and initial numerical ETA still need a new Rust run. Start a new plan after updating: the motion protocol identity changed. See [changes](CHANGES_BETA59_UA.md), [architecture](ARCHITECTURE_UA.md) and [live checklist](TESTING_BETA59_UA.md).

@@ -19,6 +19,7 @@ public static class SpeedCalibration
     public static double Margin(double ms) => Math.Ceiling(ms*1.25+2);
     public static bool BrushReady(Settings s,double size)
     {
+        if(size<DrawingWorkflow.MinimumSize)return false;
         if(!BrushFootprints.Sizes.Contains(size)||s.Mode==ColorMode.HexDirect&&!s.HexControlsReady)return false;
         if(s.Data["brush_footprints"] is not null)return BrushFootprints.Find(s,size) is {SolidCore.Valid:true};
         if(!AdaptiveBrush.CalibrationCurrent(s))return false;
@@ -67,7 +68,7 @@ public static class SpeedCalibration
         }
         catch(Exception e) when(e is JsonException or InvalidOperationException or FormatException){return SpeedProfileState.InvalidProof;}
     }
-    private static bool Allowed(Settings s) => s.Bool("calibrated_strokes")
+    private static bool Allowed(Settings s) => !ReleaseProfile.Standard(s)&&s.Bool("calibrated_strokes")
         &&s.Text("coverage_mode","Precision")=="Precision"&&s.Bool("force_precision_controls",true)
         &&s.Bool("use_fixed_opacity",true)&&s.Number("paint_opacity_value",1)==1
         &&(s.Int("brush_shape_slot",3) is 3 or 4||BrushFootprints.Read(s).Any(p=>p.SolidCore.Valid));

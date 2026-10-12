@@ -8,7 +8,7 @@ function Assert-PixoraVersionValues([string]$ExpectedVersion,[hashtable]$Values)
 }
 function Get-PixoraHeadingVersion([string]$Path,[string]$ExpectedVersion) {
     $heading=(Get-Content -LiteralPath $Path -Encoding UTF8 -TotalCount 1)
-    $full=[regex]::Match($heading,'\b\d+\.\d+\.\d+-beta\.\d+\b')
+    $full=[regex]::Match($heading,'\b\d+\.\d+\.\d+-(?:beta|rc)\.\d+\b')
     if($full.Success){return $full.Value}
     $beta=[regex]::Match($heading,'\bbeta\.\d+\b')
     if($beta.Success){return ($ExpectedVersion.Split('-')[0]+'-'+$beta.Value)}
@@ -17,7 +17,8 @@ function Get-PixoraHeadingVersion([string]$Path,[string]$ExpectedVersion) {
 function Test-PixoraPackageVersions([string]$Directory,[string]$ExpectedVersion) {
     $manifest=Get-Content -LiteralPath (Join-Path $Directory 'Build_Manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $values=@{manifest=[string]$manifest.version}
-    foreach($path in @('README_UA.txt','CHANGES_UA.md','Testing/Test_Checklist_UA.md')) {
+    $documents=if($manifest.artifactKind -eq 'user'){@('Quick_Start.md')}else{@('README_UA.txt','CHANGES_UA.md','Testing/Test_Checklist_UA.md')}
+    foreach($path in $documents) {
         $values[$path]=Get-PixoraHeadingVersion (Join-Path $Directory $path) $ExpectedVersion
     }
     foreach($name in @('Pixora.dll','CanvasForge.Core.dll')) {
@@ -42,17 +43,24 @@ if($PackageDirectory) {
     $version=[string]([xml](Get-Content -LiteralPath (Join-Path $SourceDirectory 'Directory.Build.props') -Raw)).Project.PropertyGroup.Version
     & ([ScriptBlock]::Create((Get-Content -LiteralPath (Join-Path $SourceDirectory 'tools/Sync-CurrentDocs.ps1') -Raw -Encoding UTF8))) -SourceDirectory $SourceDirectory -Check
     if($WriteDocuments) {
-        $number=[regex]::Match($version,'-beta\.(\d+)$').Groups[1].Value
+        $match=[regex]::Match($version,'-(beta|rc)\.(\d+)$');$number=$match.Groups[2].Value
+        $changes=if($match.Groups[1].Value -eq 'rc'){'CHANGES_RC_UA.md'}else{"CHANGES_BETA${number}_UA.md"}
+        $checklist=if($match.Groups[1].Value -eq 'rc'){'TESTING_RC_UA.md'}else{"TESTING_BETA${number}_UA.md"}
         if(!$number){throw "Unsupported release version: $version"}
+        $manifestPath=Join-Path $PackageDirectory 'Build_Manifest.json'
+        $userArtifact=(Test-Path -LiteralPath $manifestPath) -and (Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json).artifactKind -eq 'user'
+        if($userArtifact){Copy-Item -LiteralPath (Join-Path $SourceDirectory 'release/Quick_Start.md') -Destination (Join-Path $PackageDirectory 'Quick_Start.md') -Force}
+        else {
         New-Item -ItemType Directory -Path (Join-Path $PackageDirectory 'Testing') -Force | Out-Null
-        Copy-Item -LiteralPath (Join-Path $SourceDirectory "CHANGES_BETA${number}_UA.md") -Destination (Join-Path $PackageDirectory 'CHANGES_UA.md') -Force
-        Copy-Item -LiteralPath (Join-Path $SourceDirectory "TESTING_BETA${number}_UA.md") -Destination (Join-Path $PackageDirectory 'Testing/Test_Checklist_UA.md') -Force
+        Copy-Item -LiteralPath (Join-Path $SourceDirectory $changes) -Destination (Join-Path $PackageDirectory 'CHANGES_UA.md') -Force
+        Copy-Item -LiteralPath (Join-Path $SourceDirectory $checklist) -Destination (Join-Path $PackageDirectory 'Testing/Test_Checklist_UA.md') -Force
         $runtime=if(Test-Path -LiteralPath (Join-Path $PackageDirectory 'coreclr.dll')){'Пакет містить .NET 8 Desktop Runtime x64; окреме встановлення не потрібне.'}else{'Потрібен .NET 8 Desktop Runtime x64.'}
         $readme="Pixora $version`n`nРозпакуй увесь архів в окрему папку та запусти Pixora.exe.`n$runtime`nПорядок тестування: Testing/Test_Checklist_UA.md. Зміни: CHANGES_UA.md.`nНовий живий тест у Rust потрібен; офлайн перевірки не підтверджують покриття в грі.`n"
         Set-Content -LiteralPath (Join-Path $PackageDirectory 'README_UA.txt') -Value $readme -Encoding UTF8
         $manifestPath=Join-Path $PackageDirectory 'Build_Manifest.json'
         if(!(Test-Path -LiteralPath $manifestPath)) {
             @{version=$version;inGameTest=$false;commit=$env:PIXORA_SOURCE_SHA;buildCheckoutCommit=$env:GITHUB_SHA} | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding UTF8
+        }
         }
     }
     Test-PixoraPackageVersions $PackageDirectory $version

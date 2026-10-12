@@ -83,22 +83,23 @@ internal sealed partial class MainWindow
         Set("rust",missing?.State??PreparationState.Ready,missing?.Problem);
         var brush=preparation.Steps.Single(p=>p.Key=="brush");
         Set("brush",brush.State,brush.Problem,"Size "+PaintTimingPlan.DefaultSize(settings));
-        if(brush.State==PreparationState.Ready)workflowChips["brush"].ToolTip=T("Робочий Size підтверджений. Size 1 необов'язковий для комбінованого малювання.",
-            "Working Size is verified. Size 1 is optional for mixed painting.");
+        if(brush.State==PreparationState.Ready&&!ReleaseProfile.Standard(settings))workflowChips["brush"].ToolTip=T("Робочий Size підтверджений. Мінімальний розмір пензля — 2.",
+            "Working Size is verified. Minimum brush Size is 2.");
         SetSpeedChip(workflowChips["speed"]);RefreshCoverageStatus();
+        if(ReleaseProfile.Standard(settings)){workflowChips["speed"].Set(T("Необов’язково","Optional"),Muted);workflowChips["coverage"].Set(T("Без аудиту","Unaudited"),Muted);workflowChips["brush"].ToolTip=T("Size 3 застосовується без вимірювання фізичного сліду.","Size 3 is applied without measuring its physical footprint.");}
     }
 
     private void UpdateDetailPreset()
     {
         bool valid = double.TryParse(detailInput.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value)
-            && double.IsFinite(value) && value >= 1 && value <= 32 && value == Math.Truncate(value);
+            && double.IsFinite(value) && value >= 2 && value <= 32 && value == Math.Truncate(value);
         foreach (var pair in detailPresets)
         {
             bool selected = valid && pair.Key == value;
             pair.Value.BorderBrush = selected ? Accent : BorderColor;
             pair.Value.Background = selected ? BrushOf("#38302A") : Input;
         }
-        string name = value switch { 1 => T("Чітко", "Detail"), 3 => T("Баланс", "Balanced"), 5 => T("Швидко", "Fast"), 8 => T("Чернетка", "Draft"), _ => T("Власне значення", "Custom") };
+        string name = value switch { 2 => T("Чітко", "Detail"), 3 => T("Баланс", "Balanced"), 5 => T("Швидко", "Fast"), 8 => T("Чернетка", "Draft"), _ => T("Власне значення", "Custom") };
         detailState.Text = valid ? $"{name} · {value:0} px · {T("Рух", "Movement")}: {Option("speed_profile",settings.Text("speed_profile"))}" : T("Введи ціле значення від 1 до 32 px.", "Enter a whole number from 1 to 32 px.");
         detailState.Foreground = valid ? Muted : Danger;
     }

@@ -6,6 +6,7 @@ internal enum PaintPhase { Countdown,Preparing,Drawing,Auditing,Finishing,Comple
 internal sealed partial class Painter
 {
     private RemainingTime? timing;
+    private RunTimeBreakdown? runTimes;
     private int timingDone,timingTotal;
     private PaintPhase timingPhase;
     private string timingStatus="";
@@ -14,6 +15,7 @@ internal sealed partial class Painter
     private double ActiveSeconds=>clock.Elapsed.TotalSeconds-pausedSeconds;
     private void BeginTiming(string id,PaintPhase phase,string message)
     {
+        runTimes?.Switch(id.StartsWith("color:")?"color":id.StartsWith("motion:")?"motion":"service");
         if(timing!.Contains(id))timing.Begin(id,ActiveSeconds);
         bool changed=phase!=timingPhase;
         timingPhase=phase;timingStatus=message;
@@ -24,7 +26,7 @@ internal sealed partial class Painter
         if(message is not null)timingStatus=message;
         var estimate=timing!.Estimate(ActiveSeconds);
         if(countdown>0)estimate=estimate with{Seconds=estimate.Seconds+countdown,LowerSeconds=estimate.LowerSeconds+countdown,UpperSeconds=estimate.UpperSeconds+countdown};
-        report(new(timingDone,timingTotal,ActiveSeconds,estimate.Seconds,timingStatus,estimate,timingPhase,FinalCoverage,finalAuditDirectory));
+        report(new(timingDone,timingTotal,ActiveSeconds,estimate.Seconds,timingStatus,estimate,timingPhase,FinalCoverage,finalAuditDirectory,runTimes?.Read()));
         if(ActiveSeconds>=nextEtaLog||lastEtaBasis!=estimate.Basis||timingPhase==PaintPhase.Completed)
         {
             nextEtaLog=ActiveSeconds+2;lastEtaBasis=estimate.Basis;

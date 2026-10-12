@@ -21,12 +21,12 @@ internal sealed partial class MainWindow
             T("Відкрий PNG, JPG або BMP. Можна також перетягнути файл у вікно.", "Open PNG, JPG or BMP. You can also drop a file into the window."),
             T("Відкрити зображення", "Open image"), OpenImage, true);
         Step(T("2. Підготуй Rust", "2. Prepare Rust"),
-            T("Відкрий чисте полотно в Rust. Одна кнопка перевірить області, кольори й один суцільний пензель. Потім очисти тестові крапки. Швидкість та Adaptive налаштовуються окремо.", "Open a clean Rust Canvas. One button checks regions, colors and one solid brush. Clear the test dots afterwards. Speed and Adaptive are configured separately."),
+            T("Відкрий редактор Rust. Standard перевіряє області, кольори й керування Size 3. Вимірювання пензля, Adaptive та швидкість — у розділі «Експериментально».", "Open Rust’s painting editor. Standard checks regions, colors and Size 3 controls. Brush measurements, Adaptive and speed are in Experimental."),
             T("Перейти до підготовки", "Go to preparation"), () => { guideRequested = false; guideDismissed = true; RefreshFirstRunGuide(); ShowPage("paint"); });
         Step(T("3. Почни малювання", "3. Start painting"),
             T("Повернись у «Малювання», перевір прев’ю й натисни «Почати». Підказка підготовки пояснить, чого бракує.", "Return to Painting, check the preview and press Start. The preparation hint explains anything still missing."),
             T("Показати робоче вікно", "Show workspace"), () => { guideRequested = false; guideDismissed = true; RefreshFirstRunGuide(); ShowPage("paint"); });
-        body.Children.Add(Text(T("Невдала перевірка швидкості залишає стабільне малювання. Adaptive й аудит після кожного кольору необов'язкові; фінальне покриття перевіряється завжди.", "A failed speed check leaves stable painting available. Adaptive and per-color audit are optional; final coverage is always checked."), 12, Muted));
+        body.Children.Add(Text(T("Standard не потребує тесту швидкості. Виконані команди не гарантують повне покриття: перевір результат у Rust. Виміряний аудит доступний експериментально.", "Standard needs no Speed Probe. Sent commands do not guarantee full coverage: inspect the result in Rust. Measured auditing is experimental."), 12, Muted));
         body.Children.Add(Text(T("F6 — пауза • ESC — зупинити", "F6 — pause • ESC — stop"), 12, Warning));
         firstRunGuide = new Border { Tag = "first-run-guide", Background = Panel, BorderBrush = BorderColor, BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(9), Child = Scroll(body) };
         System.Windows.Controls.Panel.SetZIndex(firstRunGuide, 1);

@@ -65,7 +65,7 @@ internal static class LiveLifecycleRegressionChecks
             catch(InvalidOperationException){refused=true;}Require(refused&&size==3,"Failed selection locked subsequent retry to Size 2");
         });
         test("Ordinary H V reverse and point strokes emit endpoints through input events",()=>{
-            var s=Settings.Defaults();s.Set("line_mode",false);var speed=SpeedProfile.Get("Rapid");
+            var s=Settings.ExperimentalDefaults();s.Set("line_mode",false);var speed=SpeedProfile.Get("Rapid");
             foreach(var line in new[]{new ScreenLine(10,20,31,20),new ScreenLine(10,20,10,41),new ScreenLine(10,20,10,20)})
             foreach(bool reverse in new[]{false,true})
             {
@@ -84,7 +84,7 @@ internal static class LiveLifecycleRegressionChecks
         test("Ordinary and Shift interruptions always release keys and mouse",()=>{
             foreach(bool shift in new[]{false,true})
             {
-                var s=Settings.Defaults();s.Set("line_mode",shift);s.Set("coverage_mode","Fast");
+                var s=Settings.ExperimentalDefaults();s.Set("line_mode",shift);s.Set("coverage_mode","Fast");
                 var input=new Input{FailHeldMove=true};bool cancelled=false;
                 try{StandardStrokeMotion.Draw(new(10,20,80,20),s,SpeedProfile.Get("Rapid"),false,input);}
                 catch(OperationCanceledException){cancelled=true;}

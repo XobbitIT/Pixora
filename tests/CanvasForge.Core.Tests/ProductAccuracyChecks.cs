@@ -8,12 +8,12 @@ internal static class ProductAccuracyChecks
         test("Edge merge rejects malformed fractional and out-of-range thickness",()=>{
             foreach(var value in new object[]{"invalid","NaN",0,5,2.5})
             {
-                var s=Settings.Defaults();s.Set("edge_merge_thickness",value);bool refused=false;
+                var s=Settings.ExperimentalDefaults();s.Set("edge_merge_thickness",value);bool refused=false;
                 try{s.Validate();}catch(System.IO.InvalidDataException){refused=true;}Require(refused);
             }
         });
         test("Edge merge is on by default and preserves transparent and thick regions",()=>{
-            Require(Settings.Defaults().Bool("edge_merge")&&Settings.Defaults().Int("edge_merge_thickness")==2);
+            Require(Settings.ExperimentalDefaults().Bool("edge_merge")&&Settings.ExperimentalDefaults().Int("edge_merge_thickness")==2);
             int[] labels=Enumerable.Repeat(0,30*30).ToArray();for(int y=10;y<20;y++)for(int x=10;x<20;x++)labels[y*30+x]=1;
             labels[2*30+2]=2;labels[0]=-1;var before=(int[])labels.Clone();var r=EdgeRegionMerge.Apply(labels,30,30,2,4);
             Require(r.ChangedPixels==1&&r.MergedRegions==1&&labels[0]==-1);
@@ -46,7 +46,7 @@ internal static class ProductAccuracyChecks
             Require(current.BeforeEdgeMerge!.SequenceEqual(old.Indices));
         });
         test("Edge off strips new identity fields and thickness changes invalidate the new target",()=>{
-            var s=Settings.Defaults();s.Set("edge_merge",false);var image=new PixelImage(20,20);var old=PlanIdentity.Compute(image,s,[]);
+            var s=Settings.ExperimentalDefaults();s.Set("edge_merge",false);var image=new PixelImage(20,20);var old=PlanIdentity.Compute(image,s,[]);
             s.Set("edge_merge_thickness",4);Require(PlanIdentity.Compute(image,s,[])==old);
             s.Set("edge_merge",true);var on=PlanIdentity.Compute(image,s,[]);Require(on!=old);s.Set("edge_merge_thickness",2);Require(PlanIdentity.Compute(image,s,[])!=on);
         });

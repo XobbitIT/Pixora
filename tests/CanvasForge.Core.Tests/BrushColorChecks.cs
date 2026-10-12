@@ -27,14 +27,14 @@ internal static class BrushColorChecks
             Require(!check.Passed&&check.Ambiguous==9);
         });
         test("Three repeatable wrong-color dots create neither weak nor verified profiles",()=>{
-            var s=Settings.Defaults();var batch=new BrushCalibrationBatch(s,3,[1]);var before=Frame(new(100,100,100));
+            var s=Settings.ExperimentalDefaults();var batch=new BrushCalibrationBatch(s,3,[1]);var before=Frame(new(100,100,100));
             for(int i=1;i<=3;i++)batch.Record(1,i,before,before,Dot(before,new(220,220,220)),new(48,48),new(0,0,0));
             Require(batch.Profiles.Count==0&&batch.Diagnostics.Single().State==BrushSignalState.Rejected);
             Require(batch.Reference(1)==null&&batch.Rejected.Single().Reason=="Dot does not match requested color direction.");
             BrushSignalDiagnostics.Save(s,batch.Diagnostics);Require(BrushSignalDiagnostics.Read(s).Single().Samples.All(p=>p.Color is {Passed:false}));
         });
         test("Requested black retains strict contrast rejection and weak diagnostics",()=>{
-            var batch=new BrushCalibrationBatch(Settings.Defaults(),3,[1]);var before=Frame(new(140,140,140));
+            var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[1]);var before=Frame(new(140,140,140));
             for(int i=1;i<=3;i++)batch.Record(1,i,before,before,Dot(before,new(70,70,70)),new(48,48),new(0,0,0));
             Require(batch.Profiles.Count==0&&batch.Diagnostics.Single().State==BrushSignalState.WeakRepeatable);
             Require(batch.Diagnostics[0].Samples.All(p=>p.Color is {Passed:true}&&p.Contrast.RequiredDelta==80));

@@ -30,6 +30,7 @@ public static class MeasuredColorPlan
     // possible-mask checks and solid-mask coverage are frozen by regression tests.
     public static MeasuredColorResult? BuildGeometry(PaintPlan plan,Settings source,CancellationToken token=default)
     {
+        if(ReleaseProfile.Standard(source))return null;
         var clock=System.Diagnostics.Stopwatch.StartNew();
         long allocated=GC.GetAllocatedBytesForCurrentThread();double safeMapMs=0;
         token.ThrowIfCancellationRequested();var s=BrushFootprints.Snapshot(source);
@@ -37,7 +38,7 @@ public static class MeasuredColorPlan
             ||!s.Bool("use_fixed_opacity",true)||s.Number("paint_opacity_value",1)!=1||s.Bool("background_fill"))return null;
         var rect=s.Calibration.Rect("canvas");if(!rect.Valid||(long)rect.Width*rect.Height>16_000_000)return null;
         bool mixed=s.Bool("adaptive_brush");double size=PaintTimingPlan.DefaultSize(s);
-        var profiles=BrushFootprints.Read(s,mixed&&s.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid
+        var profiles=DrawingWorkflow.PaintingProfiles(s,mixed&&s.Bool("adaptive_auto_shape")).Where(p=>p.SolidCore.Valid
             &&(mixed?p.Size<=s.Number("adaptive_max_size",20):p.Size==size&&p.ShapeSlot==s.Int("brush_shape_slot",3)))
             .OrderByDescending(p=>p.SolidCore.Width*p.SolidCore.Height).ThenBy(p=>p.ShapeSlot).ThenBy(p=>p.Size).ToArray();
         if(profiles.Length==0)return null;

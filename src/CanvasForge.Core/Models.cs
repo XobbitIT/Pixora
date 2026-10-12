@@ -148,6 +148,7 @@ public sealed class Settings
 
     public void Validate()
     {
+        if(Text("release_profile","Standard") is not ("Standard" or "Experimental"))throw new InvalidDataException("Invalid release profile.");
         CalibrationReliability.Validate(this);
         foreach(var key in Defaults().Data.Where(p=>p.Value is JsonValue v&&v.GetValueKind()==JsonValueKind.Number).Select(p=>p.Key))
             if(Data.ContainsKey(key)&&(Data[key] is not JsonValue
@@ -171,20 +172,23 @@ public sealed class Settings
         var hexLimit = Text("hex_max_colors", "128");
         if (hexLimit != "Auto" && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 256))
             throw new InvalidDataException("HEX limit must be Auto or 1–256.");
-        if (Int("adaptive_max_size", 20) is not (3 or 10 or 20 or 40 or 60 or 100))
-            throw new InvalidDataException("Adaptive maximum Size must be 3, 10, 20, 40, 60 or 100.");
+        if (Number("adaptive_max_size",20)<DrawingWorkflow.MinimumSize||!BrushFootprints.Sizes.Contains(Number("adaptive_max_size",20)))
+            throw new InvalidDataException("Adaptive maximum Size must be a supported Size of 2 or larger.");
         if(Number("brush_shape_slot",3) is <1 or >7||Number("brush_shape_slot",3)!=Int("brush_shape_slot",3))
             throw new InvalidDataException("Brush shape must be 1–7.");
         var motionPacket=Number("fast_path_batch_points",8);
         if(!double.IsFinite(motionPacket)||motionPacket is <1 or >16||motionPacket!=Math.Truncate(motionPacket))
             throw new InvalidDataException("Fast movement packet must be an integer from 1 to 16.");
-        if(!BrushFootprints.Sizes.Contains(Number("probe_size",3)))throw new InvalidDataException("Unsupported probe Size.");
-        if(Text("precision_brush_size","Profile")!="Profile"&&!BrushFootprints.Sizes.Contains(Number("precision_brush_size",double.NaN)))
-            throw new InvalidDataException("Working brush Size must be Profile, 1, 3, 10, 20, 40, 60 or 100.");
+        if(Number("probe_size",3)<DrawingWorkflow.MinimumSize||!BrushFootprints.Sizes.Contains(Number("probe_size",3)))throw new InvalidDataException("Unsupported probe Size.");
+        if(Number("brush_size_value",3) is <DrawingWorkflow.MinimumSize or >100
+            ||Text("precision_brush_size","Profile")!="Profile"&&(Number("precision_brush_size",double.NaN)<DrawingWorkflow.MinimumSize||!BrushFootprints.Sizes.Contains(Number("precision_brush_size",double.NaN))))
+            throw new InvalidDataException("Minimum painting brush Size is 2. Select a measured Size of 2 or larger.");
         if(Number("audit_repair_passes",1) is not (1 or 2))throw new InvalidDataException("Repair passes must be 1 or 2.");
         var canvasBounds = Calibration.Rect("canvas");
         if ((long)canvasBounds.Right - canvasBounds.Left > 16384 || (long)canvasBounds.Bottom - canvasBounds.Top > 16384)
             throw new InvalidDataException("Canvas is too large.");
+        // Internal image-processing reference plans may still use one-pixel
+        // cells. The application normalizes legacy configs and offers >=2.
         if (Int("cell_px", 3)is < 1 or > 32)
             throw new InvalidDataException("Detail must be 1–32.");
         if (Int("alpha_threshold", 16)is < 0 or > 255)
@@ -213,6 +217,9 @@ public sealed class Settings
     }
 
     public static Settings Defaults()
+    {var s=ExperimentalDefaults();s.Set("release_profile","Standard");return s;}
+
+    public static Settings ExperimentalDefaults()
     {
         var s = new Settings();
         foreach (var(k, v)in new Dictionary<string, object>
@@ -298,7 +305,7 @@ public sealed class Settings
 
         )
             s.Set(k, v);
-        return s;
+        s.Set("release_profile","Experimental");return s;
     }
 
     public static Settings Load(string path)
@@ -309,6 +316,7 @@ public sealed class Settings
             s.Data[p.Key] = p.Value?.DeepClone();
         if (s.Text("color_mode") != "HEX Direct")
             s.Set("color_mode", "Rust Palette");
+        DrawingWorkflow.Normalize(s);
         s.Validate();
         AdaptiveBrush.UpgradeCalibrationContext(s);
         return s;
@@ -517,9 +525,11 @@ public static class PlanIdentity
 {
     public static string Compute(PixelImage image, Settings settings, IEnumerable<PaletteEntry> palette)
     {
+        if(ReleaseProfile.Standard(settings))settings=DrawingWorkflow.Effective(settings);
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes("canonical-plan-json-v1"));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(DrawingWorkflow.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StandardStrokeMotion.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(TransferSchedule.Revision));

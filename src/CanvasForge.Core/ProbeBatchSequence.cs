@@ -10,7 +10,7 @@ public static class ProbeBatchSequence
     public static string[] Options=>new[]{Measured,SetupBrushSelection.Combined,"3/10/20","3/10","20/30/40"}.Concat(SetupBrushSelection.SizeOptions).Distinct().ToArray();
     public static ProbeSizeChoices Select(Settings settings,string choice)
     {
-        var requested=choice==Measured?BrushFootprints.Read(settings).Where(p=>p.SolidCore.Valid).Select(p=>p.Size).Distinct().Order().ToArray()
+        var requested=choice==Measured?DrawingWorkflow.PaintingProfiles(settings).Where(p=>p.SolidCore.Valid).Select(p=>p.Size).Distinct().Order().ToArray()
             :SetupBrushSelection.Sizes(choice,false).Order().ToArray();
         var ready=requested.Where(size=>SpeedCalibration.BrushReady(settings,size)).ToArray();
         return new(requested,ready,requested.Except(ready).ToArray());
@@ -47,6 +47,7 @@ public static class ProbeBatchSequence
                 token.ThrowIfCancellationRequested();passed++;report(size,ProbeBatchState.Passed,"");
             }
             catch(OperationCanceledException){report(size,ProbeBatchState.Cancelled,"");throw;}
+            catch(PreparationInterruptedException){throw;}
             catch(Exception e){failed++;report(size,ProbeBatchState.Failed,e.Message);}
         }
         return new(passed,failed,false);

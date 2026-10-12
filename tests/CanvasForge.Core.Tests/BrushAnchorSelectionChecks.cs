@@ -12,7 +12,7 @@ internal static class BrushAnchorSelectionChecks
     public static void Run(Action<string,Action> test)
     {
         test("Recorded beta42 Square Size 1 uses contrast 81 anchor without rejecting unchanged 74 neighbour",()=>{
-            var batch=new BrushCalibrationBatch(Settings.Defaults(),4,[1]);
+            var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),4,[1]);
             for(int i=1;i<=3;i++)
             {
                 var before=Frame(i,"before");var after=Frame(i,"after");var check=Frame(i,"saturation");

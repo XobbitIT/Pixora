@@ -6,7 +6,7 @@ internal static class BrushCalibrationRegressionChecks
     private static void Require(bool ok){if(!ok)throw new Exception("Brush calibration regression");}
     private static Settings Config()
     {
-        var s=Settings.Defaults();s.Set("brush_shape_slot",4);s.Set("brush_shape","Square");
+        var s=Settings.ExperimentalDefaults();s.Set("brush_shape_slot",4);s.Set("brush_shape","Square");
         var c=s.Calibration;c.SetRect("canvas",new(0,0,1200,1200));c.SetRect("size_track",new(1300,100,1550,140));
         c.SetRect("brush_shapes",new(1300,30,1650,70));c.SetSession(new(0,0),96,new(1920,1440));s.SetCalibration(c);AdaptiveBrush.Prepare(s);return s;
     }
@@ -78,18 +78,18 @@ internal static class BrushCalibrationRegressionChecks
         test("Speed status explains missing core changed measurements and changed spatial proof",()=>{
             var s=Config();Require(SpeedCalibration.Status(s)==SpeedProfileState.NotTested);
             BrushSpan[] pixels=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(pixels,pixels,new(20,20,20));
-            BrushFootprints.Save(s,[BrushFootprints.Build(s,4,1,[stamp,stamp,stamp])]);
-            var fp=SpeedCalibration.Footprint(s,1);var tiles=ProbeSpatialCalibration.Tiles(s.Calibration.Rect("canvas"),fp.Outer);
-            var model=new SpatialProbeProfile(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(s),DateTimeOffset.UtcNow,1,fp.Outer,
+            BrushFootprints.Save(s,[BrushFootprints.Build(s,4,2,[stamp,stamp,stamp])]);
+            var fp=SpeedCalibration.Footprint(s,2);var tiles=ProbeSpatialCalibration.Tiles(s.Calibration.Rect("canvas"),fp.Outer);
+            var model=new SpatialProbeProfile(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(s),DateTimeOffset.UtcNow,2,fp.Outer,
                 new[]{false,true}.Select(v=>new SpatialAxis(v,fp.Inner,tiles.Skip(v?3:0).Take(3).Select(t=>new SpatialAnchor(v?t.Vertical:t.Horizontal,0,new(20,20,20),12)).ToList())).ToList());
             ProbeSpatialCalibration.Save(s,model);
-            s.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,[new(1,StrokeMethod.Paced,false,20,27,1,35,3,1,model.Id)]));
+            s.Set("speed_probe_profile",new SpeedProbeProfile(SpeedCalibration.Context(s),DateTimeOffset.UtcNow,[new(2,StrokeMethod.Paced,false,20,27,1,35,3,1,model.Id)]));
             Require(SpeedCalibration.Status(s)==SpeedProfileState.Current);
             var changed=s.Clone();changed.Data.Remove("probe_spatial_profiles");changed.Data.Remove("shape_spatial_profiles");
             Require(SpeedCalibration.Status(changed)==SpeedProfileState.SpatialChanged);
             changed=s.Clone();BrushFootprints.Save(changed,[BrushFootprints.Build(changed,4,3,[stamp,stamp,stamp])]);
             Require(SpeedCalibration.Status(changed)==SpeedProfileState.MeasurementsChanged);
-            changed=s.Clone();var empty=stamp with{Solid=[]};BrushFootprints.Save(changed,[BrushFootprints.Build(changed,4,1,[empty,empty,empty])]);
+            changed=s.Clone();var empty=stamp with{Solid=[]};BrushFootprints.Save(changed,[BrushFootprints.Build(changed,4,2,[empty,empty,empty])]);
             Require(SpeedCalibration.Status(changed)==SpeedProfileState.BrushUnavailable&&!SpeedCalibration.Current(changed));
         });
     }

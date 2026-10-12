@@ -5,6 +5,7 @@ public static class Planner
     public static PaintPlan Build(PixelImage source, Settings settings, IProgress<string>? progress = null, CancellationToken token = default)
     {
         token.ThrowIfCancellationRequested();
+        if(ReleaseProfile.Standard(settings))settings=DrawingWorkflow.Effective(settings);
         settings.Validate();
         var canvas = settings.Calibration.Rect("canvas");
         var cw = canvas.Valid ? canvas.Width : 512;

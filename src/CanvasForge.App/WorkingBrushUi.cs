@@ -8,7 +8,7 @@ internal sealed partial class MainWindow
     private Button useMeasuredBrush=new();
     private void AddWorkingBrush(StackPanel parent)
     {
-        AddCombo(parent,"precision_brush_size",T("Розмір пензля в Rust (Size)","Rust brush Size"),
+        if(!ReleaseProfile.Standard(settings))AddCombo(parent,"precision_brush_size",T("Розмір пензля в Rust (Size)","Rust brush Size"),
             SetupBrushSelection.SizeOptions,true);
         workingBrushSummary=Text("",12,Muted);parent.Children.Add(workingBrushSummary);
     }
@@ -25,6 +25,8 @@ internal sealed partial class MainWindow
     }
     private void RefreshWorkingBrush()
     {
+        if(ReleaseProfile.Standard(settings))
+        {workingBrushSummary.Text=T("Standard · круглий Size 3 · стабільний ввід. Відбиток не виміряно; перевір результат у Rust.","Standard · round Size 3 · stable input. Footprint is not measured; inspect the result in Rust.");workingBrushSummary.Foreground=Muted;useMeasuredBrush.Visibility=System.Windows.Visibility.Collapsed;return;}
         double size=PaintTimingPlan.DefaultSize(settings);
         bool verified=PaintingReadiness.BrushProblem(settings) is null;
         workingBrushSummary.Text="Size "+size+" · "+(verified?T("слід підтверджений","footprint verified"):T("слід не підтверджений","footprint unverified"));

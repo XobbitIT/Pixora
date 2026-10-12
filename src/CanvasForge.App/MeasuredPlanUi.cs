@@ -13,6 +13,7 @@ internal sealed partial class MainWindow
     private void RefreshMeasuredPlan()
     {
         RefreshTargetPlanningUi();
+        if(ReleaseProfile.Standard(settings)){measuredPlanStatus.Text="";measuredPlanCompare.Visibility=Visibility.Collapsed;measuredPlanDetails.Visibility=Visibility.Collapsed;return;}
         measuredPlanDetails.IsEnabled=!Painting&&previewMeasuredPlan is not null;
         measuredPlanCompare.Visibility=previewMeasuredPlan is {UnplannedPixels:>0}&&settings.Mode==ColorMode.HexDirect?Visibility.Visible:Visibility.Collapsed;
         measuredPlanCompare.IsEnabled=!Painting&&source is not null&&numberErrors.Count==0;
@@ -24,8 +25,8 @@ internal sealed partial class MainWindow
             measuredPlanStatus.Foreground=Warning;return;
         }
         measuredPlanStatus.Text=p.UnplannedPixels>0
-            ?T($"Без команд: {p.UnplannedPixels:N0} px ({100d*p.UnplannedPixels/Math.Max(1,p.TargetPixels):F1}%). Виміряний Size 1 або менша кількість кольорів можуть зменшити пропуски. Це модель, не аудит Rust.",
-                $"{p.UnplannedPixels:N0} px have no commands ({100d*p.UnplannedPixels/Math.Max(1,p.TargetPixels):F1}%). A measured Size 1 or fewer colors may reduce gaps. This is a model, not a Rust audit.")
+            ?T($"Без команд: {p.UnplannedPixels:N0} px ({100d*p.UnplannedPixels/Math.Max(1,p.TargetPixels):F1}%). Виміряний Size 2 або менша кількість кольорів можуть зменшити пропуски. Це модель, не аудит Rust.",
+                $"{p.UnplannedPixels:N0} px have no commands ({100d*p.UnplannedPixels/Math.Max(1,p.TargetPixels):F1}%). A measured Size 2 or fewer colors may reduce gaps. This is a model, not a Rust audit.")
             :T("План враховує виміряний слід і межі кольорів. Результат у грі ще потребує перевірки.","The plan accounts for measured footprints and color boundaries. The in-game result still needs verification.");
         if(plan is not null&&plan.Mode==ColorMode.RustPalette)
         {

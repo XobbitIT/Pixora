@@ -69,7 +69,7 @@ internal static partial class Program
     private static void CheckInternationalWindow(string output,string language)
     {
         string code=LanguageCatalog.Code(language),data=Path.Combine(output,"international-"+code);Directory.CreateDirectory(data);
-        var settings=Settings.Defaults(); settings.Set("language",language);settings.Save(Path.Combine(data,"config-csharp.json"));
+        var settings=Settings.ExperimentalDefaults(); settings.Set("language",language);settings.Save(Path.Combine(data,"config-csharp.json"));
         var window=new MainWindow(data);Assert(window.InterfaceLanguage==language,"Language not restored");
         Assert(!Field<Button>(window,"startButton").IsEnabled,"Welcome bypassed start validation");
         Assert(Field<Border>(window,"firstRunGuide").Visibility==Visibility.Visible,"First launch guide missing");

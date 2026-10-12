@@ -5,6 +5,7 @@ namespace CanvasForge.App;
 internal sealed partial class MainWindow
 {
     private PaintProgress? lastPaintProgress;
+    private System.Windows.Controls.TextBlock runTimeLabel=new();
     private string retainedStatus="";
     private System.Windows.Controls.TextBlock footerProgress=new();
     private System.Windows.Controls.TextBlock preparationSelection=new();
@@ -12,7 +13,8 @@ internal sealed partial class MainWindow
     private void ResetPaintProgress()
     {
         lastPaintProgress=null;progressBar.Value=0;progressLabel.Text="0% · "+T("Залишилось —","ETA —");
-        physicalCoverageLabel.Text=T("Фінальне покриття: очікує малювання.","Final coverage: waiting for painting.");
+        runTimeLabel.Text="";
+        physicalCoverageLabel.Text=ReleaseProfile.Standard(settings)?T("Standard: перевір вигляд і покриття у Rust.","Standard: inspect appearance and coverage in Rust."):T("Фінальне покриття: очікує малювання.","Final coverage: waiting for painting.");
         footerProgress.Text="";
         footerProgress.Visibility=System.Windows.Visibility.Collapsed;
         footerProgressBar.Value=0;footerProgressBar.Visibility=System.Windows.Visibility.Collapsed;
@@ -20,12 +22,18 @@ internal sealed partial class MainWindow
     private void ApplyPaintProgress(PaintProgress p)
     {
         if(closing)return;
+        if(p.TimesOnly)
+        {
+            if(lastPaintProgress is {} last)lastPaintProgress=last with{Times=p.Times};
+            RenderPaintProgress(p with{Total=0});return;
+        }
         if(p.Total>0)lastPaintProgress=p;
         RenderPaintProgress(p);
         SetStatus(p.Status);
     }
     private void RenderPaintProgress(PaintProgress p)
     {
+        if(p.Times is {} times)runTimeLabel.Text=T("Кольори","Colors")+": "+Duration(times.Colors)+" · "+T("Штрихи","Strokes")+": "+Duration(times.Motion)+"\n"+T("Службовий час","Service time")+": "+Duration(times.Service)+" · "+T("Пауза","Pause")+": "+Duration(times.Pause);
         if(p.PhysicalCoverage is {} coverage)RenderPhysicalCoverage(coverage,p.CoverageDirectory);
         if(p.Total>0)
         {

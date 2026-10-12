@@ -5,7 +5,7 @@ internal static class BrushBatchChecks
     private static void Require(bool value){if(!value)throw new Exception("Brush batch regression");}
     private static Settings Config()
     {
-        var s=Settings.Defaults();var c=s.Calibration;c.SetRect("canvas",new(0,0,1200,1200));
+        var s=Settings.ExperimentalDefaults();var c=s.Calibration;c.SetRect("canvas",new(0,0,1200,1200));
         c.SetRect("size_track",new(1300,100,1550,140));c.SetRect("brush_shapes",new(1300,30,1650,70));
         c.SetSession(new(0,0),96,new(1920,1440));s.SetCalibration(c);AdaptiveBrush.Prepare(s);return s;
     }

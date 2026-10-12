@@ -7614,5 +7614,341 @@
     "Ouvrez une toile Rust vierge. Un bouton vérifie les zones, les couleurs et un pinceau à bord net. Effacez ensuite les points de test. La vitesse et Adaptive se règlent séparément.",
     "Abre un lienzo limpio en Rust. Un botón verifica las áreas, los colores y un pincel sólido. Después borra los puntos de prueba. La velocidad y Adaptive se configuran por separado.",
     "Открой чистое полотно Rust. Одна кнопка проверяет области, цвета и одну твёрдую кисть. Затем очисти тестовые точки. Скорость и Adaptive настраиваются отдельно."
+  ],
+  [
+    "Each Size is saved after 3/3 measurements. Minimum Size is 2; default is 3. Painting requires a stable core.",
+    "Każdy rozmiar jest zapisywany po 3/3 pomiarach. Minimum to 2, domyślnie 3. Malowanie wymaga stabilnego rdzenia.",
+    "Jede Größe wird nach 3/3 Messungen gespeichert. Minimum: 2, Standard: 3. Malen erfordert einen stabilen Kern.",
+    "Chaque taille est enregistrée après 3/3 mesures. Minimum : 2, par défaut : 3. La peinture exige un noyau stable.",
+    "Cada tamaño se guarda tras 3/3 mediciones. Mínimo: 2; predeterminado: 3. Pintar requiere un núcleo estable.",
+    "Каждый Size сохраняется после 3/3 измерений. Минимум — 2, по умолчанию — 3. Для рисования нужно стабильное ядро."
+  ],
+  [
+    "Measure minimum Size 2",
+    "Zmierz minimalny rozmiar 2",
+    "Mindestgröße 2 messen",
+    "Mesurer la taille minimale 2",
+    "Medir el tamaño mínimo 2",
+    "Проверить минимальный Size 2"
+  ],
+  [
+    "Combines verified Sizes: large brushes for fills, the smallest for details. Minimum Size is 2; default is 3.",
+    "Łączy potwierdzone rozmiary: duże do wypełnień, najmniejsze do detali. Minimum: 2, domyślnie: 3.",
+    "Kombiniert bestätigte Größen: große für Flächen, kleine für Details. Minimum: 2, Standard: 3.",
+    "Combine les tailles vérifiées : grandes pour remplir, petites pour les détails. Minimum : 2, par défaut : 3.",
+    "Combina tamaños verificados: grandes para rellenar, pequeños para detalles. Mínimo: 2; predeterminado: 3.",
+    "Комбинирует подтверждённые размеры: большие для заливки, маленькие для деталей. Минимум — 2, по умолчанию — 3."
+  ],
+  [
+    "Minimum Size is 2; default is 3. Adaptive uses only verified Sizes with a stable core.",
+    "Minimum: 2, domyślnie: 3. Adaptive używa tylko potwierdzonych rozmiarów ze stabilnym rdzeniem.",
+    "Minimum: 2, Standard: 3. Adaptive verwendet nur bestätigte Größen mit stabilem Kern.",
+    "Minimum : 2, par défaut : 3. Adaptive utilise uniquement des tailles vérifiées avec un noyau stable.",
+    "Mínimo: 2; predeterminado: 3. Adaptive solo usa tamaños verificados con un núcleo estable.",
+    "Минимум — 2, по умолчанию — 3. Adaptive использует только подтверждённые размеры со стабильным ядром."
+  ],
+  [
+    "Combines only verified Sizes of 2 or larger.",
+    "Łączy tylko potwierdzone rozmiary od 2.",
+    "Kombiniert nur bestätigte Größen ab 2.",
+    "Combine uniquement les tailles vérifiées à partir de 2.",
+    "Combina solo tamaños verificados de 2 o más.",
+    "Комбинирует только подтверждённые Size от 2."
+  ],
+  [
+    "Detail · 2 px",
+    "Detale · 2 px",
+    "Details · 2 px",
+    "Détails · 2 px",
+    "Detalle · 2 px",
+    "Чётко · 2 px"
+  ],
+  [
+    "px is image detail, not Rust brush Size. Minimum detail and Size are 2. Presets change the grid and movement profile.",
+    "px oznacza szczegółowość obrazu, nie rozmiar pędzla Rust. Minimum obu to 2. Preset zmienia siatkę i profil ruchu.",
+    "px bezeichnet Bilddetails, nicht die Rust-Pinselgröße. Beide beginnen bei 2. Presets ändern Raster und Bewegungsprofil.",
+    "px désigne le détail de l’image, pas la taille du pinceau Rust. Minimum : 2. Les préréglages changent la grille et le mouvement.",
+    "px indica detalle de imagen, no el tamaño del pincel Rust. Mínimo: 2. Los ajustes cambian la cuadrícula y el movimiento.",
+    "px — детализация изображения, а не Size кисти Rust. Минимум — 2. Пресет меняет сетку и профиль движения."
+  ],
+  [
+    "Minimum painting brush Size is 2. Select a measured Size of 2 or larger.",
+    "Minimalny rozmiar pędzla to 2. Wybierz zmierzony rozmiar od 2.",
+    "Mindestpinselgröße: 2. Wähle eine gemessene Größe ab 2.",
+    "Taille minimale du pinceau : 2. Choisissez une taille mesurée de 2 ou plus.",
+    "Tamaño mínimo del pincel: 2. Elige un tamaño medido de 2 o más.",
+    "Минимальный Size для рисования — 2. Выбери измеренный Size от 2."
+  ],
+  [
+    "Adaptive maximum Size must be a supported Size of 2 or larger.",
+    "Maksimum Adaptive musi być obsługiwanym rozmiarem od 2.",
+    "Die Adaptive-Maximalgröße muss eine unterstützte Größe ab 2 sein.",
+    "La taille maximale Adaptive doit être une taille prise en charge de 2 ou plus.",
+    "El máximo de Adaptive debe ser un tamaño compatible de 2 o más.",
+    "Максимальный Size Adaptive должен быть поддерживаемым размером от 2."
+  ],
+  [
+    "Detail must be 2–32.",
+    "Szczegółowość musi wynosić 2–32.",
+    "Details müssen zwischen 2 und 32 liegen.",
+    "Le détail doit être compris entre 2 et 32.",
+    "El detalle debe ser de 2 a 32.",
+    "Детализация должна быть от 2 до 32."
+  ],
+  [
+    "{p0} px have no commands ({p1}%). A measured Size 2 or fewer colors may reduce gaps. This is a model, not a Rust audit.",
+    "{p0} px bez poleceń ({p1}%). Zmierzony Size 2 lub mniej kolorów mogą zmniejszyć braki. To model, nie audyt Rust.",
+    "{p0} px ohne Befehle ({p1}%). Gemessener Size 2 oder weniger Farben können Lücken reduzieren. Modell, keine Rust-Prüfung.",
+    "{p0} px sans commandes ({p1}%). Size 2 mesuré ou moins de couleurs peut réduire les manques. Modèle, pas audit Rust.",
+    "{p0} px sin comandos ({p1}%). Size 2 medido o menos colores pueden reducir huecos. Es modelo, no auditoría Rust.",
+    "Для {p0} px нет команд ({p1}%). Измеренный Size 2 или меньше цветов могут сократить пропуски. Это модель, не аудит Rust."
+  ],
+  [
+    "Working Size is verified. Minimum brush Size is 2.",
+    "Rozmiar roboczy jest potwierdzony. Minimalny rozmiar pędzla to 2.",
+    "Die Arbeitsgröße ist bestätigt. Mindestpinselgröße: 2.",
+    "La taille de travail est vérifiée. Taille minimale du pinceau : 2.",
+    "El tamaño de trabajo está verificado. Tamaño mínimo del pincel: 2.",
+    "Рабочий Size подтверждён. Минимальный размер кисти — 2."
+  ],
+  [
+    "Experimental",
+    "Eksperymentalne",
+    "Experimentell",
+    "Expérimental",
+    "Experimental",
+    "Экспериментально"
+  ],
+  [
+    "Export diagnostics",
+    "Eksport diagnostyki",
+    "Diagnose exportieren",
+    "Exporter le diagnostic",
+    "Exportar diagnóstico",
+    "Экспорт диагностики"
+  ],
+  [
+    "Enable experimental painting",
+    "Włącz rysowanie eksperymentalne",
+    "Experimentelles Zeichnen aktivieren",
+    "Activer le dessin expérimental",
+    "Activar dibujo experimental",
+    "Включить экспериментальное рисование"
+  ],
+  [
+    "Return to Standard",
+    "Wróć do Standard",
+    "Zurück zu Standard",
+    "Revenir à Standard",
+    "Volver a Standard",
+    "Вернуться к Standard"
+  ],
+  [
+    "Standard — Size 3",
+    "Standard — Size 3",
+    "Standard — Size 3",
+    "Standard — Size 3",
+    "Standard — Size 3",
+    "Standard — Size 3"
+  ],
+  [
+    "Diagnostics saved: ",
+    "Diagnostyka zapisana: ",
+    "Diagnose gespeichert: ",
+    "Diagnostic enregistré : ",
+    "Diagnóstico guardado: ",
+    "Диагностика сохранена: "
+  ],
+  [
+    "Optional",
+    "Opcjonalnie",
+    "Optional",
+    "Facultatif",
+    "Opcional",
+    "Необязательно"
+  ],
+  [
+    "Service time",
+    "Czas obsługi",
+    "Verwaltungszeit",
+    "Temps de gestion",
+    "Tiempo de gestión",
+    "Служебное время"
+  ],
+  [
+    "paused",
+    "wstrzymano",
+    "pausiert",
+    "en pause",
+    "en pausa",
+    "пауза"
+  ],
+  [
+    "Invalid release profile.",
+    "Nieprawidłowy profil rysowania.",
+    "Ungültiges Zeichenprofil.",
+    "Profil de dessin invalide.",
+    "Perfil de dibujo inválido.",
+    "Недопустимый профиль рисования."
+  ],
+  [
+    "Unknown timing phase.",
+    "Nieznana faza czasu.",
+    "Unbekannte Zeitphase.",
+    "Phase de temps inconnue.",
+    "Fase de tiempo desconocida.",
+    "Неизвестная фаза времени."
+  ],
+  [
+    "Timing clock must be monotonic.",
+    "Zegar pomiarowy musi być monotoniczny.",
+    "Die Messuhr muss monoton sein.",
+    "L’horloge de mesure doit être monotone.",
+    "El reloj de medición debe ser monótono.",
+    "Часы измерения должны быть монотонными."
+  ],
+  [
+    "Diagnostics root must be a real directory.",
+    "Diagnostyka wymaga zwykłego folderu.",
+    "Die Diagnose benötigt einen echten Ordner.",
+    "Le diagnostic exige un dossier réel.",
+    "El diagnóstico requiere una carpeta real.",
+    "Для диагностики нужна обычная папка."
+  ],
+  [
+    "Diagnostic path escaped its root.",
+    "Ścieżka diagnostyki wychodzi poza folder.",
+    "Diagnosepfad liegt außerhalb des Ordners.",
+    "Le chemin du diagnostic sort du dossier.",
+    "La ruta del diagnóstico sale de su carpeta.",
+    "Путь диагностики вышел за пределы папки."
+  ],
+  [
+    "Commands sent. Inspect the result in Rust.",
+    "Polecenia wysłane. Sprawdź wynik w Rust.",
+    "Befehle gesendet. Ergebnis in Rust prüfen.",
+    "Commandes envoyées. Vérifiez le résultat dans Rust.",
+    "Comandos enviados. Revisa el resultado en Rust.",
+    "Команды отправлены. Проверь результат в Rust."
+  ],
+  [
+    "Size 3 is applied without measuring its physical footprint.",
+    "Size 3 jest ustawiany bez pomiaru fizycznego śladu.",
+    "Size 3 wird ohne Messung des physischen Abdrucks eingestellt.",
+    "Size 3 est appliqué sans mesurer l’empreinte physique.",
+    "Size 3 se aplica sin medir su huella física.",
+    "Size 3 применяется без измерения физического следа."
+  ],
+  [
+    "Standard: inspect appearance and coverage in Rust.",
+    "Standard: sprawdź wygląd i pokrycie w Rust.",
+    "Standard: Aussehen und Abdeckung in Rust prüfen.",
+    "Standard : vérifiez l’apparence et la couverture dans Rust.",
+    "Standard: revisa el aspecto y la cobertura en Rust.",
+    "Standard: проверь вид и покрытие в Rust."
+  ],
+  [
+    "Standard ready. Open an image and press Start. Inspect the result in Rust.",
+    "Standard gotowy. Otwórz obraz i naciśnij Start. Sprawdź wynik w Rust.",
+    "Standard bereit. Bild öffnen und Start drücken. Ergebnis in Rust prüfen.",
+    "Standard prêt. Ouvrez une image et appuyez sur Démarrer. Vérifiez le résultat dans Rust.",
+    "Standard listo. Abre una imagen y pulsa Iniciar. Revisa el resultado en Rust.",
+    "Standard готов. Открой изображение и нажми «Начать». Проверь результат в Rust."
+  ],
+  [
+    "Standard: Size 3, Interval 0.01 and Opacity 1 applied; sliders verified.",
+    "Standard: ustawiono Size 3, Interval 0.01 i Opacity 1; suwaki potwierdzone.",
+    "Standard: Size 3, Interval 0.01 und Opacity 1 eingestellt; Regler geprüft.",
+    "Standard : Size 3, Interval 0.01 et Opacity 1 appliqués ; curseurs vérifiés.",
+    "Standard: Size 3, Interval 0.01 y Opacity 1 aplicados; controles verificados.",
+    "Standard: Size 3, Interval 0.01 и Opacity 1 применены; ползунки проверены."
+  ],
+  [
+    "Standard: regions, colors and Size 3 controls. Brush measurement is optional.",
+    "Standard: obszary, kolory i sterowanie Size 3. Pomiar pędzla jest opcjonalny.",
+    "Standard: Bereiche, Farben und Size-3-Steuerung. Pinselmessung ist optional.",
+    "Standard : zones, couleurs et réglages Size 3. La mesure du pinceau est facultative.",
+    "Standard: áreas, colores y controles Size 3. Medir el pincel es opcional.",
+    "Standard: области, цвета и управление Size 3. Измерение кисти необязательно."
+  ],
+  [
+    "Standard · round Size 3 · stable input. Footprint is not measured; inspect the result in Rust.",
+    "Standard · okrągły Size 3 · stabilne sterowanie. Ślad niezmierzony; sprawdź wynik w Rust.",
+    "Standard · runder Size 3 · stabile Eingabe. Abdruck nicht gemessen; Ergebnis in Rust prüfen.",
+    "Standard · Size 3 rond · saisie stable. Empreinte non mesurée ; vérifiez le résultat dans Rust.",
+    "Standard · Size 3 redondo · entrada estable. Huella sin medir; revisa el resultado en Rust.",
+    "Standard · круглый Size 3 · стабильный ввод. След не измерен; проверь результат в Rust."
+  ],
+  [
+    "Preparation paused. Return to Rust's editor and press Resume. Incomplete measurements were discarded; clear test traces before retrying.",
+    "Przygotowanie wstrzymane. Wróć do edytora Rust i naciśnij Wznów. Niepełne pomiary odrzucono; usuń ślady przed powtórką.",
+    "Vorbereitung pausiert. Zum Rust-Editor zurückkehren und Fortsetzen drücken. Unvollständige Messungen verworfen; Testspuren vor Wiederholung löschen.",
+    "Préparation en pause. Revenez dans l’éditeur Rust et appuyez sur Reprendre. Mesures incomplètes rejetées ; effacez les traces avant de réessayer.",
+    "Preparación en pausa. Vuelve al editor de Rust y pulsa Continuar. Mediciones incompletas descartadas; borra las marcas antes de reintentar.",
+    "Подготовка на паузе. Вернись в редактор Rust и нажми «Продолжить». Незавершённые измерения отброшены; очисти следы перед повтором."
+  ],
+  [
+    "Preparation paused. Return to Rust and continue; incomplete measurements are discarded.",
+    "Przygotowanie wstrzymane. Wróć do Rust i kontynuuj; niepełne pomiary odrzucono.",
+    "Vorbereitung pausiert. Zu Rust zurückkehren und fortsetzen; unvollständige Messungen verworfen.",
+    "Préparation en pause. Revenez dans Rust et continuez ; mesures incomplètes rejetées.",
+    "Preparación en pausa. Vuelve a Rust y continúa; mediciones incompletas descartadas.",
+    "Подготовка на паузе. Вернись в Rust и продолжай; незавершённые измерения отброшены."
+  ],
+  [
+    "Adaptive, Size 2, Speed Probe and coverage audit require separate measurements. Their speed benefit depends on the image. Standard uses Size 3 without these capabilities.",
+    "Adaptive, Size 2, Speed Probe i audyt wymagają osobnych pomiarów. Korzyść zależy od obrazu. Standard używa Size 3 bez tych funkcji.",
+    "Adaptive, Size 2, Speed Probe und Abdeckungsprüfung benötigen eigene Messungen. Der Geschwindigkeitsgewinn hängt vom Bild ab. Standard verwendet Size 3 ohne diese Funktionen.",
+    "Adaptive, Size 2, Speed Probe et l’audit nécessitent des mesures séparées. Le gain dépend de l’image. Standard utilise Size 3 sans ces fonctions.",
+    "Adaptive, Size 2, Speed Probe y la auditoría requieren mediciones separadas. La mejora depende de la imagen. Standard usa Size 3 sin estas funciones.",
+    "Adaptive, Size 2, Speed Probe и аудит требуют отдельных измерений. Выигрыш зависит от изображения. Standard использует Size 3 без этих функций."
+  ],
+  [
+    "Open Rust’s painting editor. Standard checks regions, colors and Size 3 controls. Brush measurements, Adaptive and speed are in Experimental.",
+    "Otwórz edytor Rust. Standard sprawdza obszary, kolory i Size 3. Pomiary pędzla, Adaptive i szybkość są w Eksperymentalnych.",
+    "Rust-Zeicheneditor öffnen. Standard prüft Bereiche, Farben und Size 3. Pinselmessungen, Adaptive und Geschwindigkeit sind unter Experimentell.",
+    "Ouvrez l’éditeur Rust. Standard vérifie les zones, couleurs et réglages Size 3. Mesures, Adaptive et vitesse sont dans Expérimental.",
+    "Abre el editor de Rust. Standard verifica áreas, colores y Size 3. Mediciones, Adaptive y velocidad están en Experimental.",
+    "Открой редактор Rust. Standard проверяет области, цвета и Size 3. Измерения кисти, Adaptive и скорость — в «Экспериментально»."
+  ],
+  [
+    "Standard needs no Speed Probe. Sent commands do not guarantee full coverage: inspect the result in Rust. Measured auditing is experimental.",
+    "Standard nie wymaga Speed Probe. Wysłane polecenia nie gwarantują pokrycia: sprawdź wynik w Rust. Audyt pomiarowy jest eksperymentalny.",
+    "Standard benötigt keinen Speed Probe. Gesendete Befehle garantieren keine vollständige Abdeckung: Ergebnis in Rust prüfen. Gemessene Prüfung ist experimentell.",
+    "Standard ne nécessite pas Speed Probe. Les commandes envoyées ne garantissent pas la couverture : vérifiez dans Rust. L’audit mesuré est expérimental.",
+    "Standard no necesita Speed Probe. Los comandos no garantizan cobertura completa: revisa el resultado en Rust. La auditoría medida es experimental.",
+    "Standard не требует Speed Probe. Отправленные команды не гарантируют полное покрытие: проверь результат в Rust. Измеряемый аудит экспериментальный."
+  ],
+  [
+    "Open Rust’s painting editor. Standard checks regions, colors and controls: round Size 3, Interval 0.01, Opacity 1. Full brush measurement is optional. Inspect the result in game. ESC cancels. Begin?",
+    "Otwórz edytor Rust. Standard sprawdzi obszary, kolory i ustawienia: okrągły Size 3, Interval 0.01, Opacity 1. Pomiar pędzla opcjonalny. Sprawdź wynik w grze. ESC anuluje. Rozpocząć?",
+    "Rust-Editor öffnen. Standard prüft Bereiche, Farben und Steuerung: runder Size 3, Interval 0.01, Opacity 1. Pinselmessung optional. Ergebnis im Spiel prüfen. ESC bricht ab. Beginnen?",
+    "Ouvrez l’éditeur Rust. Standard vérifie les zones, couleurs et réglages : Size 3 rond, Interval 0.01, Opacity 1. Mesure du pinceau facultative. Vérifiez dans le jeu. ESC annule. Commencer ?",
+    "Abre el editor de Rust. Standard verifica áreas, colores y controles: Size 3 redondo, Interval 0.01, Opacity 1. Medición opcional. Revisa el resultado en el juego. ESC cancela. ¿Comenzar?",
+    "Открой редактор Rust. Standard проверит области, цвета и управление: круглый Size 3, Interval 0.01, Opacity 1. Измерение кисти необязательно. Проверь результат в игре. ESC отменяет. Начать?"
+  ],
+  [
+    "Capture the active palette color swatch before painting.",
+    "Przed rysowaniem zaznacz próbkę aktywnego koloru.",
+    "Vor dem Zeichnen die aktive Farbprobe erfassen.",
+    "Capturez l’échantillon de couleur active avant de dessiner.",
+    "Captura la muestra del color activo antes de dibujar.",
+    "Захвати образец активного цвета перед рисованием."
+  ],
+  [
+    "Invalid diagnostic attachment name.",
+    "Nieprawidłowa nazwa pliku diagnostycznego.",
+    "Ungültiger Name einer Diagnosedatei.",
+    "Nom de fichier de diagnostic invalide.",
+    "Nombre de archivo de diagnóstico inválido.",
+    "Недопустимое имя файла диагностики."
+  ],
+  [
+    "Could not save the diagnostic image.",
+    "Nie udało się zapisać obrazu diagnostycznego.",
+    "Diagnosebild konnte nicht gespeichert werden.",
+    "Impossible d’enregistrer l’image de diagnostic.",
+    "No se pudo guardar la imagen de diagnóstico.",
+    "Не удалось сохранить изображение диагностики."
   ]
 ]

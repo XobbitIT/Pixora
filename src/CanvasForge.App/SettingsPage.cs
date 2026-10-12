@@ -10,6 +10,9 @@ internal sealed partial class MainWindow
         var page = FormContent();
         pages["settings"] = Scroll(page);
         page.Children.Add(Text(T("Налаштування", "Settings"), 24));
+        page.Children.Add(Button(T("Standard — Size 3","Standard — Size 3"),()=>SelectReleaseProfile(false)));
+        page.Children.Add(Button(T("Експериментально","Experimental"),()=>ShowPage("experimental")));
+        var export=AsyncButton(T("Експорт діагностики","Export diagnostics"),ExportDiagnostics);export.Tag="export-diagnostics";export.HorizontalAlignment=HorizontalAlignment.Left;page.Children.Add(export);
         page.Children.Add(Card(T("Основні налаштування", "General settings"), out var basic));
         AddCombo(basic, "profile", T("Профіль якості", "Quality profile"), new[] { "Anime / Line Art", "Photo", "Fast", "Pixel Art", "Custom" });
         var applyProfile = Button(T("Застосувати профіль", "Apply profile"), ApplyProfile);
@@ -44,7 +47,7 @@ internal sealed partial class MainWindow
             ("capture_stable_interval_ms","Інтервал кадрів, мс (40–1000)","Capture interval, ms (40–1000)")})
             AddNumber(budgets,key,T(uk,en));
         var advanced = new StackPanel();
-        page.Children.Add(new Expander { Header = T("Додаткові налаштування малювання", "Advanced painting settings"), Content = advanced });
+        if(!ReleaseProfile.Standard(settings))page.Children.Add(new Expander { Header = T("Додаткові налаштування малювання", "Advanced painting settings"), Content = advanced });
         advanced.Children.Add(Card(T("Якість зображення", "Image quality"), out var quality));
         AddCombo(quality, "fit_mode", T("Розміщення", "Image placement"), new[] { "fit square", "fit whole", "crop", "smart" }, true);
         foreach (var(key, title, english)in new[]

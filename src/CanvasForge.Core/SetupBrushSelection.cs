@@ -4,8 +4,8 @@ namespace CanvasForge.Core;
 public static class SetupBrushSelection
 {
     public const string Combined="2/3/5/7/10/15/20";
-    public static string[] SizeOptions=>BrushFootprints.Sizes.Select(Format).ToArray();
-    public static string[] Options=>new[]{"3",Combined,"3/10/20","20/30/40","1/3/10/20"}
+    public static string[] SizeOptions=>BrushFootprints.Sizes.Where(size=>size>=DrawingWorkflow.MinimumSize).Select(Format).ToArray();
+    public static string[] Options=>new[]{"3",Combined,"3/10/20","20/30/40"}
         .Concat(SizeOptions).Distinct().ToArray();
     private static string Format(double size)=>size.ToString(System.Globalization.CultureInfo.InvariantCulture);
     public static double[] Sizes(string selection,bool automatic)
@@ -14,10 +14,10 @@ public static class SetupBrushSelection
         foreach(var field in fields)
         {
             if(!double.TryParse(field,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out double size)
-                ||!BrushFootprints.Sizes.Contains(size)||sizes.Contains(size))throw new ArgumentException("Invalid calibration Sizes.");
+                ||size<DrawingWorkflow.MinimumSize||!BrushFootprints.Sizes.Contains(size)||sizes.Contains(size))throw new ArgumentException("Invalid calibration Sizes.");
             sizes.Add(size);
         }
-        // The ordinary default remains Size 3. Size 1 is opt-in.
+        // Size 3 remains the reliable ordinary default; Size 2 is the minimum.
         return automatic?sizes.Concat(new double[]{3}).Distinct().Order().ToArray():sizes.ToArray();
     }
     public static string AutomaticSelection(string selection,double working)

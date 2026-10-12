@@ -62,6 +62,11 @@ internal static class Images
         using var file = File.Create(path);
         encoder.Save(file);
     }
+    public static byte[] Png(PixelImage image)
+    {
+        var encoder=new PngBitmapEncoder();encoder.Frames.Add(BitmapFrame.Create(Bitmap(image)));
+        using var stream=new MemoryStream();encoder.Save(stream);return stream.ToArray();
+    }
 
     public static PixelImage MaterialPreview(PixelImage canvas, PaintPlan plan)
     {

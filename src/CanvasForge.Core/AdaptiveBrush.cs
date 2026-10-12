@@ -32,7 +32,7 @@ public static class AdaptiveBrush
     }
 
     public static bool CalibrationCurrent(Settings s) => (s.Mode != ColorMode.HexDirect || s.HexControlsReady)
-        && (s.Data["brush_footprints"] is not null?BrushFootprints.Read(s,s.Bool("adaptive_auto_shape")).Any(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20))
+        && (s.Data["brush_footprints"] is not null?DrawingWorkflow.PaintingProfiles(s,s.Bool("adaptive_auto_shape")).Any(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20))
             :s.Int("brush_shape_slot",3) is 3 or 4&&s.Text("brush_calibration_context") == Context(s) && Samples(s).Length >= 2);
 
     public static void Prepare(Settings s)
@@ -45,7 +45,7 @@ public static class AdaptiveBrush
     public static Settings CalibrationSettings(Settings source, double size)
     {
         if (!BrushFootprints.Sizes.Contains(size)) throw new ArgumentOutOfRangeException(nameof(size));
-        var s = source.Clone();
+        var s = ReleaseProfile.Experimental(source);
         Prepare(s);
         s.Set("adaptive_brush", false); s.Set("input_engine", "Stable");
         s.Set("fast_transfer", false);
@@ -67,7 +67,7 @@ public static class AdaptiveBrush
 
     public static void Validate(Settings s)
     {
-        if (!s.Bool("adaptive_brush")) return;
+        if (ReleaseProfile.Standard(s)||!s.Bool("adaptive_brush")) return;
         if (s.Text("coverage_mode", "Precision") != "Precision" || !s.Bool("force_precision_controls", true)
             || s.Bool("line_mode")&&!SpeedCalibration.Use(s) || s.Bool("background_fill") || (s.Bool("use_fixed_opacity", true) && s.Number("paint_opacity_value", 1) < .999))
             throw new InvalidOperationException("Адаптивний пензель потребує Precision, точних controls, Opacity 1 і вимкнених Shift-line та заповнення фону.");
@@ -86,7 +86,7 @@ public static class AdaptiveBrush
         var result = new List<(double Size, int Outer, int Inner)>();
         foreach (var row in a.OfType<JsonArray>())
         {
-            if (!TryLegacySample(row,out var size,out var outer,out var inner)) continue;
+            if (!TryLegacySample(row,out var size,out var outer,out var inner)||size<DrawingWorkflow.MinimumSize) continue;
             result.Add((size, (int)Math.Ceiling(outer / 2) + 2, Math.Max(0, (int)Math.Floor((inner - 1) / 2) - 1)));
         }
         return result.OrderByDescending(x => x.Item2).ThenByDescending(x => x.Item1).ToArray();
@@ -107,7 +107,7 @@ public static class AdaptiveBrush
     public static Dictionary<int, List<BrushStroke>> Build(PaintPlan plan, Settings s, CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();
-        s=BrushFootprints.Snapshot(s);
+        s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):s);
         if(s.Bool("adaptive_brush"))Validate(s);
         if(MeasuredColorPlan.TryBuild(plan,s,token) is { } measured)return measured.Groups;
         var basic = Coverage.Build(plan, s);

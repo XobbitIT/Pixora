@@ -38,7 +38,7 @@ internal sealed partial class MainWindow
         inputCheckRunning=true;inputCheckCancel=new();
         var completion=inputCheckDone=new(TaskCreationOptions.RunContinuationsAsynchronously);
         debounce.Stop();planCancel?.Cancel();generation++;
-        try{SetEditing(false);UpdateReady();await action();}
+        try{SetEditing(false);UpdateReady();await RunResumableCheck(action,inputCheckCancel.Token);}
         catch(OperationCanceledException) when(inputCheckCancel.IsCancellationRequested)
         {
             if(!closing)SetStatus(T("Перевірку скасовано. Очисти тестові сліди перед повтором.",

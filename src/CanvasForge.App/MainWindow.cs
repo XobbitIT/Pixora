@@ -339,8 +339,7 @@ internal sealed partial class MainWindow : Window
         {
             ("paint", T("Малювання")),
             ("capture", T("Захоплення Rust")),
-            ("adaptive", T("Пензель", "Brush")),
-            ("speed", T("Тест швидкості", "Speed Probe")),
+            ("experimental", T("Експериментально", "Experimental")),
             ("settings", T("Налаштування"))
         }
 
@@ -356,7 +355,7 @@ internal sealed partial class MainWindow : Window
         shell.Children.Add(host);
         BuildPaint();
         BuildCapture();
-        BuildAdaptive(); BuildSpeedPage(); BuildSettings();
+        BuildAdaptive(); BuildSpeedPage(); BuildExperimental(); BuildSettings();
         foreach (var p in pages.Values)
             host.Children.Add(p);
         ShowPage(currentPage);
@@ -385,6 +384,7 @@ internal sealed partial class MainWindow : Window
 
     internal void ShowPage(string page)
     {
+        if(ReleaseProfile.Standard(settings)&&page is "adaptive" or "speed")page="experimental";
         if (!pages.ContainsKey(page)) page = "paint";
         currentPage = page;
         foreach(var nav in navigation)
@@ -434,9 +434,9 @@ internal sealed partial class MainWindow : Window
         var qualityCard=Card(T("Якість і швидкість","Quality and speed"),out var quality);
         right.Children.Add(new Expander{Header=T("Якість і швидкість","Quality and speed"),Tag="painting-quality",Content=qualityCard});
         var presets=new UniformGridCompat(2);
-        foreach(var (label,cell,speed) in new[]{(T("Чітко · 1 px","Detail · 1 px"),1,"Rapid"),(T("Баланс · 3 px","Balanced · 3 px"),3,"Rapid"),(T("Швидко · 5 px","Fast · 5 px"),5,"Turbo"),(T("Чернетка · 8 px","Draft · 8 px"),8,"Max Speed")})
+        foreach(var (label,cell,speed) in new[]{(T("Чітко · 2 px","Detail · 2 px"),2,"Rapid"),(T("Баланс · 3 px","Balanced · 3 px"),3,"Rapid"),(T("Швидко · 5 px","Fast · 5 px"),5,"Turbo"),(T("Чернетка · 8 px","Draft · 8 px"),8,"Max Speed")})
         {
-            var preset=Button(label,()=>Preset(cell,speed));preset.ToolTip=T("px — деталізація зображення, а не Size пензля Rust. Пресет змінює сітку й профіль руху; звичайний робочий Size починається з 3.","px is image detail, not Rust brush Size. A preset changes the grid and movement profile; normal working Size starts at 3.");
+            var preset=Button(label,()=>Preset(cell,speed));preset.ToolTip=T("px — деталізація зображення, а не Size пензля Rust. Мінімальна деталізація та Size — 2. Пресет змінює сітку й профіль руху.","px is image detail, not Rust brush Size. Minimum detail and Size are 2. Presets change the grid and movement profile.");
             detailPresets[cell]=preset;presets.Add(preset);
         }
         quality.Children.Add(presets.Panel);
@@ -444,8 +444,9 @@ internal sealed partial class MainWindow : Window
         detailState=Text("",12,Muted);quality.Children.Add(detailState);
         AddWorkingBrush(quality);
         BuildTargetPlanningUi(quality);
-        AddCheck(quality,"fast_transfer",T("Максимальна швидкість перенесення","Maximum transfer speed"),true);
+        if(!ReleaseProfile.Standard(settings))AddCheck(quality,"fast_transfer",T("Максимальна швидкість перенесення","Maximum transfer speed"),true);
         adaptiveSummary=Text("",12,Muted);quality.Children.Add(adaptiveSummary);
+        if(ReleaseProfile.Standard(settings))adaptiveSummary.Visibility=Visibility.Collapsed;
         measuredPlanStatus=Text("",12,Warning);quality.Children.Add(measuredPlanStatus);
         measuredPlanCompare=Button(T("Менше кольорів: порівняти плани","Fewer colors: compare plans"),CompareHexPalettes);
         measuredPlanCompare.Tag="model-color-comparison";quality.Children.Add(measuredPlanCompare);
@@ -453,8 +454,8 @@ internal sealed partial class MainWindow : Window
         var advancedPainting=new StackPanel();
         advancedPainting.Children.Add(Button(T("Пензлі та Adaptive","Brushes and Adaptive"),()=>ShowPage("adaptive")));
         advancedPainting.Children.Add(Button(T("Тест швидкості й аудит","Speed Probe and audit"),ShowSpeedSetup));
-        quality.Children.Add(new Expander{Header=T("Додаткове малювання","Advanced painting"),Content=advancedPainting});
-        var timing=new StackPanel();quality.Children.Add(new Expander{Header=T("Точні параметри швидкості","Movement timing"),Content=timing});
+        quality.Children.Add(Button(T("Експериментально","Experimental"),()=>ShowPage("experimental")));
+        var timing=new StackPanel();if(!ReleaseProfile.Standard(settings))quality.Children.Add(new Expander{Header=T("Точні параметри швидкості","Movement timing"),Content=timing});
         AddCombo(timing,"speed_profile",T("Профіль руху","Movement profile"),SpeedProfile.All.Select(x=>x.Name).ToArray(),true);
         AddCombo(timing,"input_engine",T("Режим вводу","Input timing"),new[]{"Stable","Experimental 1 ms"});
         stableDelay=AddNumber(timing,"input_frame_delay_ms",T("Стабільний, мс (16–100)","Stable, ms (16–100)"));
@@ -465,12 +466,13 @@ internal sealed partial class MainWindow : Window
         eta=Text(T("Попередній розрахунок: —","Planned estimate: —"),13,Warning);
         var paintingCard=Card(T("4. Малювання","4. Painting"),out var controls);Grid.SetRow(paintingCard,1);controlColumn.Children.Add(paintingCard);
         startButton=AsyncButton(T("Почати","Start"),()=>Start(false),true);controls.Children.Add(startButton);
-        var actions=new UniformGridCompat(3);resumeButton=AsyncButton(T("Продовжити","Resume"),()=>Start(true));pauseButton=Button(T("Пауза","Pause"),()=>{if(painter is not null)painter.Paused=!painter.Paused;});
+        var actions=new UniformGridCompat(3);resumeButton=AsyncButton(T("Продовжити","Resume"),ResumeAction);pauseButton=Button(T("Пауза","Pause"),()=>{if(painter is not null)painter.Paused=!painter.Paused;});
         stopButton=Button(T("Зупинити","Stop"),CancelActiveWork);stopButton.Background=Danger;
         foreach(var action in new[]{resumeButton,pauseButton,stopButton}){action.Padding=new Thickness(5,9,5,9);action.FontSize=12;actions.Add(action);}controls.Children.Add(actions.Panel);
         progressBar=new(){Height=8,Minimum=0,Maximum=100,Foreground=Accent,Background=Input,Margin=new Thickness(0,12,0,6)};controls.Children.Add(progressBar);
         progressLabel=Text("0% · "+T("Залишилось","ETA")+" —",12,Muted);controls.Children.Add(progressLabel);controls.Children.Add(Text(T("F6 — пауза · ESC — зупинити","F6 — pause · ESC — stop"),12,Muted));
         BuildPhysicalCoverage(controls);
+        runTimeLabel=Text("",11,Muted);runTimeLabel.Tag="run-time-breakdown";controls.Children.Add(runTimeLabel);
         controls.Children.Add(eta);
         var advanced=new StackPanel();right.Children.Add(new Expander{Header=T("План і експорт","Plan and export"),Content=advanced});advanced.Children.Add(Card(T("План зображення","Image plan"),out var planDetails));
         stats=Text("—",12);planDetails.Children.Add(stats);planDetails.Children.Add(AsyncButton(T("Оновити прев’ю","Refresh preview"),BuildPlan));
@@ -556,12 +558,12 @@ internal sealed partial class MainWindow : Window
             bool valid=double.TryParse(box.Text,NumberStyles.Float,CultureInfo.InvariantCulture,out var value)&&double.IsFinite(value)&&value>=0;
             if(valid)valid=key switch
             {
-                "cell_px"=>value>=1&&value<=32&&value==Math.Truncate(value),
+                "cell_px"=>value>=2&&value<=32&&value==Math.Truncate(value),
                 "fast_path_batch_points"=>value>=1&&value<=16&&value==Math.Truncate(value),
                 "input_frame_delay_ms"=>value>=16&&value<=100,
                 "input_experimental_delay_ms"=>value>=8&&value<=16,
                 "paint_opacity_value" or "interval_value"=>value<=1,
-                "brush_size_value"=>value>=1&&value<=100,
+                "brush_size_value"=>value>=2&&value<=100,
                 "readback_polls"=>value>=24&&value<=120&&value==Math.Truncate(value),
                 "readback_attempts"=>value>=1&&value<=5&&value==Math.Truncate(value),
                 "readback_retry_pause_ms"=>value<=1000,
@@ -720,15 +722,16 @@ internal sealed partial class MainWindow : Window
         bool color=settings.Mode==ColorMode.HexDirect?cal.HexReady&&settings.HexControlsReady:settings.Palette().Count>0&&cal.Rect("palette").Valid;
         bool controls=new[]{"size","interval","opacity"}.All(x=>cal.Rect(x+"_track").Valid && cal.Rect(x+"_value_field").Valid)
             &&(settings.Mode==ColorMode.HexDirect||cal.Point("brush_tool") is not null)&&(cal.Rect("brush_shapes").Valid||cal.Point(settings.Text("brush_shape")=="Square"?"square_brush":"hard_brush") is not null);
-        var preparationState=PaintingReadiness.Read(settings,source is not null);
+        var activeSettings=EffectiveSettings;
+        var preparationState=PaintingReadiness.Read(activeSettings,source is not null);
         string? missing=preparationState.FirstIncomplete?.Problem is {} preparationProblem?T(preparationProblem):null;
         if(numberErrors.Count>0)missing=numberErrors.Values.First();
-        if(CalibrationReliability.PaintingProblem(settings) is {} visualProblem)missing??=T(visualProblem);
-        if(settings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(settings) is { } auditProblem)missing??=T(auditProblem);
+        if(CalibrationReliability.PaintingProblem(activeSettings) is {} visualProblem)missing??=T(visualProblem);
+        if(activeSettings.Bool("coverage_audit")&&CoverageAudit.SetupProblem(activeSettings) is { } auditProblem)missing??=T(auditProblem);
         RefreshWorkingBrush();
         UpdateDetailPreset();
         RefreshAdaptiveStatus();
-        if(settings.Bool("adaptive_brush"))try{AdaptiveBrush.Validate(settings);}catch(InvalidOperationException e){missing??=T(e.Message);}
+        if(activeSettings.Bool("adaptive_brush"))try{AdaptiveBrush.Validate(activeSettings);}catch(InvalidOperationException e){missing??=T(e.Message);}
         if(measuredPlanning&&plan is not null)missing??=T("Обчислюю безпечний план…","Calculating the safe plan…");
         if(measuredPlanFailed&&plan is not null)missing??=T("Розрахунок плану не завершився. Повтори підготовку зображення.","Plan calculation failed. Prepare the image again.");
         if(previewMeasuredPlan is {TargetPixels:>0,CoveredPixels:0})missing??=T("Жоден підтверджений пензель не поміщається у кольорові ділянки. Виміряй менший Size або зменш кількість кольорів.","No verified brush fits the color areas. Measure a smaller Size or reduce the color count.");
@@ -747,7 +750,7 @@ internal sealed partial class MainWindow : Window
         startButton.Content=painter is not null&&paintTask is {IsCompleted:false}?T("Малювання триває","Painting in progress"):
             startPreparing?T("Готую малювання…","Preparing painting…"):T("Почати","Start");
         var resumeProblem=Painting?T("Малювання вже триває.","Painting is already running."):ResumeProblem();
-        resumeButton.IsEnabled=!Painting&&available&&resumeProblem is null;
+        resumeButton.IsEnabled=preparationResume is not null||!Painting&&available&&resumeProblem is null;
         resumeButton.ToolTip=resumeProblem??T("Продовжити збережений план","Continue the saved plan");
         pauseButton.IsEnabled=painter is not null&&paintTask is {IsCompleted:false}&&!setupRunning&&!inputCheckRunning;stopButton.IsEnabled=Painting;
         string State(bool value)=>value?T("готово","ready"):T("очікує","pending");
@@ -1031,8 +1034,8 @@ internal sealed partial class MainWindow : Window
                 ApplyPaintProgress(p);
                 if(snapshot.Bool("minimize",true)&&p.Phase==PaintPhase.Countdown)WindowState=WindowState.Minimized;
             }
-        }), cancellation.Token);
-        BeginCoverageCheck(true);
+        }), cancellation.Token,diagnosticSource:source);
+        BeginCoverageCheck(!ReleaseProfile.Standard(snapshot));
         SetEditing(false);
         SetStatus(T("Готую штрихи та час. Можна зупинити підготовку.","Preparing strokes and timing. You can stop preparation."));
         if (!resume && File.Exists(ResumePath))
@@ -1087,7 +1090,7 @@ internal sealed partial class MainWindow : Window
             SetEditors(page, enabled);
         SetPaintButtons(pages["paint"], enabled);
         startButton.IsEnabled = enabled;
-        resumeButton.IsEnabled = enabled && File.Exists(ResumePath);
+        resumeButton.IsEnabled = preparationResume is not null||enabled && File.Exists(ResumePath);
         pauseButton.IsEnabled = painter is not null&&paintTask is {IsCompleted:false}&&!setupRunning&&!inputCheckRunning;
         stopButton.IsEnabled = !enabled;
         if (enabled) UpdateReady();

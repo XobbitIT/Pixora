@@ -10,6 +10,7 @@ internal sealed partial class MainWindow
     private TextBlock edgeMergeStatus=new();
     private void BuildTargetPlanningUi(StackPanel quality)
     {
+        if(ReleaseProfile.Standard(settings))return;
         var controls=new StackPanel();
         AddCheck(controls,"edge_merge",T("Об’єднувати тонкі кольорові краї","Merge thin color edges"),true);
         AddNumber(controls,"edge_merge_thickness",T("Максимальна товщина краю, px","Maximum edge thickness, px"),true);
