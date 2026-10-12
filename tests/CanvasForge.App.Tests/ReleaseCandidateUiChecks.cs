@@ -20,8 +20,10 @@ internal static partial class Program
         Console.WriteLine("PASS rc-standard-minimal-readiness-and-navigation");
         window.ShowPage("settings");
         Render(window,Path.Combine(output,"rc-standard-settings.png"),1280,780);
-        Assert(Descendants(Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"]).OfType<Button>().Any(b=>Equals(b.Tag,"export-diagnostics")),"Diagnostic export action absent");
-        Console.WriteLine("PASS rc-diagnostics-action");
+        Assert(!LogicalNodes(Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"]).OfType<Button>().Any(b=>Equals(b.Tag,"export-diagnostics")),"Removed diagnostic export is still exposed");
+        Assert(LogicalNodes(Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"]).OfType<TextBlock>().Any(b=>Equals(b.Tag,"palette-swatch-location")&&b.Text.Contains("1605")),"Saved active swatch is not visible in settings");
+        Assert(!LogicalNodes(Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"]).OfType<ComboBox>().Any(b=>Equals(b.Tag,"control_confirmation")),"Standard exposes an ignored confirmation selector");
+        Console.WriteLine("PASS rc-swatch-location-and-simplified-settings");
         var saved=Field<Settings>(window,"settings");Assert(saved.Bool("adaptive_brush")&&saved.Text("precision_brush_size")=="2","Standard destroyed saved experimental preferences");
         Console.WriteLine("PASS rc-experimental-preferences-retained");
         var pending=new TaskCompletionSource<bool>();SetField(window,"preparationResume",pending);Invoke(window,"UpdateReady");

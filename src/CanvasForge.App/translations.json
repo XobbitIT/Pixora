@@ -1497,5 +1497,13 @@
   "Standard не потребує тесту швидкості. Виконані команди не гарантують повне покриття: перевір результат у Rust. Виміряний аудит доступний експериментально.": "Standard needs no Speed Probe. Sent commands do not guarantee full coverage: inspect the result in Rust. Measured auditing is experimental.",
   "Не вдалося зберегти зображення діагностики.": "Could not save the diagnostic image.",
   "Захопи зразок активного кольору палітри перед малюванням.": "Capture the active palette color swatch before painting.",
-  "Неправильна назва файлу діагностики.": "Invalid diagnostic attachment name."
+  "Неправильна назва файлу діагностики.": "Invalid diagnostic attachment name.",
+  "Зразок активного кольору: ": "Active color sample: ",
+  "Захопити активний колір вручну": "Capture active color manually",
+  "Для повтору натисни «Продовжити».": "Press Resume to retry.",
+  "Standard використовує круглий Size 3, Interval 0.01 та Opacity 1. Значення застосовуються автоматично й перевіряються за смугами; вимірювання відбитка та прискорення доступні в «Експериментально».": "Standard uses round Size 3, Interval 0.01 and Opacity 1. Values are applied automatically and verified against the sliders; imprint measurement and acceleration are available under Experimental.",
+  "Зразок активного кольору буде знайдено автоматично після вибору палітри.": "The active color sample will be found automatically after palette selection.",
+  "palette_swatch_unavailable": "Active color sample unavailable",
+  "Активний зразок кольору не видно. Прибери панелі, які перекривають прев’ю пензля Rust, повернись у гру й натисни F6. Малювання призупинене; прогрес збережено.": "The active color sample is hidden. Remove panels covering Rust’s brush preview, return to the game and press F6. Painting is paused; progress is retained.",
+  "Активний зразок кольору не видно. Прибери панелі, які перекривають прев’ю пензля Rust. Підготовку призупинено; натисни «Продовжити», щоб повторити перевірку.": "The active color sample is hidden. Remove panels covering Rust’s brush preview. Preparation is paused; press Resume to retry."
 }

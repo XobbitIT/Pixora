@@ -25,9 +25,9 @@ internal static class ReleaseCandidateChecks
             var s=Settings.Defaults();Require(!PaintingReadiness.Read(s,true).CanPaint);s.Set("control_confirmation","Visual");
             Require(VisualControlVerification.ReadNumber(DrawingWorkflow.Effective(s),()=>throw new Exception("Clipboard must not be read")) is null);
         });
-        test("RC Standard requires the applied palette swatch",()=>{
+        test("RC Standard permits missing palette swatch to reach strict runtime recovery",()=>{
             var s=Settings.Defaults();var c=s.Calibration;c.SetRect("canvas",new(0,0,64,64));c.SetRect("palette",new(100,0,140,160));s.SetCalibration(c);s.SetPalette([new(new(0,0,0),new(105,5),"main")]);
-            Require(PaintingReadiness.Read(s,true).Steps.Single(p=>p.Key=="colors").State!=PreparationState.Ready);c.SetRect("palette_swatch",new(150,0,155,5));s.SetCalibration(c);Require(PaintingReadiness.Read(s,true).Steps.Single(p=>p.Key=="colors").State==PreparationState.Ready);
+            Require(PaintingReadiness.Read(s,true).Steps.Single(p=>p.Key=="colors").State==PreparationState.Ready);c.SetRect("palette_swatch",new(150,0,155,5));s.SetCalibration(c);Require(PaintingReadiness.Read(s,true).Steps.Single(p=>p.Key=="colors").State==PreparationState.Ready);
         });
         test("RC Standard stage flow excludes optional physical trials",()=>{
             var seen=new List<SetupStage>();SetupSequence.Run((stage,_)=>{seen.Add(stage);return Task.CompletedTask;},(_,_,_)=>{},default,SetupSequence.StandardStages).GetAwaiter().GetResult();

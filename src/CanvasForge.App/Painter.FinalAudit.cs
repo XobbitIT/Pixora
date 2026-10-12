@@ -11,6 +11,35 @@ internal sealed partial class Painter
     private int[]? finalAuditLabels;
     private string? finalAuditDirectory,finalAuditProblem;
     private int skippedPaletteOperations;
+    private string? pendingBaselineIdentity;
+    private bool paintOwnershipPending;
+
+    private void CommitPaintOwnership()
+    {
+        if(checkpoint?.BeginPaint()!=true)return;
+        paintOwnershipPending=true;
+    }
+    internal static void PersistAfterRelease(Action release,Action persist){release();persist();}
+    private void PersistPaintOwnership()
+    {
+        if(!paintOwnershipPending)return;paintOwnershipPending=false;
+        if(pendingBaselineIdentity is {} identity)
+        {
+            try
+            {
+                FinalAuditBaseline.BeginRun(logPath,identity,false);
+                if(finalAuditBefore is not null)
+                {
+                    Images.Save(finalAuditBefore,FinalAuditBaseline.PathFor(logPath,identity));
+                    FinalAuditBaseline.Bind(logPath,identity,checkpoint!.Latest.RunKey!);
+                }
+            }
+            catch(Exception e) when(e is IOException or UnauthorizedAccessException)
+            {finalAuditProblem=e.Message;Log("final_audit_baseline_unavailable",new{reason=finalAuditProblem});}
+            pendingBaselineIdentity=null;
+        }
+        FlushCheckpoint("first_paint_input");
+    }
 
     private PixelImage CaptureForFinalAudit(ScreenRect canvas)
     {
@@ -26,19 +55,19 @@ internal sealed partial class Painter
         {
             finalAuditLabels=FinalCoverageAudit.Labels(plan,canvas);
             Directory.CreateDirectory(finalAuditDirectory);
-            // Fresh START invalidates the prior run before writing a checkpoint.
-            // RESUME may reuse only the baseline left by that current run.
+            // Keep the old run's baseline until new paint input is delivered.
             string baseline=FinalAuditBaseline.PathFor(logPath,plan.Identity);
             if(resume)
             {
-                if(!File.Exists(baseline)){finalAuditProblem="Initial Canvas snapshot for this plan is unavailable.";return;}
+                if(!File.Exists(baseline)||!FinalAuditBaseline.Matches(logPath,plan.Identity,checkpoint?.Latest.RunKey))
+                {finalAuditProblem="Initial Canvas snapshot for this plan is unavailable.";return;}
                 finalAuditBefore=Images.Load(baseline);
                 if(finalAuditBefore.Width!=canvas.Width||finalAuditBefore.Height!=canvas.Height)
                 {finalAuditBefore=null;finalAuditProblem="Initial Canvas dimensions do not match.";}
             }
             else
             {
-                finalAuditBefore=CaptureForFinalAudit(canvas);Images.Save(finalAuditBefore,baseline);
+                pendingBaselineIdentity=plan.Identity;finalAuditBefore=CaptureForFinalAudit(canvas);
             }
         }
         catch(Exception e) when(e is InvalidOperationException or ArgumentException or IOException or UnauthorizedAccessException)

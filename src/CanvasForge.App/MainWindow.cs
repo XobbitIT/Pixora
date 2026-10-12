@@ -250,6 +250,7 @@ internal sealed partial class MainWindow : Window
         buildingUi = true;
         readers.Clear();settingWriters.Clear();allSetupButtons.Clear();setupSummaries.Clear();setupRows.Clear();
         navigation.Clear();numberErrors.Clear();detailPresets.Clear();
+        paletteSwatchLabels.Clear();
         pages.Clear();
         var root = new Grid
         {
@@ -1038,8 +1039,6 @@ internal sealed partial class MainWindow : Window
         BeginCoverageCheck(!ReleaseProfile.Standard(snapshot));
         SetEditing(false);
         SetStatus(T("Готую штрихи та час. Можна зупинити підготовку.","Preparing strokes and timing. You can stop preparation."));
-        if (!resume && File.Exists(ResumePath))
-            File.Delete(ResumePath);
         paintTask = Task.Run(() => worker.Run(activePlan, state));
         UpdateReady();
         bool transferCompleted=false;
@@ -1064,6 +1063,7 @@ internal sealed partial class MainWindow : Window
         }
         finally
         {
+            SaveRecoveredPaletteSwatch(worker);
             painter?.Dispose();
             painter = null;
             Native.Release();

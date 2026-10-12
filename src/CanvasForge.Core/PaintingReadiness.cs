@@ -30,7 +30,8 @@ public static class PaintingReadiness
         bool canvas = c.Rect("canvas").Valid;
         bool colors = s.Mode == ColorMode.HexDirect ? c.HexReady && s.HexControlsReady
             : !s.Bool("palette_target_failed") && c.Rect("palette").Valid && s.Palette().Count > 0 && s.Palette().All(p => p.ClickPoint is not null);
-        if(ReleaseProfile.Standard(s)&&s.Mode==ColorMode.RustPalette)colors&=c.Rect("palette_swatch").Valid;
+        // An independent active swatch is verified/recovered at runtime before
+        // any stroke. A missing/stale saved rectangle must not prevent recovery.
         bool controls = layoutReady && !s.Bool("controls_validation_failed") && new[] { "size", "interval", "opacity" }.All(k => c.Rect(k + "_track").Valid && c.Rect(k + "_value_field").Valid)
             && (s.Mode == ColorMode.HexDirect || c.Point("brush_tool") is not null)
             && (c.Rect("brush_shapes").Valid || c.Point(s.Text("brush_shape") == "Square" ? "square_brush" : "hard_brush") is not null);

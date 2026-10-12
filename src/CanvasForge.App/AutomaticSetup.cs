@@ -225,8 +225,6 @@ internal sealed partial class MainWindow
                         await Capture("palette",T("ПАЛІТРА 4×16","PALETTE 4×16"));
                         await TestPaletteTargets();
                     }
-                    if(!settings.Calibration.Rect("palette_swatch").Valid)
-                        await Capture("palette_swatch",T("Виділи зразок активного кольору Rust для перевірки після вибору палітри.","Select Rust's active color swatch to verify palette selections."));
                 }
                 break;
             case SetupStage.Controls:await TestControls();break;

@@ -2402,6 +2402,7 @@ ReviewRegressionChecks.Run(Test);
 CalibrationReliabilityChecks.Run(Test);
 WorkingSizePolicyChecks.Run(Test);
 ReleaseCandidateChecks.Run(Test);
+ReleaseLiveFixChecks.Run(Test);
 ExecutionTimingChecks.Run(Test);
 MeasuredColorChecks.Run(Test);
 PreparationAndPaletteChecks.Run(Test);

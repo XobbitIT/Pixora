@@ -7950,5 +7950,77 @@
     "Impossible d’enregistrer l’image de diagnostic.",
     "No se pudo guardar la imagen de diagnóstico.",
     "Не удалось сохранить изображение диагностики."
+  ],
+  [
+    "Active color sample: ",
+    "Próbka aktywnego koloru: ",
+    "Aktive Farbprobe: ",
+    "Échantillon de couleur active : ",
+    "Muestra del color activo: ",
+    "Образец активного цвета: "
+  ],
+  [
+    "Capture active color manually",
+    "Przechwyć aktywny kolor ręcznie",
+    "Aktive Farbe manuell erfassen",
+    "Capturer la couleur active manuellement",
+    "Capturar el color activo manualmente",
+    "Захватить активный цвет вручную"
+  ],
+  [
+    "Invalid palette swatch discovery frames.",
+    "Nieprawidłowe klatki wykrywania próbki palety.",
+    "Ungültige Bilder für die Farbprobenerkennung.",
+    "Images de détection de l’échantillon invalides.",
+    "Fotogramas no válidos para detectar la muestra.",
+    "Некорректные кадры поиска образца палитры."
+  ],
+  [
+    "Press Resume to retry.",
+    "Naciśnij Wznów, aby spróbować ponownie.",
+    "Zum erneuten Versuch Fortsetzen drücken.",
+    "Appuyez sur Reprendre pour réessayer.",
+    "Pulsa Reanudar para volver a intentarlo.",
+    "Нажми «Продолжить», чтобы повторить."
+  ],
+  [
+    "Standard uses round Size 3, Interval 0.01 and Opacity 1. Values are applied automatically and verified against the sliders; imprint measurement and acceleration are available under Experimental.",
+    "Standard używa okrągłego pędzla Size 3, Interval 0.01 i Opacity 1. Wartości są stosowane automatycznie i sprawdzane na suwakach; pomiar śladu oraz przyspieszenie są w sekcji Eksperymentalne.",
+    "Standard verwendet einen runden Pinsel mit Size 3, Interval 0.01 und Opacity 1. Werte werden automatisch gesetzt und an den Reglern geprüft; Abdruckmessung und Beschleunigung sind unter Experimentell verfügbar.",
+    "Standard utilise un pinceau rond Size 3, Interval 0.01 et Opacity 1. Les valeurs sont appliquées automatiquement et vérifiées sur les curseurs ; mesure de l’empreinte et accélération sont dans Expérimental.",
+    "Standard usa un pincel redondo Size 3, Interval 0.01 y Opacity 1. Los valores se aplican automáticamente y se verifican con los controles; la medición de huellas y la aceleración están en Experimental.",
+    "Standard использует круглый Size 3, Interval 0.01 и Opacity 1. Значения применяются автоматически и проверяются по ползункам; измерение отпечатка и ускорение доступны в «Экспериментально»."
+  ],
+  [
+    "The active color sample will be found automatically after palette selection.",
+    "Próbka aktywnego koloru zostanie znaleziona automatycznie po wyborze palety.",
+    "Die aktive Farbprobe wird nach der Palettenauswahl automatisch gefunden.",
+    "L’échantillon actif sera trouvé automatiquement après la sélection de la palette.",
+    "La muestra activa se localizará automáticamente tras seleccionar la paleta.",
+    "Образец активного цвета будет найден автоматически после выбора палитры."
+  ],
+  [
+    "Active color sample unavailable",
+    "Próbka aktywnego koloru niedostępna",
+    "Aktive Farbprobe nicht verfügbar",
+    "Échantillon actif indisponible",
+    "Muestra activa no disponible",
+    "Образец активного цвета недоступен"
+  ],
+  [
+    "The active color sample is hidden. Remove panels covering Rust’s brush preview, return to the game and press F6. Painting is paused; progress is retained.",
+    "Próbka aktywnego koloru jest ukryta. Usuń panele zasłaniające podgląd pędzla Rust, wróć do gry i naciśnij F6. Malowanie jest wstrzymane; postęp zachowano.",
+    "Die aktive Farbprobe ist verdeckt. Entferne die Panels über der Rust-Pinselvorschau, kehre ins Spiel zurück und drücke F6. Das Malen ist pausiert; der Fortschritt bleibt erhalten.",
+    "L’échantillon actif est masqué. Retirez les panneaux couvrant l’aperçu du pinceau Rust, revenez au jeu et appuyez sur F6. Le dessin est en pause ; la progression est conservée.",
+    "La muestra activa está oculta. Retira los paneles que cubren la vista previa del pincel de Rust, vuelve al juego y pulsa F6. El dibujo está en pausa; el progreso se conserva.",
+    "Образец активного цвета не виден. Убери панели, перекрывающие превью кисти Rust, вернись в игру и нажми F6. Рисование приостановлено; прогресс сохранён."
+  ],
+  [
+    "The active color sample is hidden. Remove panels covering Rust’s brush preview. Preparation is paused; press Resume to retry.",
+    "Próbka aktywnego koloru jest ukryta. Usuń panele zasłaniające podgląd pędzla Rust. Przygotowanie jest wstrzymane; naciśnij Wznów, aby spróbować ponownie.",
+    "Die aktive Farbprobe ist verdeckt. Entferne die Panels über der Rust-Pinselvorschau. Die Vorbereitung ist pausiert; zum erneuten Versuch Fortsetzen drücken.",
+    "L’échantillon actif est masqué. Retirez les panneaux couvrant l’aperçu du pinceau Rust. La préparation est en pause ; appuyez sur Reprendre pour réessayer.",
+    "La muestra activa está oculta. Retira los paneles que cubren la vista previa del pincel de Rust. La preparación está en pausa; pulsa Reanudar para volver a intentarlo.",
+    "Образец активного цвета не виден. Убери панели, перекрывающие превью кисти Rust. Подготовка приостановлена; нажми «Продолжить», чтобы повторить проверку."
   ]
 ]

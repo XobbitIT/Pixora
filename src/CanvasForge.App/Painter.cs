@@ -116,11 +116,11 @@ internal sealed partial class Painter : IDisposable
             Log("input_pause",new{paused=Paused,reason="f6"});
         }
         f6Held = f6;
-        if (Native.GetForegroundWindow() != window&&!Paused)
+        var foreground=Native.GetForegroundWindow();
+        if (foreground != window&&!Paused)
         {
-            Paused = true;
-            pauseReason="focus_lost";
-            Log("input_pause",new{paused=true,reason=pauseReason});
+            InputFocus.Pause(window,foreground,()=>{Paused=true;pauseReason="focus_lost";},Native.Release,
+                evidence=>Log("input_pause",new{paused=true,reason=pauseReason,evidence.Active,evidence.Expected}));
         }
         if (!forceGeometry&&Environment.TickCount64 < nextSafety)
             return;
@@ -146,7 +146,7 @@ internal sealed partial class Painter : IDisposable
         verifiedControls.Clear();
         FlushCheckpoint("pause");
         var start = clock.Elapsed.TotalSeconds;
-        report(new(0, 0, 0, 0, "Пауза — повернись у Rust і натисни F6."));
+        report(new(0, 0, 0, 0, pauseReason=="palette_swatch_unavailable"?PaletteSwatchPauseMessage:"Пауза — повернись у Rust і натисни F6."));
         runTimes?.Pause();
         try
         {
@@ -556,24 +556,30 @@ internal sealed partial class Painter : IDisposable
         var swatch = settings.Calibration.Rect("palette_swatch");
         VerifyPaletteTarget(entry, point);
         PaletteAppliedEvidence? applied=null;
-        for (var attempt = 0; attempt < 3; attempt++)
+        for (var attempt = 0; CanReusePaletteSwatch(swatch) && attempt < 3; attempt++)
         {
             Click(point);
             Delay(ColorDelay() + attempt * .10);
-            if (!swatch.Valid)
+            if (!PaletteSwatchDiscovery.Independent(swatch,windowRect,SwatchExclusions()))
             {
                 // The target cell was checked before input. Do not mislabel
                 // that evidence as an active-color or final-paint RGB proof.
                 Log("palette", new { target = entry.Color.Hex, point, attempt, verified = false,
                     targetVerified = true, verification = "palette-cell", reason = "active swatch unavailable; painted RGB unverified" });
-                if(requireAppliedProof)throw new PaletteAppliedException(new(entry.Color,null,null,swatch));
+                if(requireAppliedProof)break;
                 return;
             }
             applied=PaletteSelection.Applied(entry.Color,swatch,area=>{CheckBoundary();return Native.Median(area);},()=>Delay(.08));
             Log("palette_cell_proof",new{point,attempt,evidence=applied,proofSource="active swatch after selection",tolerance=12,activeColorVerified=applied.Passed,paintedRgbVerified=false});
             if(applied.Passed)return;
         }
-        throw new PaletteAppliedException(applied??new(entry.Color,null,null,swatch));
+        if(TryRecoverPaletteSwatch(entry,point))return;
+        // The target is verified; the active output is hidden or stale. Stop
+        // sending paint, retain the run and let the user expose it then resume.
+        Native.Release();Paused=true;pauseReason="palette_swatch_unavailable";
+        Log("input_pause",new{paused=true,reason=pauseReason,evidence=applied,checkpointRetained=checkpoint?.OwnsRun!=true});
+        if(probeMode)throw new PreparationInterruptedException(PaletteSwatchSetupMessage);
+        throw new InputInterrupted();
     }
 
     private void VerifyPaletteTarget(PaletteEntry entry, ScreenPoint point)
@@ -698,7 +704,6 @@ internal sealed partial class Painter : IDisposable
     {
         if(PaintingReadiness.BrushProblem(settings) is {} calibrationProblem)throw new InvalidOperationException(calibrationProblem);
         token.ThrowIfCancellationRequested();
-        if(ReleaseProfile.Standard(settings)&&plan.Mode==ColorMode.RustPalette&&!settings.Calibration.Rect("palette_swatch").Valid)throw new InvalidOperationException("Capture the active palette color swatch before painting.");
         clock.Start();runTimes=new(()=>clock.Elapsed.TotalSeconds);
         try
         {
@@ -738,9 +743,8 @@ internal sealed partial class Painter : IDisposable
         double nextReport=0;
         timing=new(PaintTimingPlan.Build(settings,groups,order,resume?.Group??0,resume?.Line??0,token));
         timingDone=done;timingTotal=total;timingPhase=PaintPhase.Countdown;
-        if(!ReleaseProfile.Standard(settings))FinalAuditBaseline.BeginRun(logPath,plan.Identity,resume is not null);
-        checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0));
-        FlushCheckpoint("start");
+        checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0){RunKey=Guid.NewGuid().ToString("N")},deferUntilPaint:resume is null);
+        if(resume is not null)FlushCheckpoint("resume");
         bool completed = false;
         var highResolutionTimer = Native.BeginHighResolutionTimer();
         try
@@ -761,8 +765,6 @@ internal sealed partial class Painter : IDisposable
             if (!Native.IsRust(window))
                 throw new InvalidOperationException("Canvas повинен належати вікну Rust.");
             Native.SetForegroundWindow(window);
-            if (Native.GetForegroundWindow() != window)
-                throw new InvalidOperationException("Поверни фокус у Rust і повтори START.");
             WaitReady();
             Log("start", new { version = BuildInfo.Version, commit = BuildInfo.GitCommit, buildDate = BuildInfo.BuildDate, inputEngine = settings.Text("input_engine", "Stable"), delayTransport=DelayTimer.Transport, fastTransfer = settings.Bool("fast_transfer"), fastMotion = TransferSchedule.Fast(settings), calibratedMotion=SpeedCalibration.Use(settings), coverageAudit=settings.Bool("coverage_audit"), motionTransport = SpeedCalibration.Use(settings)?"SendInput probe verified":TransferSchedule.Fast(settings)?"SendInput dense path":"standard", motionRevision=StrokeMotion.Revision, timingRevision=StrokeTiming.Revision, highResolutionTimer, probeRevision=SpeedCalibration.Revision, pathPacketPoints=StrokeMotion.PacketSize(settings), resumeGroup=resume?.Group??0,resumeLine=resume?.Line??0,resumeDone=resume?.Done??0, frameMs = StrokeTiming.Frame(settings) * 1000, controlFrameMs=StrokeTiming.ControlFrame(settings)*1000, releaseMs = StrokeTiming.Release(settings) * 1000, mode = plan.Mode.ToString(), groups = order.Count, batches = total, sourceStrokes = groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes), canvas = settings.Calibration.Rect("canvas") });
             BeginTiming(PaintTimingPlan.Setup,PaintPhase.Preparing,"Налаштовую пензель…");
@@ -1010,7 +1012,7 @@ internal sealed partial class Painter : IDisposable
             BeginTiming(PaintTimingPlan.Finish,PaintPhase.Finishing,"Завершую перенесення…");
             double finishStart=ActiveSeconds;
             FinishControls(settings, () => Native.GetForegroundWindow() == window, value => Slider("opacity", value));
-            if (File.Exists(checkpointPath))
+            if (checkpoint.OwnsRun && File.Exists(checkpointPath))
                 File.Delete(checkpointPath);
             RestoreLastStrokeCursor();
             timing.Complete(PaintTimingPlan.Finish,ActiveSeconds-finishStart);
@@ -1050,6 +1052,8 @@ internal sealed partial class Painter : IDisposable
 
     private void Draw(ScreenLine line, SpeedProfile speed, bool reverse,SpeedSample? sample)
     {
+        try
+        {
         if(sample is not null)
         {
             // Probe validates left-to-right / top-to-bottom. Preserve that direction.
@@ -1060,11 +1064,14 @@ internal sealed partial class Painter : IDisposable
         }
         StandardStrokeMotion.Draw(line,settings,speed,reverse,motionInput);
         lastPaintPoint=Native.Cursor();
+        }
+        finally{PersistAfterRelease(Native.Release,PersistPaintOwnership);}
     }
 
     private void DrawBatch(PaintBatch batch,SpeedProfile speed)
     {
-        StrokeMotion.Draw(batch,settings,speed,motionInput);lastPaintPoint=Native.Cursor();
+        try{StrokeMotion.Draw(batch,settings,speed,motionInput);lastPaintPoint=Native.Cursor();}
+        finally{PersistAfterRelease(Native.Release,PersistPaintOwnership);}
     }
 
     private void MoveCursor(ScreenPoint point)
@@ -1094,7 +1101,7 @@ internal sealed partial class Painter : IDisposable
             if(owner.Paused){if(owner.probeMode)owner.CheckProbe();throw new InputInterrupted();}
             owner.MovePathMeasured(points);
         }
-        public void Button(bool up){if(!up)owner.CheckBoundary();Native.Mouse(up);}
+        public void Button(bool up){if(!up)owner.CheckBoundary();Native.Mouse(up);if(!up)owner.CommitPaintOwnership();}
         public void Shift(bool up){if(!up)owner.CheckBoundary();Native.Key(0x10,up);}
         public void Wait(double seconds) => owner.Delay(seconds);
     }

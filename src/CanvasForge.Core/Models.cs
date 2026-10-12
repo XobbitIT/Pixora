@@ -542,6 +542,13 @@ public static class PlanIdentity
             && (settings.Text("coverage_mode", "Precision") != "Precision" || !settings.Bool("force_precision_controls", true)))
             hash.AppendData(System.Text.Encoding.UTF8.GetBytes(AutomaticBrush.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
+        // Recovering the verification display changes no color or stroke. Keep
+        // STOP/RESUME identity stable when its sample is relocated in the UI.
+        if(paintSettings["calibration"] is JsonObject calibration)
+        {
+            foreach(var key in calibration.Select(p=>p.Key).Where(k=>k.StartsWith("palette_swatch_",StringComparison.Ordinal)).ToArray())calibration.Remove(key);
+            if(calibration.Count==0)paintSettings.Remove("calibration");
+        }
         if(!settings.Bool("edge_merge",true))
         {paintSettings.Remove("edge_merge");paintSettings.Remove("edge_merge_thickness");}
         else hash.AppendData(System.Text.Encoding.UTF8.GetBytes(EdgeRegionMerge.Revision));

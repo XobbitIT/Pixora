@@ -1,3 +1,3 @@
-Pixora 1.0.14-rc.1
+Pixora 1.0.14-rc.2
 
-Release candidate: release/pixora-1.0.14-rc; tag v1.0.14-rc.1. Exact commit and runtime SHA are in Build_Manifest.json. Standard Size 3 default; Size 2, Adaptive, Speed Probe and coverage audit experimental. Size 1 archived only. No RC Rust test performed by the agent. User runtime excludes source/testing/reviews/personal logs. Full refactor deferred.
+Branch release/pixora-1.0.14-rc; tag v1.0.14-rc.2. Exact commit/SHA in Build_Manifest.json. RC1 live blockers: strict two-color swatch recovery, focus context/pause, deferred checkpoint and RunKey-bound baseline. Standard Size3 default; Adaptive/Size2/SpeedProbe/audit experimental. Size1 archived. Diagnostic export UI removed. No RC2 Rust test by agent; RC1 Size3 PNGs replayed offline. User package excludes source/testing/reviews/personal data. Full refactor deferred.

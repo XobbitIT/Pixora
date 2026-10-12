@@ -22,27 +22,18 @@ internal sealed partial class MainWindow
         foreach(var (key,uk,en) in new[]{("adaptive","Пензлі та Adaptive","Brushes and Adaptive"),("speed","Тест швидкості й аудит","Speed Probe and audit")})
         {var b=Button(T(uk,en),()=>ShowPage(key));b.IsEnabled=!ReleaseProfile.Standard(settings);page.Children.Add(b);}
     }
-    private async Task ExportDiagnostics()
-    {
-        var dialog=new Microsoft.Win32.SaveFileDialog{Filter="ZIP (*.zip)|*.zip",FileName="Pixora-diagnostics-"+DateTime.Now.ToString("yyyyMMdd-HHmmss")+".zip",OverwritePrompt=true};
-        if(dialog.ShowDialog(this)!=true)return;
-        Save();var attachments=new Dictionary<string,byte[]>();
-        if(source is not null)attachments["current/source.png"]=Images.Png(source);
-        if(plan is not null)attachments["current/target.png"]=Images.Png(plan.Preview);
-        await Task.Run(()=>DiagnosticBundle.Export(folder,dialog.FileName,BuildInfo.Full,attachments:attachments));
-        SetStatus(T("Діагностику збережено: ","Diagnostics saved: ")+dialog.FileName);
-    }
     private TaskCompletionSource<bool>? preparationResume;
     private async Task ResumeAction()
     {
         if(preparationResume is { } pending){pending.TrySetResult(true);return;}
         await Start(true);
     }
-    private async Task WaitPreparationResume(CancellationToken token)
+    private async Task WaitPreparationResume(CancellationToken token,string? reason=null)
     {
         Native.Release();preparationResume=new(TaskCreationOptions.RunContinuationsAsynchronously);
         SetStatus(T("Підготовку призупинено. Повернись у редактор Rust і натисни «Продовжити». Незавершені вимірювання відкинуто; перед повтором очисти тестові сліди.",
             "Preparation paused. Return to Rust's editor and press Resume. Incomplete measurements were discarded; clear test traces before retrying."));
+        if(!string.IsNullOrWhiteSpace(reason))SetStatus(T(reason)+"\n"+T("Для повтору натисни «Продовжити».","Press Resume to retry."));
         ShowPage("paint");Show();Activate();resumeButton.IsEnabled=true;stopButton.IsEnabled=true;
         try{await preparationResume.Task.WaitAsync(token);}
         finally{preparationResume=null;resumeButton.IsEnabled=false;}
@@ -50,7 +41,7 @@ internal sealed partial class MainWindow
     private async Task RunResumableCheck(Func<Task> action,CancellationToken token)
     {
         for(;;)try{await action();return;}
-        catch(PreparationInterruptedException)
+        catch(PreparationInterruptedException e)
         {
             // The interrupted worker unwinds its clipboard lease and held input
             // before this wait. Restart a complete transaction, never a partial
@@ -58,7 +49,7 @@ internal sealed partial class MainWindow
             var interrupted=setupResults.Where(p=>p.Value.State==SetupStageState.Running).Select(p=>p.Key).ToArray();
             foreach(var stage in interrupted)setupResults[stage]=(SetupStageState.Paused,"");
             if(setupRunning)RefreshSetupStatus();
-            await WaitPreparationResume(token);
+            await WaitPreparationResume(token,e.Message);
             foreach(var stage in interrupted)setupResults[stage]=(SetupStageState.Running,"");
             if(setupRunning)RefreshSetupStatus();
             if(setupWorkspace is not null)setupWorkspace=new(settings.Calibration.Rect("canvas"));

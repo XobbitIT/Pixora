@@ -12,7 +12,6 @@ internal sealed partial class MainWindow
         page.Children.Add(Text(T("Налаштування", "Settings"), 24));
         page.Children.Add(Button(T("Standard — Size 3","Standard — Size 3"),()=>SelectReleaseProfile(false)));
         page.Children.Add(Button(T("Експериментально","Experimental"),()=>ShowPage("experimental")));
-        var export=AsyncButton(T("Експорт діагностики","Export diagnostics"),ExportDiagnostics);export.Tag="export-diagnostics";export.HorizontalAlignment=HorizontalAlignment.Left;page.Children.Add(export);
         page.Children.Add(Card(T("Основні налаштування", "General settings"), out var basic));
         AddCombo(basic, "profile", T("Профіль якості", "Quality profile"), new[] { "Anime / Line Art", "Photo", "Fast", "Pixel Art", "Custom" });
         var applyProfile = Button(T("Застосувати профіль", "Apply profile"), ApplyProfile);
@@ -22,6 +21,11 @@ internal sealed partial class MainWindow
         var compatibility=new StackPanel();
         page.Children.Add(new Expander{Header=T("Сумісність з Rust","Rust compatibility"),Tag="rust-compatibility",Content=compatibility});
         compatibility.Children.Add(Card(T("Підтвердження значень","Value confirmation"),out var reliability));
+        if(ReleaseProfile.Standard(settings))
+            reliability.Children.Add(Text(T("Standard використовує круглий Size 3, Interval 0.01 та Opacity 1. Значення застосовуються автоматично й перевіряються за смугами; вимірювання відбитка та прискорення доступні в «Експериментально».",
+                "Standard uses round Size 3, Interval 0.01 and Opacity 1. Values are applied automatically and verified against the sliders; imprint measurement and acceleration are available under Experimental."),12,Muted));
+        else
+        {
         reliability.Children.Add(Text(T("Якщо Rust не повертає числа, використай візуальну перевірку. Тут також можна змінити час очікування відповіді.","If Rust does not return numeric values, use visual verification. You can also adjust response waits here."),12,Muted));
         var presets=new UniformGridCompat(2);
         foreach(bool visual in new[]{false,true})
@@ -39,6 +43,12 @@ internal sealed partial class MainWindow
                 "Numbers are not copied from Rust. Slider positions are checked in two captures; painting requires a verified brush imprint. An imprint alone does not prove an exact Interval or Opacity number.")
             :T("Значення підтверджуються копіюванням числа та знімком смуги.","Values are confirmed by copying the number and capturing the slider."),12,
             CalibrationReliability.Visual(settings)?Warning:Muted));
+        }
+        if(settings.Mode==ColorMode.RustPalette)
+        {
+            reliability.Children.Add(PaletteSwatchLabel());
+            reliability.Children.Add(Button(T("Захопити активний колір вручну","Capture active color manually"),()=>ShowPage("capture")));
+        }
         var budgets=new StackPanel();reliability.Children.Add(new Expander{Header=T("Таймінги перевірки","Verification timing"),Content=budgets});
         foreach(var (key,uk,en) in new[]{("readback_polls","Опитування копіювання (24–120)","Copy polls (24–120)"),
             ("readback_attempts","Спроби копіювання (1–5)","Copy attempts (1–5)"),

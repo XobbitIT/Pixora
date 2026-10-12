@@ -15,5 +15,7 @@
   "Scene changed outside the target.",
   "Stable initial and final Canvas snapshots are required.",
   "Starting in {p0} s…",
-  "{p0}\nOffset: {p1} px; allowed: {p2} px."
+  "{p0}\nOffset: {p1} px; allowed: {p2} px.",
+  "The active color sample is hidden. Remove panels covering Rust’s brush preview, return to the game and press F6. Painting is paused; progress is retained.",
+  "The active color sample is hidden. Remove panels covering Rust’s brush preview. Preparation is paused; press Resume to retry."
 ]

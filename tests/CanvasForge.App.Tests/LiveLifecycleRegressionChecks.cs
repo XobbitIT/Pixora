@@ -37,12 +37,12 @@ internal static partial class Program
         File.WriteAllText(path,"previous Canvas");FinalAuditBaseline.BeginRun(log,identity,true);
         Assert(File.Exists(path),"RESUME invalidated current baseline");
         FinalAuditBaseline.BeginRun(log,identity,false);
-        Assert(!File.Exists(path),"Fresh START kept historical baseline before countdown");
+        Assert(!File.Exists(path),"First delivered paint kept historical baseline");
         FinalAuditBaseline.BeginRun(log,identity,true);
         Assert(!File.Exists(path),"Interrupted fresh START fabricated a baseline for RESUME");
         File.WriteAllText(path,"new Canvas");FinalAuditBaseline.BeginRun(log,identity,true);
         Assert(File.ReadAllText(path)=="new Canvas","RESUME changed its current run baseline");
-        Console.WriteLine("PASS fresh-start-cannot-reuse-historical-audit-baseline");
+        Console.WriteLine("PASS first-paint-cannot-reuse-historical-audit-baseline");
     }
     private static void CheckHistoricalAuditState(string output)
     {

@@ -19,8 +19,9 @@ internal static partial class Program
         Directory.CreateDirectory(destination);
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         if(args.Length==4&&args[1]=="--palette-report"){WritePaletteSourceReport(destination,args[2],args[3]);return;}
+        if(args.Length==3&&args[1]=="--brush-evidence-report"){WriteBrushEvidenceReport(destination,args[2]);return;}
         if(args.Contains("--export-catalog")){ExportInternationalCatalog(destination);return;}
-        if(args.Contains("--rc-only")){CheckReleaseCandidate(destination);Console.WriteLine("RC CHECKS PASSED");return;}
+        if(args.Contains("--rc-only")){CheckReleaseCandidate(destination);CheckLiveReleaseFixes(destination);Console.WriteLine("RC CHECKS PASSED");return;}
         if(args.Contains("--international-only")){CheckInternationalCatalog();foreach(string language in LanguageCatalog.Names)CheckInternationalWindow(destination,language);CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);Console.WriteLine("INTERNATIONAL CHECKS PASSED");return;}
         if(args.Contains("--calibration-only"))
         {
@@ -135,8 +136,8 @@ internal static partial class Program
         CheckPreparationHistory(destination);CheckPreparationControlsAndFooter(destination);
         CheckProductUi(destination);CheckProductRenderMatrix(destination);
         CheckStoppedPainterRetainsResume(destination);CheckFreshAuditBaseline(destination);CheckHistoricalAuditState(destination);CheckManualProbeClearsFailedHistory(destination);
-        CheckMinimumPaintingUi(destination);CheckReleaseCandidate(destination);CheckStandardLayouts(destination);
-        Console.WriteLine("ALL 186 WPF UI CHECKS PASSED (including an 84-layout DPI matrix)");
+        CheckMinimumPaintingUi(destination);CheckReleaseCandidate(destination);CheckLiveReleaseFixes(destination);CheckStandardLayouts(destination);
+        Console.WriteLine("ALL 191 WPF UI CHECKS PASSED (including an 84-layout DPI matrix)");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);

@@ -34,7 +34,8 @@ internal sealed partial class MainWindow
         if(settings.Mode==ColorMode.RustPalette)manual.Children.Add(paletteCard);
         pal.Children.Add(CheckButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", T("ПАЛІТРА 4×16", "PALETTE 4×16"))));
         pal.Children.Add(CheckButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("ШВИДКІ КОЛЬОРИ — 1×10", "QUICK COLORS — 1×10"))));
-        pal.Children.Add(CheckButton(T("Зразок активного кольору (необов’язково)", "Active color swatch (optional)"),
+        pal.Children.Add(PaletteSwatchLabel());
+        pal.Children.Add(CheckButton(T("Захопити активний колір вручну", "Capture active color manually"),
             () => Capture(settings.Mode == ColorMode.HexDirect ? "swatch" : "palette_swatch", T("ЗРАЗОК КОЛЬОРУ", "COLOR SWATCH"))));
         pal.Children.Add(Button(T("Показати вставку", "Show insertion"), ShowInsertion));
         if(settings.Mode==ColorMode.RustPalette)
@@ -420,6 +421,7 @@ internal sealed partial class MainWindow
         if (Native.FindRustAt(canvas.Center) != target)
             throw new InvalidOperationException("Canvas is outside Rust.");
         Hide();
+        Painter? worker=null;
         try
         {
             await Task.Delay(1500,SetupToken);
@@ -427,10 +429,11 @@ internal sealed partial class MainWindow
             RefreshLiveBrushControls(target);
             var s = EffectiveSettings;
             s.Set("verify_controls", true);
-            using var worker = new Painter(s, target, ResumePath, LogPath, _ =>
+            worker = new Painter(s, target, ResumePath, LogPath, _ =>
             {
             }, SetupToken);
             await Task.Run(worker.PrepareControls);
+            if(settings.Mode==ColorMode.RustPalette)await Task.Run(worker.VerifyActivePalette);
             settings.Set("controls_validation_failed",false);
             SetStatus(ReleaseProfile.Standard(settings)?T("Standard: Size 3, Interval 0.01 та Opacity 1 застосовані; смуги підтверджені.","Standard: Size 3, Interval 0.01 and Opacity 1 applied; sliders verified."):CalibrationReliability.Visual(settings)?T("Смуги підтверджені. Далі виміряй відбиток пензля.","Slider positions confirmed. Measure the brush imprint next."):
                 T("Керування Rust перевірено.", "Rust controls verified."));
@@ -438,6 +441,7 @@ internal sealed partial class MainWindow
         catch(InvalidOperationException){settings.Set("controls_validation_failed",true);throw;}
         finally
         {
+            if(worker is not null){SaveRecoveredPaletteSwatch(worker);worker.Dispose();}
             Native.Release();Save();
             if(!closing){Show();Activate();}
         }
@@ -455,8 +459,6 @@ internal sealed partial class MainWindow
         var problem = AdaptiveBrush.SetupProblem(settings);
         if (problem is not null) throw new InvalidOperationException(T(problem));
         var target = AlignRustForTest();
-        if(settings.Mode==ColorMode.RustPalette&&!settings.Calibration.Rect("palette_swatch").Valid)
-            await Capture("palette_swatch",T("Виділи зразок активного кольору Rust для перевірки після вибору палітри.","Select Rust's active color swatch to verify palette selections."));
         var cal = settings.PaintCalibration();
         var r = settings.Calibration.Rect("canvas");
         var origin = cal.SessionClient!.Value;

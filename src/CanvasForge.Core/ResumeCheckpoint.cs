@@ -4,6 +4,7 @@ namespace CanvasForge.Core;
 
 public sealed record ResumeCheckpoint(string Identity, int Group, int Line, int Done)
 {
+    public string? RunKey {get;init;}
     public bool Matches(string identity, IReadOnlyList<int> groupCounts)
     {
         if (Identity != identity || groupCounts.Any(count => count < 0) || Group < 0 || Group > groupCounts.Count || Line < 0 || Done < 0
@@ -13,21 +14,29 @@ public sealed record ResumeCheckpoint(string Identity, int Group, int Line, int 
 }
 
 // Tracks the next batch to execute; incomplete batches are never committed.
-public sealed class CheckpointJournal(string path, ResumeCheckpoint initial)
+public sealed class CheckpointJournal(string path, ResumeCheckpoint initial, bool deferUntilPaint=false)
 {
     public ResumeCheckpoint Latest { get; private set; } = initial;
     private ResumeCheckpoint? persisted;
+    public bool OwnsRun { get; private set; } = !deferUntilPaint;
+
+    // A fresh START may fail in controls/colors without painting anything.
+    // Only delivered paint input may replace an older resumable run.
+    public bool BeginPaint()
+    {
+        if(OwnsRun)return false;OwnsRun=true;return true;
+    }
 
     public void Update(ResumeCheckpoint completed)
     {
         if (completed.Identity != Latest.Identity || completed.Done < Latest.Done)
             throw new InvalidOperationException("Checkpoint progress cannot move backwards or change plans.");
-        Latest = completed;
+        Latest = completed with{RunKey=Latest.RunKey};
     }
 
     public bool Flush()
     {
-        if (persisted == Latest) return false;
+        if (!OwnsRun || persisted == Latest) return false;
         var temporary = path + ".tmp";
         try
         {
