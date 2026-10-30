@@ -1,0 +1,65 @@
+{
+  "scope": "Extended recorded exterior-frame ROI; existing legacy fixtures unchanged; offline historical replay, not a new Rust run",
+  "files": [
+    {
+      "file": "rc3-editor-palette.structured.rgba.gz",
+      "source": "rc2-oct13-review\\video\\750.png",
+      "sourceSha256": "18814dcbef1a437ebfca8199d0ee470273290275b38ba205ca11f57a2a2255f6",
+      "sha256": "8bb6504e5beb7302b588eae1faca51b7f4f0dd7de12b742ec1231f4ed87d2bd5"
+    },
+    {
+      "file": "rc3-editor-painted.structured.rgba.gz",
+      "source": "rc2-oct13-review\\video\\815.png",
+      "sourceSha256": "69974d1b00d74e2ef4deb6adb4dea9262b2dd5f4dbb051e794684db6ca783241",
+      "sha256": "715817bb516364171fbea9bc976b393eb56b32dfd7cf23f34cd07d3f2c6abd7f"
+    },
+    {
+      "file": "rc3-editor-hex.structured.rgba.gz",
+      "source": "rc2-oct13-review\\video\\110.png",
+      "sourceSha256": "4a504efa2c945584d47d486216f1cf9fc8946e42bcd933498b5cc3f139a12e82",
+      "sha256": "7fb5b641f3541dec589ffb6aeb22521deb0d9f3f3542a99f8ab30746bc150159"
+    },
+    {
+      "file": "rc3-gameplay.structured.rgba.gz",
+      "source": "video-analysis\\full\\0349.00.png",
+      "sourceSha256": "cd970bdf4dd96b2c1258bbbad6504c521e0a3439b24e2e9105c8301f82466a18",
+      "sha256": "a6f8ea405bf5ea4e44608dc85f7258eda4b3fe4a7d381a5e608d5ee0c3cc8ab3"
+    },
+    {
+      "file": "rc3-startfix-controls.structured.rgba.gz",
+      "source": "rc3-startfix-video\\60.png",
+      "sourceSha256": "ff7310df8b5c0d1aa5cb5566b8c6098aa396a328160294761571b56eff2dd29b",
+      "sha256": "faca9e6c16ca1f00c231a811a2735e199acaa624b0d1af601857ea00bce31f80"
+    },
+    {
+      "file": "rc3-palette-extra.structured.rgba.gz",
+      "source": "rc3-live-20261013\\video\\rust-0950.png",
+      "sourceSha256": "5f65171ac81dcaa6920676e0ff90dc581df17ebc69a30b3cf2a272f258a799a4",
+      "sha256": "9d08b77c11d67879ed19d8097155a2e17ef35d5b1d9f21f07ff45bab8aa414d6"
+    },
+    {
+      "file": "rc4-hex-video-0035.structured.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-0035.png",
+      "sourceSha256": "60a884cc17ab5977d449a885a704ee0d400e95ae4091e9fc1712c2290bf4d19b",
+      "sha256": "fdf1ae6b507087712050d7c037cb4a1c6c3ff96d2bf233d2a41bf2bed6111504"
+    },
+    {
+      "file": "rc4-hex-video-0047.structured.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-0047.png",
+      "sourceSha256": "ac47cc8cc2f9337c4360a7198e0b6c4bb2a25df3551b71cf1ec7fdae754fa810",
+      "sha256": "cd99e2639255caee427f1be90a722dbbc43c1b74e9f85d4b39bd9c4b2acee9ef"
+    },
+    {
+      "file": "rc4-hex-video-0069.structured.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-0069.png",
+      "sourceSha256": "6168de3cd96c3a590c8c3430e64f7f3556ec85d8d229c3014fe4771db529179c",
+      "sha256": "bfa81cb355989238e80344b7e1a4dec3a5622cced736613efc4bae0c161905a1"
+    },
+    {
+      "file": "rc4-hex-video-1515.structured.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-1515.png",
+      "sourceSha256": "b61729103cc1943ef038e52ae23936b7ab55dbaddb680275fafb479d1ce6eb86",
+      "sha256": "afd1eda00f74e659e72a469c25d40971fa3d4e0a6b5cba822bf04c67ea39b1a1"
+    }
+  ]
+}

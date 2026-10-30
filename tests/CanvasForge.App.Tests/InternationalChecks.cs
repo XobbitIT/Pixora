@@ -12,8 +12,8 @@ internal static partial class Program
     private static void ExportInternationalCatalog(string output)
     {
         string data = Path.Combine(output, "international-catalog"); Directory.CreateDirectory(data);
-        ReadySettings("English").Save(Path.Combine(data, "config-csharp.json"));
-        var window = new MainWindow(data);
+        ReadySettings("English").Save(Path.Combine(data, SettingsStore.ConfigName));
+        var window = FixtureWindow(data);
         var values = new HashSet<string>(StringComparer.Ordinal);
         foreach (var page in Field<Dictionary<string, FrameworkElement>>(window, "pages").Values)
         {
@@ -69,8 +69,8 @@ internal static partial class Program
     private static void CheckInternationalWindow(string output,string language)
     {
         string code=LanguageCatalog.Code(language),data=Path.Combine(output,"international-"+code);Directory.CreateDirectory(data);
-        var settings=Settings.ExperimentalDefaults(); settings.Set("language",language);settings.Save(Path.Combine(data,"config-csharp.json"));
-        var window=new MainWindow(data);Assert(window.InterfaceLanguage==language,"Language not restored");
+        var settings=Settings.ExperimentalDefaults(); settings.Set("language",language);settings.Save(Path.Combine(data,SettingsStore.ConfigName));
+        var window=FixtureWindow(data);Assert(window.InterfaceLanguage==language,"Language not restored");
         Assert(!Field<Button>(window,"startButton").IsEnabled,"Welcome bypassed start validation");
         Assert(Field<Border>(window,"firstRunGuide").Visibility==Visibility.Visible,"First launch guide missing");
         var buttons=InternationalElements(window).OfType<Button>().Where(b=>b.Content is string).ToArray();
@@ -84,24 +84,24 @@ internal static partial class Program
         Render(window,Path.Combine(output,"first-launch-"+code+".png"),language=="Deutsch"?900:1280,780,expandPaintingControls:false);
         Invoke(window,"OpenFirstRunGuide");Assert(Field<Border>(window,"firstRunGuide").Visibility==Visibility.Visible,"Help not accessible");
         window.SetEditing(false);Assert(!Field<ComboBox>(window,"languageSelector").IsEnabled,"Language can change during input");window.SetEditing(true);
-        var saved=Settings.Load(Path.Combine(data,"config-csharp.json"));Assert(saved.Text("color_mode")==settings.Text("color_mode")&&saved.Number("precision_brush_size")==settings.Number("precision_brush_size"),"Language changed painting parameters");
+        var saved=Settings.Load(Path.Combine(data,SettingsStore.ConfigName));Assert(saved.Text("color_mode")==settings.Text("color_mode")&&saved.Number("precision_brush_size")==settings.Number("precision_brush_size"),"Language changed painting parameters");
         Console.WriteLine("PASS international window "+code);
     }
     private static void CheckInternationalSwitch(string output)
     {
-        string data=Path.Combine(output,"international-switch");Directory.CreateDirectory(data);ReadySettings("Українська").Save(Path.Combine(data,"config-csharp.json"));
-        var window=new MainWindow(data);var settings=Field<Settings>(window,"settings");string mode=settings.Text("color_mode"),shape=settings.Text("brush_shape");double detail=settings.Number("cell_px");
+        string data=Path.Combine(output,"international-switch");Directory.CreateDirectory(data);ReadySettings("Українська").Save(Path.Combine(data,SettingsStore.ConfigName));
+        var window=FixtureWindow(data);var settings=Field<Settings>(window,"settings");string mode=settings.Text("color_mode"),shape=settings.Text("brush_shape");double detail=settings.Number("cell_px");
         foreach(string language in LanguageCatalog.Names)
         {
             Field<ComboBox>(window,"languageSelector").SelectedItem=language;
             Assert(window.InterfaceLanguage==language && settings.Text("color_mode")==mode && settings.Text("brush_shape")==shape && settings.Number("cell_px")==detail,"Switch changed canonical settings");
-            Assert(Settings.Load(Path.Combine(data,"config-csharp.json")).Text("language")==language,"Language selection not persisted");
+            Assert(Settings.Load(Path.Combine(data,SettingsStore.ConfigName)).Text("language")==language,"Language selection not persisted");
         }
         Console.WriteLine("PASS seven-language switching and canonical settings");
     }
     private static void CheckFirstRunLifecycle(string output)
     {
-        string data=Path.Combine(output,"first-run-lifecycle");Directory.CreateDirectory(data);var window=new MainWindow(data);
+        string data=Path.Combine(output,"first-run-lifecycle");Directory.CreateDirectory(data);var window=FixtureWindow(data);
         var guide=Field<Border>(window,"firstRunGuide");
         var prepare=InternationalElements(guide).OfType<Button>().Single(b=>b.Content!.ToString()==Translations.ForLanguage("Перейти до підготовки",false,"Go to preparation"));
         prepare.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));Assert(Field<string>(window,"currentPage")=="paint"&&guide.Visibility==Visibility.Collapsed&&!Field<bool>(window,"setupRunning"),"Guide did not reveal the main preparation or unexpectedly started game input");

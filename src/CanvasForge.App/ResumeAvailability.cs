@@ -14,14 +14,19 @@ internal sealed partial class MainWindow
             return T("Дочекайся побудови плану для перевірки прогресу.","Wait for the plan to check saved progress.");
         if(plan.Identity!=PlanIdentity.Compute(source,execution,plan.Palette))
             return T("План змінився. Потрібен новий запуск.","The plan changed. A fresh START is required.");
-        if(execution.Number("paint_opacity_value",1)!=1)
-            return T("Продовження потребує прозорості 1.","Resume requires opacity 1.");
         try
         {
             if(new FileInfo(ResumePath).Length>4096)throw new JsonException();
             var checkpoint=JsonSerializer.Deserialize<ResumeCheckpoint>(File.ReadAllText(ResumePath));
-            return checkpoint?.Matches(plan.Identity,schedule.GroupCounts)==true?null
-                :T("Збережений прогрес не відповідає плану. Почни нове малювання.","Saved progress does not match the plan. Start a new painting.");
+            return checkpoint?.Compatibility(plan.Identity,schedule.GroupCounts) switch
+            {
+                ResumeCompatibility.Compatible=>null,
+                ResumeCompatibility.IdentityVersionChanged=>T("Формат ідентичності прогресу застарів. Продовжуй попередньою збіркою або почни новий запуск.","The progress identity format is obsolete. Continue with the previous build or start a new run."),
+                ResumeCompatibility.PlanChanged=>T("Збережений план має іншу ідентичність: зображення, налаштування або збірка змінилися.","The saved plan has a different identity: the image, settings or build changed."),
+                ResumeCompatibility.InvalidPosition=>T("Позиція збереженого прогресу виходить за межі плану. Потрібен новий запуск.","The saved progress position is outside the plan. A fresh START is required."),
+                ResumeCompatibility.ProgressMismatch=>T("Лічильник прогресу не відповідає завершеним операціям. Потрібен новий запуск.","The progress counter does not match completed operations. A fresh START is required."),
+                _=>T("Не вдалося прочитати збережений прогрес. Почни нове малювання.","Cannot read saved progress. Start a new painting.")
+            };
         }
         catch(Exception e) when(e is IOException or UnauthorizedAccessException or JsonException)
         {

@@ -27,7 +27,7 @@ internal sealed partial class MainWindow
             foreach(var label in paletteSwatchLabels)label.Text=PaletteSwatchDescription();
         }
         catch(Exception e) when(e is IOException or UnauthorizedAccessException or InvalidOperationException)
-        {try{File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="palette_swatch_save_failed",details=new{reason=e.Message}})+Environment.NewLine);}catch(IOException){}catch(UnauthorizedAccessException){}}
+        {try{SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="palette_swatch_save_failed",details=new{reason=e.Message}})+Environment.NewLine);}catch(IOException){}catch(UnauthorizedAccessException){}}
     }
     private string PaletteSwatchDescription()
     {

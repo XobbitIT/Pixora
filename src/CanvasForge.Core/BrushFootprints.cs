@@ -30,8 +30,11 @@ public sealed class BrushContrastException(BrushStampContrast metrics)
 
 public static class BrushFootprints
 {
-    public const string Revision = "command-masks-local-saturation-v3";
+    public const string Revision = "command-masks-source-stable-area-v4";
     public static readonly double[] Sizes = [1,2,3,5,7,10,15,20,30,40,60,100];
+    // Historical sizes remain readable; they cannot authorize new calibration
+    // or painting. The product exposes only this supported set.
+    public static readonly double[] CalibrationSizes = [2,3,5,7,10,15,20];
     public const int Repeats = 3;
     private const int Limit = 256;
     private sealed record CachedRows(List<BrushFootprint> Rows);
@@ -106,15 +109,32 @@ public static class BrushFootprints
     {
         if(profiles.Count==0||profiles.Any(p=>!Valid(p)||p.Context!=Context(s,p.ShapeSlot))
             ||profiles.GroupBy(p=>(p.ShapeSlot,p.Size)).Any(g=>g.Count()!=1))throw new InvalidDataException("Invalid brush profiles.");
-        var kept=Read(s,true).Where(p=>!profiles.Any(n=>n.ShapeSlot==p.ShapeSlot&&n.Size==p.Size)).ToList();
+        var stored=Stored(s);
+        Archive(s,stored.Where(p=>profiles.Any(n=>n.ShapeSlot==p.ShapeSlot&&n.Size==p.Size)),"profile_replaced");
+        var kept=stored.Where(p=>!profiles.Any(n=>n.ShapeSlot==p.ShapeSlot&&n.Size==p.Size)).ToList();
         kept.AddRange(profiles);s.Set("brush_footprints",kept.OrderBy(p=>p.ShapeSlot).ThenBy(p=>p.Size));
     }
     public static void Invalidate(Settings s,int shape,IReadOnlyList<double> sizes)
     {
         // A failed new transaction cannot silently keep an old PASS for the
         // Size just tested. Untested Sizes and shapes stay independently usable.
-        s.Set("brush_footprints",Read(s,true).Where(p=>p.ShapeSlot!=shape||!sizes.Contains(p.Size)).ToArray());
+        var stored=Stored(s);
+        Archive(s,stored.Where(p=>p.ShapeSlot==shape&&sizes.Contains(p.Size)),"recalibration_started");
+        s.Set("brush_footprints",stored.Where(p=>p.ShapeSlot!=shape||!sizes.Contains(p.Size)).ToArray());
     }
+    public static List<BrushFootprint> Stored(Settings s,bool archive=false)
+    {
+        try{return (s.Data[archive?"brush_footprint_archive":"brush_footprints"]?.Deserialize<List<BrushFootprint>>()??[]).Where(p=>p is not null&&Valid(p)).ToList();}
+        catch(Exception e) when(e is JsonException or InvalidOperationException or ArgumentException){return [];}
+    }
+    private static void Archive(Settings s,IEnumerable<BrushFootprint> profiles,string reason)
+    {
+        var rows=Stored(s,true).Concat(profiles).DistinctBy(p=>p.Id).ToArray();
+        s.Set("brush_footprint_archive",rows);
+        s.Set("brush_footprint_change_reason",reason);
+    }
+    public static void InvalidateAll(Settings s,string reason)
+    {Archive(s,Stored(s),reason);s.Set("brush_footprints",Array.Empty<BrushFootprint>());}
     private static bool SpansValid(BrushSpan[]? spans,bool empty=false)
     {
         if(spans is null||spans.Length>263169||(!empty&&spans.Length==0))return false;

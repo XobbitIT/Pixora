@@ -30,7 +30,7 @@ internal static class CalibrationReliabilityChecks
         for(int i=1;i<=3;i++)
         {
             var confirmed=BrushLocalColor.Confirm(before,after,command,size,new(0,0,0),0,after.Clone);
-            batch.RecordLocal(size,i,before,before,after,confirmed,command,new(0,0,0));
+            batch.RecordLocal(size,i,before,before,after,confirmed,command,new(0,0,0),new(new(0,0,0),true,true));
         }
         return batch.Profiles.Single();
     }
@@ -38,7 +38,7 @@ internal static class CalibrationReliabilityChecks
     {
         test("Calibration budgets preserve beta45 defaults",()=>{
             var s=Settings.ExperimentalDefaults();s.Validate();Require(CalibrationReliability.Readback(s)==new ReadbackOptions());
-            Require(CalibrationReliability.StableAttempts(s)==5&&CalibrationReliability.StableInterval(s)==.08&&!CalibrationReliability.Visual(s));
+            Require(CalibrationReliability.StableAttempts(s)==10&&CalibrationReliability.StableInterval(s)==.16&&!CalibrationReliability.Visual(s));
         });
         test("Slow laptop preset disables fast input and raises only calibration budgets",()=>{
             var s=Settings.ExperimentalDefaults();s.Set("fast_transfer",true);s.Set("input_engine","Experimental 1 ms");
@@ -110,7 +110,7 @@ internal static class CalibrationReliabilityChecks
         test("Extra stable capture attempts find the same two-frame criterion",()=>{
             PixelImage Read(bool slow)
             {
-                int n=0;var s=Settings.ExperimentalDefaults();if(slow)CalibrationReliability.ApplyPreset(s,true);
+                int n=0;var s=Settings.ExperimentalDefaults();s.Set("capture_stable_attempts",slow?10:5);s.Set("capture_stable_interval_ms",slow?160:80);
                 return StableCapture.Read(()=>Frame((byte)(++n<8?n%2==0?0:255:180)),_=>{},CalibrationReliability.StableAttempts(s),CalibrationReliability.StableInterval(s));
             }
             bool failed=false;try{Read(false);}catch(InvalidOperationException){failed=true;}Require(failed);Require(Read(true).Color(0).R==180);

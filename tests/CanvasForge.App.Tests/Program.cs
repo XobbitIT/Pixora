@@ -14,14 +14,175 @@ internal static partial class Program
     {
         try
         {
+        var caseFailures=new List<Exception>();
+        int passedCases=0;
+        void Case(Action check){try{check();passedCases++;}catch(Exception e){caseFailures.Add(e);Console.Error.WriteLine("FAIL UI: "+e.Message+"\n"+e.StackTrace);}}
         if(NativeClipboardChecks.CaptureOnly())return;
+        Native.OfflineTestHost=true;
+        if(args.Length==3&&args[1]=="--visual-size-only")
+        {
+            CheckVisualSizeExisting();CheckVisualSizeEditAndFailures();CheckVisualSizeKeyRelease();CheckRowConsoleResult();ReplayVisualSizeFailure(args[0],args[2]);
+            Console.WriteLine("VISUAL SIZE/ROW CONSOLE CHECKS PASSED; no clipboard access or native input");return;
+        }
+        if(args.Length==3&&args[1]=="--row-startup-replay")
+        {ReplayRowStartupBaseline(args[0],args[2]);return;}
+        if(args.Length==3&&args[1]=="--pic2-replay-calib"){ReplayPic2OnCalib(args[0],args[2]);return;}
+        if(args.Length==4&&args[1]=="--texel-product-frames"){ReviewTexelProductFrames(args[2],args[3],args[0]);return;}
+        if(args.Length==4&&args[1]=="--editor-proof-frame"){CheckEditorProofFrame(args[2],args[3]);return;}
+        if(args.Length==2&&args[1]=="--texel-product-only")
+        {
+            CheckTexelProductRoute();CheckTexelProductReview(Path.Combine(Path.GetFullPath(args[0]),"texel-product-review"));
+            Console.WriteLine("ALL2 TEXEL PRODUCT APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic9-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic9Design();CheckPic9Pipeline(root);
+            Console.WriteLine("ALL2 PIC9 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic8-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic8Design();CheckPic8Pipeline(root);
+            Console.WriteLine("ALL2 PIC8 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic7-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic7Design();CheckPic7Pipeline(root);
+            Console.WriteLine("ALL2 PIC7 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic6-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic6Design();CheckPic6Window();CheckPic6Pipeline(root);
+            Console.WriteLine("ALL3 PIC6 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic5-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic5Design();CheckPic5PerSample();CheckPic5Pipeline(root);
+            Console.WriteLine("ALL3 PIC5 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic4-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic4Design();CheckPic4Metrics();CheckPic4Pipeline(root);CheckEditorFailureDetail();
+            Console.WriteLine("ALL4 PIC4 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic3-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic3Design();CheckPic3Metrics();CheckPic3Pipeline(root);
+            Console.WriteLine("ALL3 PIC3 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--pic2-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPic2Design();CheckPic2Freeze(root);CheckPic2Controls();CheckPic2PictureMetrics();CheckPic2Pipeline(root);CheckPic2FailurePortable(root);
+            Console.WriteLine("ALL6 PIC2 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--calib-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckCalibDesign();CheckCalibFreeze(root);CheckCalibLabelRule();CheckCalibFilterAndAudit();CheckCalibIncomplete();CheckCalibPictureMetrics();CheckCalibPipeline(root);CheckCalibFailurePortable(root);
+            Console.WriteLine("ALL8 CALIB APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--offgrid-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckOffgridDesign();CheckOffgridFreeze(root);CheckOffgridMedian();CheckOffgridRivals();CheckOffgridIncrements();CheckOffgridIncomplete();CheckOffgridPipeline(root);CheckOffgridFailurePortable(root);
+            Console.WriteLine("ALL8 OFFGRID APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--plane-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckPlaneDesign(root);CheckPlaneFreeze(root);CheckPlanePhase();CheckPlaneDecision();CheckPlaneIncomplete();CheckPlanePipeline(root);CheckPlaneFailurePortable(root);
+            Console.WriteLine("ALL7 PLANE APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--row-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckRowDesign(root);CheckRowFreeze(root);CheckRowAnalysis();CheckRowPipeline(root);CheckRowFailurePortable(root);
+            Console.WriteLine("ROW CHARACTERIZATION APP CHECKS PASSED; no native input; physicalQualityCertified=false");return;
+        }
+        if(args.Length==4&&args[1]=="--texel-view-replay")
+        {ReplayTexelViewFailure(args[0],args[2],args[3]);return;}
+        if(args.Length==4&&args[1]=="--texel-replay")
+        {ReplayTexelDetectorAndView(args[0],args[2],args[3]);return;}
+        if(args.Length==3&&args[1]=="--texel-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);string fixtures=Path.GetFullPath(args[2]);
+            CheckTexelVectors(fixtures);CheckTexelVerdicts();CheckTexelDetectorAndMatching();CheckTexelFreeze(root,fixtures);CheckTexelPipeline(root);CheckTexelFailureAndPortable(root,fixtures);CheckTexelView();
+            Console.WriteLine("TEXEL PILOT APP CHECKS PASSED; no native input; physicalQualityCertified=false");return;
+        }
+        if(args.Length==3&&args[1]=="--uv-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);string fixtures=Path.GetFullPath(args[2]);
+            CheckUvPathsAndGolden(fixtures);CheckUvRules(fixtures);CheckUvFreeze(root,fixtures);CheckUvPipeline(root);CheckUvPortableAndFailure(root,fixtures);CheckUvFreshSessionBinding(root);
+            Console.WriteLine("UV DIAGNOSTIC APP CHECKS PASSED; no native input; physicalQualityCertified=false");return;
+        }
+        if(args.Length==2&&args[1]=="--native-capture-control")
+        {NativeCaptureControlChecks.Run(Path.GetFullPath(args[0]));return;}
+        if(args.Length==3&&args[1]=="--strict-mask-replay")
+        {ReplayStrictPaintMasks(args[0],args[2]);return;}
+        if(args.Contains("--standard-discrete-only"))
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckRepeatFullPipeline(root);CheckEdgeCorrectionReview(root);CheckContourPilotPair(root);CheckTrackPairFreeze(root);CheckTrackPairPipeline(root);
+            CheckDiscreteBandFreeze(root);CheckDiscreteBandPipeline(root);CheckDiscreteBandPortableAndTamper(root);CheckDiscreteBandFailure(root);
+            Console.WriteLine("DISCRETE TWO-FRONTIER APP CHECKS PASSED");return;
+        }
+        if(args.Contains("--standard-response-only"))
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckRepeatFullPipeline(root);CheckEdgeCorrectionReview(root);CheckContourPilotPair(root);
+            CheckTrackPairFreeze(root);CheckTrackPairPipeline(root);
+            CheckBandResponsePipeline(root);CheckBandInversePipeline(root);CheckBandInversePilotFreeze(root);CheckBandInversePilotPortable(root);CheckBandInversePilotPipeline(root);CheckBandInversePilotFailureAndTamper(root);CheckBandResponseIncomplete(root);CheckBandResponseOwnership(root);
+            Console.WriteLine("STANDARD BAND RESPONSE APP CHECKS PASSED");return;
+        }
+        if(args.Contains("--standard-tracks-only"))
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckRepeatFullPipeline(root);CheckEdgeCorrectionReview(root);CheckContourPilotPair(root);
+            CheckTrackPairFreeze(root);CheckTrackPairPipeline(root);CheckTrackPairInterruptions(root);CheckTrackPairArtifactTamper(root);CheckTrackPairBaseline(root);
+            Console.WriteLine("STANDARD TRACK PAIR APP CHECKS PASSED");return;
+        }
         var destination = Path.GetFullPath(args.Length > 0 ? args[0] : Path.Combine(AppContext.BaseDirectory, "ui-verification"));
         Directory.CreateDirectory(destination);
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        if(args.Contains("--frontier-session-only")){CheckFrontierSessionPreparation();CheckFrontierSessionCaptureNegatives();CheckFrontierSessionArtifact(destination);CheckFrontierSessionWindow();CheckFrontierStableFrames();CheckFrontierBaselineBeforePaint(destination);CheckFrontierParkingConfirmation();Console.WriteLine("FRONTIER SESSION CAPTURE CHECKS PASSED");return;}
+        if(args.Length==3&&args[1]=="--frontier-baseline-replay"){ReplayFrontierBaseline(destination,args[2]);return;}
+        if(args.Length==4&&args[1]=="--frontier-failure-replay"){CheckFrontierFailureReplay(destination,args[2],args[3]);return;}
+        if(args.Length==3&&args[1]=="--frontier-preparation-replay"){ReplayFrontierPreparation(destination,args[2]);return;}
+        if(args.Contains("--standard-contour-only")){CheckRepeatFullPipeline(destination);CheckEdgeCorrectionReview(destination);CheckContourPathGuard();CheckContourPilotPair(destination);CheckContourPilotFailureAndTamper(destination);CheckContourCandidateCleanBaseline(destination);CheckStraightBandReference(destination);CheckStraightBandTamper(destination);CheckStraightBandPipeline(destination);Console.WriteLine("STANDARD CONTOUR APP CHECKS PASSED");return;}
+        if(args.Contains("--standard-edge-only")){CheckRepeatFullPipeline(destination);CheckEdgeCorrectionReview(destination);Console.WriteLine("STANDARD EDGE CORRECTION APP CHECKS PASSED");return;}
+        if(args.Contains("--standard-repeat-only")){CheckRepeatInit(destination);CheckRepeatFullPipeline(destination);CheckRepeatMissingHeldout(destination);CheckRepeatInterruptions(destination);Console.WriteLine("STANDARD REPEAT APP CHECKS PASSED");return;}
+        if(args.Contains("--standard-boundary-only")){CheckBoundaryNativeFiles(destination);CheckBoundaryTraceFiles(destination);CheckBoundaryIncompleteFiles(destination);CheckBoundaryOutputOwnership(destination);Console.WriteLine("STANDARD BOUNDARY APP CHECKS PASSED");return;}
+        if(args.Length==4&&args[1]=="--standard-boundary-review"){StandardBoundaryReview.Run(args[2],args[3]);Console.WriteLine("STANDARD BOUNDARY LIVE-DATA REPLAY PASSED WITHOUT NATIVE INPUT");return;}
+        if(args.Contains("--input-timing-only")){CheckCursorInputTiming();CheckNativeSendTimingScope();CheckInputTimingSnapshot(destination);Console.WriteLine("INPUT TIMING APP CHECKS PASSED");return;}
+        if(args.Contains("--settings-owner-only")){CheckSettingsPublication(destination);CheckSettingsStalePublication(destination);CheckSettingsCancelLifecycle(destination);Console.WriteLine("SETTINGS OWNER APP CHECKS PASSED");return;}
+        if(args.Contains("--start-state-only")){CheckStartUnavailableReasons(destination,"Українська");CheckStartUnavailableReasons(destination,"English");CheckStartPlanningJournal(destination);CheckF6RunJournal(destination);Console.WriteLine("START STATE APP CHECKS PASSED");return;}
+        if(args.Contains("--evidence-series-only")){CheckSeriesTrace();CheckSeriesProductionTrace();CheckSeriesFailureTrace();CheckEvidenceSeriesFreeze(destination);CheckEvidenceSeriesFullRun(destination);CheckEvidenceSeriesPartialRun(destination);CheckEvidenceStatusPublication(destination);Console.WriteLine("EVIDENCE SERIES APP CHECKS PASSED");return;}
+        if(args.Contains("--target-recipe-only")){CheckTargetRecipeUi(destination);Console.WriteLine("TARGET RECIPE APP CHECKS PASSED");return;}
+        if(args.Length==4&&args[1]=="--standard-speed-report"){StandardSpeedReport(destination,args[2],args[3]);return;}
+        if(args.Length==4&&args[1]=="--standard-hover-replay"){ReplayStandardHover(destination,args[2],args[3]);return;}
         if(args.Length==4&&args[1]=="--palette-report"){WritePaletteSourceReport(destination,args[2],args[3]);return;}
         if(args.Length==3&&args[1]=="--brush-evidence-report"){WriteBrushEvidenceReport(destination,args[2]);return;}
+        if(args.Length==3&&args[1]=="--rc5-brush-report"){WriteRc5BrushReplay(destination,args[2]);return;}
         if(args.Contains("--export-catalog")){ExportInternationalCatalog(destination);return;}
+        if(args.Contains("--standard-stability-only")){CheckPaletteHoverTransition();CheckEdgeThicknessEditing(destination);CheckQualityEvidenceCollection(destination);Console.WriteLine("STANDARD STABILITY APP CHECKS PASSED");return;}
+        if(args.Contains("--standard-direction-only")){CheckDirectionTrace();CheckNestedWaitGuardCosts();CheckLiveRunSnapshot(destination);CheckDirectionSeriesFreeze(destination);Console.WriteLine("STANDARD DIRECTION APP CHECKS PASSED");return;}
+        if(args.Contains("--rc7-only")){CheckRc7InputFailures();Console.WriteLine("RC7 INPUT CHECKS PASSED");return;}
+        if(args.Contains("--standard-motion-only")){CheckNativePixelConversion(destination);CheckDenseTransportHistory(destination);Console.WriteLine("STANDARD MOTION APP CHECKS PASSED");return;}
+        if(args.Contains("--standard-cursor-only")){CheckStrokeCursorDisplacement();CheckStrokeCursorReadFailure();Console.WriteLine("STANDARD CURSOR APP CHECKS PASSED");return;}
+        if(args.Contains("--rc8-only")){CheckRc8SetupScene(destination);CheckRc8TargetControls(destination);CheckRc8NativeEvidence(destination);CheckRc8StrokeTrace();CheckPainterTimingPublisher(destination);Console.WriteLine("RC8 UI CHECKS PASSED");return;}
+        if(args.Contains("--native-line-only")){CheckNativeLineGuard();CheckNativeLineRate(destination);CheckNativeLineEvidence(destination);CheckNativeLineBatchEvidence(destination);CheckLineEndpointGuard();CheckLineDiagnosticLifecycle(destination);CheckLineDiagnosticUi(destination);Console.WriteLine("NATIVE LINE PROTOTYPE APP CHECKS PASSED");return;}
         if(args.Contains("--rc-only")){CheckReleaseCandidate(destination);CheckLiveReleaseFixes(destination);Console.WriteLine("RC CHECKS PASSED");return;}
+        if(args.Contains("--startfix-only")){CheckRc3StartSizeOnly(destination);Console.WriteLine("START FIX CHECKS PASSED");return;}
+        if(args.Contains("--palette-only")){CheckPalettePreparationUi(destination);CheckQuickPaletteUi(destination);CheckInterruptedResumeWait();Console.WriteLine("PALETTE UI CHECKS PASSED");return;}
+        if(args.Contains("--proof-only")){CheckEditorFailureReplay(destination);CheckClipboardFailureRetention(destination);Console.WriteLine("PROOF DIAGNOSTICS CHECKS PASSED");return;}
+        if(args.Contains("--rc4-only")){CheckRc4AdaptiveStatus(destination);CheckEditorFailureReplay(destination);CheckWideBrushUi(destination,"Українська");CheckWideBrushUi(destination,"English");Console.WriteLine("RC4 UI CHECKS PASSED");return;}
         if(args.Contains("--international-only")){CheckInternationalCatalog();foreach(string language in LanguageCatalog.Names)CheckInternationalWindow(destination,language);CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);Console.WriteLine("INTERNATIONAL CHECKS PASSED");return;}
         if(args.Contains("--calibration-only"))
         {
@@ -36,108 +197,146 @@ internal static partial class Program
             CheckLanguageSwitch(destination);CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
             Console.WriteLine("STARTUP CHECKS PASSED");return;
         }
-        CheckWindow(destination, false, false, "Українська", "adaptive-missing", 1280);
-        CheckWindow(destination, true, false, "Українська", "adaptive-ready", 1280);
-        CheckWindow(destination, true, true, "Українська", "adaptive-stale", 900);
-        CheckWindow(destination, true, false, "English", "adaptive-english", 1280);
-        CheckWindow(destination, false, false, "Українська", "adaptive-legacy-enabled", 1280, true);
-        CheckFastWindow(destination,"Українська",1280);
-        CheckFastWindow(destination,"Українська",900);
-        CheckFastWindow(destination,"English",1280);
-        CheckSpeedWindow(destination,"Українська",1280,false);
-        CheckSpeedWindow(destination,"English",900,false);
-        CheckSpeedWindow(destination,"Українська",900,true);
-        CheckPreflight(destination);
-        CheckExperimentalWindow(destination);
-        CheckFormLayout(destination,"Українська",2000);
-        CheckFormLayout(destination,"English",900);
-        CheckAuditNotice(destination,"Українська",900,false);
-        CheckAuditNotice(destination,"English",2000,true);
-        CheckDetailAndPreview(destination);
-        CheckSpeedChips(destination);
-        CheckPreviewFit(destination,2000,320,160,240,320,"mixed");
-        CheckPreviewFit(destination,900,320,160,320,160,"wide");
-        CheckPreviewFit(destination,2000,200,320,200,320,"portrait");
-        CheckSettingsEnglish(destination);
-        CheckCoverageStates(destination,"Українська");
-        CheckCoverageStates(destination,"English");
-        CheckPolish(destination,"Українська",900,620);
-        CheckPolish(destination,"English",2000,780);
-        CheckLocalization(destination,"Українська");
-        CheckLocalization(destination,"English");
-        CheckLanguageSwitch(destination);
-        CheckReliabilityUi(destination,"Українська");
-        CheckReliabilityUi(destination,"English");
-        CheckAutoBrushExecutor();
-        CheckProbeDiagnosticStorage(destination);
-        CheckProbeDiagnosticsUi(destination,"Українська");
-        CheckProbeDiagnosticsUi(destination,"English");
-        CheckSpatialWorkflow(destination,"Українська");
-        CheckSpatialWorkflow(destination,"English");
-        CheckSpatialDiagnostics(destination);
-        CheckSmallCanvasProbePreflight(destination);
-        CheckMeasuredEtaUi(destination,"Українська");
-        CheckMeasuredEtaUi(destination,"English");
-        CheckPainterTimingPublisher(destination);
-        CheckPainterCursorTransport();
-        CheckPaletteComparison(destination, "Українська", 900);
-        CheckPaletteComparison(destination, "English", 1060);
-        CheckPaletteApply(destination);
-        CheckPaletteRelativeIndicators();
-        CheckInputDelay(destination);
-        CheckOffsetTrajectoryUi(destination,"Українська");
-        CheckOffsetTrajectoryUi(destination,"English");
-        CheckAuditZoom(destination,"Українська");
-        CheckAuditZoom(destination,"English");
-        CheckMeasuredBrushUi(destination,"Українська");
-        CheckMeasuredBrushUi(destination,"English");
-        CheckProgressLanguageRebuild(destination);
-        CheckLocalProbeDiagnostics(destination,"Українська");
-        CheckLocalProbeDiagnostics(destination,"English");
-        CheckBoundProbeRecovery(destination,"Українська");CheckBoundProbeRecovery(destination,"English");CheckProbeRoutePersistence();
-        CheckPartialBrushUi(destination,"Українська");
-        CheckPartialBrushUi(destination,"English");
-        CheckBrushSignalUi(destination,"Українська");
-        CheckBrushSignalUi(destination,"English");
-        CheckCalibrationReasonsUi(destination,"Українська");CheckCalibrationReasonsUi(destination,"English");
-        CheckBrushSnapshotsUi(destination,"Українська");CheckBrushSnapshotsUi(destination,"English");
-        CheckBrushLocalColorUi(destination,"Українська");CheckBrushLocalColorUi(destination,"English");
-        CheckWideBrushUi(destination,"Українська");
-        CheckWideBrushUi(destination,"English");
+        Case(()=>CheckWindow(destination, false, false, "Українська", "adaptive-missing", 1280));
+        Case(()=>CheckWindow(destination, true, false, "Українська", "adaptive-ready", 1280));
+        Case(()=>CheckWindow(destination, true, true, "Українська", "adaptive-stale", 900));
+        Case(()=>CheckWindow(destination, true, false, "English", "adaptive-english", 1280));
+        Case(()=>CheckWindow(destination, false, false, "Українська", "adaptive-legacy-enabled", 1280, true));
+        Case(()=>CheckFastWindow(destination,"Українська",1280));
+        Case(()=>CheckFastWindow(destination,"Українська",900));
+        Case(()=>CheckFastWindow(destination,"English",1280));
+        Case(()=>CheckSpeedWindow(destination,"Українська",1280,false));
+        Case(()=>CheckSpeedWindow(destination,"English",900,false));
+        Case(()=>CheckSpeedWindow(destination,"Українська",900,true));
+        Case(()=>CheckPreflight(destination));
+        Case(()=>CheckExperimentalWindow(destination));
+        Case(()=>CheckFormLayout(destination,"Українська",2000));
+        Case(()=>CheckFormLayout(destination,"English",900));
+        Case(()=>CheckAuditNotice(destination,"Українська",900,false));
+        Case(()=>CheckAuditNotice(destination,"English",2000,true));
+        Case(()=>CheckDetailAndPreview(destination));
+        Case(()=>CheckSpeedChips(destination));
+        Case(()=>CheckPreviewFit(destination,2000,320,160,240,320,"mixed"));
+        Case(()=>CheckPreviewFit(destination,900,320,160,320,160,"wide"));
+        Case(()=>CheckPreviewFit(destination,2000,200,320,200,320,"portrait"));
+        Case(()=>CheckSettingsEnglish(destination));
+        Case(()=>CheckCoverageStates(destination,"Українська"));
+        Case(()=>CheckCoverageStates(destination,"English"));
+        Case(()=>CheckPolish(destination,"Українська",900,620));
+        Case(()=>CheckPolish(destination,"English",2000,780));
+        Case(()=>CheckLocalization(destination,"Українська"));
+        Case(()=>CheckLocalization(destination,"English"));
+        Case(()=>CheckLanguageSwitch(destination));
+        Case(()=>CheckReliabilityUi(destination,"Українська"));
+        Case(()=>CheckReliabilityUi(destination,"English"));
+        Case(()=>CheckAutoBrushExecutor());
+        Case(()=>CheckProbeDiagnosticStorage(destination));
+        Case(()=>CheckProbeDiagnosticsUi(destination,"Українська"));
+        Case(()=>CheckProbeDiagnosticsUi(destination,"English"));
+        Case(()=>CheckSpatialWorkflow(destination,"Українська"));
+        Case(()=>CheckSpatialWorkflow(destination,"English"));
+        Case(()=>CheckSpatialDiagnostics(destination));
+        Case(()=>CheckSmallCanvasProbePreflight(destination));
+        Case(()=>CheckMeasuredEtaUi(destination,"Українська"));
+        Case(()=>CheckMeasuredEtaUi(destination,"English"));
+        Case(()=>CheckPainterTimingPublisher(destination));
+        Case(()=>CheckPainterCursorTransport());
+        Case(()=>CheckRc6RuntimeState(destination));
+        Case(()=>CheckRc7InputFailures());
+        Case(CheckNativeLineGuard);Case(()=>CheckNativeLineRate(destination));Case(()=>CheckNativeLineEvidence(destination));Case(()=>CheckNativeLineBatchEvidence(destination));
+        Case(CheckPaletteHoverTransition);Case(()=>CheckEdgeThicknessEditing(destination));
+        Case(()=>CheckQualityEvidenceCollection(destination));
+        Case(CheckCursorInputTiming);Case(CheckNativeSendTimingScope);Case(()=>CheckInputTimingSnapshot(destination));
+        Case(()=>CheckSettingsPublication(destination));Case(()=>CheckSettingsStalePublication(destination));Case(()=>CheckSettingsCancelLifecycle(destination));
+        Case(CheckDirectionTrace);Case(CheckNestedWaitGuardCosts);Case(()=>CheckLiveRunSnapshot(destination));
+        Case(()=>CheckStartUnavailableReasons(destination,"Українська"));Case(()=>CheckStartUnavailableReasons(destination,"English"));Case(()=>CheckStartPlanningJournal(destination));Case(()=>CheckF6RunJournal(destination));
+        Case(()=>CheckDirectionSeriesFreeze(destination));
+        Case(()=>CheckNativePixelConversion(destination));Case(()=>CheckDenseTransportHistory(destination));
+        Case(CheckStrokeCursorDisplacement);Case(CheckStrokeCursorReadFailure);
+        Case(CheckLineEndpointGuard);Case(()=>CheckLineDiagnosticLifecycle(destination));Case(()=>CheckLineDiagnosticUi(destination));
+        Case(()=>CheckRc8SetupScene(destination));
+        Case(()=>CheckRc8TargetControls(destination));
+        Case(()=>CheckTargetRecipeUi(destination));
+        Case(CheckSeriesTrace);Case(CheckSeriesProductionTrace);Case(CheckSeriesFailureTrace);Case(()=>CheckEvidenceSeriesFreeze(destination));Case(()=>CheckEvidenceSeriesFullRun(destination));Case(()=>CheckEvidenceSeriesPartialRun(destination));Case(()=>CheckEvidenceStatusPublication(destination));
+        Case(()=>CheckRepeatInit(destination));Case(()=>CheckRepeatFullPipeline(destination));Case(()=>CheckEdgeCorrectionReview(destination));
+        Case(CheckContourPathGuard);Case(()=>CheckContourPilotPair(destination));Case(()=>CheckContourPilotFailureAndTamper(destination));
+        Case(()=>CheckContourCandidateCleanBaseline(destination));
+        Case(()=>CheckStraightBandReference(destination));Case(()=>CheckStraightBandTamper(destination));Case(()=>CheckStraightBandPipeline(destination));
+        Case(()=>CheckTrackPairFreeze(destination));Case(()=>CheckTrackPairPipeline(destination));Case(()=>CheckTrackPairInterruptions(destination));Case(()=>CheckTrackPairArtifactTamper(destination));Case(()=>CheckTrackPairBaseline(destination));
+        Case(()=>CheckBandResponsePipeline(destination));Case(()=>CheckBandInversePipeline(destination));Case(()=>CheckBandResponseIncomplete(destination));Case(()=>CheckBandResponseOwnership(destination));
+        Case(()=>CheckDiscreteBandFreeze(destination));Case(()=>CheckDiscreteBandPipeline(destination));Case(()=>CheckDiscreteBandPortableAndTamper(destination));Case(()=>CheckDiscreteBandFailure(destination));
+        Case(()=>CheckBandInversePilotFreeze(destination));Case(()=>CheckBandInversePilotPortable(destination));Case(()=>CheckBandInversePilotPipeline(destination));Case(()=>CheckBandInversePilotFailureAndTamper(destination));
+        Case(()=>CheckRepeatMissingHeldout(destination));Case(()=>CheckRepeatInterruptions(destination));
+        Case(()=>CheckRc8NativeEvidence(destination));
+        Case(()=>CheckRc8StrokeTrace());
+        Case(()=>CheckPaletteComparison(destination, "Українська", 900));
+        Case(()=>CheckPaletteComparison(destination, "English", 1060));
+        Case(()=>CheckPaletteApply(destination));
+        Case(()=>CheckPaletteRelativeIndicators());
+        Case(()=>CheckInputDelay(destination));
+        Case(()=>CheckOffsetTrajectoryUi(destination,"Українська"));
+        Case(()=>CheckOffsetTrajectoryUi(destination,"English"));
+        Case(()=>CheckAuditZoom(destination,"Українська"));
+        Case(()=>CheckAuditZoom(destination,"English"));
+        Case(()=>CheckMeasuredBrushUi(destination,"Українська"));
+        Case(()=>CheckMeasuredBrushUi(destination,"English"));
+        Case(()=>CheckProgressLanguageRebuild(destination));
+        Case(()=>CheckLocalProbeDiagnostics(destination,"Українська"));
+        Case(()=>CheckLocalProbeDiagnostics(destination,"English"));
+        Case(()=>CheckBoundProbeRecovery(destination,"Українська"));Case(()=>CheckBoundProbeRecovery(destination,"English"));Case(()=>CheckProbeRoutePersistence());
+        Case(()=>CheckPartialBrushUi(destination,"Українська"));
+        Case(()=>CheckPartialBrushUi(destination,"English"));
+        Case(()=>CheckBrushSignalUi(destination,"Українська"));
+        Case(()=>CheckBrushSignalUi(destination,"English"));
+        Case(()=>CheckCalibrationReasonsUi(destination,"Українська"));Case(()=>CheckCalibrationReasonsUi(destination,"English"));
+        Case(()=>CheckBrushSnapshotsUi(destination,"Українська"));Case(()=>CheckBrushSnapshotsUi(destination,"English"));
+        Case(()=>CheckBrushLocalColorUi(destination,"Українська"));Case(()=>CheckBrushLocalColorUi(destination,"English"));
+        Case(()=>CheckWideBrushUi(destination,"Українська"));
+        Case(()=>CheckWideBrushUi(destination,"English"));
         RuntimeSafetyChecks.SingleInstance();RuntimeSafetyChecks.Integrity();RuntimeSafetyChecks.Clipboard();
         RuntimeSafetyChecks.ClipboardLateCopies();RuntimeSafetyChecks.FatalErrors();
         RuntimeSafetyChecks.ClipboardIntermediateEmpty();
-        CheckControlCopyFailures();
-        CheckClipboardOwnerMessages();CheckSliderDiagnosticStorage(destination);
-        CheckProbeTimeoutUi(destination,"Українська");CheckProbeTimeoutUi(destination,"English");
-        CheckUnifiedSetup(destination,"Українська",900); CheckUnifiedSetup(destination,"English",1280); CheckUnifiedFreshWindow(destination); CheckUnifiedHexWindow(destination); CheckUnifiedFinish(); CheckUnifiedImageImport(destination);
-        CheckLatestImageWins(destination);CheckCancelledImageDiscarded(destination);CheckStartPreparationExclusive(destination);CheckFailedPlanClearsStaleResult(destination);
-        CheckPreviewSurvivesEstimateFailure(destination);
-        CheckInputCheckExclusive(destination);CheckStandaloneStop(destination);CheckClosingWaitsForCheck(destination);CheckCaptureCanRebuildPlan(destination);CheckMalformedLegacyWindow(destination);
-        CheckSetupSize3WithoutBase(destination);CheckSetupFallbackSize3(destination);CheckSetupFailedFallback(destination);
-        CheckWorkingBrush(destination,"Українська");CheckWorkingBrush(destination,"English");CheckStartButtonDispatch(destination);
-        CheckCompactCapture(destination,"Українська");CheckCompactCapture(destination,"English");
-        CheckVisualConfirmationPreset(destination,"Українська");CheckVisualConfirmationPreset(destination,"English");
-        CheckVisualStartGate(destination,"Українська");CheckVisualStartGate(destination,"English");CheckQuickBrushIsolation(destination);
-        CheckWorkingSizePolicy(destination,"Українська");CheckWorkingSizePolicy(destination,"English");
-        CheckCombinedSetupSelection(destination);
-        CheckGroupedSpeed(destination);
-        CheckExecutionTimingUi(destination,"Українська");CheckExecutionTimingUi(destination,"English");
-        CheckMixedReadiness(destination,"Українська");CheckMixedReadiness(destination,"English");
-        CheckSynchronizedEditors(destination,"Українська");CheckSynchronizedEditors(destination,"English");
-        CheckColorChoice(destination,"Українська");CheckColorChoice(destination,"English");CheckMeasuredPlanOverlay(destination);
-        CheckPreviewQueueLatest();CheckPreviewQueueCancellation();CheckPreviewWorkerCancellation(destination);CheckPreviewModelFailure(destination);
-        CheckPreparationShortcuts(destination,"Українська");CheckPreparationShortcuts(destination,"English");
-        CheckControlDiagnosisAction(destination,"Українська");CheckControlDiagnosisAction(destination,"English");
-        CheckSupersededPreviewPublication(destination);
-        CheckInternationalCatalog();foreach(string language in LanguageCatalog.Names)CheckInternationalWindow(destination,language);
-        CheckInternationalSwitch(destination);CheckFirstRunLifecycle(destination);
-        CheckCanonicalPreparation(destination,"Українська");CheckCanonicalPreparation(destination,"English");
-        CheckPreparationHistory(destination);CheckPreparationControlsAndFooter(destination);
-        CheckProductUi(destination);CheckProductRenderMatrix(destination);
-        CheckStoppedPainterRetainsResume(destination);CheckFreshAuditBaseline(destination);CheckHistoricalAuditState(destination);CheckManualProbeClearsFailedHistory(destination);
-        CheckMinimumPaintingUi(destination);CheckReleaseCandidate(destination);CheckLiveReleaseFixes(destination);CheckStandardLayouts(destination);
-        Console.WriteLine("ALL 191 WPF UI CHECKS PASSED (including an 84-layout DPI matrix)");
+        Case(()=>CheckControlCopyFailures());
+        Case(()=>CheckClipboardOwnerMessages());Case(()=>CheckSliderDiagnosticStorage(destination));
+        Case(()=>CheckProbeTimeoutUi(destination,"Українська"));Case(()=>CheckProbeTimeoutUi(destination,"English"));
+        Case(()=>CheckUnifiedSetup(destination,"Українська",900)); Case(()=>CheckUnifiedSetup(destination,"English",1280)); Case(()=>CheckUnifiedFreshWindow(destination)); Case(()=>CheckUnifiedHexWindow(destination)); Case(()=>CheckUnifiedFinish()); Case(()=>CheckUnifiedImageImport(destination));
+        Case(()=>CheckLatestImageWins(destination));Case(()=>CheckCancelledImageDiscarded(destination));Case(()=>CheckStartPreparationExclusive(destination));Case(()=>CheckFailedPlanClearsStaleResult(destination));
+        Case(()=>CheckPreviewSurvivesEstimateFailure(destination));
+        Case(()=>CheckInputCheckExclusive(destination));Case(()=>CheckStandaloneStop(destination));Case(()=>CheckClosingWaitsForCheck(destination));Case(()=>CheckCaptureCanRebuildPlan(destination));Case(()=>CheckMalformedLegacyWindow(destination));
+        Case(()=>CheckSetupSize3WithoutBase(destination));Case(()=>CheckSetupFallbackSize3(destination));Case(()=>CheckSetupFailedFallback(destination));
+        Case(()=>CheckWorkingBrush(destination,"Українська"));Case(()=>CheckWorkingBrush(destination,"English"));Case(()=>CheckStartButtonDispatch(destination));
+        Case(()=>CheckCompactCapture(destination,"Українська"));Case(()=>CheckCompactCapture(destination,"English"));
+        Case(()=>CheckVisualConfirmationPreset(destination,"Українська"));Case(()=>CheckVisualConfirmationPreset(destination,"English"));
+        Case(()=>CheckVisualStartGate(destination,"Українська"));Case(()=>CheckVisualStartGate(destination,"English"));Case(()=>CheckQuickBrushIsolation(destination));
+        Case(()=>CheckWorkingSizePolicy(destination,"Українська"));Case(()=>CheckWorkingSizePolicy(destination,"English"));
+        Case(()=>CheckCombinedSetupSelection(destination));
+        Case(()=>CheckGroupedSpeed(destination));
+        Case(()=>CheckExecutionTimingUi(destination,"Українська"));Case(()=>CheckExecutionTimingUi(destination,"English"));
+        Case(()=>CheckMixedReadiness(destination,"Українська"));Case(()=>CheckMixedReadiness(destination,"English"));
+        Case(()=>CheckSynchronizedEditors(destination,"Українська"));Case(()=>CheckSynchronizedEditors(destination,"English"));
+        Case(()=>CheckColorChoice(destination,"Українська"));Case(()=>CheckColorChoice(destination,"English"));Case(()=>CheckMeasuredPlanOverlay(destination));
+        Case(()=>CheckPreviewQueueLatest());Case(()=>CheckPreviewQueueCancellation());Case(()=>CheckPreviewWorkerCancellation(destination));Case(()=>CheckPreviewModelFailure(destination));
+        Case(()=>CheckPreparationShortcuts(destination,"Українська"));Case(()=>CheckPreparationShortcuts(destination,"English"));
+        Case(()=>CheckControlDiagnosisAction(destination,"Українська"));Case(()=>CheckControlDiagnosisAction(destination,"English"));
+        Case(()=>CheckSupersededPreviewPublication(destination));
+        Case(()=>CheckInternationalCatalog());foreach(string language in LanguageCatalog.Names)Case(()=>CheckInternationalWindow(destination,language));
+        Case(()=>CheckInternationalSwitch(destination));Case(()=>CheckFirstRunLifecycle(destination));
+        Case(()=>CheckCanonicalPreparation(destination,"Українська"));Case(()=>CheckCanonicalPreparation(destination,"English"));
+        Case(()=>CheckPreparationHistory(destination));Case(()=>CheckPreparationControlsAndFooter(destination));
+        Case(()=>CheckProductUi(destination));Case(()=>CheckProductRenderMatrix(destination));
+        Case(()=>CheckStoppedPainterRetainsResume(destination));Case(()=>CheckFreshAuditBaseline(destination));Case(()=>CheckHistoricalAuditState(destination));Case(()=>CheckManualProbeClearsFailedHistory(destination));
+        Case(()=>CheckMinimumPaintingUi(destination));Case(()=>CheckReleaseCandidate(destination));Case(()=>CheckLiveReleaseFixes(destination));Case(()=>CheckStandardLayouts(destination));
+        Case(CheckRc3BoundaryFake);
+        Case(()=>CheckRc3StartSizeOnly(destination));
+        Case(()=>CheckPalettePreparationUi(destination));Case(()=>CheckQuickPaletteUi(destination));Case(()=>CheckInterruptedResumeWait());
+        Case(()=>CheckEditorFailureReplay(destination));Case(()=>CheckClipboardFailureRetention(destination));
+        Case(CheckFrontierSessionPreparation);Case(CheckFrontierSessionCaptureNegatives);Case(()=>CheckFrontierSessionArtifact(destination));Case(CheckFrontierSessionWindow);Case(CheckFrontierStableFrames);
+        Case(()=>CheckFrontierBaselineBeforePaint(destination));Case(CheckFrontierParkingConfirmation);
+        Case(()=>CheckRc4AdaptiveStatus(destination));
+        Case(()=>CheckRc5DrawingUi(destination));
+        Case(()=>CheckBoundaryNativeFiles(destination));Case(()=>CheckBoundaryTraceFiles(destination));Case(()=>CheckBoundaryIncompleteFiles(destination));Case(()=>CheckBoundaryOutputOwnership(destination));
+        if(caseFailures.Count>0)throw new AggregateException(caseFailures);
+        Console.WriteLine($"ALL {passedCases} WPF TEST CASES PASSED (including an 84-layout DPI matrix)");
         NativeClipboardChecks.Run();
         if(args.Length==2)ReplaySlowControls(args[1],destination);
         if(args.Length>2)ReplayRecordedSpatialProbe(args[1],args[2],destination);
@@ -156,7 +355,7 @@ internal static partial class Program
     private static void CheckProbeTimeoutUi(string output,string language)
     {
         bool english=language=="English";string name="probe-timeout-"+(english?"en":"ua"),directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        ReadySettings(language).Save(Path.Combine(directory,"config-csharp.json"));
+        ReadySettings(language).Save(Path.Combine(directory,SettingsStore.ConfigName));
         var session=new ProbeDiagnosticSession(directory,"fixture",3,7,2);session.Failed(new ProbeBudgetExceededException("fixture time budget"));
         Assert(ProbeDiagnosticSession.Read(session.DirectoryPath)!.State=="timed_out","Budget exhaustion collapsed into cancellation");
         var timer=new ProbeDiagnosticSession(directory,"fixture",3,7,2);timer.Failed(new TimeoutException("fixture native timer"));
@@ -164,7 +363,7 @@ internal static partial class Program
         var cancelled=new ProbeDiagnosticSession(directory,"fixture",3,7,2);cancelled.Failed(new OperationCanceledException());
         Assert(ProbeDiagnosticSession.Read(cancelled.DirectoryPath)!.State=="cancelled","User cancellation mislabeled as timeout");
         File.WriteAllText(Path.Combine(directory,"speed-probe","latest.json"),System.Text.Json.JsonSerializer.Serialize(new{run=Path.GetFileName(session.DirectoryPath)}));
-        Window? presented=null;var window=new MainWindow(directory,w=>presented=w);window.ShowPage("speed");
+        Window? presented=null;var window=FixtureWindow(directory,w=>presented=w);window.ShowPage("speed");
         Field<Button>(window,"probeDiagnosticButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         Assert(presented is not null,"Timed out probe has no diagnostics");var root=(FrameworkElement)presented!.Content;
         root.Measure(new Size(900,700));root.Arrange(new Rect(0,0,900,700));root.UpdateLayout();
@@ -180,14 +379,14 @@ internal static partial class Program
         BrushSpan[] narrow=[new(0,0,1),new(1,0,1)];BrushSpan[] wide=[new(0,0,3),new(1,0,3)];
         var small=new BrushStamp(narrow,narrow,new(20,20,20));var large=new BrushStamp(wide,wide,new(20,20,20));
         BrushFootprints.Save(s,[BrushFootprints.Build(s,3,2,[small,small,small]),BrushFootprints.Build(s,3,3,[small,small,small]),BrushFootprints.Build(s,3,10,[large,large,large])]);
-        s.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        s.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         var root=Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"];
         var chips=Descendants(root).OfType<Border>().Where(b=>b.Tag?.ToString()?.StartsWith("brush-wide:")==true).ToArray();
         var thin=chips.Single(b=>b.Tag!.ToString()=="brush-wide:3");
-        Assert(((TextBlock)thin.Child).Text.Contains(english?"too narrow":"надто вузьке"),"Measured narrow core misleadingly advertised wide acceleration");
-        Assert(((SolidColorBrush)thin.BorderBrush).Color==(Color)ColorConverter.ConvertFromString("#F2C46D"),"Narrow core is not a warning");
+        Assert(((TextBlock)thin.Child).Text.Contains(english?"Certified mask":"Підтверджена маска"),"Narrow rectangle still hides usable certified spans");
+        Assert(!((TextBlock)thin.Child).Text.Contains(english?"acceleration":"прискорення"),"Mask certification promises physical speedup");
         Assert(thin.ToolTip.ToString()!.Contains("1 × 2 px"),"Measured dimensions missing from wide eligibility tooltip");
-        Assert(((TextBlock)chips.Single(b=>b.Tag!.ToString()=="brush-wide:10").Child).Text.Contains(english?"eligible":"придатне"),"Valid wide core not shown");
+        Assert(((TextBlock)chips.Single(b=>b.Tag!.ToString()=="brush-wide:10").Child).Text.Contains(english?"Certified mask":"Підтверджена маска"),"Certified mask not shown");
         Assert(((TextBlock)chips.First(b=>b.Tag!.ToString()=="brush-wide:2").Child).Text.Contains(english?"Base brush":"Базовий пензель"),"Base brush conflated with wide acceleration");
         if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(string.Join("\n",Captions(root)),@"[\u0400-\u04FF]"),"Wide core states untranslated");
         Console.WriteLine("PASS "+name);
@@ -234,8 +433,8 @@ internal static partial class Program
         var s=ReadySettings(language);s.Data.Remove("brush_footprints");s.Data.Remove("brush_calibration_points");s.Data.Remove("brush_calibration_context");
         BrushSpan[] support=[new(0,0,2),new(1,0,2)];
         var samples=Enumerable.Range(1,3).Select(i=>new BrushSignalSample(i,new(69+i%2,4,80,new(140,140,140),new(70,70,70)),2,support)).ToArray();
-        var weak=BrushSignalDiagnostics.Summarize(s,3,2,samples,null);BrushSignalDiagnostics.Save(s,[weak]);s.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        var weak=BrushSignalDiagnostics.Summarize(s,3,2,samples,null);BrushSignalDiagnostics.Save(s,[weak]);s.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         CheckUnmeasuredAdaptiveClick(window);
         Assert(!Field<CheckBox>(window,"auditEnabled").IsEnabled,"Weak evidence enabled exact painting");
         Assert(Field<Button>(window,"adaptiveRetry").IsEnabled,"Failed Size retry inaccessible");
@@ -268,8 +467,8 @@ internal static partial class Program
     {
         bool english=language=="English";string name="partial-brush-"+(english?"en":"ua");string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
         var s=ReadySettings(language);s.Data.Remove("brush_footprints");BrushSpan[] pixels=[new(-1,-1,2),new(0,-1,2),new(1,-1,2)];var stamp=new BrushStamp(pixels,pixels,new(20,20,20));
-        BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[stamp,stamp,stamp])]);s.Set("probe_size",3);s.Set("adaptive_brush",false);s.Set("coverage_audit",false);s.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        BrushFootprints.Save(s,[BrushFootprints.Build(s,3,3,[stamp,stamp,stamp])]);s.Set("probe_size",3);s.Set("adaptive_brush",false);s.Set("coverage_audit",false);s.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         Assert(AdaptiveBrush.CalibrationCurrent(Field<Settings>(window,"settings"))&&Field<CheckBox>(window,"auditEnabled").IsEnabled,"Verified Size 3 cannot use mask-based audit repair");
         string failure="Size 1, повтор 1/3: контраст 69/255, потрібно 80; змінених пікселів 8. Цей Size не збережено.";
         SetField(window,"adaptiveFailure",failure);Invoke(window,"RefreshAdaptiveStatus");
@@ -324,8 +523,8 @@ internal static partial class Program
         session.Before(before);session.After(after);session.Analysed(before,after,result);session.Complete([]);
         var stored=ProbeDiagnosticSession.Read(session.DirectoryPath)!;
         Assert(stored.Stages[1].LocalControlId==controlId&&stored.Stages[1].Metrics!.Spatial!.Geometry!.ObservedSlices==28,"Local evidence lost");
-        settings.Save(Path.Combine(directory,"config-csharp.json"));Window? presented=null;
-        var window=new MainWindow(directory,w=>presented=w);Invoke(window,"ShowProbeDiagnostics");Assert(presented is not null,"Local diagnostic inaccessible");
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));Window? presented=null;
+        var window=FixtureWindow(directory,w=>presented=w);Invoke(window,"ShowProbeDiagnostics");Assert(presented is not null,"Local diagnostic inaccessible");
         var root=(FrameworkElement)presented!.Content;root.Measure(new(980,820));root.Arrange(new(0,0,980,820));root.UpdateLayout();
         var views=Descendants(root).OfType<ComboBox>().Single(x=>x.Items.Count==9);views.SelectedIndex=8;root.UpdateLayout();
         Assert(Descendants(root).OfType<System.Windows.Controls.Image>().Any(i=>i.Source is not null),"Contrast overlay missing");
@@ -339,13 +538,13 @@ internal static partial class Program
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var s=ReadySettings(language);
         BrushSpan[] pixels=[new(1,0,2),new(2,0,2)];
         var p=BrushFootprints.Build(s,3,2,Enumerable.Repeat(new BrushStamp(pixels,pixels,new(20,20,20)),3).ToArray());
-        BrushFootprints.Save(s,[p]);s.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        BrushFootprints.Save(s,[p]);s.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         var root=(FrameworkElement)window.Content;
         var shapes=Descendants(root).OfType<Button>().Where(b=>b.Tag?.ToString()?.StartsWith("brush-shape:")==true).ToArray();
         Assert(shapes.Length==7&&shapes.Select(b=>b.Tag).Distinct().Count()==7,"Seven individual shapes are not selectable");
         var size=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="adaptive_max_size");
-        Assert(size.Items.Cast<object>().Any(v=>v.ToString()=="100"),"Large adaptive Size missing");
+        Assert(size.Items.Cast<object>().Select(v=>v.ToString()).SequenceEqual(SetupBrushSelection.SizeOptions),"Adaptive maximum Sizes must match the seven supported values");
         var calibration=Descendants(root).OfType<ComboBox>().Single(b=>b.Tag?.ToString()=="brush_calibration_size");
         Assert(calibration.Items.Cast<object>().Select(v=>v.ToString()).SequenceEqual(SetupBrushSelection.Options),"Optional calibration Sizes missing");
         var toggle=Descendants(root).OfType<CheckBox>().Single(b=>b.Content?.ToString()==(english?"Automatically choose measured shapes":"Автоматично вибирати виміряні форми"));
@@ -361,7 +560,7 @@ internal static partial class Program
     private static void CheckProgressLanguageRebuild(string output)
     {
         var directory=Path.Combine(output,"progress-rebuild");Directory.CreateDirectory(directory);
-        ReadySettings("Українська").Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        ReadySettings("Українська").Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);
         var estimate=new EtaEstimate(23.6,EtaBasis.Measured,50,50,178,0,129,2.01);
         Invoke(window,"ApplyPaintProgress",new PaintProgress(50,228,8,23.6,"#ABCDEF",estimate));
         Invoke(window,"ApplyPaintProgress",new PaintProgress(0,0,0,0,"Пауза — повернись у Rust і натисни F6."));
@@ -470,7 +669,7 @@ internal static partial class Program
     {
         var directory = Path.Combine(output, "palette-apply"); Directory.CreateDirectory(directory);
         var cfg = ReadySettings("English"); cfg.Set("color_mode", "HEX Direct"); cfg.Set("hex_max_colors", "256");
-        var path = Path.Combine(directory, "config-csharp.json"); cfg.Save(path); var window = new MainWindow(directory);
+        var path = Path.Combine(directory, SettingsStore.ConfigName); cfg.Save(path); var window = FixtureWindow(directory);
         Render(window, Path.Combine(output, "palette-apply-empty.png"), 900);
         Assert(!Field<Button>(window, "paletteCompareButton").IsEnabled, "Comparison enabled without an image");
         var source = PaletteFixture(); SetField(window, "source", source); Invoke(window, "UpdateReady");
@@ -507,13 +706,14 @@ internal static partial class Program
         Assert(input.Moves.Count==3,"Blocked move changed the game cursor");
         Console.WriteLine("PASS painter-cursor-event-transport");
     }
-    private sealed class CaptureInput : ICalibratedStrokeInput
+    private sealed class CaptureInput : IIntentStrokeInput
     {
         public double Seconds=>0;
         public ScreenPoint Cursor;
         public bool Blocked;
         public int Releases;
         public List<ScreenPoint> Moves=new();
+        public void Move(IReadOnlyList<ScreenPoint> points,InputIntent intent)=>Move(points);
         public void Move(IReadOnlyList<ScreenPoint> points)
         {
             if(Blocked)throw new OperationCanceledException();
@@ -547,8 +747,8 @@ internal static partial class Program
             settings.Set("brush_calibration_context",AdaptiveBrush.Context(settings));
         }
         if(stale){cal.SetRect("canvas",new(50,50,451,450));settings.SetCalibration(cal);}
-        settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);window.ShowPage("adaptive");
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);window.ShowPage("adaptive");
         var root=(FrameworkElement)window.Content;
         root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
         var checks=Descendants(root).OfType<CheckBox>().Where(x=>x.Content?.ToString()?.Contains(language=="English"?"Enable adaptive brush":"Увімкнути адаптивний пензель")==true).ToArray();
@@ -575,8 +775,8 @@ internal static partial class Program
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
         var settings=Settings.ExperimentalDefaults();settings.Set("drawing_mode","Advanced");settings.Set("language",language);settings.Set("cell_px",3);settings.Set("speed_profile","Rapid");
         settings.Set("brush_calibration_points",new double[][]{[1,3,1],[10,21,13]});
-        string config=Path.Combine(directory,"config-csharp.json");settings.Save(config);
-        var window=new MainWindow(directory);window.ShowPage("paint");var root=(FrameworkElement)window.Content;
+        string config=Path.Combine(directory,SettingsStore.ConfigName);settings.Save(config);
+        var window=FixtureWindow(directory);window.ShowPage("paint");var root=(FrameworkElement)window.Content;
         foreach(var e in LogicalNodes(root).OfType<Expander>().Where(e=>Equals(e.Tag,"painting-quality")))e.IsExpanded=true;
         root.Measure(new Size(width,780));root.Arrange(new Rect(0,0,width,780));root.UpdateLayout();
         var checks=Descendants(root).OfType<CheckBox>().Where(x=>x.Content?.ToString()?.Contains(language=="English"?"Maximum transfer speed":"Максимальна швидкість перенесення")==true).ToArray();
@@ -634,7 +834,7 @@ internal static partial class Program
         string name="speed-"+(language=="English"?"en":"ua")+"-"+width+(stale?"-stale":"");
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var settings=ReadySettings(language);
         if(stale){settings.Set("brush_shape_slot",4);settings.Set("brush_shape","Square");settings.Set("calibrated_strokes",true);}
-        settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);Invoke(window,"ShowSpeedSetup");
         Render(window,Path.Combine(output,name+".png"),width);
         Assert(Field<Dictionary<string,FrameworkElement>>(window,"pages")["speed"].Visibility==Visibility.Visible,"Speed setup link did not open its sidebar page");
         Assert(!Descendants((FrameworkElement)window.Content).OfType<TabControl>().Any(),"Nested navigation is still present");
@@ -652,12 +852,12 @@ internal static partial class Program
     private static void CheckPreflight(string output)
     {
         string name="preflight";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);var settings=ReadySettings("Українська");
-        settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);
         SetField(window,"source",new PixelImage(16,16));Invoke(window,"UpdateReady");
         Assert(Field<Button>(window,"startButton").IsEnabled,"Fully captured input was not ready");
-        var live=Field<Settings>(window,"settings");var cal=live.Calibration;cal.SetRect("opacity_value_field",default);live.SetCalibration(cal);Invoke(window,"UpdateReady");
+        var live=Field<Settings>(window,"settings");var cal=live.Calibration;cal.SetRect("size_value_field",default);live.SetCalibration(cal);Invoke(window,"UpdateReady");
         Assert(!Field<Button>(window,"startButton").IsEnabled,"START ignored a missing numeric field");
-        cal.SetRect("opacity_value_field",new(1300,300,1380,340));live.SetCalibration(cal);Invoke(window,"UpdateReady");
+        cal.SetRect("size_value_field",new(1300,300,1380,340));live.SetCalibration(cal);Invoke(window,"UpdateReady");
         Render(window,Path.Combine(output,name+".png"),900);
         var detail=Descendants((FrameworkElement)window.Content).OfType<TextBox>().Single(x=>x.ToolTip?.ToString()=="Деталізація, px");
         detail.Text="not a number";Assert(!Field<Button>(window,"startButton").IsEnabled,"Invalid numeric input did not block START");
@@ -670,8 +870,8 @@ internal static partial class Program
     private static void CheckExperimentalWindow(string output)
     {
         string name="experimental-input";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings("Українська");settings.Set("input_frame_delay_ms",16);settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);SetField(window,"source",new PixelImage(16,16));Invoke(window,"UpdateReady");
+        var settings=ReadySettings("Українська");settings.Set("input_frame_delay_ms",16);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);SetField(window,"source",new PixelImage(16,16));Invoke(window,"UpdateReady");
         var field=Field<TextBox>(window,"experimentalDelay");Assert(field.Text=="12"&&!field.IsEnabled,"Stable exposed inactive experimental timing");
         Render(window,Path.Combine(output,name+".png"),900);
         foreach(var expander in Descendants((FrameworkElement)window.Content).OfType<Expander>().ToArray())expander.IsExpanded=true;
@@ -682,7 +882,7 @@ internal static partial class Program
         Assert(!Field<TextBox>(window,"stableDelay").IsEnabled,"Experimental kept its inactive Stable field editable");
         field.Text="7";Assert(!Field<Button>(window,"startButton").IsEnabled,"Invalid experimental timing did not block START");
         field.Text="8";Invoke(window,"ReadSettings");Invoke(window,"Save");
-        Assert(StrokeTiming.Frame(Settings.Load(Path.Combine(directory,"config-csharp.json")))==.008,"Experimental timing was not persisted");
+        Assert(StrokeTiming.Frame(Settings.Load(Path.Combine(directory,SettingsStore.ConfigName)))==.008,"Experimental timing was not persisted");
         window.SetEditing(false);Assert(!field.IsEnabled,"Timing remained editable during input");window.SetEditing(true);Assert(field.IsEnabled,"Experimental timing was not restored");
         engine.SelectedIndex=0;Assert(!field.IsEnabled&&StrokeTiming.Frame(Field<Settings>(window,"settings"))==.016,"Experimental changes altered Stable timing");
         engine.SelectedIndex=1;
@@ -696,8 +896,8 @@ internal static partial class Program
     {
         string name="forms-"+(language=="English"?"en":"ua")+"-"+width;
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(window,"pages");
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(window,"pages");
         foreach(string key in new[]{"capture","settings","adaptive","speed"})
         {
             window.ShowPage(key);Render(window,Path.Combine(output,name+"-"+key+".png"),width);
@@ -726,9 +926,9 @@ internal static partial class Program
     {
         string name="audit-banner-"+(language=="English"?"en":"ua")+"-"+width;
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
         Window? presented=null;
-        var window=new MainWindow(directory, dialog=>presented=dialog);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
+        var window=FixtureWindow(directory, dialog=>presented=dialog);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
         var before=new PixelImage(64,64);var after=before.Clone();var overlay=after.Clone();
         before.Set(0,new(30,30,30));after.Set(0,new(0,220,0));overlay.Set(0,new(255,40,70));
         foreach(var (kind,snapshot) in new[]{("before",before),("after",after),("gaps",overlay)})Images.Save(snapshot,Path.Combine(diagnostics,$"group-0-{kind}.png"));
@@ -747,7 +947,7 @@ internal static partial class Program
             Assert(action.ActualWidth>80&&point.Y+action.ActualHeight<620,"Audit action is clipped at minimum window size");
             Assert(Descendants((FrameworkElement)window.Content).OfType<ScrollViewer>().Any(x=>x.ScrollableHeight>0),"Minimum window size has no scrolling for overflowing content");
         }
-        string originalConfig=File.ReadAllText(Path.Combine(directory,"config-csharp.json"));
+        string originalConfig=File.ReadAllText(Path.Combine(directory,SettingsStore.ConfigName));
         Invoke(window,"BuildUi");Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Visible,"Rebuilding UI hid the unresolved audit");
         var dialog=(Window)typeof(MainWindow).GetMethod("CreateAuditDiagnosticWindow",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,null)!;
         var root=(FrameworkElement)dialog.Content;root.Measure(new Size(960,740));root.Arrange(new Rect(0,0,960,740));root.UpdateLayout();
@@ -768,11 +968,11 @@ internal static partial class Program
         Assert(Descendants(missingRoot).OfType<TextBlock>().Any(x=>x.Visibility==Visibility.Visible&&x.Text.Contains(language=="English"?"Snapshot unavailable":"Знімок недоступний")),"Unavailable snapshot message missing");
         Field<Button>(window,"auditDismissButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Audit banner cannot be dismissed");
-        Assert(File.ReadAllText(Path.Combine(directory,"config-csharp.json"))==originalConfig,"Viewing or dismissing diagnostics changed painting settings");
+        Assert(File.ReadAllText(Path.Combine(directory,SettingsStore.ConfigName))==originalConfig,"Viewing or dismissing diagnostics changed painting settings");
         Assert(File.Exists(Path.Combine(diagnostics,"group-0-gaps.png")),"Dismissing the banner deleted audit evidence");
         Invoke(window,"BuildUi");
         Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Rebuilding UI reopened a dismissed banner");
-        foreach(string key in new[]{"workflowCoverageAction","coverageAction"})
+        foreach(string key in new[]{"coverageAction"})
         {
             var action=Field<Button>(window,key);Assert(action.IsEnabled,"Dismissed audit diagnostics cannot be reopened from "+key);
             presented=null;action.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
@@ -785,17 +985,17 @@ internal static partial class Program
             Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Collapsed,"Opening diagnostics restored the dismissed banner");
         }
         // The chip is a real button with a keyboard focus indicator and an Invoke peer.
-        var sidebarAction=Field<Button>(window,"workflowCoverageAction");
+        var sidebarAction=Field<Button>(window,"coverageAction");
         var peer=new System.Windows.Automation.Peers.ButtonAutomationPeer(sidebarAction);
         Assert(peer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke) is System.Windows.Automation.Provider.IInvokeProvider,"Coverage chip is not keyboard/automation accessible");
         Assert(!string.IsNullOrEmpty(System.Windows.Automation.AutomationProperties.GetName(sidebarAction)),"Coverage action has no accessible name");
         presented=null;((System.Windows.Automation.Provider.IInvokeProvider)peer.GetPattern(System.Windows.Automation.Peers.PatternInterface.Invoke)).Invoke();
         window.Dispatcher.Invoke(()=>{},System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         Assert(presented is not null,"Accessible Invoke did not open diagnostics");
-        Assert(File.ReadAllText(Path.Combine(directory,"config-csharp.json"))==originalConfig,"Reopening diagnostics changed painting settings");
+        Assert(File.ReadAllText(Path.Combine(directory,SettingsStore.ConfigName))==originalConfig,"Reopening diagnostics changed painting settings");
         foreach(string kind in new[]{"gaps","after"})File.Delete(Path.Combine(diagnostics,$"group-0-{kind}.png"));
         Invoke(window,"RefreshCoverageStatus");
-        Assert(!Field<Button>(window,"coverageAction").IsEnabled&&!Field<Button>(window,"workflowCoverageAction").IsEnabled,"Coverage action remained available with no snapshots");
+        Assert(!Field<Button>(window,"coverageAction").IsEnabled,"Coverage action remained available with no snapshots");
         Assert(Field<Button>(window,"coverageAction").ToolTip.ToString()!.Contains(language=="English"?"unavailable":"недоступні"),"Missing snapshots have no explanation");
         typeof(MainWindow).GetMethod("Error",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,[failure]);
         Assert(Field<Border>(window,"auditBanner").Visibility==Visibility.Visible,"A new audit error failed to restore its banner");
@@ -808,8 +1008,8 @@ internal static partial class Program
     {
         string name="audit-zoom-"+(language=="English"?"en":"ua");
         string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        ReadySettings(language).Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
+        ReadySettings(language).Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);string diagnostics=Path.Combine(directory,"coverage-audit");Directory.CreateDirectory(diagnostics);
         var after=new PixelImage(1049,1046);for(int i=0;i<1049*1046;i++)after.Set(i,new(230,30,40));
         var gaps=new bool[1049*1046];for(int x=31;x<320;x++)gaps[31*1049+x]=true;
         var overlay=CoverageAudit.GapOverlay(after,gaps);
@@ -852,16 +1052,17 @@ internal static partial class Program
     private static void CheckDetailAndPreview(string output)
     {
         string name="detail-preview";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);Render(window,Path.Combine(output,name+".png"),1280);
+        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);Render(window,Path.Combine(output,name+".png"),1280);
         var detail=Field<TextBox>(window,"detailInput");var buttons=Field<Dictionary<int,Button>>(window,"detailPresets");
         Color Border(Button b)=>((SolidColorBrush)b.BorderBrush).Color;
         Color accent=((SolidColorBrush)window.Resources["ThemeAccent"]).Color;
         detail.Text="5";Assert(Border(buttons[5])==accent&&Border(buttons[3])!=accent,"Manual detail did not synchronize the selected preset");
         Assert(Field<TextBlock>(window,"detailState").Text.Contains("5 px"),"Current manual detail is not explained");
         detail.Text="4";Assert(buttons.Values.All(x=>Border(x)!=accent)&&Field<TextBlock>(window,"detailState").Text.Contains("Власне"),"Custom detail looks like a standard preset");
+        string movement=Field<Settings>(window,"settings").Text("speed_profile");
         buttons[8].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
-        Assert(Field<TextBox>(window,"detailInput").Text=="8"&&Field<Settings>(window,"settings").Text("speed_profile")=="Max Speed","Applying a preset did not update detail and movement together");
+        Assert(Field<TextBox>(window,"detailInput").Text=="8"&&Field<Settings>(window,"settings").Text("speed_profile")==movement,"Applying a detail preset changed movement speed");
         var source=new PixelImage(320,160);for(int i=0;i<320*160;i++)source.Set(i,new((byte)(i%320*255/320),80,140));
         Field<Image>(window,"originalImage").Source=Images.Bitmap(source);Field<Image>(window,"previewImage").Source=Images.Bitmap(source);
         Render(window,Path.Combine(output,name+"-compare.png"),2000);
@@ -880,8 +1081,8 @@ internal static partial class Program
     private static void CheckSpeedChips(string output)
     {
         string name="speed-chips";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");Render(window,Path.Combine(output,name+".png"),1280);
+        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);Invoke(window,"ShowSpeedSetup");Render(window,Path.Combine(output,name+".png"),1280);
         Border Chip()=>Field<Border>(window,"speedChip");
         Color Tone()=>((SolidColorBrush)Chip().BorderBrush).Color;
         string Label()=>((TextBlock)Chip().Child).Text;
@@ -890,16 +1091,14 @@ internal static partial class Program
         Assert(Label()=="Очікує"&&Tone()==(Color)ColorConverter.ConvertFromString("#F2C46D"),"Untested speed does not have a yellow chip");
         SetField(window,"speedFailure","Тест не пройшов перевірку.");Invoke(window,"UpdateReady");
         Assert(Label()=="Помилка"&&Tone()==(Color)ColorConverter.ConvertFromString("#C85561"),"Failed speed does not have a red chip");
-        var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
-        var speed=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,["speed"])!;
-        Assert(((TextBlock)speed.Child).Text==Label()&&((SolidColorBrush)speed.BorderBrush).Color==Tone(),"Sidebar speed state disagrees with its page");
+        Assert(!Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["paint"]).Contains("Speed Probe state"),"Optional proof leaked into the main flow");
         Console.WriteLine("PASS "+name);
     }
 
     private static void CheckPreviewFit(string output,int width,int originalWidth,int originalHeight,int resultWidth,int resultHeight,string variant)
     {
         string name="preview-fit-"+variant+"-"+width;var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        var settings=ReadySettings("Українська");settings.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);
         PixelImage Sample(int w,int h)
         {
             var image=new PixelImage(w,h);for(int y=0;y<h;y++)for(int x=0;x<w;x++)image.Set(y*w+x,new((byte)(x*255/w),(byte)(y*255/h),90));
@@ -925,7 +1124,7 @@ internal static partial class Program
     private static void CheckSettingsEnglish(string output)
     {
         string name="settings-explicit-en";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings("English");settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);window.ShowPage("settings");
+        var settings=ReadySettings("English");settings.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);window.ShowPage("settings");
         Render(window,Path.Combine(output,name+".png"),1280);
         var page=Field<Dictionary<string,FrameworkElement>>(window,"pages")["settings"];
         foreach(var expander in Descendants(page).OfType<Expander>().ToArray())expander.IsExpanded=true;
@@ -939,7 +1138,7 @@ internal static partial class Program
     private static void CheckCoverageStates(string output,string language)
     {
         bool english=language=="English";string name="coverage-state-"+(english?"en":"ua");var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);Invoke(window,"ShowSpeedSetup");
         Render(window,Path.Combine(output,name+".png"),1280);
         Border Chip()=>Field<Border>(window,"coverageChip");string Label()=>((TextBlock)Chip().Child).Text;
         string Expected(string ua,string en)=>english?en:ua;
@@ -969,9 +1168,6 @@ internal static partial class Program
         Assert(Label()==Expected("Потребує уваги","Needs review"),"Failed audit did not update the persistent chip");
         Field<Button>(window,"auditDismissButton").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         Assert(Label()==Expected("Потребує уваги","Needs review"),"Dismissing an audit failure falsely cleared its status");
-        var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
-        var coverage=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,["coverage"])!;
-        Assert(((TextBlock)coverage.Child).Text==Expected("Увага","Review")&&((SolidColorBrush)coverage.BorderBrush).Color==((SolidColorBrush)Chip().BorderBrush).Color,"Compact coverage sidebar disagrees with the audit page");
         Render(window,Path.Combine(output,name+"-failure.png"),900);
         Console.WriteLine("PASS "+name);
     }
@@ -983,13 +1179,13 @@ internal static partial class Program
         var worker=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
         typeof(Painter).GetField("settings",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(worker,settings);
         var method=typeof(Painter).GetMethod("DesiredControls",BindingFlags.NonPublic|BindingFlags.Instance)!;
-        var actual=((double Size,double Interval,double Opacity))method.Invoke(worker,[null])!;
-        Assert(actual.Size==10,"Actual executor ignored three-column calibration");
+        var actual=(double)method.Invoke(worker,[null])!;
+        Assert(actual==10,"Actual executor ignored three-column calibration");
         settings.Set("auto_brush_size",false);settings.Set("brush_size_value",7);
-        actual=((double,double,double))method.Invoke(worker,[null])!;Assert(actual.Size==7,"Auto fix changed manual Size");
+        actual=(double)method.Invoke(worker,[null])!;Assert(actual==7,"Auto fix changed manual Size");
         settings.Set("coverage_mode","Precision");
-        actual=((double,double,double))method.Invoke(worker,[null])!;Assert(actual.Size==3,"Precision executor ignored the default working Size 3");
-        actual=((double,double,double))method.Invoke(worker,[20d])!;Assert(actual.Size==20,"Adaptive override was ignored");
+        actual=(double)method.Invoke(worker,[null])!;Assert(actual==3,"Precision executor ignored the default working Size 3");
+        actual=(double)method.Invoke(worker,[20d])!;Assert(actual==20,"Adaptive override was ignored");
         Console.WriteLine("PASS auto-brush-executor");
     }
 
@@ -997,13 +1193,13 @@ internal static partial class Program
     {
         bool english=language=="English";string name="reliability-"+(english?"en":"ua");
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);var actual=Field<Settings>(window,"settings");
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);var actual=Field<Settings>(window,"settings");
         var image=new PixelImage(16,16);for(int i=0;i<256;i++)image.Set(i,new(0,0,0));
         var plan=Planner.Build(image,actual);var groups=TransferSchedule.Build(plan,actual);
         var counts=TransferSchedule.Order(plan,groups).Select(color=>groups[color].Count).ToArray();
         SetField(window,"source",image);SetField(window,"plan",plan);SetField(window,"resumeSchedule",(plan,counts));
-        string resume=Path.Combine(directory,"resume-csharp.json");
+        string resume=Path.Combine(directory,SettingsStore.ResumeName);
         void Write(ResumeCheckpoint state){File.WriteAllText(resume,System.Text.Json.JsonSerializer.Serialize(state));Invoke(window,"UpdateReady");}
         Write(new(plan.Identity,0,0,0));Assert(Field<Button>(window,"resumeButton").IsEnabled,"Compatible progress was disabled");
         Write(new("different-plan",0,0,0));Assert(!Field<Button>(window,"resumeButton").IsEnabled,"Another plan enabled Resume");
@@ -1013,7 +1209,7 @@ internal static partial class Program
         window.ShowPage("settings");Render(window,Path.Combine(output,name+".png"),900);
         var readers=Field<Dictionary<string,Func<object>>>(window,"readers");
         foreach(string key in new[]{"sequence_delay_ms","double_click_controls","control_verify_tolerance"})
-            Assert(!readers.ContainsKey(key)&&actual.Data.ContainsKey(key),"Retired setting remains editable or was lost from configuration: "+key);
+            Assert(!readers.ContainsKey(key)&&(key=="control_verify_tolerance"?!actual.Data.ContainsKey(key):actual.Data.ContainsKey(key)),"Retired setting remains editable or was lost from configuration: "+key);
         Console.WriteLine("PASS "+name);
     }
 
@@ -1033,8 +1229,8 @@ internal static partial class Program
     {
         bool english=language=="English";string name="localization-"+(english?"en":"ua");
         var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(window,"pages");
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);var pages=Field<Dictionary<string,FrameworkElement>>(window,"pages");
         foreach(var page in pages)
         {
             window.ShowPage(page.Key);Render(window,Path.Combine(output,name+"-"+page.Key+".png"),900);
@@ -1072,9 +1268,9 @@ internal static partial class Program
     private static void CheckLanguageSwitch(string output)
     {
         string name="localization-switch";var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var config=Path.Combine(directory,"config-csharp.json");var settings=ReadySettings("Українська");settings.Save(config);
-        var window=new MainWindow(directory);
-        foreach(var (key,value) in new[]{("speed_profile","Max Speed"),("input_engine","Experimental 1 ms"),("profile","Photo"),("fit_mode","crop"),("background_mode","auto"),("coverage_mode","Fast"),("max_colors","64"),("color_mode","HEX Direct"),("hex_max_colors","128")})
+        var config=Path.Combine(directory,SettingsStore.ConfigName);var settings=ReadySettings("Українська");settings.Save(config);
+        var window=FixtureWindow(directory);
+        foreach(var (key,value) in new[]{("speed_profile","Max Speed"),("input_engine","Experimental 1 ms"),("profile","Photo"),("fit_mode","crop"),("background_mode","auto"),("max_colors","64"),("color_mode","HEX Direct"),("hex_max_colors","128")})
         {
             window.ShowPage(key is "profile" or "fit_mode" or "background_mode" or "coverage_mode"?"settings":"paint");
             Render(window,Path.Combine(output,name+".png"),900);
@@ -1092,7 +1288,7 @@ internal static partial class Program
             combo.SelectedItem=language;var saved=Settings.Load(config);
             Assert(saved.Text("language")==language,"Language choice was not saved");
             Assert(PlanIdentity.Compute(image,saved,saved.Palette())==identity,"Language change altered image planning");
-            foreach(var key in new[]{"speed_profile","input_engine","profile","fit_mode","background_mode","coverage_mode","max_colors","color_mode","hex_max_colors","brush_calibration_context"})
+            foreach(var key in new[]{"speed_profile","input_engine","profile","fit_mode","background_mode","max_colors","color_mode","hex_max_colors","brush_calibration_context"})
                 Assert(saved.Text(key)==before.Text(key),"Language change altered stored settings: "+key);
             Assert(Field<Button>(window,"startButton").Content?.ToString()==(language=="English"?"Start":"Почати"),"Language switch did not rebuild buttons");
         }
@@ -1104,8 +1300,8 @@ internal static partial class Program
         bool english=language=="English";string name="spatial-workflow-"+(english?"en":"ua");
         var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
         var settings=ReadySettings(language);var model=ProbeSpatialCalibration.Read(settings,3)!;
-        settings.Data.Remove("probe_spatial_profiles");settings.Data.Remove("shape_spatial_profiles");settings.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");Render(window,Path.Combine(output,name+"-pending.png"),900);
+        settings.Data.Remove("probe_spatial_profiles");settings.Data.Remove("shape_spatial_profiles");settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);Invoke(window,"ShowSpeedSetup");Render(window,Path.Combine(output,name+"-pending.png"),900);
         Assert(Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Fast probe starts without spatial evidence");
         var actual=Field<Settings>(window,"settings");ProbeSpatialCalibration.Save(actual,model);Invoke(window,"UpdateReady");
         Assert(Field<Button>(window,"probeButton").IsEnabled,"Spatial model did not unlock the speed test");
@@ -1137,8 +1333,8 @@ internal static partial class Program
         var report=ProbeDiagnosticSession.Read(session.DirectoryPath)!;
         Assert(report.Scope=="spatial_core_occupancy"&&report.SpatialModel!.Id==model.Id&&report.FrozenReferences!.Count==2,"Frozen evidence lost on disk");
         Assert(report.Stages[0].Metrics!.Spatial!.PassedSlices==28,"Slice occupancy not persisted");
-        settings.Save(Path.Combine(directory,"config-csharp.json"));Window? presented=null;
-        var window=new MainWindow(directory,w=>presented=w);Invoke(window,"ShowProbeDiagnostics");Assert(presented is not null,"Spatial diagnostics inaccessible");
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));Window? presented=null;
+        var window=FixtureWindow(directory,w=>presented=w);Invoke(window,"ShowProbeDiagnostics");Assert(presented is not null,"Spatial diagnostics inaccessible");
         var root=(FrameworkElement)presented!.Content;root.Measure(new(980,820));root.Arrange(new(0,0,980,820));root.UpdateLayout();
         string captions=string.Join("\n",Captions(root));Assert(captions.Contains("Frozen offsets")&&captions.Contains("Verified slices"),"Spatial decision details missing");
         Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions,@"[\u0400-\u04FF]"),"Spatial diagnostic text untranslated");
@@ -1217,7 +1413,7 @@ internal static partial class Program
         var (before,_,line)=ProbeFixture();var after=before.Clone();
         for(int k=0;k<=35;k++)after.Set((48+(k%2==0?-1:0))*96+30+k,new(20,20,20));
         var axis=model.Axes.Single(x=>!x.Vertical);axis.Anchors[0]=axis.Anchors[0] with{Offset=-1};
-        ProbeSpatialCalibration.Save(cfg,model);cfg.Save(Path.Combine(directory,"config-csharp.json"));
+        ProbeSpatialCalibration.Save(cfg,model);cfg.Save(Path.Combine(directory,SettingsStore.ConfigName));
         var trial=ProbeSpatialCalibration.Trial(before,after,line,model.OuterRadius,axis,new(new(20,20,20),12));Assert(trial.Passed,"Jitter fixture changed acceptance");
         var session=new ProbeDiagnosticSession(directory,SpeedCalibration.Context(cfg),1,model.OuterRadius,0);session.SpatialMode(false,model);
         session.Begin("candidate",StrokeMethod.Paced,false,12,new(100,100,196,196),line);
@@ -1225,7 +1421,7 @@ internal static partial class Program
         var evidence=ProbeDiagnosticSession.Read(session.DirectoryPath)!.Stages[0].Metrics!.Spatial!.Trajectory!;
         Assert(evidence.Transitions==27&&evidence.ComparablePairs==27&&evidence.OffsetsBySlice.Length==28
             &&evidence.LongestStableRun==1&&evidence.TransitionRate==1,"Trajectory lost on disk");
-        var window=new MainWindow(directory);var dialog=(Window)Invoke(window,"CreateProbeDiagnosticWindow",session.DirectoryPath)!;
+        var window=FixtureWindow(directory);var dialog=(Window)Invoke(window,"CreateProbeDiagnosticWindow",session.DirectoryPath)!;
         var root=(FrameworkElement)dialog.Content;
         void Draw(string suffix)
         {
@@ -1277,7 +1473,7 @@ internal static partial class Program
                 axes.Add(new(vertical,footprint.Inner,tiles.Skip(vertical?3:0).Take(3).Select(x=>new SpatialAnchor(vertical?x.Vertical:x.Horizontal,0,new(0,0,0),12)).ToList()));
             ProbeSpatialCalibration.Save(settings,new(Guid.NewGuid().ToString("N"),ProbeSpatialCalibration.Context(settings),DateTimeOffset.UtcNow,size,footprint.Outer,axes));
         }
-        settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);Invoke(window,"ShowSpeedSetup");
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);Invoke(window,"ShowSpeedSetup");
         Assert(Field<Button>(window,"spatialButton").IsEnabled&&!Field<Button>(window,"probeButton").IsEnabled,"Size 3 speed test exceeds the real Canvas");
         Assert(Field<TextBlock>(window,"speedStatus").Text.Contains("62 clean areas of 76×76"),"Small Canvas requirement hidden or untranslated");
         Render(window,Path.Combine(output,name+".png"),900);
@@ -1291,7 +1487,7 @@ internal static partial class Program
     {
         bool english=language=="English";string name="measured-eta-"+(english?"en":"ua");
         var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
-        ReadySettings(language).Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        ReadySettings(language).Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);
         void Report(PaintProgress p)=>Invoke(window,"ApplyPaintProgress",p);
         var preliminary=new EtaEstimate(13,EtaBasis.Planned,0,0,1376,1376,0,1);
         Report(new(3904,5280,0,13,"Налаштовую пензель…",preliminary,PaintPhase.Preparing));
@@ -1363,7 +1559,14 @@ internal static partial class Program
         for(int i=0;i<20;i++){timer.Complete($"m{i}",.2);timer.RecordOperationOverhead($"m{i}",.01);}Put("timingDone",3924);
         typeof(Painter).GetMethod("ReportTiming",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(worker,new object?[]{null,0d});
         Assert(seen[^1].Estimate!.Basis==EtaBasis.Measured&&Math.Abs(seen[^1].Eta-2.1)<1e-9&&seen[^1].Estimate!.OperationOverheadSamples==20,"Production callback ignored measured cycle overhead");
-        var rows=File.ReadAllLines(Path.Combine(directory,"session.jsonl"));Assert(rows.Length==2&&rows.All(x=>x.Contains("eta_update")&&x.Contains("rolling-timing-v3-full-cycle-range")&&x.Contains("UpperSeconds")),"ETA evidence not logged");
+        Put("nextEtaLog",0d);
+        typeof(Painter).GetMethod("ReportTiming",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(worker,new object?[]{null,5d});
+        Assert(Math.Abs(seen[^1].Eta-7.1)<1e-9,"Countdown was not kept separate from remaining active work");
+        var rows=File.ReadAllLines(Path.Combine(directory,"session.jsonl"));Assert(rows.Length==3&&rows.All(x=>x.Contains("eta_update")&&x.Contains("rolling-timing-v4-explicit-clock")&&x.Contains("UpperSeconds")),"ETA evidence not logged");
+        using var recorded=System.Text.Json.JsonDocument.Parse(rows[^1]);var details=recorded.RootElement.GetProperty("details");
+        Assert(details.GetProperty("countdownRemainingSeconds").GetDouble()==5&&details.GetProperty("excludesPause").GetBoolean()
+            &&Math.Abs(details.GetProperty("projectedActiveFinishSeconds").GetDouble()-2.1)<1e-9
+            &&Math.Abs(details.GetProperty("activeEstimate").GetProperty("Seconds").GetDouble()-2.1)<1e-9,"Projection mixed Active and Countdown clocks");
         Console.WriteLine("PASS painter-timing-publisher");
     }
     private static (PixelImage Before,PixelImage After,ScreenLine Line) ProbeFixture()
@@ -1407,8 +1610,8 @@ internal static partial class Program
     {
         bool english=language=="English";string name="probe-diagnostics-"+(english?"en":"ua");
         var directory=Path.Combine(output,name,Guid.NewGuid().ToString("N"));Directory.CreateDirectory(directory);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
-        Window? presented=null;var window=new MainWindow(directory,w=>presented=w);window.ShowPage("speed");
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        Window? presented=null;var window=FixtureWindow(directory,w=>presented=w);window.ShowPage("speed");
         Render(window,Path.Combine(output,name+"-empty.png"),900);
         Assert(!Field<Button>(window,"probeDiagnosticButton").IsEnabled,"Empty diagnostic action enabled");
         var (before,after,line)=ProbeFixture();after.Set(48*96+48,before.Color(48*96+48));
@@ -1435,7 +1638,7 @@ internal static partial class Program
         Assert(text.Contains(english?"Core coverage":"Покриття ядра")&&text.Contains(english?"Full changed region":"Уся змінена область"),"Diagnostic measurements missing");
         if(english)Assert(!System.Text.RegularExpressions.Regex.IsMatch(text,@"[\u0400-\u04FF]"),"English diagnostic viewer contains Ukrainian");
         else Assert(text.Contains("Пропуски")&&view.Items.Cast<object>().All(x=>!x.ToString()!.Contains("stroke")),"Ukrainian diagnostics not localized");
-        var reopened=new MainWindow(directory);reopened.ShowPage("speed");Render(reopened,Path.Combine(output,name+"-reopened.png"),900);
+        var reopened=FixtureWindow(directory);reopened.ShowPage("speed");Render(reopened,Path.Combine(output,name+"-reopened.png"),900);
         Assert(Field<Button>(reopened,"probeDiagnosticButton").IsEnabled,"Diagnostics inaccessible after app restart");
         foreach(var reason in Enum.GetValues<ProbeFailure>())
         {
@@ -1458,7 +1661,7 @@ internal static partial class Program
     private static void CheckPolish(string output,string language,int width,int height)
     {
         bool english=language=="English";string name="polish-"+(english?"en":"ua");var directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));var window=new MainWindow(directory);
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));var window=FixtureWindow(directory);
         Render(window,Path.Combine(output,name+"-empty.png"),width,height);
         var surface=Field<PreviewPanel>(window,"previewSurface");
         var hints=Descendants(surface).OfType<TextBlock>().Where(x=>x.Text.Contains(english?"will appear here":"Тут буде")).ToArray();
@@ -1472,7 +1675,7 @@ internal static partial class Program
         Assert(hints.All(x=>x.Visibility==Visibility.Visible),"Preview hints did not return after clearing images");
         var workflow=typeof(MainWindow).GetField("workflowChips",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(window)!;
         double totalHeight=0;
-        foreach(string key in new[]{"image","rust","brush","speed","coverage"})
+        foreach(string key in new[]{"image","rust","brush"})
         {
             var chip=(Border)workflow.GetType().GetProperty("Item")!.GetValue(workflow,[key])!;
             var row=(Grid)((Button)chip.Parent).Parent;

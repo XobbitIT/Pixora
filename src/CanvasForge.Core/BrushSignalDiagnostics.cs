@@ -12,6 +12,15 @@ public sealed record BrushSignalSummary(int ShapeSlot,double Size,string Context
 // no amount of weak-repeat evidence creates a SolidCore or a speed proof.
 public static class BrushSignalDiagnostics
 {
+    public static BrushSignalState? State(Settings settings,int shape,double size)
+    {
+        var diagnostic=Read(settings,true).FirstOrDefault(r=>r.ShapeSlot==shape&&r.Size==size);
+        if(diagnostic is not null)return diagnostic.State;
+        if(BrushFootprints.Find(settings,size,shape) is {} profile)
+            return profile.SolidCore.Valid?BrushSignalState.Verified:BrushSignalState.NoSolidCore;
+        return BrushFootprints.Stored(settings).Concat(BrushFootprints.Stored(settings,true)).Any(p=>p.ShapeSlot==shape&&p.Size==size)
+            ?BrushSignalState.Stale:null;
+    }
     public static BrushSignalSample Inspect(int repeat,PixelImage background,PixelImage before,PixelImage after,ScreenPoint command,double size,Rgb? requested=null)
     {
         if(background.Width!=before.Width||background.Height!=before.Height||before.Width!=after.Width||before.Height!=after.Height)

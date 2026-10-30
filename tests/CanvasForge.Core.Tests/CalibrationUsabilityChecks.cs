@@ -20,7 +20,7 @@ internal static class CalibrationUsabilityChecks
     {
         test("Recorded Rust Palette slider shift is located as a complete control group",()=>{
             var found=BrushControlsLocator.Find(RecordedControls(),new(1980,100,2560,800),OldControls());
-            Require(found is not null&&found.Rect("size_track").Top==359&&found.Rect("interval_track").Top==415&&found.Rect("opacity_track").Top==471);
+            Require(found is not null&&found.Rect("size_track").Top==359&&!found.Rect("interval_track").Valid&&!found.Rect("opacity_track").Valid);
             if(found!.Rect("size_track").Width!=250||found.Rect("size_value_field").Width is <76 or >84)
                 throw new Exception($"Unexpected located geometry: {found.Rect("size_track")} / {found.Rect("size_value_field")}");
             Require(found.Rect("brush_shapes").Center.Y is >=308 and <=316);

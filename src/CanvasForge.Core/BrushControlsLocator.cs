@@ -9,8 +9,8 @@ public static class BrushControlsLocator
     // The cursor must be outside this region before taking a locator frame.
     public static ScreenRect CaptureRegion(ScreenRect window,Calibration captured)
     {
-        var size=captured.Rect("size_track");var opacity=captured.Rect("opacity_track");var shapes=captured.Rect("brush_shapes");
-        if(!size.Valid||!opacity.Valid||!shapes.Valid)return default;
+        var size=captured.Rect("size_track");var shapes=captured.Rect("brush_shapes");
+        if(!size.Valid||!shapes.Valid)return default;
         int left=Math.Max(window.Left+2,Math.Min(shapes.Left,size.Left)-48);
         int right=Math.Min(window.Right-2,Math.Max(shapes.Right,size.Right+120)+48);
         if(captured.Point("brush_tool") is {} tool)
@@ -19,24 +19,25 @@ public static class BrushControlsLocator
             left=Math.Max(window.Left+2,Math.Min(left,tool.X-radius));
             right=Math.Min(window.Right-2,Math.Max(right,tool.X+radius+1));
         }
-        return new(left,window.Top+2,right,Math.Min(window.Bottom-2,opacity.Bottom+200));
+        return new(left,window.Top+2,right,Math.Min(window.Bottom-2,size.Bottom+48));
     }
 
     public static Calibration? Find(PixelImage image,ScreenRect window,Calibration captured)
     {
         if(image.Width!=window.Width||image.Height!=window.Height)return null;
-        var kinds=new[]{"size","interval","opacity"};
+        var kinds=new[]{"size"};
         var old=kinds.Select(k=>captured.Rect(k+"_track")).ToArray();
         var shapes=captured.Rect("brush_shapes");
         if(old.Any(r=>!r.Valid)||!shapes.Valid)return null;
         var search=new ScreenRect(Math.Max(2,Math.Min(shapes.Left,old[0].Left)-window.Left-48),
             Math.Max(2,Math.Min(shapes.Top,old[0].Top)-window.Top-220),
             Math.Min(image.Width-2,Math.Max(shapes.Right,old[0].Right+120)-window.Left+48),
-            Math.Min(image.Height-2,old[2].Bottom-window.Top+200));
+            Math.Min(image.Height-2,old[0].Bottom-window.Top+48));
         var rows=RustSlider.Find(image,search).Where(r=>r.Track.Width>=old[0].Width*.75&&r.Track.Width<=old[0].Width*1.25).ToArray();
-        if(rows.Length!=3||rows.Any(r=>Math.Abs(r.Track.Left-rows[0].Track.Left)>3||Math.Abs(r.Track.Width-rows[0].Track.Width)>3)
-            ||rows[1].Track.Top-rows[0].Track.Top<20
-            ||Math.Abs((rows[2].Track.Top-rows[1].Track.Top)-(rows[1].Track.Top-rows[0].Track.Top))>3)return null;
+        if(rows.Length==0)return null;
+        // Size is the first control below the independently recognized shape row.
+        // No Interval/Opacity geometry or field values are captured or retained.
+        rows=rows.OrderBy(r=>r.Track.Top).Take(1).ToArray();
         int spacing=shapes.Width/7;if(spacing<16)return null;
         var centers=Enumerable.Range(0,7).Select(i=>shapes.Left-window.Left+(2*i+1)*shapes.Width/14).ToArray();
         bool White(int x,int y)=>x>=0&&x<image.Width&&y>=0&&y<image.Height&&image.Color(y*image.Width+x) is var c&&Math.Min(c.R,Math.Min(c.G,c.B))>=125;
@@ -70,7 +71,7 @@ public static class BrushControlsLocator
                 &&toolRows.Zip(toolRows.Skip(1),(a,b)=>b-a).All(gap=>gap<=2))
                 result.SetPoint("brush_tool",new(tool.X,window.Top+(toolRows[0]+toolRows[^1])/2));
         }
-        for(int i=0;i<3;i++)
+        for(int i=0;i<1;i++)
         {
             ScreenRect World(ScreenRect r)=>new(r.Left+window.Left,r.Top+window.Top,r.Right+window.Left,r.Bottom+window.Top);
             var row=rows[i];var track=World(row.Track);var field=World(row.ValueField);
@@ -78,6 +79,7 @@ public static class BrushControlsLocator
             result.SetPoint(kinds[i]+"_min",new(track.Left,track.Center.Y));
             result.SetPoint(kinds[i]+"_max",new(track.Right-1,track.Center.Y));
         }
+        foreach(string key in result.Data.Select(p=>p.Key).Where(k=>k.StartsWith("interval_",StringComparison.Ordinal)||k.StartsWith("opacity_",StringComparison.Ordinal)).ToArray())result.Data.Remove(key);
         return result;
     }
 }

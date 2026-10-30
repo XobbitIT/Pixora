@@ -1,5 +1,13 @@
 [
   [
+    "Paused: the system cursor did not reach the commanded line point. Keep the mouse still and check the connection. Input was released; the unfinished line is unverified.",
+    "Pauza: kursor systemowy nie dotarł do zadanej pozycji linii. Nie ruszaj myszą i sprawdź połączenie. Zwolniono wejście; niedokończona linia nie jest potwierdzona.",
+    "Pause: Der Systemcursor hat den vorgegebenen Linienpunkt nicht erreicht. Maus ruhig halten und Verbindung prüfen. Eingaben wurden losgelassen; die unfertige Linie ist nicht bestätigt.",
+    "Pause : le curseur système n’a pas atteint le point commandé. Gardez la souris immobile et vérifiez la connexion. Les touches ont été relâchées ; la ligne inachevée n’est pas vérifiée.",
+    "Pausa: el cursor del sistema no llegó al punto indicado. Mantén el ratón quieto y comprueba la conexión. Se soltaron los controles; la línea incompleta no está verificada.",
+    "Пауза: системный курсор не достиг заданной точки линии. Не двигайте мышь и проверьте подключение. Ввод отпущен; результат незавершённой линии не подтверждён."
+  ],
+  [
     "Previous painting audit",
     "Audyt poprzedniego rysowania",
     "Prüfung der vorherigen Zeichnung",
@@ -6435,7 +6443,7 @@
     "Cannot preserve clipboard data.",
     "Nie można zachować danych schowka.",
     "Die Zwischenablagedaten können nicht gesichert werden.",
-    "Impossible de conserver les données du presse-papiers.",
+    "Impossible de préserver les données du presse-papiers.",
     "No se pueden conservar los datos del portapapeles.",
     "Не удалось сохранить данные буфера обмена."
   ],
@@ -8022,5 +8030,949 @@
     "L’échantillon actif est masqué. Retirez les panneaux couvrant l’aperçu du pinceau Rust. La préparation est en pause ; appuyez sur Reprendre pour réessayer.",
     "La muestra activa está oculta. Retira los paneles que cubren la vista previa del pincel de Rust. La preparación está en pausa; pulsa Reanudar para volver a intentarlo.",
     "Образец активного цвета не виден. Убери панели, перекрывающие превью кисти Rust. Подготовка приостановлена; нажми «Продолжить», чтобы повторить проверку."
+  ],
+  [
+    "Capture Rust regions again to verify the editor.",
+    "Ponownie zaznacz obszary Rust, aby sprawdzić edytor.",
+    "Rust-Bereiche erneut erfassen, um den Editor zu prüfen.",
+    "Capturez de nouveau les zones Rust pour vérifier l’éditeur.",
+    "Captura de nuevo las áreas de Rust para verificar el editor.",
+    "Повтори захват областей Rust для проверки редактора."
+  ],
+  [
+    "Import settings",
+    "Importuj ustawienia",
+    "Einstellungen importieren",
+    "Importer les paramètres",
+    "Importar ajustes",
+    "Импортировать настройки"
+  ],
+  [
+    "Settings could not be read. Import a valid configuration in Settings.",
+    "Nie można odczytać ustawień. Zaimportuj poprawną konfigurację w ustawieniach.",
+    "Einstellungen konnten nicht gelesen werden. Eine gültige Konfiguration importieren.",
+    "Impossible de lire les paramètres. Importez une configuration valide dans les paramètres.",
+    "No se pudieron leer los ajustes. Importa una configuración válida en Ajustes.",
+    "Не удалось прочитать настройки. Импортируй исправную конфигурацию в Настройках."
+  ],
+  [
+    "Palette cells were verified; the active color sample was unavailable. Check colors in Rust.",
+    "Pola palety sprawdzono, ale próbka aktywnego koloru jest niedostępna. Sprawdź kolory w Rust.",
+    "Palettenfelder wurden geprüft; die aktive Farbprobe war nicht verfügbar. Farben in Rust prüfen.",
+    "Les cases de la palette ont été vérifiées ; l’échantillon actif était indisponible. Vérifiez les couleurs dans Rust.",
+    "Se verificaron las celdas de la paleta; la muestra activa no estaba disponible. Revisa los colores en Rust.",
+    "Ячейки палитры подтверждены, активный образец цвета недоступен. Проверь цвета в Rust."
+  ],
+  [
+    "Brush Size",
+    "Rozmiar pędzla",
+    "Pinselgröße",
+    "Taille du pinceau",
+    "Tamaño del pincel",
+    "Размер кисти"
+  ],
+  [
+    "Size is verified after changes and pauses.",
+    "Rozmiar jest sprawdzany po zmianach i pauzach.",
+    "Size wird nach Änderungen und Pausen geprüft.",
+    "Size est vérifié après les changements et les pauses.",
+    "Size se verifica después de cambios y pausas.",
+    "Size проверяется после изменений и пауз."
+  ],
+  [
+    "Size is checked in two captures. Experimental painting requires a verified brush imprint.",
+    "Size jest sprawdzany na dwóch zrzutach. Rysowanie eksperymentalne wymaga potwierdzonego śladu pędzla.",
+    "Size wird in zwei Aufnahmen geprüft. Experimentelles Zeichnen benötigt einen bestätigten Pinselabdruck.",
+    "Size est vérifié sur deux captures. Le dessin expérimental exige une empreinte de pinceau vérifiée.",
+    "Size se comprueba en dos capturas. El dibujo experimental requiere una huella verificada del pincel.",
+    "Size проверяется на двух снимках. Экспериментальное рисование требует подтверждённого отпечатка кисти."
+  ],
+  [
+    "Rust editor is unverified. Open the same Canvas; recapture if the interface changed. Then press F6.",
+    "Edytor Rust nie został potwierdzony. Otwórz to samo płótno; zaznacz obszary ponownie, jeśli interfejs się zmienił. Następnie naciśnij F6.",
+    "Rust-Editor nicht bestätigt. Dasselbe Canvas öffnen; bei geänderter Oberfläche erneut erfassen. Dann F6 drücken.",
+    "Éditeur Rust non vérifié. Ouvrez le même canevas ; recapturez si l’interface a changé. Puis appuyez sur F6.",
+    "Editor de Rust sin verificar. Abre el mismo lienzo; captura de nuevo si cambió la interfaz. Después pulsa F6.",
+    "Редактор Rust не подтверждён. Открой то же полотно; если интерфейс изменился, повтори захват. Затем нажми F6."
+  ],
+  [
+    "Rust editor is unverified. Open Canvas and recapture the regions.",
+    "Edytor Rust nie został potwierdzony. Otwórz płótno i ponownie zaznacz obszary.",
+    "Rust-Editor nicht bestätigt. Canvas öffnen und Bereiche erneut erfassen.",
+    "Éditeur Rust non vérifié. Ouvrez le canevas et recapturez les zones.",
+    "Editor de Rust sin verificar. Abre el lienzo y captura de nuevo las áreas.",
+    "Редактор Rust не подтверждён. Открой полотно и повтори захват областей."
+  ],
+  [
+    "Rust editor is unverified. Recapture the regions.",
+    "Edytor Rust nie został potwierdzony. Ponownie zaznacz obszary.",
+    "Rust-Editor nicht bestätigt. Bereiche erneut erfassen.",
+    "Éditeur Rust non vérifié. Recapturez les zones.",
+    "Editor de Rust sin verificar. Captura de nuevo las áreas.",
+    "Редактор Rust не подтверждён. Повтори захват областей."
+  ],
+  [
+    "Standard uses round Size 3. Before preparation, set Interval to 0.01 and Opacity to 1.00 in Rust. Pixora only applies and verifies Size. Additional measurements and acceleration are under Experimental.",
+    "Standard używa okrągłego Size 3. Przed przygotowaniem ustaw w Rust Interval 0.01 i Opacity 1.00. Pixora zmienia i sprawdza tylko Size. Dodatkowe pomiary i przyspieszenie są w sekcji Eksperymentalne.",
+    "Standard verwendet den runden Size 3. Vor der Vorbereitung in Rust Interval 0.01 und Opacity 1.00 einstellen. Pixora ändert und prüft nur Size. Weitere Messungen und Beschleunigung unter Experimentell.",
+    "Standard utilise le pinceau rond Size 3. Avant la préparation, réglez Interval sur 0.01 et Opacity sur 1.00 dans Rust. Pixora applique et vérifie uniquement Size. Mesures et accélération dans Expérimental.",
+    "Standard usa el pincel redondo Size 3. Antes de preparar, establece Interval 0.01 y Opacity 1.00 en Rust. Pixora solo aplica y verifica Size. Mediciones y aceleración en Experimental.",
+    "Standard использует круглый Size 3. Перед подготовкой установи в Rust Interval 0.01 и Opacity 1.00. Pixora изменяет и проверяет только Size. Дополнительные измерения и ускорение находятся в разделе Экспериментально."
+  ],
+  [
+    "Coordinate is outside Canvas or covered by another window. Stop painting and capture Rust regions again.",
+    "Współrzędna poza płótnem lub zasłonięta innym oknem. Zatrzymaj rysowanie i zaznacz obszary Rust ponownie.",
+    "Koordinate außerhalb des Canvas oder durch anderes Fenster verdeckt. Zeichnen stoppen und Rust-Bereiche erneut erfassen.",
+    "Coordonnée hors du canevas ou masquée par une autre fenêtre. Arrêtez le dessin et recapturez les zones Rust.",
+    "Coordenada fuera del lienzo o cubierta por otra ventana. Detén el dibujo y captura de nuevo las áreas de Rust.",
+    "Координата вне полотна или перекрыта другим окном. Останови рисование и повтори захват областей Rust."
+  ],
+  [
+    "Capture the brush and Size field in Rust.",
+    "Zaznacz pędzel i pole Size w Rust.",
+    "Pinsel und Size-Feld in Rust erfassen.",
+    "Capturez le pinceau et le champ Size dans Rust.",
+    "Captura el pincel y el campo Size en Rust.",
+    "Захвати кисть и поле Size в Rust."
+  ],
+  [
+    "Capture Size together with the number on the right.",
+    "Zaznacz Size wraz z liczbą po prawej.",
+    "Size zusammen mit der Zahl rechts erfassen.",
+    "Capturez Size avec le nombre à droite.",
+    "Captura Size junto con el número de la derecha.",
+    "Захвати Size вместе с числом справа."
+  ],
+  [
+    "Unsupported settings schema. The original file has been preserved.",
+    "Nieobsługiwany schemat ustawień. Oryginalny plik zachowano.",
+    "Nicht unterstütztes Einstellungsschema. Die Originaldatei bleibt erhalten.",
+    "Schéma de paramètres non pris en charge. Le fichier original est conservé.",
+    "Esquema de ajustes no compatible. Se conservó el archivo original.",
+    "Неподдерживаемая схема настроек. Исходный файл сохранён."
+  ],
+  [
+    "Unknown settings schema identity.",
+    "Nieznana identyfikacja schematu ustawień.",
+    "Unbekannte Identität des Einstellungsschemas.",
+    "Identité du schéma de paramètres inconnue.",
+    "Identidad del esquema de ajustes desconocida.",
+    "Неизвестная идентичность схемы настроек."
+  ],
+  [
+    "Settings file exceeds 8 MiB. The original has been preserved.",
+    "Plik ustawień przekracza 8 MiB. Oryginał zachowano.",
+    "Einstellungsdatei größer als 8 MiB. Original bleibt erhalten.",
+    "Le fichier de paramètres dépasse 8 MiB. L’original est conservé.",
+    "El archivo de ajustes supera 8 MiB. Se conservó el original.",
+    "Файл настроек превышает 8 MiB. Оригинал сохранён."
+  ],
+  [
+    "Quick color count",
+    "Liczba szybkich kolorów",
+    "Anzahl Schnellfarben",
+    "Nombre de couleurs rapides",
+    "Número de colores rápidos",
+    "Количество быстрых цветов"
+  ],
+  [
+    "Quick colors — cells only, excluding the star and + button",
+    "Szybkie kolory — tylko pola, bez gwiazdki i przycisku +",
+    "Schnellfarben — nur Farbfelder, ohne Stern und +-Taste",
+    "Couleurs rapides — cases uniquement, sans étoile ni bouton +",
+    "Colores rápidos: solo casillas, sin estrella ni botón +",
+    "Быстрые цвета — только ячейки, без звезды и кнопки +"
+  ],
+  [
+    "Quick colors: cells only, excluding star and +. ESC skips",
+    "Szybkie kolory: tylko pola, bez gwiazdki i +. ESC pomija",
+    "Schnellfarben: nur Felder, ohne Stern und +. ESC überspringt",
+    "Couleurs rapides : cases uniquement, sans étoile ni +. ESC ignore",
+    "Colores rápidos: solo casillas, sin estrella ni +. ESC omite",
+    "Быстрые цвета: только ячейки, без звезды и +. ESC — пропустить"
+  ],
+  [
+    "Could not locate the brush tool automatically. Open the unobstructed tool panel; recapture or specify the button in individual actions.",
+    "Nie znaleziono automatycznie pędzla. Odsłoń panel narzędzi; przechwyć ponownie lub wskaż przycisk w pojedynczych działaniach.",
+    "Das Pinselwerkzeug wurde nicht erkannt. Öffne die Werkzeugleiste ohne Überlagerungen; erfasse sie erneut oder wähle die Taste in den Einzelaktionen.",
+    "Le pinceau n’a pas été détecté. Dégagez le panneau d’outils ; recapturez-le ou indiquez le bouton dans les actions individuelles.",
+    "No se detectó el pincel. Deja visible el panel de herramientas; vuelve a capturarlo o indica el botón en las acciones individuales.",
+    "Не удалось автоматически найти кисть. Открой панель без перекрытий; повтори захват или укажи кнопку в отдельных действиях."
+  ],
+  [
+    "Capture only the quick color cells.",
+    "Zaznacz tylko pola szybkich kolorów.",
+    "Erfasse nur die Schnellfarben-Felder.",
+    "Capturez uniquement les cases des couleurs rapides.",
+    "Captura solo las casillas de colores rápidos.",
+    "Обведи только ячейки быстрых цветов."
+  ],
+  [
+    "Could not count quick colors. Select their count in Rust capture settings.",
+    "Nie można policzyć szybkich kolorów. Wybierz liczbę w ustawieniach przechwytywania Rust.",
+    "Schnellfarben konnten nicht gezählt werden. Wähle ihre Anzahl in den Rust-Erfassungseinstellungen.",
+    "Impossible de compter les couleurs rapides. Choisissez leur nombre dans les réglages de capture Rust.",
+    "No se pudieron contar los colores rápidos. Elige su número en los ajustes de captura de Rust.",
+    "Не удалось посчитать быстрые цвета. Выбери их количество в настройках захвата Rust."
+  ],
+  [
+    "Input paused: Rust lost focus or F6 was pressed. Return to Rust and repeat the check; during painting press F6 to resume.",
+    "Wprowadzanie wstrzymane: Rust stracił fokus lub naciśnięto F6. Wróć do Rust i powtórz sprawdzenie; podczas rysowania naciśnij F6, aby wznowić.",
+    "Eingabe pausiert: Rust hat den Fokus verloren oder F6 wurde gedrückt. Kehre zu Rust zurück und wiederhole die Prüfung; beim Zeichnen setzt F6 fort.",
+    "Saisie en pause : Rust a perdu le focus ou F6 a été pressée. Revenez dans Rust et répétez la vérification ; pendant le dessin, F6 reprend.",
+    "Entrada pausada: Rust perdió el foco o se pulsó F6. Vuelve a Rust y repite la comprobación; durante el dibujo, F6 reanuda.",
+    "Ввод приостановлен: Rust потерял фокус или нажата F6. Вернись в Rust и повтори проверку; во время рисования нажми F6 для продолжения."
+  ],
+  [
+    "Cannot preserve clipboard format.",
+    "Nie można zachować formatu schowka.",
+    "Das Zwischenablageformat kann nicht gesichert werden.",
+    "Impossible de préserver le format du presse-papiers.",
+    "No se puede conservar el formato del portapapeles.",
+    "Не удалось сохранить формат буфера обмена."
+  ],
+  [
+    "Editor geometry changed. Stop painting and capture the Rust regions again.",
+    "Geometria edytora zmieniła się. Zatrzymaj rysowanie i ponownie przechwyć obszary Rust.",
+    "Editor-Geometrie geändert. Zeichnen stoppen und Rust-Bereiche neu erfassen.",
+    "La géométrie de l’éditeur a changé. Arrêtez le dessin et recapturez les zones Rust.",
+    "Cambió la geometría del editor. Detén el dibujo y captura de nuevo las áreas de Rust.",
+    "Геометрия редактора изменилась. Останови рисование и повтори захват областей Rust."
+  ],
+  [
+    "Clipboard format 0x{p0} could not be preserved. The app did not replace it. Save any clipboard content you need, copy plain text yourself and retry Start.",
+    "Nie można zachować formatu schowka 0x{p0}. Aplikacja go nie zastąpiła. Zapisz potrzebną zawartość, samodzielnie skopiuj zwykły tekst i ponów Start.",
+    "Zwischenablageformat 0x{p0} konnte nicht gesichert werden. Die App hat es nicht ersetzt. Benötigten Inhalt speichern, selbst einfachen Text kopieren und Start wiederholen.",
+    "Le format 0x{p0} du presse-papiers n’a pas pu être préservé. L’application ne l’a pas remplacé. Sauvegardez le contenu nécessaire, copiez vous-même du texte simple et réessayez de démarrer.",
+    "No se pudo conservar el formato 0x{p0} del portapapeles. La aplicación no lo reemplazó. Guarda el contenido necesario, copia texto simple tú mismo y vuelve a iniciar.",
+    "Не удалось сохранить формат буфера обмена 0x{p0}. Программа не заменила его. Сохрани нужное содержимое буфера, самостоятельно скопируй обычный текст и повтори запуск."
+  ],
+  [
+    "Clipboard content could not be preserved. The app did not replace it. Save any clipboard content you need, copy plain text yourself and retry Start.",
+    "Nie można zachować zawartości schowka. Aplikacja jej nie zastąpiła. Zapisz potrzebną zawartość, samodzielnie skopiuj zwykły tekst i ponów Start.",
+    "Zwischenablageinhalt konnte nicht gesichert werden. Die App hat ihn nicht ersetzt. Benötigten Inhalt speichern, selbst einfachen Text kopieren und Start wiederholen.",
+    "Le contenu du presse-papiers n’a pas pu être préservé. L’application ne l’a pas remplacé. Sauvegardez le contenu nécessaire, copiez vous-même du texte simple et réessayez de démarrer.",
+    "No se pudo conservar el contenido del portapapeles. La aplicación no lo reemplazó. Guarda lo necesario, copia texto simple tú mismo y vuelve a iniciar.",
+    "Не удалось сохранить содержимое буфера обмена. Программа не заменила его. Сохрани нужное содержимое, самостоятельно скопируй обычный текст и повтори запуск."
+  ],
+  [
+    "Certified mask · {p0} px",
+    "Potwierdzona maska · {p0} px",
+    "Bestätigte Maske · {p0} px",
+    "Masque confirmé · {p0} px",
+    "Máscara confirmada · {p0} px",
+    "Подтверждённая маска · {p0} px"
+  ],
+  [
+    "Core rectangle: {p0} × {p1} px; solid mask: {p2} px. Planning uses the whole certified mask without expanding it. Speedup depends on the image; motion speed is tested separately.",
+    "Prostokąt rdzenia: {p0} × {p1} px; pełna maska: {p2} px. Plan używa całej potwierdzonej maski bez jej rozszerzania. Przyspieszenie zależy od obrazu; prędkość ruchu jest sprawdzana osobno.",
+    "Kernrechteck: {p0} × {p1} px; volle Maske: {p2} px. Die Planung nutzt die gesamte bestätigte Maske ohne Erweiterung. Die Beschleunigung hängt vom Bild ab; die Bewegungsgeschwindigkeit wird separat geprüft.",
+    "Rectangle du noyau : {p0} × {p1} px ; masque plein : {p2} px. Le plan utilise tout le masque confirmé sans l’élargir. Le gain dépend de l’image ; la vitesse du mouvement est testée séparément.",
+    "Rectángulo del núcleo: {p0} × {p1} px; máscara sólida: {p2} px. El plan usa toda la máscara confirmada sin ampliarla. La mejora depende de la imagen; la velocidad del movimiento se comprueba por separado.",
+    "Прямоугольник ядра: {p0} × {p1} px; сплошная маска: {p2} px. План использует всю подтверждённую маску без расширения. Ускорение зависит от изображения; скорость движения проверяется отдельно."
+  ],
+  [
+    "Adaptive: Size {p0}; {p1} strokes.",
+    "Adaptive: Size {p0}; {p1} pociągnięć.",
+    "Adaptive: Size {p0}; {p1} Striche.",
+    "Adaptive : Size {p0} ; {p1} traits.",
+    "Adaptive: Size {p0}; {p1} trazos.",
+    "Adaptive: Size {p0}; {p1} штрихов."
+  ],
+  [
+    "Modeled time: {p0} s; base candidate with the same coverage: {p1} s. This is a prediction, not a Rust measurement.",
+    "Model czasu: {p0} s; wariant bazowy z tym samym pokryciem: {p1} s. To prognoza, nie pomiar w Rust.",
+    "Zeitmodell: {p0} s; Basisvariante mit gleicher Abdeckung: {p1} s. Dies ist eine Prognose, keine Messung in Rust.",
+    "Temps modélisé : {p0} s ; variante de base à couverture égale : {p1} s. C’est une prévision, pas une mesure dans Rust.",
+    "Tiempo estimado: {p0} s; opción base con la misma cobertura: {p1} s. Es una predicción, no una medición en Rust.",
+    "Модель времени: {p0} с; базовый вариант с тем же покрытием: {p1} с. Это прогноз, а не измерение в Rust."
+  ],
+  [
+    "Large brushes were not selected: the model chose the certified base brush.",
+    "Duże pędzle nie zostały wybrane: model wybrał potwierdzony pędzel bazowy.",
+    "Große Pinsel wurden nicht gewählt: Das Modell bevorzugt den bestätigten Basispinsel.",
+    "Les grands pinceaux n’ont pas été retenus : le modèle a choisi le pinceau de base confirmé.",
+    "No se seleccionaron pinceles grandes: el modelo eligió el pincel base confirmado.",
+    "Большие кисти не выбраны: модель предпочла подтверждённую базовую кисть."
+  ],
+  [
+    "Paused: canvas frame was not confirmed ({p0}/{p1}). Clear windows and tooltips from the frame, open the same Canvas and press F6. If the interface changed, stop painting and capture the regions again.",
+    "Pauza: ramka płótna nie została potwierdzona ({p0}/{p1}). Usuń okna i podpowiedzi z ramki, otwórz to samo płótno i naciśnij F6. Jeśli interfejs się zmienił, zatrzymaj rysowanie i ponownie przechwyć obszary.",
+    "Pausiert: Der Leinwandrahmen wurde nicht bestätigt ({p0}/{p1}). Entferne Fenster und Hinweise vom Rahmen, öffne dieselbe Leinwand und drücke F6. Bei verändertem Interface stoppe das Malen und erfasse die Bereiche erneut.",
+    "Pause : cadre non confirmé ({p0}/{p1}). Retirez les fenêtres et infobulles du cadre, ouvrez la même toile et appuyez sur F6. Si l’interface a changé, arrêtez le dessin et capturez les zones à nouveau.",
+    "Pausa: marco del lienzo no confirmado ({p0}/{p1}). Retira ventanas y ayudas del marco, abre el mismo lienzo y pulsa F6. Si cambió la interfaz, detén el dibujo y captura las zonas de nuevo.",
+    "Пауза: рамка холста не подтверждена ({p0}/{p1}). Убери окна и подсказки с рамки, открой тот же холст и нажми F6. Если интерфейс изменился — останови рисование и повтори захват."
+  ],
+  [
+    "Measure Size 2 (optional)",
+    "Zmierz Size 2 (opcjonalnie)",
+    "Size 2 messen (optional)",
+    "Mesurer Size 2 (facultatif)",
+    "Medir Size 2 (opcional)",
+    "Проверить Size 2 (необязательно)"
+  ],
+  [
+    "This mode uses Precision. Set Interval 0.01 and Opacity 1.00 manually in Rust; Pixora does not change or verify them. Recalibrate after changing Canvas, color mode or brush shape.",
+    "Ten tryb używa Precision. Ustaw ręcznie Interval 0.01 i Opacity 1.00 w Rust; Pixora ich nie zmienia ani nie sprawdza. Po zmianie płótna, trybu kolorów lub kształtu pędzla powtórz kalibrację.",
+    "Dieser Modus nutzt Precision. Interval 0.01 und Opacity 1.00 in Rust manuell einstellen; Pixora ändert und prüft sie nicht. Nach Änderung der Leinwand, des Farbmodus oder der Pinselform erneut kalibrieren.",
+    "Ce mode utilise Precision. Réglez manuellement Interval 0.01 et Opacity 1.00 dans Rust ; Pixora ne les modifie ni ne les vérifie. Recalibrez après un changement de toile, de mode de couleur ou de forme de pinceau.",
+    "Este modo usa Precision. Ajusta manualmente Interval 0.01 y Opacity 1.00 en Rust; Pixora no los cambia ni verifica. Recalibra si cambia el lienzo, el modo de color o la forma del pincel.",
+    "Режим использует Precision. Interval 0.01 и Opacity 1.00 установи вручную в Rust; Pixora их не изменяет и не проверяет. После изменения холста, цветового режима или формы повтори калибровку."
+  ],
+  [
+    "HEX field structure was not found. Capture the numeric HEX field again.",
+    "Nie znaleziono struktury pola HEX. Ponownie przechwyć pole z kodem HEX.",
+    "HEX-Feldstruktur nicht gefunden. Das numerische HEX-Feld erneut erfassen.",
+    "Structure du champ HEX introuvable. Capturez de nouveau le champ numérique HEX.",
+    "No se encontró la estructura del campo HEX. Captura de nuevo el campo numérico HEX.",
+    "Структура HEX-поля не найдена. Повтори захват числового HEX-поля."
+  ],
+  [
+    "The HEX field overlaps Canvas.",
+    "Pole HEX nakłada się na płótno.",
+    "Das HEX-Feld überlappt die Leinwand.",
+    "Le champ HEX chevauche la toile.",
+    "El campo HEX se superpone al lienzo.",
+    "HEX-поле перекрывает холст."
+  ],
+  [
+    "Combined calibration: 2/3/5/7/10/15/20, three imprints per Size.",
+    "Kalibracja łączona: 2/3/5/7/10/15/20, trzy odciski dla każdego rozmiaru.",
+    "Gemeinsame Kalibrierung: 2/3/5/7/10/15/20, drei Abdrücke pro Größe.",
+    "Calibration combinée : 2/3/5/7/10/15/20, trois empreintes par taille.",
+    "Calibración combinada: 2/3/5/7/10/15/20, tres huellas por tamaño.",
+    "Комбинированная калибровка: 2/3/5/7/10/15/20, три отпечатка каждого размера."
+  ],
+  [
+    "H/V motion verified",
+    "Ruch H/V potwierdzony",
+    "H/V-Bewegung bestätigt",
+    "Mouvement H/V confirmé",
+    "Movimiento H/V verificado",
+    "Движение H/V подтверждено"
+  ],
+  [
+    "Dots verified; motion unverified. This Size is excluded from Adaptive.",
+    "Punkty potwierdzone; ruch niepotwierdzony. Ten rozmiar jest wyłączony z Adaptive.",
+    "Punkte bestätigt; Bewegung unbestätigt. Diese Größe wird in Adaptive nicht verwendet.",
+    "Points confirmés ; mouvement non confirmé. Cette taille est exclue d’Adaptive.",
+    "Puntos verificados; movimiento sin verificar. Este tamaño se excluye de Adaptive.",
+    "Точки подтверждены; движение не подтверждено. Этот размер не используется в Adaptive."
+  ],
+  [
+    "Repeat {p0}: change after the second application {p1}/12; stable pixels {p2}.",
+    "Powtórzenie {p0}: zmiana po drugim nałożeniu {p1}/12; stabilne piksele {p2}.",
+    "Wiederholung {p0}: Änderung nach zweitem Auftrag {p1}/12; stabile Pixel {p2}.",
+    "Répétition {p0} : changement après le deuxième passage {p1}/12 ; pixels stables {p2}.",
+    "Repetición {p0}: cambio tras la segunda aplicación {p1}/12; píxeles estables {p2}.",
+    "Повтор {p0}: изменение после контрольного нанесения {p1}/12; стабильных пикселей {p2}."
+  ],
+  [
+    "Active color was not verified.",
+    "Aktywny kolor nie został potwierdzony.",
+    "Aktive Farbe wurde nicht bestätigt.",
+    "La couleur active n’a pas été confirmée.",
+    "No se verificó el color activo.",
+    "Активный цвет не подтверждён."
+  ],
+  [
+    "Background changes between frames.",
+    "Tło zmienia się między klatkami.",
+    "Hintergrund ändert sich zwischen Bildern.",
+    "Le fond change entre les images.",
+    "El fondo cambia entre fotogramas.",
+    "Фон меняется между кадрами."
+  ],
+  [
+    "The line extends beyond the measured dot footprint.",
+    "Linia wychodzi poza zmierzony odcisk punktu.",
+    "Die Linie überschreitet den gemessenen Punktabdruck.",
+    "La ligne dépasse l’empreinte mesurée du point.",
+    "La línea supera la huella medida del punto.",
+    "Линия выходит за измеренный след точки."
+  ],
+  [
+    "The line contains gaps or uneven color.",
+    "Linia ma luki lub nierówny kolor.",
+    "Die Linie enthält Lücken oder ungleichmäßige Farbe.",
+    "La ligne comporte des trous ou une couleur irrégulière.",
+    "La línea tiene huecos o color desigual.",
+    "В линии есть пропуски или неоднородный цвет."
+  ],
+  [
+    "Another pass changes the line color.",
+    "Kolejny przebieg zmienia kolor linii.",
+    "Ein weiterer Durchgang ändert die Linienfarbe.",
+    "Un autre passage change la couleur de la ligne.",
+    "Otra pasada cambia el color de la línea.",
+    "Повторный проход меняет цвет линии."
+  ],
+  [
+    "Line contrast is below 80.",
+    "Kontrast linii jest niższy niż 80.",
+    "Linienkontrast liegt unter 80.",
+    "Le contraste de la ligne est inférieur à 80.",
+    "El contraste de la línea es inferior a 80.",
+    "Контраст линии ниже 80."
+  ],
+  [
+    "Not enough clean space for a movement check. Recheck this Size separately.",
+    "Za mało czystego miejsca na test ruchu. Sprawdź ten rozmiar osobno.",
+    "Zu wenig freie Fläche für den Bewegungstest. Diese Größe einzeln erneut prüfen.",
+    "Pas assez d’espace vierge pour tester le mouvement. Revérifiez cette taille séparément.",
+    "Falta espacio limpio para probar el movimiento. Comprueba este tamaño por separado.",
+    "Недостаточно чистого места для проверки движения. Проверь этот размер отдельно."
+  ],
+  [
+    "Solid moving paint was not verified.",
+    "Nie potwierdzono pełnego pokrycia przy ruchu.",
+    "Durchgehender Farbauftrag bei Bewegung wurde nicht bestätigt.",
+    "La couverture continue en mouvement n’a pas été confirmée.",
+    "No se verificó una cobertura sólida en movimiento.",
+    "Сплошной след движения не подтверждён."
+  ],
+  [
+    "One preparation checks regions, colors, Sizes 2/3/5/7/10/15/20 and speed. Standard uses Size 3; optional checks do not block it.",
+    "Jedno przygotowanie sprawdza obszary, kolory, rozmiary 2/3/5/7/10/15/20 i szybkość. Standard używa rozmiaru 3; testy dodatkowe go nie blokują.",
+    "Eine Vorbereitung prüft Bereiche, Farben, Größen 2/3/5/7/10/15/20 und Tempo. Standard nutzt Größe 3; optionale Prüfungen blockieren es nicht.",
+    "Une préparation vérifie les zones, couleurs, tailles 2/3/5/7/10/15/20 et la vitesse. Standard utilise la taille 3 ; les tests facultatifs ne le bloquent pas.",
+    "Una preparación comprueba zonas, colores, tamaños 2/3/5/7/10/15/20 y velocidad. Standard usa tamaño 3; las pruebas opcionales no lo bloquean.",
+    "Одна подготовка проверяет области, цвета, размеры 2/3/5/7/10/15/20 и скорость. Standard использует размер 3; дополнительные проверки его не блокируют."
+  ],
+  [
+    "One preparation: regions, colors, seven brush Sizes, movement checks and speed. Individual checks remain available for recalibration.",
+    "Jedno przygotowanie: obszary, kolory, siedem rozmiarów pędzla, testy ruchu i szybkość. Testy indywidualne są dostępne do ponownej kalibracji.",
+    "Eine Vorbereitung: Bereiche, Farben, sieben Pinselgrößen, Bewegungstests und Tempo. Einzelprüfungen bleiben zur Nachkalibrierung verfügbar.",
+    "Une préparation : zones, couleurs, sept tailles de pinceau, mouvement et vitesse. Les tests séparés restent disponibles pour recalibrer.",
+    "Una preparación: zonas, colores, siete tamaños de pincel, pruebas de movimiento y velocidad. Las pruebas individuales siguen disponibles.",
+    "Одна подготовка: области, цвета, семь размеров кисти, проверка движения и скорость. Отдельные проверки доступны для повторной калибровки."
+  ],
+  [
+    "Open a clean Rust Canvas and manually set Interval 0.01 and Opacity 1.00. One preparation runs regions, colors, controls, Sizes 2/3/5/7/10/15/20, moving wide-brush checks and speed. A failed Size does not discard the others. Standard remains available without verified acceleration. Clear test traces afterwards. Do not move the mouse; ESC cancels. Begin?",
+    "Otwórz czyste płótno Rust i ręcznie ustaw odstęp 0.01 oraz krycie 1.00. Jedno przygotowanie sprawdzi obszary, kolory, sterowanie, rozmiary 2/3/5/7/10/15/20, ruch dużych pędzli i szybkość. Nieudany rozmiar nie odrzuca pozostałych. Standard działa bez potwierdzonego przyspieszenia. Potem usuń ślady testowe. Nie ruszaj myszy; ESC anuluje. Rozpocząć?",
+    "Öffne eine leere Rust-Leinwand und stelle Intervall 0.01 und Deckkraft 1.00 manuell ein. Die Vorbereitung prüft Bereiche, Farben, Steuerung, Größen 2/3/5/7/10/15/20, breite Pinsel in Bewegung und Tempo. Eine fehlgeschlagene Größe verwirft keine anderen. Standard bleibt ohne bestätigte Beschleunigung verfügbar. Danach Testspuren löschen. Maus nicht bewegen; ESC bricht ab. Starten?",
+    "Ouvrez une toile vierge dans Rust et réglez manuellement l’intervalle à 0.01 et l’opacité à 1.00. La préparation vérifie zones, couleurs, commandes, tailles 2/3/5/7/10/15/20, grands pinceaux en mouvement et vitesse. L’échec d’une taille ne rejette pas les autres. Standard reste disponible sans accélération confirmée. Effacez ensuite les traces. Ne bougez pas la souris ; ESC annule. Commencer ?",
+    "Abre un lienzo limpio en Rust y ajusta manualmente intervalo 0.01 y opacidad 1.00. La preparación comprueba zonas, colores, controles, tamaños 2/3/5/7/10/15/20, pinceles grandes en movimiento y velocidad. Un tamaño fallido no descarta los demás. Standard sigue disponible sin aceleración verificada. Borra las marcas después. No muevas el ratón; ESC cancela. ¿Empezar?",
+    "Открой чистое полотно Rust и вручную установи интервал 0.01 и прозрачность 1.00. Одна подготовка проверит области, цвета, управление, размеры 2/3/5/7/10/15/20, движение больших кистей и скорость. Неудачный размер не отменяет остальные. Standard доступен без подтверждённого ускорения. Потом очисти тестовые следы. Не двигай мышь; ESC отменяет. Начать?"
+  ],
+  [
+    "No current measured brush route is available. Recalibrate the brush or use Standard.",
+    "Brak aktualnej zmierzonej trasy pędzla. Skalibruj ponownie lub użyj Standard.",
+    "Kein aktueller gemessener Pinselpfad verfügbar. Erneut kalibrieren oder Standard nutzen.",
+    "Aucun trajet de pinceau mesuré actuel. Recalibrez ou utilisez Standard.",
+    "No hay un recorrido medido vigente. Recalibra el pincel o usa Standard.",
+    "Нет актуального измеренного маршрута кисти. Повтори калибровку или используй Standard."
+  ],
+  [
+    "Adaptive uses stable Rapid without connected fast sweeps. Wide brushes require verified H/V movement.",
+    "Adaptive używa stabilnego Rapid bez łączonych szybkich przebiegów. Duże pędzle wymagają potwierdzenia ruchu H/V.",
+    "Adaptive nutzt stabiles Rapid ohne verbundene schnelle Pfade. Breite Pinsel benötigen bestätigte H/V-Bewegung.",
+    "Adaptive utilise Rapid stable sans trajets rapides reliés. Les grands pinceaux nécessitent un mouvement H/V confirmé.",
+    "Adaptive usa Rapid estable sin pasadas rápidas conectadas. Los pinceles grandes requieren movimiento H/V verificado.",
+    "Adaptive использует стабильный Rapid без соединённых быстрых проходов. Большие кисти требуют подтверждённого движения H/V."
+  ],
+  [
+    "Painting is paused. See the reason and recovery action at the bottom of the window.",
+    "Malowanie wstrzymane. Przyczyna i sposób wznowienia są na dole okna.",
+    "Malen pausiert. Grund und Wiederherstellung stehen unten im Fenster.",
+    "Peinture en pause. La raison et la reprise sont indiquées en bas.",
+    "Pintura en pausa. Consulta el motivo y la recuperación al pie de la ventana.",
+    "Рисование приостановлено. Причина и действие для продолжения показаны внизу окна."
+  ],
+  [
+    "Checking the editor before painting…",
+    "Sprawdzanie edytora przed malowaniem…",
+    "Editor wird vor dem Malen geprüft…",
+    "Vérification de l’éditeur avant peinture…",
+    "Comprobando el editor antes de pintar…",
+    "Проверяю редактор перед рисованием…"
+  ],
+  [
+    "Painting is in progress.",
+    "Malowanie trwa.",
+    "Malen läuft.",
+    "Peinture en cours.",
+    "Pintura en curso.",
+    "Рисование продолжается."
+  ],
+  [
+    "PAUSED",
+    "PAUZA",
+    "PAUSIERT",
+    "EN PAUSE",
+    "EN PAUSA",
+    "ПАУЗА"
+  ],
+  [
+    "RUNNING",
+    "W TOKU",
+    "LÄUFT",
+    "EN COURS",
+    "EN CURSO",
+    "ВЫПОЛНЯЕТСЯ"
+  ],
+  [
+    "Recapture Canvas: its structural reference must come from the same frame.",
+    "Zaznacz płótno ponownie: wzorzec struktury musi pochodzić z tej samej klatki.",
+    "Leinwand erneut erfassen: Die Strukturreferenz muss aus demselben Bild stammen.",
+    "Recapturez la toile : la référence structurelle doit venir de la même image.",
+    "Vuelve a capturar el lienzo: la referencia estructural debe proceder del mismo fotograma.",
+    "Повтори захват полотна: структурный эталон должен быть из того же кадра."
+  ],
+  [
+    "Verified strokes: ",
+    "Potwierdzone kreski: ",
+    "Geprüfte Striche: ",
+    "Traits vérifiés : ",
+    "Trazos verificados: ",
+    "Подтверждённые штрихи: "
+  ],
+  [
+    "A shared dot core was not confirmed. Stroke eligibility is determined by a separate movement check.",
+    "Nie potwierdzono wspólnego rdzenia punktów. Przydatność kreski określa osobny test ruchu.",
+    "Kein gemeinsamer Punktkern bestätigt. Ein separater Bewegungstest bestimmt die Eignung des Strichs.",
+    "Noyau commun des points non confirmé. Un test de mouvement séparé détermine l’utilisation du trait.",
+    "No se confirmó un núcleo común de los puntos. Una prueba de movimiento independiente determina la aptitud del trazo.",
+    "Общее ядро точек не подтверждено. Пригодность штриха определяется отдельной проверкой движения."
+  ],
+  [
+    "The independent line exceeds the measured footprint. Use Standard for painting.",
+    "Niezależna linia wychodzi poza zmierzony ślad. Użyj Standard.",
+    "Die unabhängige Linie überschreitet den gemessenen Abdruck. Standard verwenden.",
+    "La ligne indépendante dépasse l’empreinte mesurée. Utilisez Standard.",
+    "La línea independiente supera la huella medida. Usa Standard.",
+    "Независимая линия выходит за измеренный след. Используй Standard."
+  ],
+  [
+    "Independent lines have no shared solid footprint. Use Standard for painting.",
+    "Niezależne linie nie mają wspólnego pełnego śladu. Użyj Standard.",
+    "Unabhängige Linien haben keinen gemeinsamen deckenden Abdruck. Standard verwenden.",
+    "Les lignes indépendantes n’ont pas d’empreinte pleine commune. Utilisez Standard.",
+    "Las líneas independientes no tienen una huella sólida común. Usa Standard.",
+    "У независимых линий нет общего сплошного следа. Используй Standard."
+  ],
+  [
+    "Line colors at different positions do not agree within tolerance 12.",
+    "Kolory linii w różnych miejscach nie mieszczą się w tolerancji 12.",
+    "Linienfarben an verschiedenen Positionen liegen außerhalb der Toleranz 12.",
+    "Les couleurs des lignes à différentes positions dépassent la tolérance 12.",
+    "Los colores de las líneas en distintas posiciones superan la tolerancia 12.",
+    "Цвета линий в разных местах не совпадают в пределах допуска 12."
+  ],
+  [
+    "Paused: a new frame reference is required. Stop painting and recapture Canvas in Rust Capture.",
+    "Pauza: potrzebny nowy wzorzec ramy. Zatrzymaj malowanie i ponownie zaznacz płótno w Przechwytywaniu Rust.",
+    "Pause: Neue Rahmenreferenz erforderlich. Malen stoppen und Leinwand unter Rust-Erfassung erneut erfassen.",
+    "Pause : nouvelle référence du cadre nécessaire. Arrêtez et recapturez la toile dans Capture Rust.",
+    "Pausa: se necesita una nueva referencia del marco. Detén y captura el lienzo en Captura Rust.",
+    "Пауза: нужен новый эталон рамки. Останови рисование и повтори захват полотна в разделе «Захват Rust»."
+  ],
+  [
+    "Paused: frame structure or position differs from the captured Canvas. Clear overlays; if the frame changed, stop and recapture. Coordinates were not moved automatically.",
+    "Pauza: struktura lub położenie ramy różni się od zapisanego płótna. Usuń nakładki; po zmianie ramy zatrzymaj i zaznacz ponownie. Współrzędne nie zostały przesunięte automatycznie.",
+    "Pause: Rahmenstruktur oder Position weicht von der erfassten Leinwand ab. Einblendungen entfernen; bei geändertem Rahmen stoppen und neu erfassen. Koordinaten wurden nicht automatisch verschoben.",
+    "Pause : structure ou position du cadre différente de la toile capturée. Retirez les superpositions ; si le cadre a changé, arrêtez et recapturez. Les coordonnées n’ont pas été déplacées automatiquement.",
+    "Pausa: la estructura o posición del marco difiere del lienzo capturado. Retira superposiciones; si cambió el marco, detén y captura de nuevo. Las coordenadas no se desplazaron automáticamente.",
+    "Пауза: структура или положение рамки отличаются от захваченного полотна. Убери наложения; если рамка изменилась, останови и повтори захват. Координаты автоматически не перемещались."
+  ],
+  [
+    "Canvas frame has insufficient structure. Reveal its border and repeat capture.",
+    "Rama płótna ma za mało struktury. Odsłoń ją i zaznacz ponownie.",
+    "Leinwandrahmen hat zu wenig Struktur. Rahmen freilegen und erneut erfassen.",
+    "Le cadre manque de structure. Dégagez-le et recapturez.",
+    "El marco no tiene suficiente estructura. Muéstralo y captura de nuevo.",
+    "У рамки недостаточно структуры. Открой её полностью и повтори захват."
+  ],
+  [
+    "Canvas frame needs a visible exterior border. Capture the paintable interior with its frame visible.",
+    "Do sprawdzenia potrzebna jest widoczna rama. Zaznacz wnętrze płótna, pozostawiając ramę widoczną.",
+    "Für die Prüfung muss der Außenrahmen sichtbar sein. Malbereich mit sichtbarem Rahmen erfassen.",
+    "Le bord extérieur doit être visible. Capturez l’intérieur à peindre en gardant le cadre visible.",
+    "El borde exterior debe estar visible. Captura el interior pintable con el marco visible.",
+    "Для проверки нужна видимая рамка. Захвати внутреннюю область, оставив рамку видимой."
+  ],
+  [
+    "Moving stroke profile changed. Recalibrate before painting.",
+    "Profil kreski się zmienił. Powtórz kalibrację przed malowaniem.",
+    "Strichprofil geändert. Vor dem Malen erneut kalibrieren.",
+    "Le profil du trait a changé. Recalibrez avant de peindre.",
+    "El perfil del trazo cambió. Calibra de nuevo antes de pintar.",
+    "Профиль штриха изменился. Повтори калибровку перед рисованием."
+  ],
+  [
+    "Brush settings changed during moving calibration.",
+    "Ustawienia pędzla zmieniły się podczas testu ruchu. Powtórz przygotowanie.",
+    "Pinseleinstellungen während Bewegungskalibrierung geändert. Vorbereitung wiederholen.",
+    "Les réglages ont changé pendant le test de mouvement. Recommencez la préparation.",
+    "Los ajustes cambiaron durante la calibración de movimiento. Repite la preparación.",
+    "Настройки кисти изменились во время проверки движения. Повтори подготовку."
+  ],
+  [
+    "Changed {p0} px ({p1}%) · merged {p2} regions · passes {p3}.",
+    "Zmieniono {p0} px ({p1}%) · połączono {p2} obszarów · przebiegi {p3}.",
+    "{p0} px geändert ({p1}%) · {p2} Bereiche verbunden · Durchläufe {p3}.",
+    "{p0} px modifiés ({p1}%) · {p2} régions fusionnées · passes {p3}.",
+    "{p0} px cambiados ({p1}%) · {p2} regiones unidas · pasadas {p3}.",
+    "Изменено {p0} px ({p1}%) · объединено {p2} участков · проходов {p3}."
+  ],
+  [
+    "Canvas overlaps Rust controls. Select only the paintable interior.",
+    "Płótno nakłada się na elementy interfejsu Rust. Zaznacz tylko wnętrze do malowania.",
+    "Die Leinwand überlappt Rust-Bedienelemente. Nur den bemalbaren Innenbereich markieren.",
+    "La toile chevauche des commandes Rust. Sélectionnez uniquement la zone intérieure à peindre.",
+    "El lienzo se superpone a controles de Rust. Selecciona solo el interior para pintar.",
+    "Холст перекрывает элементы интерфейса Rust. Выдели только внутреннюю область рисования."
+  ],
+  [
+    "Standard setup: Canvas, colors and round Size 3. Other brush measurements and speed checks are available under Experimental.",
+    "Przygotowanie Standard: płótno, kolory i okrągły Size 3. Pomiary innych pędzli i szybkości są w sekcji eksperymentalnej.",
+    "Standard-Vorbereitung: Leinwand, Farben und runder Size 3. Andere Pinselmessungen und Geschwindigkeitstests unter Experimentell.",
+    "Préparation Standard : toile, couleurs et pinceau rond Size 3. Autres mesures et tests de vitesse dans Expérimental.",
+    "Preparación Standard: lienzo, colores y pincel redondo Size 3. Otras mediciones y pruebas de velocidad están en Experimental.",
+    "Подготовка Standard: холст, цвета и круглый Size 3. Измерения других кистей и скорости доступны в разделе «Экспериментально»."
+  ],
+  [
+    "Could not read the Windows cursor position. Input stopped; return to Rust and start again.",
+    "Nie udało się odczytać pozycji kursora Windows. Wprowadzanie zatrzymano; wróć do Rust i uruchom ponownie.",
+    "Die Windows-Cursorposition konnte nicht gelesen werden. Eingabe gestoppt; zu Rust zurückkehren und erneut starten.",
+    "Impossible de lire la position du curseur Windows. Saisie arrêtée ; revenez dans Rust et relancez.",
+    "No se pudo leer la posición del cursor de Windows. Entrada detenida; vuelve a Rust e inicia de nuevo.",
+    "Не удалось прочитать положение курсора Windows. Ввод остановлен; вернись в Rust и повтори запуск."
+  ],
+  [
+    "Could not verify the Rust tool row. Remove overlays from the panel and capture again.",
+    "Nie udało się potwierdzić paska narzędzi Rust. Usuń nakładki z panelu i przechwyć ponownie.",
+    "Die Rust-Werkzeugleiste konnte nicht bestätigt werden. Überlagerungen entfernen und erneut erfassen.",
+    "Impossible de confirmer la barre d’outils Rust. Retirez les superpositions et recommencez la capture.",
+    "No se pudo verificar la fila de herramientas de Rust. Quita las superposiciones y repite la captura.",
+    "Не удалось подтвердить ряд инструментов Rust. Убери накладки с панели и повтори захват."
+  ],
+  [
+    "Select the brush tool in Rust before capturing Canvas.",
+    "Wybierz pędzel w Rust przed przechwyceniem płótna.",
+    "Vor dem Erfassen der Leinwand den Pinsel in Rust auswählen.",
+    "Sélectionnez le pinceau dans Rust avant de capturer la toile.",
+    "Selecciona el pincel en Rust antes de capturar el lienzo.",
+    "Выбери инструмент кисти в Rust перед захватом холста."
+  ],
+  [
+    "Could not separate Rust buttons from the frame. Remove editor overlays and capture Canvas again.",
+    "Nie udało się oddzielić przycisków Rust od ramy. Usuń nakładki edytora i przechwyć płótno ponownie.",
+    "Rust-Schaltflächen und Rahmen konnten nicht getrennt werden. Überlagerungen entfernen und Leinwand erneut erfassen.",
+    "Impossible de distinguer les boutons Rust du cadre. Retirez les superpositions et capturez à nouveau la toile.",
+    "No se pudieron separar los botones de Rust del marco. Quita las superposiciones y captura de nuevo el lienzo.",
+    "Не удалось отделить кнопки Rust от рамки. Убери накладки редактора и повтори захват холста."
+  ],
+  [
+    "Not enough reliable frame regions outside Rust buttons. Reveal the whole frame without overlays and capture Canvas again.",
+    "Za mało wiarygodnych fragmentów ramy poza przyciskami Rust. Odsłoń całą ramę bez nakładek i przechwyć płótno ponownie.",
+    "Nicht genügend zuverlässige Rahmenbereiche außerhalb der Rust-Schaltflächen. Ganzen Rahmen freilegen und erneut erfassen.",
+    "Pas assez de zones fiables du cadre hors des boutons Rust. Dégagez tout le cadre et capturez à nouveau la toile.",
+    "No hay suficientes zonas fiables del marco fuera de los botones de Rust. Muestra todo el marco y repite la captura.",
+    "Недостаточно надёжных участков рамки вне кнопок Rust. Открой всю рамку без накладок и повтори захват холста."
+  ],
+  [
+    "Canvas bounds are unverified. Clear Canvas, select its interior and confirm the detected green bounds with Enter.",
+    "Granice płótna nie są potwierdzone. Wyczyść płótno, zaznacz wnętrze i potwierdź zielone granice klawiszem Enter.",
+    "Leinwandgrenzen nicht bestätigt. Leinwand leeren, Innenbereich markieren und grüne Grenzen mit Enter bestätigen.",
+    "Limites de la toile non confirmées. Effacez la toile, sélectionnez son intérieur et confirmez les limites vertes avec Entrée.",
+    "Límites del lienzo sin verificar. Limpia el lienzo, selecciona el interior y confirma los límites verdes con Intro.",
+    "Границы холста не подтверждены. Очисти холст, выдели внутреннюю область и подтверди зелёные границы клавишей Enter."
+  ],
+  [
+    "Could not uniquely locate the Canvas interior. Clear Canvas, remove overlays and select again. ESC — cancel.",
+    "Nie udało się jednoznacznie znaleźć wnętrza płótna. Wyczyść je, usuń nakładki i zaznacz ponownie. ESC — anuluj.",
+    "Leinwand-Innenbereich nicht eindeutig gefunden. Leinwand leeren, Überlagerungen entfernen und erneut markieren. ESC — abbrechen.",
+    "Impossible de localiser clairement l’intérieur de la toile. Effacez-la, retirez les superpositions et recommencez. Échap — annuler.",
+    "No se pudo localizar claramente el interior del lienzo. Límpialo, quita las superposiciones y selecciona de nuevo. ESC — cancelar.",
+    "Не удалось однозначно найти внутренние границы холста. Очисти его, убери накладки и выдели ещё раз. ESC — отмена."
+  ],
+  [
+    "Green shows the detected Canvas interior. Enter — confirm; draw again to adjust. ESC — cancel.",
+    "Zielony obrys pokazuje wnętrze płótna. Enter — potwierdź; zaznacz ponownie, aby poprawić. ESC — anuluj.",
+    "Grün zeigt den erkannten Leinwand-Innenbereich. Enter — bestätigen; zum Anpassen erneut markieren. ESC — abbrechen.",
+    "Le vert indique l’intérieur détecté de la toile. Entrée — confirmer ; redessinez pour ajuster. Échap — annuler.",
+    "El verde marca el interior detectado del lienzo. Intro — confirmar; selecciona de nuevo para ajustar. ESC — cancelar.",
+    "Зелёным — найденные внутренние границы холста. Enter — подтвердить; можно выделить ещё раз. ESC — отмена."
+  ],
+  [
+    "Paused: the active brush tool is unverified. Select the brush in Rust, remove panel overlays and press F6. The editor and color will be checked again before resuming.",
+    "Pauza: aktywny pędzel niepotwierdzony. Wybierz pędzel w Rust, usuń nakładki i naciśnij F6. Edytor i kolor zostaną sprawdzone ponownie.",
+    "Pause: aktiver Pinsel nicht bestätigt. Pinsel in Rust wählen, Überlagerungen entfernen und F6 drücken. Editor und Farbe werden erneut geprüft.",
+    "Pause : pinceau actif non confirmé. Sélectionnez le pinceau dans Rust, retirez les superpositions et appuyez sur F6. Éditeur et couleur seront revérifiés.",
+    "Pausa: pincel activo sin verificar. Selecciona el pincel en Rust, quita las superposiciones y pulsa F6. Se comprobarán de nuevo el editor y el color.",
+    "Пауза: активная кисть не подтверждена. Выбери кисть в Rust, убери накладки и нажми F6. Перед продолжением редактор и цвет будут проверены повторно."
+  ],
+  [
+    "Capture Canvas again. Select the clean interior and confirm the green bounds with Enter.",
+    "Przechwyć płótno ponownie. Zaznacz czyste wnętrze i potwierdź zielone granice klawiszem Enter.",
+    "Leinwand erneut erfassen. Sauberen Innenbereich markieren und grüne Grenzen mit Enter bestätigen.",
+    "Capturez à nouveau la toile. Sélectionnez l’intérieur propre et confirmez les limites vertes avec Entrée.",
+    "Captura de nuevo el lienzo. Selecciona el interior limpio y confirma los límites verdes con Intro.",
+    "Повтори захват холста. Выдели чистую внутреннюю область и подтверди зелёные границы клавишей Enter."
+  ],
+  [
+    "Paused: the cursor moved before a stroke. Leave the mouse still, return to Rust and press F6.",
+    "Pauza: kursor przesunął się przed pociągnięciem. Nie ruszaj myszą, wróć do Rust i naciśnij F6.",
+    "Pause: Cursor vor dem Pinselstrich bewegt. Maus stillhalten, zu Rust zurückkehren und F6 drücken.",
+    "Pause : le curseur a bougé avant le trait. Ne touchez pas la souris, revenez dans Rust et appuyez sur F6.",
+    "Pausa: el cursor se movió antes del trazo. No muevas el ratón, vuelve a Rust y pulsa F6.",
+    "Пауза: курсор переместился перед нанесением штриха. Не двигай мышь, вернись в Rust и нажми F6."
+  ],
+  [
+    "Preparation paused. Press Resume.",
+    "Przygotowanie wstrzymane. Naciśnij Wznów.",
+    "Vorbereitung pausiert. Fortsetzen drücken.",
+    "Préparation en pause. Appuyez sur Reprendre.",
+    "Preparación en pausa. Pulsa Reanudar.",
+    "Подготовка приостановлена. Нажми «Продолжить»."
+  ],
+  [
+    "Preparation is running. Wait for the checks to finish.",
+    "Trwa przygotowanie. Poczekaj na zakończenie kontroli.",
+    "Vorbereitung läuft. Auf den Abschluss der Prüfungen warten.",
+    "Préparation en cours. Attendez la fin des vérifications.",
+    "Preparación en curso. Espera a que terminen las comprobaciones.",
+    "Идёт подготовка. Дождись завершения проверок."
+  ],
+  [
+    "Saving the result snapshot…",
+    "Zapisywanie zrzutu wyniku…",
+    "Ergebnisaufnahme wird gespeichert…",
+    "Enregistrement de la capture du résultat…",
+    "Guardando la captura del resultado…",
+    "Сохраняю снимок результата…"
+  ],
+  [
+    "Target cell",
+    "Komórka obrazu docelowego",
+    "Zielbildzelle",
+    "Cellule de l’image cible",
+    "Celda de la imagen objetivo",
+    "Ячейка целевого изображения"
+  ],
+  [
+    "Rust editor is unverified. Capture the regions again.",
+    "Edytor Rust nie został potwierdzony. Przechwyć obszary ponownie.",
+    "Rust-Editor nicht bestätigt. Bereiche erneut erfassen.",
+    "Éditeur Rust non confirmé. Capturez à nouveau les zones.",
+    "Editor de Rust sin verificar. Captura las regiones de nuevo.",
+    "Редактор Rust не подтверждён. Повтори захват областей."
+  ],
+  [
+    "Select the drawing area. Including the frame is allowed. Pixora keeps your exact selection. ESC — cancel.",
+    "Zaznacz obszar rysowania. Możesz objąć ramę. Pixora zachowa dokładne granice zaznaczenia. ESC — anuluj.",
+    "Zeichenbereich markieren. Der Rahmen darf enthalten sein. Pixora behält die genaue Auswahl. ESC — abbrechen.",
+    "Sélectionnez la zone de dessin, avec le cadre si souhaité. Pixora conserve vos limites exactes. Échap — annuler.",
+    "Selecciona el área de dibujo. Puedes incluir el marco. Pixora conserva tu selección exacta. ESC — cancelar.",
+    "Обведи область рисования. Рамку можно включить. Pixora сохранит точные границы выделения. ESC — отмена."
+  ],
+  [
+    "Standard always uses 1 px between coverage passes. Presets change target detail; 5–8 px produces a coarser image.",
+    "Standard zawsze używa odstępu 1 px między przejściami. Presety zmieniają szczegółowość obrazu; 5–8 px daje mniej szczegółów.",
+    "Standard verwendet immer 1 px Abstand zwischen den Bahnen. Voreinstellungen ändern die Bilddetails; 5–8 px ergibt ein gröberes Bild.",
+    "Standard utilise toujours 1 px entre les passages. Les préréglages changent les détails de la cible ; 5–8 px donne une image plus grossière.",
+    "Standard siempre usa 1 px entre pasadas. Los ajustes cambian el detalle objetivo; 5–8 px produce una imagen menos detallada.",
+    "В Standard шаг проходов всегда 1 px. Пресеты меняют детализацию цели; 5–8 px дают более грубое изображение."
+  ],
+  [
+    "The drawing area overlaps Rust buttons. Adjust your selection to leave the buttons outside.",
+    "Obszar rysowania nakłada się na przyciski Rust. Pozostaw je poza zaznaczeniem.",
+    "Der Zeichenbereich überlappt Rust-Schaltflächen. Diese außerhalb der Auswahl lassen.",
+    "La zone de dessin recouvre des boutons Rust. Laissez-les en dehors de la sélection.",
+    "El área de dibujo se superpone a botones de Rust. Déjalos fuera de la selección.",
+    "Область рисования перекрывает кнопки Rust. Оставь кнопки за пределами выделения."
+  ],
+  [
+    "The drawing area must be inside the Rust window. Select it again.",
+    "Obszar rysowania musi znajdować się w oknie Rust. Zaznacz go ponownie.",
+    "Der Zeichenbereich muss im Rust-Fenster liegen. Erneut auswählen.",
+    "La zone de dessin doit rester dans la fenêtre Rust. Sélectionnez-la à nouveau.",
+    "El área de dibujo debe estar dentro de la ventana de Rust. Selecciónala de nuevo.",
+    "Область рисования должна быть внутри окна Rust. Выдели её заново."
+  ],
+  [
+    "Standard straight-line diagnostics",
+    "Diagnostyka prostych linii Standard",
+    "Diagnose gerader Linien in Standard",
+    "Diagnostic des lignes droites Standard",
+    "Diagnóstico de líneas rectas Standard",
+    "Диагностика прямых линий Standard"
+  ],
+  [
+    "Draws two separate lines on a clean Canvas: first forward, second in reverse. Saves frames and input. This diagnostic does not enable the new painting method. Clear test traces before each attempt.",
+    "Rysuje dwie oddzielne linie na czystym płótnie: pierwszą w przód, drugą wstecz. Zapisuje obrazy i zdarzenia wejścia. Diagnostyka nie włącza nowej metody rysowania. Usuń ślady testu przed każdą próbą.",
+    "Zeichnet zwei getrennte Linien auf einer leeren Leinwand: die erste vorwärts, die zweite rückwärts. Speichert Bilder und Eingaben. Die Diagnose aktiviert keine neue Zeichenmethode. Testspuren vor jedem Versuch entfernen.",
+    "Trace deux lignes séparées sur une toile vierge : la première en avant, la seconde en sens inverse. Enregistre les images et les entrées. Ce diagnostic n’active pas la nouvelle méthode. Effacez les traces avant chaque essai.",
+    "Dibuja dos líneas separadas en un lienzo limpio: la primera hacia delante y la segunda en sentido inverso. Guarda imágenes y entradas. El diagnóstico no activa el nuevo método. Borra las marcas antes de cada intento.",
+    "Рисует две отдельные линии на чистом холсте: первую вперёд, вторую в обратном направлении. Сохраняет кадры и ввод. Диагностика не включает новый способ рисования. Удаляйте тестовые следы перед каждой попыткой."
+  ],
+  [
+    "Ordinary stroke — baseline",
+    "Zwykła kreska — wzorzec",
+    "Normaler Strich — Vergleich",
+    "Trait ordinaire — référence",
+    "Trazo normal — referencia",
+    "Обычный штрих — контроль"
+  ],
+  [
+    "Shift before mouse-down",
+    "Shift przed naciśnięciem myszy",
+    "Shift vor dem Mausklick",
+    "Maj avant l’appui sur la souris",
+    "Mayús antes de pulsar el ratón",
+    "Shift до нажатия мыши"
+  ],
+  [
+    "Shift after mouse-down",
+    "Shift po naciśnięciu myszy",
+    "Shift nach dem Mausklick",
+    "Maj après l’appui sur la souris",
+    "Mayús después de pulsar el ratón",
+    "Shift после нажатия мыши"
+  ],
+  [
+    "Vertical lines",
+    "Linie pionowe",
+    "Vertikale Linien",
+    "Lignes verticales",
+    "Líneas verticales",
+    "Вертикальные линии"
+  ],
+  [
+    "Horizontal lines",
+    "Linie poziome",
+    "Horizontale Linien",
+    "Lignes horizontales",
+    "Líneas horizontales",
+    "Горизонтальные линии"
+  ],
+  [
+    " ms between phases",
+    " ms między fazami",
+    " ms zwischen Phasen",
+    " ms entre les phases",
+    " ms entre fases",
+    " мс между фазами"
+  ],
+  [
+    "Record two diagnostic lines",
+    "Zapisz dwie linie diagnostyczne",
+    "Zwei Diagnoselinien aufzeichnen",
+    "Enregistrer deux lignes de diagnostic",
+    "Registrar dos líneas de diagnóstico",
+    "Записать две пробные линии"
+  ],
+  [
+    "Open line recordings",
+    "Otwórz zapisy linii",
+    "Linienaufzeichnungen öffnen",
+    "Ouvrir les enregistrements",
+    "Abrir registros de líneas",
+    "Открыть записи линий"
+  ],
+  [
+    "Select Standard.",
+    "Wybierz Standard.",
+    "Standard auswählen.",
+    "Sélectionnez Standard.",
+    "Selecciona Standard.",
+    "Выберите Standard."
+  ],
+  [
+    "The selected area cannot fit two 470 px lines with reserved space. Your selection was kept.",
+    "Wybrany obszar nie mieści dwóch linii 470 px z zapasem. Zachowano zaznaczenie.",
+    "Der gewählte Bereich bietet nicht genug Platz für zwei 470-px-Linien mit Reserve. Die Auswahl wurde beibehalten.",
+    "La zone sélectionnée ne peut pas contenir deux lignes de 470 px avec une marge. Votre sélection a été conservée.",
+    "El área seleccionada no admite dos líneas de 470 px con margen. Se ha mantenido tu selección.",
+    "В выделенной области недостаточно места для двух линий 470 px с запасом. Выделение сохранено."
+  ],
+  [
+    "Line frames saved. Physical quality has not been verified.",
+    "Zapisano obrazy linii. Jakość fizyczna nie została potwierdzona.",
+    "Linienbilder gespeichert. Die physische Qualität wurde nicht bestätigt.",
+    "Images des lignes enregistrées. La qualité physique n’a pas été vérifiée.",
+    "Imágenes guardadas. No se ha verificado la calidad física.",
+    "Кадры линий сохранены. Физическое качество ещё не подтверждено."
+  ],
+  [
+    "Diagnostic incomplete. Painting will not restart automatically.",
+    "Diagnostyka nieukończona. Rysowanie nie uruchomi się ponownie automatycznie.",
+    "Diagnose unvollständig. Das Zeichnen wird nicht automatisch neu gestartet.",
+    "Diagnostic incomplet. Le dessin ne redémarrera pas automatiquement.",
+    "Diagnóstico incompleto. El dibujo no se reiniciará automáticamente.",
+    "Диагностика не завершена. Рисование не перезапускается автоматически."
+  ],
+  [
+    "Invalid edge merge thickness was repaired. Check the value before starting.",
+    "Poprawiono nieprawidłową grubość scalania krawędzi. Sprawdź wartość przed rozpoczęciem.",
+    "Die ungültige Kantenstärke wurde korrigiert. Prüfe den Wert vor dem Start.",
+    "L’épaisseur de fusion des bords a été corrigée. Vérifiez la valeur avant de commencer.",
+    "Se corrigió el grosor de fusión de bordes. Comprueba el valor antes de empezar.",
+    "Некорректная толщина объединения краёв исправлена. Проверь значение перед запуском."
+  ],
+  [
+    "Palette selection timed out. Return to Rust and repeat the color check.",
+    "Przekroczono czas wyboru koloru. Wróć do Rust i powtórz sprawdzenie koloru.",
+    "Zeitüberschreitung bei der Farbauswahl. Kehre zu Rust zurück und prüfe die Farbe erneut.",
+    "La sélection de couleur a expiré. Revenez dans Rust et vérifiez à nouveau la couleur.",
+    "La selección de color agotó el tiempo. Vuelve a Rust y repite la comprobación del color.",
+    "Выбор цвета занял слишком много времени. Вернись в Rust и повтори проверку цвета."
+  ],
+  [
+    "Coarser",
+    "Zgrubnie",
+    "Gröber",
+    "Plus grossier",
+    "Más grueso",
+    "Грубее"
+  ],
+  [
+    "Coarser · 5 px",
+    "Zgrubnie · 5 px",
+    "Gröber · 5 px",
+    "Plus grossier · 5 px",
+    "Más grueso · 5 px",
+    "Грубее · 5 px"
+  ],
+  [
+    "Movement speed does not change target detail or colors.",
+    "Prędkość ruchu nie zmienia szczegółów ani kolorów celu.",
+    "Die Bewegungsgeschwindigkeit ändert weder Details noch Farben des Zielbilds.",
+    "La vitesse de déplacement ne modifie ni les détails ni les couleurs de la cible.",
+    "La velocidad de movimiento no cambia los detalles ni los colores del objetivo.",
+    "Скорость движения не меняет детализацию или цвета цели."
+  ],
+  [
+    "Target: {p0}×{p1} · cell {p2} px · color limit {p3}. Cell and colors change the image; speed changes only movement.",
+    "Cel: {p0}×{p1} · komórka {p2} px · limit kolorów {p3}. Komórka i kolory zmieniają obraz; prędkość zmienia tylko ruch.",
+    "Ziel: {p0}×{p1} · Zelle {p2} px · Farblimit {p3}. Zelle und Farben ändern das Bild; Geschwindigkeit ändert nur die Bewegung.",
+    "Cible : {p0}×{p1} · cellule {p2} px · limite de couleurs {p3}. La cellule et les couleurs modifient l’image ; la vitesse modifie seulement le déplacement.",
+    "Objetivo: {p0}×{p1} · celda {p2} px · límite de colores {p3}. La celda y los colores cambian la imagen; la velocidad solo cambia el movimiento.",
+    "Цель: {p0}×{p1} · ячейка {p2} px · лимит цветов {p3}. Ячейка и цвета меняют изображение; скорость меняет только движение."
+  ],
+  [
+    "px is image detail, not Rust brush Size. Minimum detail and Size are 2. Presets change only the image grid.",
+    "px to szczegółowość obrazu, nie Size pędzla Rust. Minimum to 2. Presety zmieniają tylko siatkę obrazu.",
+    "px ist die Bildauflösung, nicht die Rust-Pinselgröße. Minimum ist 2. Voreinstellungen ändern nur das Bildraster.",
+    "px indique le détail de l’image, pas la taille du pinceau Rust. Minimum : 2. Les préréglages modifient seulement la grille.",
+    "px indica el detalle de imagen, no el tamaño del pincel Rust. Mínimo: 2. Los ajustes solo cambian la cuadrícula.",
+    "px — детализация изображения, а не Size кисти Rust. Минимум — 2. Пресеты меняют только сетку изображения."
+  ],
+  [
+    "Preserved edges and skin tones, no smoothing or background fill. Movement speed is unchanged.",
+    "Zachowane krawędzie i odcienie skóry, bez wygładzania ani wypełnienia tła. Prędkość ruchu bez zmian.",
+    "Konturen und Hauttöne bleiben erhalten, ohne Glättung oder Hintergrundfüllung. Die Bewegungsgeschwindigkeit bleibt gleich.",
+    "Contours et teintes de peau préservés, sans lissage ni remplissage du fond. La vitesse reste inchangée.",
+    "Contornos y tonos de piel conservados, sin suavizado ni relleno de fondo. La velocidad no cambia.",
+    "Сохранение контуров и оттенков кожи, без сглаживания и заливки фона. Скорость не меняется."
+  ],
+  [
+    "Apply profile changes image processing. Detail and movement speed are set separately.",
+    "Zastosowanie profilu zmienia przetwarzanie obrazu. Szczegółowość i prędkość ruchu ustawia się oddzielnie.",
+    "Das Anwenden des Profils ändert die Bildverarbeitung. Details und Bewegungsgeschwindigkeit werden getrennt eingestellt.",
+    "Appliquer le profil modifie le traitement de l’image. Le détail et la vitesse de déplacement se règlent séparément.",
+    "Aplicar el perfil cambia el procesamiento de imagen. El detalle y la velocidad de movimiento se configuran por separado.",
+    "Применение профиля меняет обработку изображения. Детализация и скорость движения настраиваются отдельно."
   ]
 ]

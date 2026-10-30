@@ -12,9 +12,11 @@ public static class SetupSequence
     public static readonly SetupStage[] Stages = Enum.GetValues<SetupStage>();
     public static readonly SetupStage[] StandardStages=[SetupStage.Capture,SetupStage.Colors,SetupStage.Controls];
     public static readonly SetupStage[] DrawingStages=[SetupStage.Capture,SetupStage.Colors,SetupStage.Controls,SetupStage.Brush];
+    public static IReadOnlyList<SetupStage> InitialStages(Settings settings,bool quick)
+        =>ReleaseProfile.Standard(settings)?StandardStages:quick?DrawingStages:Stages;
     public static string[] CaptureKeys(Settings s)=>s.Mode==ColorMode.HexDirect
-        ?["canvas","hex","brush_shapes","size_track","interval_track","opacity_track"]
-        :["canvas","palette","brush_tool","brush_shapes","size_track","interval_track","opacity_track"];
+        ?["canvas","hex","brush_shapes","size_track"]
+        :["canvas","palette","quick","brush_shapes","size_track"];
     public static double DrawingSize(Settings s)=>PaintTimingPlan.DefaultSize(s) is var size&&size>=2&&BrushFootprints.Sizes.Contains(size)?size:3;
     public static async Task Run(Func<SetupStage, CancellationToken, Task> execute,
         Action<SetupStage, SetupStageState, string> report, CancellationToken token,IReadOnlyList<SetupStage>? stages=null)
@@ -40,14 +42,16 @@ public static class SetupSequence
         if (s.Mode==ColorMode.HexDirect && (c.HexPoint is null || !s.HexControlsReady)) return false;
         if (s.Mode==ColorMode.RustPalette && (!c.Rect("palette").Valid || s.Palette().Count==0)) return false;
         var paint=s.PaintCalibration();
-        return paint.Rect("brush_shapes").Valid && new[]{"size","interval","opacity"}
+        return paint.Rect("brush_shapes").Valid && new[]{"size"}
             .All(k=>paint.Rect(k+"_track").Valid && paint.Rect(k+"_value_field").Valid);
     }
 
     public static async Task<bool> Prepare(Func<SetupStage,CancellationToken,Task> execute,
-        Action<SetupStage,SetupStageState,string> report,CancellationToken token)
+        Action<SetupStage,SetupStageState,string> report,CancellationToken token,bool brushOptional=false)
     {
-        await Run(execute,report,token,DrawingStages);
+        await Run(execute,report,token,StandardStages);
+        try{await Run(execute,report,token,[SetupStage.Brush]);}
+        catch(SetupStageException) when(brushOptional){return false;}
         // A failed acceleration check must not certify a route or discard the
         // working brush. Stable painting is still available after required steps.
         try { await Run(execute,report,token,[SetupStage.Spatial]); }
@@ -80,6 +84,15 @@ public sealed class SetupWorkspace(ScreenRect canvas)
         return result;
     }
     private void Reserve(IEnumerable<ScreenRect> areas) => used.AddRange(areas);
+    public void ReserveExisting(IEnumerable<ScreenRect> areas)
+    {
+        foreach(var area in areas)
+        {
+            if(!area.Valid||area.Left<canvas.Left||area.Top<canvas.Top||area.Right>canvas.Right||area.Bottom>canvas.Bottom)
+                throw new ArgumentException("Existing test area is outside Canvas.");
+            used.Add(area);
+        }
+    }
     public List<BrushCalibrationTile> Brush(IReadOnlyList<double> sizes)
     {
         if(sizes.Count==0 || sizes.Any(s=>!BrushFootprints.Sizes.Contains(s)) || sizes.Distinct().Count()!=sizes.Count)
@@ -89,6 +102,13 @@ public sealed class SetupWorkspace(ScreenRect canvas)
         if(areas.Length<needed)throw new InvalidOperationException("Not enough clean space for brush measurements. Calibrate fewer Sizes separately.");
         Reserve(areas);
         return areas.Select((a,i)=>new BrushCalibrationTile(sizes[i%sizes.Count],i/sizes.Count,a,a.Center)).ToList();
+    }
+    public List<BrushCalibrationTile> Stroke(double size)
+    {
+        int tile=Math.Max(96,2*((int)Math.Ceiling(size*2)+12)+StrokeProfiles.CalibrationLength+8);
+        var free=Free(tile);if(free.Count<3)throw new InvalidOperationException("Not enough clean space for independent stroke positions.");
+        var chosen=new[]{free[0],free[free.Count/2],free[^1]};Reserve(chosen);
+        return chosen.Select((r,i)=>new BrushCalibrationTile(size,i,r,r.Center)).ToList();
     }
     public List<(ScreenRect Area,ScreenLine Horizontal,ScreenLine Vertical)> Spatial(int outer)
     {

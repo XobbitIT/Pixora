@@ -13,7 +13,24 @@ internal static class MeasuredColorChecks
         s.SetPalette([new(new(220,30,30),new(600,400),"main"),new(new(30,220,30),new(640,400),"main")]);
         s.Set("adaptive_brush",mixed);s.Set("precision_brush_size","3");s.Set("fast_transfer",false);AdaptiveBrush.Prepare(s);
         var masks=JsonSerializer.Deserialize<Mask[]>(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"Fixtures","beta49-size3-10-20-masks.json")))!;
-        BrushFootprints.Save(s,masks.Select(p=>BrushFootprints.Build(s,p.ShapeSlot,p.Size,Enumerable.Repeat(new BrushStamp(p.Possible,p.Solid,new(20,20,20)),3).ToArray())).ToArray());return s;
+            BrushFootprints.Save(s,masks.Select(p=>BrushFootprints.Build(s,p.ShapeSlot,p.Size,Enumerable.Repeat(new BrushStamp(p.Possible,p.Solid,new(20,20,20)),3).ToArray())).ToArray());CertifyMotion(s);return s;
+    }
+    // Synthetic pixel evidence for geometry tests, not a claim about Rust.
+    internal static void CertifyMotion(Settings s)
+    {
+        foreach(var p in BrushFootprints.Read(s,true).Where(p=>p.Size>3))
+        {
+            var axes=new List<BrushMotionCheck>();
+            foreach(bool vertical in new[]{false,true})
+            {
+                var before=new PixelImage(160,160);for(int i=0;i<160*160;i++)before.Set(i,new(180,180,180));
+                var first=before.Clone();var line=vertical?new ScreenLine(80,60,80,90):new ScreenLine(60,80,90,80);
+                foreach(var row in BrushSweep.Project(p.Possible,line))for(int x=row.Left;x<row.Right;x++)first.Set(row.Y*160+x,new(20,20,20));
+                var check=BrushMotionEvidence.Inspect(p,line,before,before,first,first,new(0,0,0),true);
+                Require(check.Passed,"Synthetic moving mask did not pass: "+check.Reason);axes.Add(check);
+            }
+            BrushMotionEvidence.Save(s,p,axes);
+        }
     }
     internal static PaintPlan Plan(Func<int,int,int>? label=null)
     {

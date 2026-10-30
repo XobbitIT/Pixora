@@ -12,8 +12,8 @@ internal static partial class Program
     {
         string directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
         var settings=ReadySettings("English");settings.Set("adaptive_brush",false);
-        settings.Save(Path.Combine(directory,"config-csharp.json"));
-        return new MainWindow(directory);
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        return FixtureWindow(directory);
     }
     private static Task LifecycleTask(MainWindow window,string method,params object[] args)=>(Task)Invoke(window,method,args)!;
     private static TaskCompletionSource<PixelImage> ImageGate()=>new(TaskCreationOptions.RunContinuationsAsynchronously);

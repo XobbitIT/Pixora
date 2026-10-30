@@ -34,7 +34,7 @@ internal static partial class Program
         Assert(Field<TextBlock>(window,"runTimeLabel").Text.Contains("Service time")&&Field<TextBlock>(window,"runTimeLabel").Text.Contains("Pause"),"Real phase timings are not presented");
         Console.WriteLine("PASS rc-exclusive-time-summary");
         Invoke(window,"ApplyPaintProgress",new PaintProgress(0,0,12,0,"",Times:new(42,5,4,3,30),TimesOnly:true));Assert(Field<TextBlock>(window,"runTimeLabel").Text.Contains("30"),"Stop did not publish the final pause time");Console.WriteLine("PASS rc-terminal-time-callback-keeps-progress-status");
-        var fresh=new MainWindow(Path.Combine(output,"rc-fresh"));Assert(ReleaseProfile.Standard(Field<Settings>(fresh,"settings")),"Fresh launch is not Standard");
+        var fresh=FixtureWindow(Path.Combine(output,"rc-fresh"));Assert(ReleaseProfile.Standard(Field<Settings>(fresh,"settings")),"Fresh launch is not Standard");
         fresh.ShowPage("adaptive");Assert(Field<string>(fresh,"currentPage")=="experimental","Fresh user is pushed into brush measurement");
         Console.WriteLine("PASS rc-fresh-standard-default");
         var fake=(Painter)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(Painter));
@@ -48,9 +48,15 @@ internal static partial class Program
         var metadata=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Directory.GetFiles(Path.Combine(evidence,"last-run"),"run.json",SearchOption.AllDirectories).Single()))!;
         Assert(metadata["identity"]!.ToString()=="rc-fixture"&&metadata["outcome"]!.ToString()=="failed"&&metadata["snapshotComplete"]!.GetValue<bool>(),"Run snapshot cannot distinguish failed preparation from completed painting");
         Console.WriteLine("PASS rc-preparation-failure-finalizes-timing-and-snapshot");
+        var captures=new List<(string Phase,bool Resumed)>();fake.StandardEvidenceCapture=(phase,resumed)=>captures.Add((phase,resumed));
         typeof(Painter).GetMethod("BeginFinalAudit",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.Invoke(fake,[tiny,false]);
         typeof(Painter).GetMethod("CompleteFinalAudit",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.Invoke(fake,[tiny]);
-        Assert(fake.FinalCoverage is null,"Standard produced an exact coverage claim");Console.WriteLine("PASS rc-standard-does-not-certify-final-coverage");
+        Assert(fake.FinalCoverage is null&&captures.SequenceEqual(new[]{("before",false),("after",false)}),"Standard certified coverage or omitted the native evidence request");
+        captures.Clear();
+        typeof(Painter).GetMethod("BeginFinalAudit",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.Invoke(fake,[tiny,true]);
+        typeof(Painter).GetMethod("CompleteFinalAudit",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.Invoke(fake,[tiny]);
+        Assert(captures.SequenceEqual(new[]{("before",true),("after",true)}),"Resume segment mislabeled as a clean baseline");
+        Console.WriteLine("PASS rc-standard-does-not-certify-final-coverage");
     }
     private static void CheckStandardLayouts(string output)
     {

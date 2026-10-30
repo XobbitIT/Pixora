@@ -7,6 +7,16 @@ using SkiaSharp;
 namespace CanvasForge.App;
 internal static class Images
 {
+    internal static PixelImage LoadNative(string path)
+    {
+        using var stream=File.OpenRead(path);
+        using var codec=SKCodec.Create(stream)??throw new InvalidDataException("Unsupported native evidence format.");
+        var info=codec.Info;
+        if(info.Width<1||info.Height<1||(long)info.Width*info.Height>32_000_000)throw new InvalidDataException("Invalid native evidence size.");
+        using var bitmap=new SKBitmap(new SKImageInfo(info.Width,info.Height,SKColorType.Rgba8888,SKAlphaType.Unpremul));
+        if(codec.GetPixels(bitmap.Info,bitmap.GetPixels())!=SKCodecResult.Success)throw new InvalidDataException("Incomplete native evidence.");
+        return FromSkia(bitmap);
+    }
     public static PixelImage Load(string path)
     {
         using var stream = File.OpenRead(path);

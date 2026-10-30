@@ -10,20 +10,22 @@ internal sealed partial class MainWindow
         var page = FormContent();
         pages["settings"] = Scroll(page);
         page.Children.Add(Text(T("Налаштування", "Settings"), 24));
+        if(configReadProblem is not null)page.Children.Add(Text(T("Не вдалося прочитати налаштування. Імпортуй справний конфіг у Налаштуваннях.","Settings could not be read. Import a valid configuration in Settings."),13,Warning));
+        page.Children.Add(Button(T("Імпортувати налаштування","Import settings"),ImportConfiguration));
         page.Children.Add(Button(T("Standard — Size 3","Standard — Size 3"),()=>SelectReleaseProfile(false)));
         page.Children.Add(Button(T("Експериментально","Experimental"),()=>ShowPage("experimental")));
         page.Children.Add(Card(T("Основні налаштування", "General settings"), out var basic));
         AddCombo(basic, "profile", T("Профіль якості", "Quality profile"), new[] { "Anime / Line Art", "Photo", "Fast", "Pixel Art", "Custom" });
         var applyProfile = Button(T("Застосувати профіль", "Apply profile"), ApplyProfile);
         applyProfile.HorizontalAlignment = HorizontalAlignment.Left; basic.Children.Add(applyProfile);
-        basic.Children.Add(Text(T("Профіль застосовується кнопкою: змінює деталізацію, розмиття, очищення та інші параметри обробки. Пресети на сторінці «Малювання» змінюють деталізацію та профіль руху. Ручні зміни мають пріоритет до наступного застосування профілю.", "Apply profile changes detail, blur, cleanup and other image processing settings. Painting presets change detail and movement profile. Manual edits remain in effect until you apply a profile again."), 11, Muted));
+        basic.Children.Add(Text(T("Профіль якості змінює обробку зображення після натискання кнопки. Деталізація та швидкість руху налаштовуються окремо.", "Apply profile changes image processing. Detail and movement speed are set separately."), 11, Muted));
         basic.Children.Add(Text(T("Режим кольорів, ліміт кольорів, деталізація та режим вводу — на сторінці «Малювання».", "Color mode, color limit, detail, and Speed Engine are on the Painting page."), 11, Muted));
         var compatibility=new StackPanel();
         page.Children.Add(new Expander{Header=T("Сумісність з Rust","Rust compatibility"),Tag="rust-compatibility",Content=compatibility});
         compatibility.Children.Add(Card(T("Підтвердження значень","Value confirmation"),out var reliability));
         if(ReleaseProfile.Standard(settings))
-            reliability.Children.Add(Text(T("Standard використовує круглий Size 3, Interval 0.01 та Opacity 1. Значення застосовуються автоматично й перевіряються за смугами; вимірювання відбитка та прискорення доступні в «Експериментально».",
-                "Standard uses round Size 3, Interval 0.01 and Opacity 1. Values are applied automatically and verified against the sliders; imprint measurement and acceleration are available under Experimental."),12,Muted));
+            reliability.Children.Add(Text(T("Standard використовує круглий Size 3. Перед підготовкою встанови в Rust Interval 0.01 і Opacity 1.00. Pixora змінює та перевіряє лише Size. Додаткові вимірювання й прискорення — в «Експериментально».",
+                "Standard uses round Size 3. Before preparation, set Interval to 0.01 and Opacity to 1.00 in Rust. Pixora only applies and verifies Size. Additional measurements and acceleration are under Experimental."),12,Muted));
         else
         {
         reliability.Children.Add(Text(T("Якщо Rust не повертає числа, використай візуальну перевірку. Тут також можна змінити час очікування відповіді.","If Rust does not return numeric values, use visual verification. You can also adjust response waits here."),12,Muted));
@@ -39,8 +41,8 @@ internal sealed partial class MainWindow
         reliability.Children.Add(presets.Panel);
         AddCombo(reliability,"control_confirmation",T("Спосіб підтвердження","Confirmation method"),new[]{"Clipboard","Visual"});
         reliability.Children.Add(Text(CalibrationReliability.Visual(settings)
-            ?T("Числа не зчитуються з Rust. Смуги перевіряються на двох знімках; для малювання потрібен підтверджений відбиток пензля. Відбиток сам по собі не доводить точне число Interval або Opacity.",
-                "Numbers are not copied from Rust. Slider positions are checked in two captures; painting requires a verified brush imprint. An imprint alone does not prove an exact Interval or Opacity number.")
+            ?T("Size перевіряється на двох знімках. Для експериментального малювання потрібен підтверджений відбиток пензля.",
+                "Size is checked in two captures. Experimental painting requires a verified brush imprint.")
             :T("Значення підтверджуються копіюванням числа та знімком смуги.","Values are confirmed by copying the number and capturing the slider."),12,
             CalibrationReliability.Visual(settings)?Warning:Muted));
         }
@@ -49,21 +51,14 @@ internal sealed partial class MainWindow
             reliability.Children.Add(PaletteSwatchLabel());
             reliability.Children.Add(Button(T("Захопити активний колір вручну","Capture active color manually"),()=>ShowPage("capture")));
         }
-        var budgets=new StackPanel();reliability.Children.Add(new Expander{Header=T("Таймінги перевірки","Verification timing"),Content=budgets});
-        foreach(var (key,uk,en) in new[]{("readback_polls","Опитування копіювання (24–120)","Copy polls (24–120)"),
-            ("readback_attempts","Спроби копіювання (1–5)","Copy attempts (1–5)"),
-            ("readback_retry_pause_ms","Пауза наступної спроби, мс","Next-attempt pause, ms"),
-            ("capture_stable_attempts","Спроби стабільного кадру (5–20)","Stable-frame attempts (5–20)"),
-            ("capture_stable_interval_ms","Інтервал кадрів, мс (40–1000)","Capture interval, ms (40–1000)")})
-            AddNumber(budgets,key,T(uk,en));
+        page.Children.Add(Card(T("Якість зображення", "Image quality"),out var image));
+        AddCombo(image,"fit_mode",T("Розміщення", "Image placement"),new[]{"fit square","fit whole","crop","smart"},true);
+        AddCheck(image,"fill_subject",T("Заповнити полотно об’єктом", "Fill Canvas with the subject"),true);
         var advanced = new StackPanel();
         if(!ReleaseProfile.Standard(settings))page.Children.Add(new Expander { Header = T("Додаткові налаштування малювання", "Advanced painting settings"), Content = advanced });
         advanced.Children.Add(Card(T("Якість зображення", "Image quality"), out var quality));
-        AddCombo(quality, "fit_mode", T("Розміщення", "Image placement"), new[] { "fit square", "fit whole", "crop", "smart" }, true);
         foreach (var(key, title, english)in new[]
         {
-            ("remove_bg", "Прибрати фон", "Remove background"),
-            ("fill_subject", "Заповнити полотно об’єктом", "Fill Canvas with the subject"),
             ("edge_preserve", "Зберігати контури", "Preserve edges / Line Art"),
             ("skin_assist", "Покращувати відтінки шкіри", "Improve skin tones"),
             ("dither", "Дизеринг градієнтів", "Gradient dithering"),
@@ -122,7 +117,7 @@ internal sealed partial class MainWindow
 
         )
             AddNumber(controls, key, T(title, english));
-        controls.Children.Add(Text(T("Розмір, інтервал і прозорість перевіряються після кожної зміни та після паузи.", "Size / Interval / Opacity are verified after every change and after a pause."), 11, Muted));
+        controls.Children.Add(Text(T("Size перевіряється після зміни та після паузи.", "Size is verified after changes and pauses."), 11, Muted));
         advanced.Children.Add(Card(T("Прямий HEX", "HEX Direct"), out var hex));
         AddCheck(hex, "hex_verify", T("Перевіряти вибраний колір", "Verify selected color"));
         foreach (var(key, title, english)in new[]
@@ -164,7 +159,7 @@ internal sealed partial class MainWindow
         settings.Set("dither", false);
         settings.Set("max_colors", name is "Fast" or "Pixel Art" ? "64" : "96");
         settings.Set("fit_mode", "smart");
-        settings.Set("remove_bg", false);
+        settings.Data.Remove("remove_bg");
         settings.Set("fill_subject", false);
         settings.Set("background_mode", "preserve");
         Dirty();

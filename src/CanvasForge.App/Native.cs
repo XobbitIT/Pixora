@@ -73,7 +73,7 @@ internal static partial class Native
     internal static extern int GetSystemMetrics(int index);
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int key);
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll",SetLastError=true)]
     private static extern bool GetCursorPos(out Point point);
     [DllImport("user32.dll")]
     internal static extern bool SetCursorPos(int x, int y);
@@ -137,8 +137,9 @@ internal static partial class Native
 
     public static ScreenPoint Cursor()
     {
-        GetCursorPos(out var p);
-        return new(p.X, p.Y);
+        bool success=GetCursorPos(out var p);
+        int error=success?0:Marshal.GetLastWin32Error();
+        return CursorPosition.Require(success,new(p.X,p.Y),error,Release);
     }
 
     public static bool Down(int key) => (GetAsyncKeyState(key) & 0x8000) != 0;
@@ -237,10 +238,17 @@ internal static partial class Native
         return checked((int)dpi);
     }
 
+    internal static bool OfflineTestHost {get;set;}
     private static void Send(params Input[] inputs)
     {
-        if (SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>()) != inputs.Length)
-            throw new Win32Exception(Marshal.GetLastWin32Error(), "Windows rejected SendInput. Check privilege levels.");
+        if(OfflineTestHost)throw new InvalidOperationException("Native input is prohibited in the offline test host.");
+        var metrics=NativeSendMetrics.Current;long started=metrics?.Begin(inputs.Length)??0;uint delivered=0;
+        try
+        {
+            delivered=SendInput((uint)inputs.Length,inputs,Marshal.SizeOf<Input>());
+            if(delivered!=inputs.Length)throw new Win32Exception(Marshal.GetLastWin32Error(),"Windows rejected SendInput. Check privilege levels.");
+        }
+        finally{metrics?.End(started,inputs.Length,delivered);}
     }
 
     public static bool BeginHighResolutionTimer() => timeBeginPeriod(1) == 0;
@@ -358,11 +366,7 @@ internal static partial class Native
             };
             if (GetDIBits(dc, bmp, 0, (uint)r.Height, buffer, ref info, 0) == 0)
                 throw new Win32Exception();
-            for (var i = 0; i < buffer.Length; i += 4)
-            {
-                (buffer[i], buffer[i + 2]) = (buffer[i + 2], buffer[i]);
-                buffer[i + 3] = 255;
-            }
+            NativePixelBuffer.BgraToOpaqueRgba(buffer);
 
             return new(r.Width, r.Height, buffer);
         }

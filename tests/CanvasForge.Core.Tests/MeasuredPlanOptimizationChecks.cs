@@ -29,7 +29,20 @@ internal static class MeasuredPlanOptimizationChecks
                 Counts=Enumerable.Range(0,2).ToDictionary(c=>c,c=>indices.Count(i=>i==c)),Indices=indices,Strokes=strokes,
                 Identity="beta50-golden-"+name,Mode=ColorMode.RustPalette,Preview=new(w,h)};
             var p=MeasuredColorPlan.BuildGeometry(plan,s)!;var schedule=TransferSchedule.Build(plan,s,p.Groups);
-            string Hash<T>(T data)=>Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(data)));
+            // The certification revision intentionally invalidates profile IDs.
+            // Canonicalize only those IDs to their frozen v3 identities; all
+            // command coordinates, masks, gaps, ordering and counts stay frozen.
+            var legacyIds=BrushFootprints.Read(s).ToDictionary(p=>p.Id,p=>{
+                var c=BrushFootprints.ForShape(s,p.ShapeSlot).PaintCalibration();
+                string context=$"command-masks-local-saturation-v3:{s.Mode}:{p.ShapeSlot}:{s.Calibration.Rect("canvas")}:{c.SessionClient}:{c.SessionSize}:{c.SessionDpi}:{c.Rect("size_track")}:{c.Rect("brush_shapes")}";
+                var old=p with{Id="",Context=Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(context)))};
+                return Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(old)));
+            });
+            string Hash<T>(T data)
+            {
+                string json=JsonSerializer.Serialize(data);foreach(var pair in legacyIds)json=json.Replace(pair.Key,pair.Value,StringComparison.Ordinal);
+                return Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(json)));
+            }
             result.Add(new(name+(mixed?"-mixed":"-size3"),p.TargetPixels,p.CoveredPixels,p.Groups.Values.Sum(g=>g.Count),
                 Hash(p.Groups.OrderBy(g=>g.Key).Select(g=>new{Color=g.Key,Strokes=g.Value})),Hash(p.UnplannedMask),
                 Hash(schedule.OrderBy(g=>g.Key).Select(g=>new{Color=g.Key,Batches=g.Value}))));

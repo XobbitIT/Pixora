@@ -1,0 +1,76 @@
+{
+  "revision": "plane-position8-long2-control2-descriptive16-phase020-v1",
+  "cases": 13,
+  "releasedStrokes": 28,
+  "mandatoryLineBodySections": 3466,
+  "requiredLinkedPairs": 28,
+  "purpose": "Research composition, not physical quality certification or ordinary START",
+  "context": "exact captured rect465,148..1510,1192; client2560x1440 physical; origin0; DPI96; Shape3 Size3; Rust Palette black; Rapid Pitch1 Batch1, frame/end/release.02",
+  "dense": "H: every integerX at row centre. V: solve column inverse at every integerY. Long paths847points, mandatoryY284..1050 inclusive767. No skipped row or clamping.",
+  "bodies": {
+    "H1": [
+      801,
+      851
+    ],
+    "H2": [
+      1017,
+      1067
+    ],
+    "H3": [
+      772,
+      822
+    ],
+    "H4": [
+      1058,
+      1107
+    ],
+    "V1": [
+      260,
+      308
+    ],
+    "V2": [
+      421,
+      469
+    ],
+    "V3": [
+      661,
+      709
+    ],
+    "V4": [
+      820,
+      867
+    ],
+    "LongLeft": [
+      284,
+      1050
+    ],
+    "LongLeftControl": [
+      284,
+      1050
+    ],
+    "LongRight": [
+      284,
+      1050
+    ],
+    "LongRightControl": [
+      284,
+      1050
+    ]
+  },
+  "completeness": "All28 linked before/after/trace captures including block required. Missing/invalid mandatory line body section blocks all numerical decisions. Missing caps remain separate; never redefine body.",
+  "position": "8short probes: report both edge grid mean and nearest-rank P95 absolute residual, width/range. No index/width acceptance without physicalU.",
+  "mechanism": {
+    "consistent": "Both long centered lines have0D on BOTH edges, AND each of4control edges passes nonvacuous phase020 matching with precision>=.8 AND recall>=.8",
+    "contradicted": "Any D event on either edge of either centered long line, after full-data completeness",
+    "inconclusive": "Complete centered0D but controlgate failed",
+    "incomplete": "Any mandatory evidence failure before detection/matching"
+  },
+  "detector": "D unchanged: adjacent abs>=.3px; merge consecutive same sign; abs accumulated>=1.2px. Event row=StartY.",
+  "controls": "Absolute unwrapped u(controlX,StartY) minus exact predicted integer threshold; abs<=.20 inclusive and same sign. Monotone one-to-one max-cardinality/min-error matching. All observed and predicted events retained in per-edge denominators. No old15row rule.",
+  "block": "16independently released H, descriptive RGB12/darkening80 counts and four-side sections/events only; no16x16coverage,Solid or2Dstamp inference.",
+  "baseline": "Current explicit CaptureFresh is only fullCanvasRGB12 reference; archived frame only fixed view geometry;16ROI/.985/delta0 plus tool/cursor guards unchanged.",
+  "failure": "No automatic retry/resume/clear/Undo; retain all attempted/partial data. Subsequent Run only reviews. All held input released on failure.",
+  "noNativeInputByPreparation": true,
+  "physicalQualityCertified": false,
+  "productionEligible": false
+}

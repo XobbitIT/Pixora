@@ -23,7 +23,7 @@ public static class BuildInfo
         var plus = info.IndexOf('+');
         Version = plus >= 0 ? info[..plus] : info;
         var commit = plus >= 0 ? info[(plus + 1)..] : "";
-        GitCommit = commit.Length > 7 ? commit[..7] : commit;
+        GitCommit = commit.StartsWith("local-",StringComparison.Ordinal)?commit:commit.Length > 7 ? commit[..7] : commit;
 
         var date = "";
         try

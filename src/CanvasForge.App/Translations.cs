@@ -167,7 +167,7 @@ internal static class Translations
             ("background_mode", "auto") => ("Автоматично", "Automatic"),
             ("coverage_mode", "Precision") => ("Точний", "Precision"),
             ("coverage_mode", "Fast") => ("Швидкий", "Fast"),
-            ("max_colors" or "hex_max_colors", "Auto") => ("Автоматично", "Automatic"),
+            ("max_colors" or "hex_max_colors" or "quick_palette_rows", "Auto") => ("Автоматично", "Automatic"),
             ("stroke_method", "Paced") => ("Рух із затримками", "Paced movement"),
             ("stroke_method", "Shift") => ("Лінія з Shift", "Shift line"),
             ("palette_source", "main" or "palette") => ("Основна палітра", "Main palette"),

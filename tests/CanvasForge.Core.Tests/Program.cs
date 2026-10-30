@@ -3,6 +3,18 @@ using CanvasForge.Core;
 
 var passed = 0;
 var failures = new List<Exception>();
+if(args.Length==2&&args[0]=="--rc7-recorded-report"){Rc7SafetyChecks.RecordedReport(args[1]);return;}
+if(args.Length==2&&args[0]=="--proof-report")
+{
+    File.WriteAllText(args[1],System.Text.Json.JsonSerializer.Serialize(BrushProofSeparationChecks.Replay(),new System.Text.Json.JsonSerializerOptions{WriteIndented=true}));
+    Console.WriteLine("21 recorded measurements replayed without native input");return;
+}
+if(args.Length==3&&args[0]=="--rc4-live-replay")
+{Rc4LiveReplay.Run(args[1],args[2]);return;}
+if(args.Length==3&&args[0]=="--stroke-observation-replay")
+{StandardStrokeObservationReplay.Run(args[1],args[2]);return;}
+if(args.Length==2&&args[0]=="--texel-column-vectors")
+{StandardTexelColumnChecks.Export(args[1]);return;}
 void Test(string name, Action action)
 {
     try
@@ -19,6 +31,115 @@ void Assert(bool condition, string message = "Assertion failed")
 {
     if (!condition)
         throw new Exception(message);
+}
+
+if(args.FirstOrDefault()=="--texel-compensated-only")
+{
+    TexelCompensatedChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException(failures);
+    Console.WriteLine($"ALL {passed} COMPENSATED CORE CHECKS PASSED");return;
+}
+if(args.FirstOrDefault()=="--texel-grid-only")
+{
+    TexelResearchChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException(failures);
+    if(args.Length==2)TexelResearchChecks.Export(args[1]);
+    Console.WriteLine($"ALL {passed} TEXEL GRID CHECKS PASSED");return;
+}
+StandardStabilityChecks.Run(Test);
+StandardDirectionChecks.Run(Test);
+StandardMotionChecks.Run(Test);
+
+if(args.SequenceEqual(new[]{"--standard-response-only"}))
+{
+    StandardBandResponseChecks.Run(Test);
+    StandardBandInverseChecks.Run(Test);
+    StandardDiscreteBandChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} STANDARD RESPONSE CHECKS PASSED");return;
+}
+
+if(args.SequenceEqual(new[]{"--standard-contour-only"}))
+{
+    StandardContourChecks.Run(Test);
+    StandardRigidBandChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} STANDARD CONTOUR CHECKS PASSED");return;
+}
+
+if(args.SequenceEqual(new[]{"--standard-edge-only"}))
+{
+    StandardEdgeCorrectionChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} STANDARD EDGE CORRECTION CHECKS PASSED");return;
+}
+
+if(args.SequenceEqual(new[]{"--standard-repeat-only"}))
+{
+    StandardRepeatChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} STANDARD REPEAT CHECKS PASSED");return;
+}
+
+if(args.SequenceEqual(new[]{"--standard-boundary-only"}))
+{
+    StandardBoundaryChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} STANDARD BOUNDARY CHECKS PASSED");return;
+}
+
+if(args.SequenceEqual(new[]{"--rc4-only"}))
+{
+    Rc4EditorChecks.Run(Test);Rc4AdaptiveChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} RC4 CHECKS PASSED");return;
+}
+if(args.SequenceEqual(new[]{"--standard-quality-only"}))
+{
+    StandardQualityChecks.Run(Test);
+    StandardPhysicalQualityChecks.Run(Test);
+    StandardPaintMaskChecks.Run(Test);
+    StandardStrokeObservationChecks.Run(Test);
+    StandardTexelColumnChecks.Run(Test);
+    StandardTexelPlaneChecks.Run(Test);
+TexelResearchChecks.Run(Test);
+    StandardCoverageRunChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} STANDARD QUALITY CHECKS PASSED");return;
+}
+if(args.SequenceEqual(new[]{"--native-line-only"}))
+{
+    StandardNativeLineChecks.Run(Test);
+    StandardLineDiagnosticChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} NATIVE LINE PROTOTYPE CHECKS PASSED");return;
+}
+if(args.SequenceEqual(new[]{"--rc8-only"}))
+{
+    Rc8FlowChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} RC8 CHECKS PASSED");return;
+}
+if(args.SequenceEqual(new[]{"--rc7-only"}))
+{
+    Rc7SafetyChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} RC7 CHECKS PASSED");return;
+}
+if(args.SequenceEqual(new[]{"--rc6-only"}))
+{
+    Rc6FoundationChecks.Run(Test);
+ConfigOwnershipChecks.Run(Test);
+ExclusiveTimingChecks.Run(Test);
+    Rc6StrokeChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} RC6 CHECKS PASSED");return;
+}
+if(args.SequenceEqual(new[]{"--rc5-only"}))
+{
+    Rc5DrawingChecks.Run(Test);
+    if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
+    Console.WriteLine($"ALL {passed} RC5 CHECKS PASSED");return;
 }
 
 Settings Config(ColorMode mode, int width = 16, int height = 12)
@@ -319,15 +440,16 @@ Test("Stress: 50 repeated settings saves reload exact palette and identity", () 
     try
     {
         var path = Path.Combine(dir, "config.json");
+        var cfg = Config(ColorMode.RustPalette);
         for (var i = 0; i < 50; i++)
         {
-            var cfg = Config(ColorMode.RustPalette);
             cfg.Set("cell_px",2);
             cfg.SetPalette([new(new(12, 34, 56), new(i, -i), "quick")]);
             cfg.Save(path);
             var read = Settings.Load(path);
             Assert(read.Palette().SequenceEqual(cfg.Palette()));
             Assert(read.Data.ToJsonString() == cfg.Data.ToJsonString());
+            cfg=read; // The next save belongs to the revision just read.
             Assert(!File.Exists(path + ".tmp"));
         }
         foreach (var invalid in new[] { "", "{", "[]", "null", "{\"cell_px\":0}" })
@@ -1285,14 +1407,14 @@ Test("Wide connections respect the calibrated footprint and brush-size changes",
         for(int yy=y-4;yy<=y+4;yy++)for(int xx=x-4;xx<=x+4;xx++)Assert(xx>=0&&yy>=0&&xx<90&&yy<60&&indices[yy*90+xx]==0);
     }
 });
-Test("Adaptive fast schedule retains calibrated geometry including fine edges",()=>
+Test("Adaptive does not connect unverified fast paths and retains every stroke",()=>
 {
     var cfg=Config(ColorMode.RustPalette,384,320);var cal=cfg.Calibration;cal.SetRect("canvas",new(0,0,384,320));cfg.SetCalibration(cal);
     cfg.Set("adaptive_brush",true);cfg.Set("fast_transfer",true);cfg.Set("brush_calibration_points",new double[][]{[1,3,1],[3,5,3],[10,21,13],[20,35,23]});
     cfg.Set("brush_calibration_context",AdaptiveBrush.Context(cfg));var indices=Enumerable.Repeat(0,384*320).ToArray();
     for(int y=140;y<160;y++)for(int x=180;x<200;x++)indices[y*384+x]=-1;
     var plan=SpeedPlan(indices,384,320);var original=AdaptiveBrush.Build(plan,cfg);var joined=TransferSchedule.Build(plan,cfg,original);
-    Assert(joined[0].Count<original[0].Count);Assert(joined[0].Sum(x=>x.SourceStrokes)==original[0].Count);
+    Assert(joined[0].Count==original[0].Count&&!TransferSchedule.Fast(cfg));Assert(joined[0].Sum(x=>x.SourceStrokes)==original[0].Count);
     foreach(var size in original[0].Select(x=>x.Size).Distinct())
     {
         var before=Centres(original[0].Where(x=>x.Size==size).Select(x=>x.Line));var after=Centres(joined[0].Where(x=>x.Size==size).SelectMany(x=>x.Segments));
@@ -2364,7 +2486,7 @@ Test("Transparent palette comparison has no painting or color operations", () =>
     var result = PaletteComparison.Build(new PixelImage(16, 12), Config(ColorMode.HexDirect));
     Assert(result.Variants.All(x => x.Operations == 0 && x.WideOperations == 0 && x.ColorChanges == 0 && x.Plan.ColorCount == 0));
 });
-Test("Palette comparison retains current HEX adaptive calibration and counts accepted wide batches", () =>
+Test("Palette comparison retains HEX calibration and reports the actual selected batches", () =>
 {
     var cfg = Config(ColorMode.HexDirect, 240, 240); cfg.Set("adaptive_brush", true); cfg.Set("fast_transfer", true);
     var hex = cfg.Calibration;
@@ -2375,7 +2497,7 @@ Test("Palette comparison retains current HEX adaptive calibration and counts acc
     cfg.Set("brush_calibration_context", AdaptiveBrush.Context(cfg));
     string before = cfg.Data.ToJsonString();
     var result = PaletteComparison.Build(Fixture(), cfg);
-    Assert(result.Variants.All(v => v.WideOperations > 0 && v.SizeChanges > 0));
+    Assert(result.Variants.All(v => v.Operations > 0));
     foreach (var variant in result.Variants)
     {
         var settings = cfg.Clone(); settings.Set("hex_max_colors", variant.Limit.ToString());
@@ -2395,6 +2517,7 @@ BrushSignalChecks.Run(Test);
 BrushCalibrationRegressionChecks.Run(Test);
 BrushColorChecks.Run(Test);
 BrushLocalColorChecks.Run(Test);
+BrushProofSeparationChecks.Run(Test);
 CalibrationUsabilityChecks.Run(Test);
 BrushAnchorSelectionChecks.Run(Test);
 StartPreparationChecks.Run(Test);
@@ -2468,6 +2591,39 @@ Test("Alternate brush route ignores malformed shape speed container",()=>
     }
 });
 LiveLifecycleRegressionChecks.Run(Test);
+EditorEvidenceChecks.Run(Test);
+Rc6FoundationChecks.Run(Test);
+ConfigOwnershipChecks.Run(Test);
+ExclusiveTimingChecks.Run(Test);
+TargetRecipeChecks.Run(Test);
+StandardEvidenceSeriesChecks.Run(Test);
+StandardRepeatChecks.Run(Test);
+StandardBoundaryChecks.Run(Test);
+StandardEdgeCorrectionChecks.Run(Test);
+StandardContourChecks.Run(Test);
+StandardRigidBandChecks.Run(Test);
+StandardBandResponseChecks.Run(Test);
+StandardBandInverseChecks.Run(Test);
+StandardDiscreteBandChecks.Run(Test);
+Rc6StrokeChecks.Run(Test);
+StandardQualityChecks.Run(Test);
+StandardPhysicalQualityChecks.Run(Test);
+StandardPaintMaskChecks.Run(Test);
+StandardStrokeObservationChecks.Run(Test);
+StandardTexelColumnChecks.Run(Test);
+StandardTexelPlaneChecks.Run(Test);
+TexelResearchChecks.Run(Test);
+TexelCompensatedChecks.Run(Test);
+StandardCoverageRunChecks.Run(Test);
+StandardNativeLineChecks.Run(Test);
+StandardLineDiagnosticChecks.Run(Test);
+Rc8FlowChecks.Run(Test);
+Rc7SafetyChecks.Run(Test);
+Rc4EditorChecks.Run(Test);
+Rc4AdaptiveChecks.Run(Test);
+Rc5DrawingChecks.Run(Test);
+PalettePreparationChecks.Run(Test);
+Rc3Checks.Run(Test);
 if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
 

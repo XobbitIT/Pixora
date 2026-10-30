@@ -20,8 +20,8 @@ internal static class DrawingWorkflowChecks
             var s=Captured();s.Set("drawing_mode","Simple");s.Set("manual_brush_controls",true);s.Set("coverage_audit",true);s.Set("adaptive_brush",true);s.Set("input_frame_delay_ms",16);
             string original=s.Data.ToJsonString();var e=DrawingWorkflow.Effective(s);
             Require(s.Data.ToJsonString()==original&&!e.Data.ContainsKey("drawing_mode")&&!e.Data.ContainsKey("manual_brush_controls"));
-            Require(e.Bool("coverage_audit")&&e.Bool("adaptive_brush")&&e.Number("input_frame_delay_ms")==16);
-            DrawingWorkflow.Normalize(s);Require(s.Data.ToJsonString()==e.Data.ToJsonString());
+            Require(e.Bool("coverage_audit")&&e.Bool("adaptive_brush")&&e.Number("input_frame_delay_ms")==20&&!e.Bool("fast_transfer"));
+            DrawingWorkflow.Normalize(s);Require(!s.Data.ContainsKey("drawing_mode")&&!s.Data.ContainsKey("manual_brush_controls")&&s.Number("input_frame_delay_ms")==16);
         });
         test("Legacy manual flag cannot bypass missing HEX controls",()=>{
             var s=Captured(true);s.Data.Remove("hex_controls");s.Set("manual_brush_controls",true);
@@ -32,7 +32,7 @@ internal static class DrawingWorkflowChecks
             Require(!Captured(true).Calibration.HexReady);
         });
         test("Automatic capture requires session tool shapes and every numeric field",()=>{
-            foreach(var key in new[]{"session_client_x","brush_tool_x","brush_shapes","size_value_field","interval_track","opacity_value_field"})
+            foreach(var key in new[]{"session_client_x","brush_tool_x","brush_shapes","size_value_field","size_track"})
             {
                 var s=Captured();var c=s.Calibration;
                 if(key=="brush_tool_x")c.SetPoint("brush_tool",default);

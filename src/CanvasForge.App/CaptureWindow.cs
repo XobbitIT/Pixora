@@ -28,7 +28,7 @@ internal sealed class CaptureWindow : Window
     private readonly Image? live;
     public ScreenRect? Selected { get; private set; }
 
-    public CaptureWindow(PixelImage shot, ScreenRect screen, string title, bool point = false, PixelImage? preview = null, bool english = false, bool sliderCapture = false, string? language = null)
+    public CaptureWindow(PixelImage shot, ScreenRect screen, string title, bool point = false, PixelImage? preview = null, bool english = false, bool sliderCapture = false, string? language = null, bool canvasCapture = false)
     {
         string Localize(string text) => Translations.ForLanguage(text, language ?? (english ? "English" : "Українська"));
         origin = screen;
@@ -76,14 +76,28 @@ internal sealed class CaptureWindow : Window
             Background = new SolidColorBrush(Color.FromArgb(235, 24, 24, 28)),
             Padding = new Thickness(16),
             FontSize = 18,
+            TextWrapping = TextWrapping.Wrap,
+            MaxWidth = Math.Max(160,Width-36),
             IsHitTestVisible = false
         };
+        if(canvasCapture)label.Text=title+"\n"+Localize("Обведи область малювання. Рамку можна включити. Pixora залишить точні межі твого виділення. ESC — скасувати.");
         overlay.Children.Add(label);
         Canvas.SetLeft(label, 18);
         Canvas.SetTop(label, 18);
+        SizeChanged+=(_,_)=>label.MaxWidth=Math.Max(160,ActualWidth-36);
+        Panel.SetZIndex(selection,2);Panel.SetZIndex(valueField,3);Panel.SetZIndex(label,4);
+        bool TryCursor(out ScreenPoint point)
+        {
+            try{point=Native.Cursor();return true;}
+            catch(CursorReadException error)
+            {
+                point=default;Mouse.Capture(null);dragging=false;Selected=null;
+                label.Text=title+"\n"+Localize(error.Message);return false;
+            }
+        }
         MouseLeftButtonDown += (_, _) =>
         {
-            start = Native.Cursor();
+            if(!TryCursor(out start))return;
             if (pointMode)
             {
                 Selected = new(start.X, start.Y, start.X + 1, start.Y + 1);
@@ -101,7 +115,7 @@ internal sealed class CaptureWindow : Window
         {
             if (!dragging)
                 return;
-            var now = Native.Cursor();
+            if(!TryCursor(out var now))return;
             var p1 = PointFromScreen(new Point(Math.Min(start.X, now.X), Math.Min(start.Y, now.Y)));
             var p2 = PointFromScreen(new Point(Math.Max(start.X, now.X), Math.Max(start.Y, now.Y)));
             Canvas.SetLeft(selection, p1.X);
@@ -122,10 +136,16 @@ internal sealed class CaptureWindow : Window
                 return;
             Mouse.Capture(null);
             dragging = false;
-            var end = Native.Cursor();
+            if(!TryCursor(out var end))return;
             var rect = new ScreenRect(Math.Min(start.X, end.X), Math.Min(start.Y, end.Y), Math.Max(start.X, end.X), Math.Max(start.Y, end.Y));
             if (rect.Width > 2 && rect.Height > 2)
             {
+                if(canvasCapture)
+                {
+                    Selected=rect;
+                    DialogResult=true;
+                    return;
+                }
                 if (sliderCapture)
                 {
                     var area = new ScreenRect(rect.Left - origin.Left, rect.Top - origin.Top,
@@ -171,7 +191,7 @@ internal sealed class CaptureWindow : Window
                 Mouse.Capture(null);
                 DialogResult = false;
             }
-            else if (sliderCapture && e.Key == Key.Enter && Selected is not null && !dragging)
+            else if ((sliderCapture||canvasCapture) && e.Key == Key.Enter && Selected is not null && !dragging)
                 DialogResult = true;
         };
         Loaded += (_, _) =>

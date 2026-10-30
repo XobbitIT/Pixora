@@ -1,0 +1,30 @@
+{
+  "schema": "pixora.texel-quality-goal-b.draft.v1",
+  "status": "USER_GOAL_ACCEPTED_MEASUREMENT_POLICY_PENDING",
+  "userGoalAccepted": true,
+  "space": "Rust texture grid, not screen pixel straightness",
+  "unexpectedTexelRowOrColumnTransitions": 0,
+  "bothEdgesRequired": true,
+  "widthMustEqualTargetTexelCount": true,
+  "allMandatorySectionsRequired": true,
+  "missingOrAmbiguous": "INCOMPLETE",
+  "plannerCreditMaximum": "independently confirmed Solid",
+  "possibleEnvelopeMustStayInsideAllowedTargetColour": true,
+  "userRectPreserved": true,
+  "targetIndependentOfSpeedAndRoute": true,
+  "observableAndMeasurementBudgetsFrozen": false,
+  "measurementUncertaintyEstablished": false,
+  "rowAxisQualified": false,
+  "capsJoinsOverlapColourQualified": false,
+  "phaseMargin025UniversallyQualified": false,
+  "productionEligible": false,
+  "physicalQualityCertified": false,
+  "nativeInput": false,
+  "acceptance": {
+    "date": "2026-10-23",
+    "authority": "direct user reply in this chat",
+    "questionItemId": "[\"request_user_input_async\",\"call_a291d356a6704d3f8324b1a45565c9a8\",0]",
+    "quote": "Так, приймаю цю основу",
+    "scope": "quality goal only; not measurement-policy approval or product qualification"
+  }
+}

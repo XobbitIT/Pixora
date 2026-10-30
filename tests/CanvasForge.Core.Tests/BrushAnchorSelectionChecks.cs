@@ -16,7 +16,7 @@ internal static class BrushAnchorSelectionChecks
             for(int i=1;i<=3;i++)
             {
                 var before=Frame(i,"before");var after=Frame(i,"after");var check=Frame(i,"saturation");
-                var signal=batch.RecordLocal(1,i,Frame(i,"background"),before,after,check,new(before.Width/2,before.Height/2),new(0,0,0));
+                var signal=batch.RecordLocal(1,i,Frame(i,"background"),before,after,check,new(before.Width/2,before.Height/2),new(0,0,0),new(new(0,0,0),true,true));
                 Require(signal.LocalColor is {Passed:true}&&signal.Contrast.RequiredDelta==80);
                 if(i==3)Require(signal.Contrast.PeakDelta==81&&signal.LocalColor is {AnchorPixels:1,StableAnchorPixels:1,StablePixels:4});
             }
@@ -29,7 +29,7 @@ internal static class BrushAnchorSelectionChecks
             // stable weak neighbours may not replace this failed strong anchor.
             int index=Enumerable.Range(0,before.Width*before.Height).OrderByDescending(i=>RustSlider.Delta(before.Color(i),after.Color(i))).First();
             var darker=check.Clone();var color=check.Color(index);darker.Set(index,new((byte)(color.R-20),(byte)(color.G-20),(byte)(color.B-20)));
-            Require(BrushLocalColor.Measure(before,after,darker,new(before.Width/2,before.Height/2),1,new(0,0,0)).LocalColor is {Passed:false});
+            Require(BrushLocalColor.Measure(before,after,darker,new(before.Width/2,before.Height/2),1,new(0,0,0),new(new(0,0,0),true,true)).LocalColor is {Passed:false});
             var weak=before.Clone();var b=before.Color(index);weak.Set(index,new((byte)(b.R-79),(byte)(b.G-79),(byte)(b.B-79)));
             try{BrushLocalColor.Measure(before,weak,weak.Clone(),new(before.Width/2,before.Height/2),1,new(0,0,0));throw new Exception("Contrast 79 accepted");}
             catch(BrushContrastException e){Require(e.Metrics.PeakDelta==79&&e.Metrics.RequiredDelta==80);}

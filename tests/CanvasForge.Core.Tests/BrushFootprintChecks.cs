@@ -166,7 +166,7 @@ internal static class BrushFootprintChecks
                 }
             }
             var groups=TransferSchedule.Build(plan,s,ops);var timing=PaintTimingPlan.Build(s,groups,TransferSchedule.Order(plan,groups));
-            Assert(timing.Any(p=>p.RateKey=="brush_shape")==ops.Values.SelectMany(x=>x).Any(p=>p.ShapeSlot!=3)&&timing.Count(p=>p.RateKey=="color")==2);
+            Assert(timing.Any(p=>p.RateKey=="brush_shape")==ops.Values.SelectMany(x=>x).Any(p=>p.ShapeSlot!=3)&&timing.Count(p=>p.Id.StartsWith("color:",StringComparison.Ordinal))==2);
         });
         test("Transfer never joins strokes across different shapes or measurement IDs",()=>
         {

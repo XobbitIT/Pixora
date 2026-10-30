@@ -28,8 +28,8 @@ internal static partial class Program
         Assert(stored.State=="failed"&&stored.Selected.Count==1,"Later failure erased a certified route or hid incomplete run");
         Assert(stored.Stages[0].FailedAt=="slow_reference","Uncertain slow reference mislabeled as spatial calibration failure");
         Assert(stored.Stages[0].Metrics is {Covered:27,Expected:28,Unknown:1,Missing:0,OutsideCore.Offset:4},"Outside edge replaced bounded evidence in saved diagnostics");
-        settings.Save(Path.Combine(directory,"config-csharp.json"));Window? shown=null;
-        var window=new MainWindow(directory,w=>shown=w);Invoke(window,"ShowProbeDiagnostics");
+        settings.Save(Path.Combine(directory,SettingsStore.ConfigName));Window? shown=null;
+        var window=FixtureWindow(directory,w=>shown=w);Invoke(window,"ShowProbeDiagnostics");
         var root=(FrameworkElement)shown!.Content;root.Measure(new(980,820));root.Arrange(new(0,0,980,820));root.UpdateLayout();
         string captions=string.Join("\n",Captions(root));
         Assert(captions.Contains("27/28")&&captions.Contains(english?"Separate core outside model":"Окреме ядро поза моделлю"),"In-model refusal and separate observation unavailable");

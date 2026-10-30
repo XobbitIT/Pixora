@@ -30,10 +30,44 @@ internal sealed partial class MainWindow
         if(p.Total>0)lastPaintProgress=p;
         RenderPaintProgress(p);
         SetStatus(p.Status);
+        RefreshRuntimeReadiness();
+    }
+    private void RefreshRuntimeReadiness()
+    {
+        if(imageLoading)
+        {
+            ready.Text=T("Зображення ще завантажується.","The image is still loading.");ready.Foreground=Muted;
+            badge.Text=T("ВИКОНУЄТЬСЯ","RUNNING");badge.Foreground=Warning;badge.ToolTip=ready.Text;return;
+        }
+        if(preparationResume is not null||setupRunning||inputCheckRunning)
+        {
+            bool setupPaused=preparationResume is not null;
+            ready.Text=setupPaused?T("Підготовку призупинено. Натисни «Продовжити».","Preparation paused. Press Resume."):
+                T("Триває підготовка. Дочекайся завершення перевірок.","Preparation is running. Wait for the checks to finish.");
+            badge.Text=setupPaused?T("ПАУЗА","PAUSED"):T("ВИКОНУЄТЬСЯ","RUNNING");
+            ready.Foreground=setupPaused?Warning:Muted;badge.Foreground=Warning;badge.ToolTip=ready.Text;return;
+        }
+        if(painter is null&&!startPreparing&&(setupCompletion is SetupStageState.Cancelled or SetupStageState.Failed))
+        {
+            ready.Text=T(setupOutcome);ready.Foreground=Warning;
+            badge.Text=T("ПОТРІБНА ПІДГОТОВКА","SETUP REQUIRED");badge.Foreground=Warning;badge.ToolTip=ready.Text;return;
+        }
+        if(startPreparing&&painter is null)
+        {
+            ready.Text=T("Перевіряю редактор перед малюванням…","Checking the editor before painting…");ready.Foreground=Muted;
+            badge.Text=T("ВИКОНУЄТЬСЯ","RUNNING");badge.Foreground=Warning;badge.ToolTip=ready.Text;return;
+        }
+        if(painter is null)return;
+        bool paused=painter.Paused;
+        ready.Text=paused?T("Малювання призупинено. Причина й дія відновлення показані внизу вікна.","Painting is paused. See the reason and recovery action at the bottom of the window."):
+            startPreparing&&paintTask is null?T("Перевіряю редактор перед малюванням…","Checking the editor before painting…"):
+            T("Малювання триває.","Painting is in progress.");
+        badge.Text=paused?T("ПАУЗА","PAUSED"):T("ВИКОНУЄТЬСЯ","RUNNING");
+        ready.Foreground=paused?Warning:Muted;badge.Foreground=paused?Warning:Success;badge.ToolTip=ready.Text;
     }
     private void RenderPaintProgress(PaintProgress p)
     {
-        if(p.Times is {} times)runTimeLabel.Text=T("Кольори","Colors")+": "+Duration(times.Colors)+" · "+T("Штрихи","Strokes")+": "+Duration(times.Motion)+"\n"+T("Службовий час","Service time")+": "+Duration(times.Service)+" · "+T("Пауза","Pause")+": "+Duration(times.Pause);
+        if(p.Times is {} times)runTimeLabel.Text=T("Кольори","Colors")+": "+Duration(times.Colors)+" · "+T("Штрихи","Strokes")+": "+Duration(times.Motion)+"\n"+T("Службовий час","Service time")+": "+Duration(times.Service)+" · "+T("Завершення","Finish")+": "+Duration(times.Finish)+"\n"+T("Пауза","Pause")+": "+Duration(times.Pause);
         if(p.PhysicalCoverage is {} coverage)RenderPhysicalCoverage(coverage,p.CoverageDirectory);
         if(p.Total>0)
         {

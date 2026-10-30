@@ -1,0 +1,45 @@
+{
+  "canvas": [
+    464,
+    149,
+    1510,
+    1193
+  ],
+  "shapes": [
+    2033,
+    289,
+    2515,
+    334
+  ],
+  "size": [
+    2198,
+    359,
+    2448,
+    399
+  ],
+  "palette": [
+    2013,
+    618,
+    2533,
+    1214
+  ],
+  "hexPoint": [
+    2464,
+    1040
+  ],
+  "dpi": 96,
+  "source": "Desktop 2026.10.13 - 00.04.29.02.mp4 (750s palette; 815s palette; 110s HEX); earlier video gameplay negative",
+  "privacy": "Only detector regions retained; all other pixels removed. No live RC3 test.",
+  "hexShapes": [
+    2045,
+    401,
+    2532,
+    478
+  ],
+  "hexSize": [
+    2198,
+    490,
+    2448,
+    530
+  ]
+}

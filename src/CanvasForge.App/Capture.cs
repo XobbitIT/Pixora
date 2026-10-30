@@ -20,7 +20,7 @@ internal sealed partial class MainWindow
         info.Children.Add(captureStatus);
         var manual = new StackPanel();
         page.Children.Add(new Expander { Header = T("Окремі дії та розширена перевірка", "Individual actions and advanced checks"), Content = manual });
-        manual.Children.Add(Card("Числові поля розміру, інтервалу й прозорості", out var controls));
+        manual.Children.Add(Card(T("Розмір пензля", "Brush Size"), out var controls));
         var hexCard=Card(Option("color_mode","HEX Direct"), out var hex);
         if(settings.Mode==ColorMode.HexDirect)manual.Children.Add(hexCard);
         hex.Children.Add(Text(T("Захопи поле з шістьма HEX-цифрами, потім виконай тест. Символ # вводити не потрібно.", "Capture the field with six HEX digits, then run the test. Do not include #."), 12, Muted));
@@ -29,11 +29,12 @@ internal sealed partial class MainWindow
         hex.Children.Add(CheckButton(T("3. Пензель і повзунки HEX", "3. HEX brush and sliders"), CaptureHexControls));
         hex.Children.Add(CheckButton(T("Зразок активного кольору (необов’язково)","Active color swatch (optional)"),
             ()=>Capture("swatch",T("ЗРАЗОК КОЛЬОРУ","COLOR SWATCH"))));
-        hex.Children.Add(Text(T("Відкрий HEX-палітру Rust і захопи форми пензля та кожну зелену смугу разом із числовим полем справа. Робочі межі визначаються автоматично.", "Open the HEX palette in Rust and capture brush shapes and each complete green bar including its numeric field. Interactive boundaries are detected automatically."), 12, Muted));
+        hex.Children.Add(Text(T("Відкрий HEX-палітру Rust і захопи форми пензля та зелену смугу Size разом із числовим полем справа. Робочі межі визначаються автоматично.", "Open the HEX palette in Rust and capture brush shapes and the complete Size bar including its numeric field. Interactive boundaries are detected automatically."), 12, Muted));
         var paletteCard=Card("Палітра і прев’ю", out var pal);
         if(settings.Mode==ColorMode.RustPalette)manual.Children.Add(paletteCard);
         pal.Children.Add(CheckButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", T("ПАЛІТРА 4×16", "PALETTE 4×16"))));
-        pal.Children.Add(CheckButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("ШВИДКІ КОЛЬОРИ — 1×10", "QUICK COLORS — 1×10"))));
+        pal.Children.Add(CheckButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("Швидкі кольори — лише клітинки, без зірки та кнопки +", "Quick colors — cells only, excluding the star and + button"))));
+        AddCombo(pal,"quick_palette_rows",T("Кількість швидких кольорів","Quick color count"),new[]{"Auto"}.Concat(Enumerable.Range(1,16).Select(n=>n.ToString())).ToArray(),true);
         pal.Children.Add(PaletteSwatchLabel());
         pal.Children.Add(CheckButton(T("Захопити активний колір вручну", "Capture active color manually"),
             () => Capture(settings.Mode == ColorMode.HexDirect ? "swatch" : "palette_swatch", T("ЗРАЗОК КОЛЬОРУ", "COLOR SWATCH"))));
@@ -47,9 +48,7 @@ internal sealed partial class MainWindow
         manual.Children.Add(AsyncButton(T("Повна підготовка з додатковими пензлями та швидкістю","Full preparation with additional brushes and speed"),()=>RunSetup(false)));
         foreach (var kind in new[]
         {
-            "size",
-            "interval",
-            "opacity"
+            "size"
         }
 
         )
@@ -57,6 +56,7 @@ internal sealed partial class MainWindow
         controls.Children.Add(Text(T("Числа вводяться напряму. Ручні опорні точки розміру більше не потрібні.", "Values are entered directly. Manual Size anchors are no longer needed."), 11, Muted));
         controls.Children.Add(CheckButton(T("Перевірити керування Rust", "Test Rust controls"), TestControls));
         controls.Children.Add(Button(T("Калібрування пензля", "Brush calibration"), () => ShowPage("adaptive")));
+        BuildStandardLineDiagnosticUi(manual);
     }
 
     private IntPtr captureWindow;
@@ -93,7 +93,7 @@ internal sealed partial class MainWindow
         // Cancellation leaves the existing calibration intact.
         if (!Native.IsRust(captureWindow) || !Native.GetWindowRect(captureWindow, out var bounds)
             || bounds.ToScreen() != captureWindowRect || Native.ClientOrigin(captureWindow) != captureOrigin
-            || Native.DpiOf(captureWindow) != captureDpi)
+            || Native.DpiOf(captureWindow) != captureDpi||Native.ClientSize(captureWindow)!=captureSize)
             throw new InvalidOperationException(T("Вікно Rust змінило розмір або положення. Повтори захоплення."));
         var cal = settings.Calibration;
         if (cal.SessionClient is not null && (cal.SessionDpi != captureDpi
@@ -105,7 +105,7 @@ internal sealed partial class MainWindow
     private ScreenRect? Select(PixelImage shot, ScreenRect screen, string title, bool point = false, bool live = false, bool slider = false)
     {
         SetupToken.ThrowIfCancellationRequested();
-        var selector = new CaptureWindow(shot, screen, T(title), point, live ? plan?.Preview : null, English, slider, InterfaceLanguage);
+        var selector = new CaptureWindow(shot, screen, T(title), point, live ? plan?.Preview : null, English, slider, InterfaceLanguage,canvasCapture:live);
         using var cancellation=SetupToken.Register(()=>selector.Dispatcher.BeginInvoke(()=>{if(selector.IsVisible)selector.Close();}));
         bool accepted=selector.ShowDialog()==true;
         SetupToken.ThrowIfCancellationRequested();
@@ -119,19 +119,30 @@ internal sealed partial class MainWindow
             var(screen, shot) = await CaptureShot();
             var rect = Select(shot, screen, title, false, key == "canvas", key.EndsWith("_track"));
             if (rect is null)
-                return;
+            {if(setupRunning)throw new OperationCanceledException();return;}
+            // Validate the frame candidate before publishing any captured keys.
+            var original=settings;var previousCanvas=capturedCanvas;settings=original.Clone();
+            try
+            {
             PrepareCaptureFrame();
+            var structure=key=="canvas"?CaptureCanvasStructure(rect.Value,shot,screen,settings.PaintCalibration()):null;
             var paintControl = key.EndsWith("_track") && settings.Mode == ColorMode.HexDirect;
             var cal = new Calibration((System.Text.Json.Nodes.JsonObject)(paintControl
                 ? settings.PaintCalibration() : settings.Calibration).Data.DeepClone());
             cal.SetRect(key, rect.Value);
-            PostCapture(cal, key, shot, screen);
+            PostCaptureSettings(cal, key, shot, screen);
             if (paintControl) settings.SetPaintCalibration(cal);
             else settings.SetCalibration(cal);
             if (key is "palette" or "quick")
                 RefreshPalette(shot, screen);
             if (key == "canvas")
+            {
                 capturedCanvas = ImageProcessing.Crop(shot, rect.Value.Left - screen.Left, rect.Value.Top - screen.Top, rect.Value.Right - screen.Left, rect.Value.Bottom - screen.Top);
+                CanvasStructure.Store(settings,structure!);
+            }
+            CaptureEditorReference(shot,screen);
+            }
+            catch{settings=original;capturedCanvas=previousCanvas;throw;}
             Dirty();
         }
         finally
@@ -156,12 +167,19 @@ internal sealed partial class MainWindow
             var cal = settings.Calibration;
             cal.SetPoint(key, new(rect.Value.Left, rect.Value.Top));
             settings.SetCalibration(cal);
+            CaptureEditorReference(shot,screen);
             Dirty();
         }
         finally
         {
             if(!closing){Show();Activate();UpdateReady();}
         }
+    }
+
+    private void PostCaptureSettings(Calibration cal,string key,PixelImage shot,ScreenRect screen)
+    {
+        if(key=="quick")cal.Set("quick_rows",PaletteCapture.QuickRows(shot,screen,cal.Rect(key),settings.Text("quick_palette_rows","Auto")));
+        else PostCapture(cal,key,shot,screen);
     }
 
     private static void PostCapture(Calibration cal, string key, PixelImage shot, ScreenRect screen)
@@ -181,7 +199,7 @@ internal sealed partial class MainWindow
         }
 
         if (key == "quick")
-            cal.Set("quick_rows", 10);
+            cal.Set("quick_rows",PaletteCapture.QuickRows(shot,screen,cal.Rect(key)));
         if (key == "tool_row")
         {
             var points = cal.GridCenters(key, 3, 1);
@@ -226,9 +244,7 @@ internal sealed partial class MainWindow
             var (screen, shot) = await CaptureShot();
             Calibration? cal = null;
             var steps = new[] { ("brush_shapes", T("HEX — 7 форм пензля", "HEX — 7 brush shapes")),
-                ("size_track", "HEX " + Option("control","size")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
-                ("interval_track", "HEX " + Option("control","interval")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")),
-                ("opacity_track", "HEX " + Option("control","opacity")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")) };
+                ("size_track", "HEX " + Option("control","size")+" — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space")) };
             for (var i = 0; i < steps.Length; i++)
             {
                 var (key, title) = steps[i];
@@ -244,10 +260,26 @@ internal sealed partial class MainWindow
             }
             PrepareCaptureFrame();
             settings.Data["hex_controls"] = cal!.Data.DeepClone();
+            CaptureEditorReference(shot,screen);
             Dirty();
             Save();
         }
         finally { if(!closing){Show(); Activate(); UpdateReady();} }
+    }
+
+    private void CaptureEditorReference(PixelImage shot,ScreenRect screen)
+    {
+        if(!SetupSequence.CaptureReady(settings))return;
+        if(CanvasStructure.Reference(settings) is null)
+            throw new InvalidOperationException(T("Повтори захоплення полотна: потрібен структурний еталон з того самого кадру.","Recapture Canvas: its structural reference must come from the same frame."));
+        var reference=EditorEvidence.Capture(settings,shot,screen,captureOrigin,captureDpi,captureSize);
+        var own=EditorEvidence.Read(settings,reference,shot,screen,captureOrigin,captureDpi,captureSize);
+        if(own.State!=EditorEvidenceState.Present)
+        {
+            settings.Data.Remove(EditorEvidence.Key);settings.Data.Remove("editor_references");
+            throw new InvalidOperationException(T("Повтори захоплення областей Rust для перевірки редактора.","Capture Rust regions again to verify the editor."));
+        }
+        EditorEvidence.Store(settings,reference);
     }
 
     private async Task CaptureWizard()
@@ -258,7 +290,8 @@ internal sealed partial class MainWindow
             var steps=SetupSequence.CaptureKeys(settings).Select(key=>(key,title:key switch
             {
                 "canvas"=>T("ПОЛОТНО","CANVAS"),"hex"=>T("HEX — 6 цифр","HEX — 6 digits"),
-                "palette"=>T("ПАЛІТРА 4×16","PALETTE 4×16"),"brush_tool"=>T("Натисни на інструмент пензля","Click the brush tool"),
+                "palette"=>T("ПАЛІТРА 4×16","PALETTE 4×16"),
+                "quick"=>T("Швидкі кольори: лише клітинки, без зірки та +. ESC — пропустити", "Quick colors: cells only, excluding star and +. ESC skips"),
                 "brush_shapes"=>T("7 форм пензля","7 brush shapes"),
                 _=>Option("control",key[..^6])+" — "+T("смуга разом із числом","bar including its number")
             })).ToArray();
@@ -266,23 +299,38 @@ internal sealed partial class MainWindow
             for(int i=0;i<steps.Length;i++)
             {
                 SetupToken.ThrowIfCancellationRequested();var (key,title)=steps[i];
-                var rect=Select(shot,screen,$"{i+1}/{steps.Length} {title}",key=="brush_tool",key=="canvas",key.EndsWith("_track"));
+                var rect=Select(shot,screen,$"{i+1}/{steps.Length} {title}",false,key=="canvas",key.EndsWith("_track"));
+                if(rect is null&&key=="quick"){await Task.Delay(150,SetupToken);continue;}
                 if(rect is null){if(setupRunning)throw new OperationCanceledException();return;}
                 selected.Add((key,rect.Value));
             }
             // Commit the selected mode's regions together; cancellation preserves the old capture.
             var captured=new Calibration(new());
             foreach(var (key,rect) in selected)
-            {if(key=="brush_tool")captured.SetPoint(key,rect.Center);else{captured.SetRect(key,rect);PostCapture(captured,key,shot,screen);}}
+            {captured.SetRect(key,rect);PostCaptureSettings(captured,key,shot,screen);}
+            if(settings.Mode is ColorMode.RustPalette or ColorMode.HexDirect)
+            {
+                var tool=BrushToolLocator.Find(shot,screen,captured.Rect("brush_shapes"));
+                if(tool is null)throw new InvalidOperationException(T("Не вдалося автоматично знайти кнопку пензля. Відкрий панель інструментів без накладок; повтори захоплення або вкажи кнопку в окремих діях.","Could not locate the brush tool automatically. Open the unobstructed tool panel; recapture or specify the button in individual actions."));
+                captured.SetPoint("brush_tool",tool.Brush);captured.SetRect("tool_row",tool.Row);
+            }
+            var structure=CaptureCanvasStructure(captured.Rect("canvas"),shot,screen,captured);
+            var original=settings;var previousCanvas=capturedCanvas;settings=original.Clone();
+            try
+            {
             PrepareCaptureFrame();
             var cal=new Calibration((System.Text.Json.Nodes.JsonObject)settings.Calibration.Data.DeepClone());
             foreach(var entry in captured.Data)cal.Data[entry.Key]=entry.Value?.DeepClone();
-            if(settings.Mode==ColorMode.RustPalette)cal.SetRect("quick",default);
+            if(settings.Mode==ColorMode.RustPalette&&!selected.Any(p=>p.Key=="quick"))cal.SetRect("quick",default);
             settings.SetCalibration(cal);
             if(settings.Mode==ColorMode.HexDirect)settings.Data["hex_controls"]=cal.Data.DeepClone();
             else RefreshPalette(shot,screen);
             var canvas=cal.Rect("canvas");
+            CanvasStructure.Store(settings,structure);
             capturedCanvas=ImageProcessing.Crop(shot,canvas.Left-screen.Left,canvas.Top-screen.Top,canvas.Right-screen.Left,canvas.Bottom-screen.Top);
+            CaptureEditorReference(shot,screen);
+            }
+            catch{settings=original;capturedCanvas=previousCanvas;throw;}
             Dirty();Save();
         }
         finally {if(!closing){Show();Activate();UpdateReady();}}
@@ -292,47 +340,7 @@ internal sealed partial class MainWindow
     private void RefreshPalette(PixelImage shot, ScreenRect screen)
     {
         var cal = settings.Calibration;
-        var entries = new List<PaletteEntry>();
-        foreach (var(key, cols, rows, kind)in new[]
-        {
-            ("palette", 4, 16, "main"),
-            ("quick", 1, cal.Get("quick_rows", 10), "quick")
-        }
-
-        )
-        {
-            var rect = cal.Rect(key);
-            if (!rect.Valid)
-                continue;
-            var centers = cal.GridCenters(key, cols, rows);
-            foreach (var p in centers)
-            {
-                var hw = Math.Max(1, (int)(rect.Width / (double)cols * .21));
-                var hh = Math.Max(1, (int)(rect.Height / (double)rows * .21));
-                var rr = new List<byte>();
-                var gg = new List<byte>();
-                var bb = new List<byte>();
-                for (var y = Math.Max(0, p.Y - screen.Top - hh); y < Math.Min(shot.Height, p.Y - screen.Top + hh + 1); y++)
-                    for (var x = Math.Max(0, p.X - screen.Left - hw); x < Math.Min(shot.Width, p.X - screen.Left + hw + 1); x++)
-                    {
-                        var c = shot.Color(y * shot.Width + x);
-                        rr.Add(c.R);
-                        gg.Add(c.G);
-                        bb.Add(c.B);
-                    }
-
-                if (rr.Count == 0)
-                    continue;
-                rr.Sort();
-                gg.Sort();
-                bb.Sort();
-                var color = new Rgb(rr[rr.Count / 2], gg[gg.Count / 2], bb[bb.Count / 2]);
-                if (!entries.Any(e => Math.Max(Math.Abs(e.Color.R - color.R), Math.Max(Math.Abs(e.Color.G - color.G), Math.Abs(e.Color.B - color.B))) <= 3))
-                    entries.Add(new(color, p, kind));
-            }
-        }
-
-        settings.SetPalette(entries);
+        settings.SetPalette(PaletteCapture.Read(shot,screen,cal));
         settings.Set("palette_target_failed",false);
     }
 
@@ -401,7 +409,7 @@ internal sealed partial class MainWindow
         }
         catch(OperationCanceledException e) when(timeout.IsCancellationRequested&&!SetupToken.IsCancellationRequested)
         {
-            File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="hex_test_timeout",details=new{budgetSeconds=60}})+Environment.NewLine);
+            SessionLog.AppendJson(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="hex_test_timeout",details=new{budgetSeconds=60}})+Environment.NewLine);
             throw new TimeoutException(T("Тест HEX перевищив ліміт 60 секунд. Перевір фокус Rust і повтори тест.","HEX test exceeded its 60-second budget. Check Rust focus and retry."),e);
         }
         finally
@@ -435,7 +443,7 @@ internal sealed partial class MainWindow
             await Task.Run(worker.PrepareControls);
             if(settings.Mode==ColorMode.RustPalette)await Task.Run(worker.VerifyActivePalette);
             settings.Set("controls_validation_failed",false);
-            SetStatus(ReleaseProfile.Standard(settings)?T("Standard: Size 3, Interval 0.01 та Opacity 1 застосовані; смуги підтверджені.","Standard: Size 3, Interval 0.01 and Opacity 1 applied; sliders verified."):CalibrationReliability.Visual(settings)?T("Смуги підтверджені. Далі виміряй відбиток пензля.","Slider positions confirmed. Measure the brush imprint next."):
+            SetStatus(ReleaseProfile.Standard(settings)?T("Керування Rust перевірено.","Rust controls verified."):CalibrationReliability.Visual(settings)?T("Смуги підтверджені. Далі виміряй відбиток пензля.","Slider positions confirmed. Measure the brush imprint next."):
                 T("Керування Rust перевірено.", "Rust controls verified."));
         }
         catch(InvalidOperationException){settings.Set("controls_validation_failed",true);throw;}
@@ -466,7 +474,7 @@ internal sealed partial class MainWindow
         var dpi = cal.SessionDpi;
         var selection=settings.Text("brush_calibration_size","3");
         double[] sizes=sizeOverride??SetupBrushSelection.Sizes(selection,setupRunning&&!setupQuick);
-        if(retryOnly)sizes=BrushSignalDiagnostics.RetrySizes(settings,sizes);
+        if(retryOnly)sizes=BrushMotionEvidence.RetrySizes(settings,sizes);
         if(sizes.Length==0){SetStatus(T("Усі вибрані Size вже підтверджені.","All selected Sizes are already verified."));return;}
         var tiles=setupWorkspace?.Brush(sizes)??BrushFootprints.Tiles(r,sizes); // Reject insufficient space before any input.
         if (!setupRunning && !ShowMessage(T($"Відкрий чисте полотно. Буде {tiles.Count} крапок: по три незалежні вимірювання кожного Size. Кожна придатна крапка отримує контрольне нанесення в ту саму точку для перевірки насичення. Не рухай мишу; ESC — скасувати. Після калібрування очисти полотно. Почати?", $"Open a clean Canvas. {tiles.Count} dots will be drawn: three independent measurements per Size. Each eligible dot gets another application at the same point to check saturation. Do not move the mouse; ESC cancels. Clear Canvas afterwards. Start?"), T("Автоматичне калібрування", "Automatic calibration"), true)) return;
@@ -507,6 +515,7 @@ internal sealed partial class MainWindow
                 var diagnostic=Path.Combine(folder,"brush-calibration","run-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss")+"-"+Guid.NewGuid().ToString("N"));
                 diagnosticPath=diagnostic;
                 Directory.CreateDirectory(diagnostic);
+                DiagnosticRetention.Prune(Path.GetDirectoryName(diagnostic)!,diagnostic);
                 try
                 {
                 foreach(var tile in tiles.OrderBy(t=>t.Size).ThenBy(t=>t.Repeat))
@@ -578,19 +587,21 @@ internal sealed partial class MainWindow
                         signal,motion,saturationMotion,color=color.Hex,
                         initialColorCheck=confirmed.Initial,recaptured=confirmed.Retried};
                     File.WriteAllText(Path.Combine(diagnostic,stem+".json"),System.Text.Json.JsonSerializer.Serialize(detail));
-                    File.AppendAllText(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = detail }) + Environment.NewLine);
+                    SessionLog.AppendJson(LogPath, System.Text.Json.JsonSerializer.Serialize(new { time = DateTimeOffset.UtcNow, action = "brush_measurement", details = detail }) + Environment.NewLine);
                 }
                 }
                 finally {worker.RestoreLastStrokeCursor();}
                 File.WriteAllText(Path.Combine(diagnostic,"profiles.json"),System.Text.Json.JsonSerializer.Serialize(measurements.Profiles));
                 File.WriteAllText(Path.Combine(diagnostic,"result.json"),System.Text.Json.JsonSerializer.Serialize(new{measurements.Profiles,measurements.Rejected,measurements.Diagnostics}));
                 foreach(var rejected in measurements.Rejected)
-                    File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="brush_calibration_rejected",details=rejected})+Environment.NewLine);
+                    SessionLog.AppendJson(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="brush_calibration_rejected",details=rejected})+Environment.NewLine);
                 return measurements;
             });
             lastBrushProfiles=batch.Profiles.ToArray();
             if(batch.Profiles.Count>0)BrushFootprints.Save(settings,batch.Profiles);
             BrushSignalDiagnostics.Save(settings,batch.Diagnostics);
+            if(batch.Profiles.Any(p=>p.Size>3&&p.SolidCore.Valid))
+                await CalibrateMovingBrushes(target,batch.Profiles,tiles,CheckFrame);
             var points=BrushFootprints.Read(settings).OrderBy(p=>p.Size).Select(p=>new double[]{p.Size,p.Reach*2+1,
                 Math.Max(1,SpeedCalibration.Footprint(settings,p.Size).Inner*2+1)}).ToArray();
             if(batch.Profiles.Count>0)
@@ -598,7 +609,7 @@ internal sealed partial class MainWindow
                 settings.Set("brush_calibration_points", points);
                 settings.Set("brush_calibration_context", AdaptiveBrush.Context(settings));
             }
-            settings.Set("adaptive_brush",adaptiveRequested&&batch.Rejected.Count==0&&AdaptiveBrush.CalibrationCurrent(settings));
+            settings.Set("adaptive_brush",adaptiveRequested&&AdaptiveBrush.CalibrationCurrent(settings));
             CalibrationReliability.ConfirmBrushCheck(settings,batch.Profiles);
             adaptiveFailure=string.Join("\n",batch.Rejected.Select(f=>f.Reason=="Background is unstable."
                 ?T($"Size {f.Size}: фон нестабільний; цей Size не збережено.",$"Size {f.Size}: background is unstable; this Size was not saved.")
@@ -613,7 +624,7 @@ internal sealed partial class MainWindow
             var noCore=batch.Profiles.Where(p=>!p.SolidCore.Valid).Select(p=>p.Size).ToArray();
             if(noCore.Length>0)adaptiveFailure+="\n"+T($"Size {string.Join(", ",noCore)}: слід виміряно, але стабільного ядра немає. Не підтверджено насичення першого відбитка або спільне ядро трьох крапок; ці Size не вмикають адаптивне прискорення.",
                 $"Size {string.Join(", ",noCore)}: trace measured, but no stable core. First-stamp saturation or a shared core across three dots was not confirmed; these Sizes do not enable adaptive acceleration.");
-            File.AppendAllText(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="brush_calibration_complete",details=new{
+            SessionLog.AppendJson(LogPath,System.Text.Json.JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="brush_calibration_complete",details=new{
                 version=BuildInfo.Version,shape=settings.Int("brush_shape_slot",3),savedSizes=batch.Profiles.Select(p=>p.Size),rejected=batch.Rejected,signals=batch.Diagnostics,
                 noSolidCoreSizes=noCore,adaptiveReady=AdaptiveBrush.CalibrationCurrent(settings),diagnostics=diagnosticPath}})+Environment.NewLine);
             Dirty();

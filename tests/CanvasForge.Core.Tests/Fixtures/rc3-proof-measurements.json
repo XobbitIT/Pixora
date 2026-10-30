@@ -1,0 +1,1514 @@
+[
+  {
+    "size": 2,
+    "repeat": 1,
+    "prefix": "rc3-proof-size-2-repeat-1",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 2,
+      "StableAnchorPixels": 2,
+      "StablePixels": 6,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": true
+    },
+    "oldSolidPixels": 6
+  },
+  {
+    "size": 2,
+    "repeat": 2,
+    "prefix": "rc3-proof-size-2-repeat-2",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 8,
+        "G": 0,
+        "B": 0,
+        "Hex": "080000",
+        "Key": 524288
+      },
+      "ConfirmedReference": {
+        "R": 8,
+        "G": 0,
+        "B": 0,
+        "Hex": "080000",
+        "Key": 524288
+      },
+      "AnchorPixels": 2,
+      "StableAnchorPixels": 2,
+      "StablePixels": 4,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": true
+    },
+    "oldSolidPixels": 4
+  },
+  {
+    "size": 2,
+    "repeat": 3,
+    "prefix": "rc3-proof-size-2-repeat-3",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 2,
+      "StableAnchorPixels": 2,
+      "StablePixels": 6,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": true
+    },
+    "oldSolidPixels": 6
+  },
+  {
+    "size": 3,
+    "repeat": 1,
+    "prefix": "rc3-proof-size-3-repeat-1",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 4,
+      "StableAnchorPixels": 4,
+      "StablePixels": 9,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": true
+    },
+    "oldSolidPixels": 9
+  },
+  {
+    "size": 3,
+    "repeat": 2,
+    "prefix": "rc3-proof-size-3-repeat-2",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 6,
+        "G": 0,
+        "B": 0,
+        "Hex": "060000",
+        "Key": 393216
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 4,
+      "StableAnchorPixels": 4,
+      "StablePixels": 9,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": true
+    },
+    "oldSolidPixels": 9
+  },
+  {
+    "size": 3,
+    "repeat": 3,
+    "prefix": "rc3-proof-size-3-repeat-3",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 4,
+      "StableAnchorPixels": 4,
+      "StablePixels": 8,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": true
+    },
+    "oldSolidPixels": 8
+  },
+  {
+    "size": 5,
+    "repeat": 1,
+    "prefix": "rc3-proof-size-5-repeat-1",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 9,
+      "StableAnchorPixels": 6,
+      "StablePixels": 15,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 5,
+    "repeat": 2,
+    "prefix": "rc3-proof-size-5-repeat-2",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 7,
+        "G": 0,
+        "B": 0,
+        "Hex": "070000",
+        "Key": 458752
+      },
+      "AnchorPixels": 10,
+      "StableAnchorPixels": 7,
+      "StablePixels": 8,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 5,
+    "repeat": 3,
+    "prefix": "rc3-proof-size-5-repeat-3",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 9,
+      "StableAnchorPixels": 7,
+      "StablePixels": 9,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 7,
+    "repeat": 1,
+    "prefix": "rc3-proof-size-7-repeat-1",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "AnchorPixels": 16,
+      "StableAnchorPixels": 13,
+      "StablePixels": 13,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 7,
+    "repeat": 2,
+    "prefix": "rc3-proof-size-7-repeat-2",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 15,
+        "G": 0,
+        "B": 0,
+        "Hex": "0F0000",
+        "Key": 983040
+      },
+      "AnchorPixels": 17,
+      "StableAnchorPixels": 13,
+      "StablePixels": 2,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": false,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 7,
+    "repeat": 3,
+    "prefix": "rc3-proof-size-7-repeat-3",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "ConfirmedReference": {
+        "R": 11,
+        "G": 0,
+        "B": 0,
+        "Hex": "0B0000",
+        "Key": 720896
+      },
+      "AnchorPixels": 16,
+      "StableAnchorPixels": 14,
+      "StablePixels": 12,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 10,
+    "repeat": 1,
+    "prefix": "rc3-proof-size-10-repeat-1",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 25,
+        "G": 6,
+        "B": 3,
+        "Hex": "190603",
+        "Key": 1639939
+      },
+      "ConfirmedReference": {
+        "R": 35,
+        "G": 24,
+        "B": 23,
+        "Hex": "231817",
+        "Key": 2299927
+      },
+      "AnchorPixels": 31,
+      "StableAnchorPixels": 17,
+      "StablePixels": 0,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": false,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 10,
+    "repeat": 2,
+    "prefix": "rc3-proof-size-10-repeat-2",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 40,
+        "G": 29,
+        "B": 27,
+        "Hex": "281D1B",
+        "Key": 2628891
+      },
+      "ConfirmedReference": {
+        "R": 41,
+        "G": 31,
+        "B": 29,
+        "Hex": "291F1D",
+        "Key": 2694941
+      },
+      "AnchorPixels": 31,
+      "StableAnchorPixels": 28,
+      "StablePixels": 147,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": false,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 10,
+    "repeat": 3,
+    "prefix": "rc3-proof-size-10-repeat-3",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 20,
+        "G": 1,
+        "B": 0,
+        "Hex": "140100",
+        "Key": 1310976
+      },
+      "ConfirmedReference": {
+        "R": 31,
+        "G": 19,
+        "B": 17,
+        "Hex": "1F1311",
+        "Key": 2036497
+      },
+      "AnchorPixels": 30,
+      "StableAnchorPixels": 18,
+      "StablePixels": 1,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": false,
+      "ConfirmedReferenceColorPassed": false,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 15,
+    "repeat": 1,
+    "prefix": "rc3-proof-size-15-repeat-1",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 49,
+        "G": 39,
+        "B": 36,
+        "Hex": "312724",
+        "Key": 3221284
+      },
+      "ConfirmedReference": {
+        "R": 50,
+        "G": 41,
+        "B": 39,
+        "Hex": "322927",
+        "Key": 3287335
+      },
+      "AnchorPixels": 65,
+      "StableAnchorPixels": 57,
+      "StablePixels": 350,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": false,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 15,
+    "repeat": 2,
+    "prefix": "rc3-proof-size-15-repeat-2",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 48,
+        "G": 38,
+        "B": 36,
+        "Hex": "302624",
+        "Key": 3155492
+      },
+      "ConfirmedReference": {
+        "R": 49,
+        "G": 40,
+        "B": 37,
+        "Hex": "312825",
+        "Key": 3221541
+      },
+      "AnchorPixels": 64,
+      "StableAnchorPixels": 61,
+      "StablePixels": 354,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 15,
+    "repeat": 3,
+    "prefix": "rc3-proof-size-15-repeat-3",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 34,
+        "G": 22,
+        "B": 20,
+        "Hex": "221614",
+        "Key": 2233876
+      },
+      "ConfirmedReference": {
+        "R": 38,
+        "G": 30,
+        "B": 29,
+        "Hex": "261E1D",
+        "Key": 2498077
+      },
+      "AnchorPixels": 63,
+      "StableAnchorPixels": 41,
+      "StablePixels": 200,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": false,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 20,
+    "repeat": 1,
+    "prefix": "rc3-proof-size-20-repeat-1",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 58,
+        "G": 48,
+        "B": 46,
+        "Hex": "3A302E",
+        "Key": 3813422
+      },
+      "ConfirmedReference": {
+        "R": 59,
+        "G": 49,
+        "B": 47,
+        "Hex": "3B312F",
+        "Key": 3879215
+      },
+      "AnchorPixels": 112,
+      "StableAnchorPixels": 112,
+      "StablePixels": 415,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": true
+    },
+    "oldSolidPixels": 415
+  },
+  {
+    "size": 20,
+    "repeat": 2,
+    "prefix": "rc3-proof-size-20-repeat-2",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 54,
+        "G": 45,
+        "B": 42,
+        "Hex": "362D2A",
+        "Key": 3550506
+      },
+      "ConfirmedReference": {
+        "R": 54,
+        "G": 45,
+        "B": 43,
+        "Hex": "362D2B",
+        "Key": 3550507
+      },
+      "AnchorPixels": 110,
+      "StableAnchorPixels": 109,
+      "StablePixels": 500,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  },
+  {
+    "size": 20,
+    "repeat": 3,
+    "prefix": "rc3-proof-size-20-repeat-3",
+    "command": {
+      "X": 64,
+      "Y": 64
+    },
+    "requested": {
+      "R": 0,
+      "G": 0,
+      "B": 0,
+      "Hex": "000000",
+      "Key": 0
+    },
+    "source": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Before": true,
+      "After": true,
+      "Passed": true
+    },
+    "oldProof": {
+      "Requested": {
+        "R": 0,
+        "G": 0,
+        "B": 0,
+        "Hex": "000000",
+        "Key": 0
+      },
+      "Reference": {
+        "R": 42,
+        "G": 33,
+        "B": 32,
+        "Hex": "2A2120",
+        "Key": 2760992
+      },
+      "ConfirmedReference": {
+        "R": 42,
+        "G": 33,
+        "B": 32,
+        "Hex": "2A2120",
+        "Key": 2760992
+      },
+      "AnchorPixels": 108,
+      "StableAnchorPixels": 99,
+      "StablePixels": 673,
+      "FirstColorPassed": true,
+      "ConfirmedColorPassed": true,
+      "ReferenceColorPassed": true,
+      "ConfirmedReferenceColorPassed": true,
+      "PaintSource": {
+        "Requested": {
+          "R": 0,
+          "G": 0,
+          "B": 0,
+          "Hex": "000000",
+          "Key": 0
+        },
+        "Before": true,
+        "After": true,
+        "Passed": true
+      },
+      "Passed": false
+    },
+    "oldSolidPixels": 0
+  }
+]

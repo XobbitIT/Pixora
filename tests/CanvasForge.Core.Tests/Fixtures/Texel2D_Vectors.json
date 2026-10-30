@@ -1,0 +1,211 @@
+{
+  "source": "Fixed0039 columns + fixed0054 rows, no fitting; all consumed observations training-only",
+  "totalAddresses": 141351,
+  "minimumPredictedColumnMargin": 0.25375174614733,
+  "minimumPredictedRowMargin": 0.2503458264372398,
+  "samples": [
+    {
+      "column": 80,
+      "row": 120,
+      "x": 631,
+      "y": 244,
+      "columnMargin": 0.37112178857032063,
+      "rowMargin": 0.37400181708478897
+    },
+    {
+      "column": 160,
+      "row": 120,
+      "x": 795,
+      "y": 244,
+      "columnMargin": 0.3681739790956726,
+      "rowMargin": 0.37400181708478897
+    },
+    {
+      "column": 260,
+      "row": 120,
+      "x": 1001,
+      "y": 244,
+      "columnMargin": 0.47149109322623417,
+      "rowMargin": 0.37400181708478897
+    },
+    {
+      "column": 350,
+      "row": 120,
+      "x": 1186,
+      "y": 244,
+      "columnMargin": 0.4783242544455675,
+      "rowMargin": 0.37400181708478897
+    },
+    {
+      "column": 450,
+      "row": 120,
+      "x": 1392,
+      "y": 244,
+      "columnMargin": 0.36134081787628247,
+      "rowMargin": 0.37400181708478897
+    },
+    {
+      "column": 80,
+      "row": 200,
+      "x": 632,
+      "y": 405,
+      "columnMargin": 0.38274431614595983,
+      "rowMargin": 0.4791728449910977
+    },
+    {
+      "column": 160,
+      "row": 200,
+      "x": 796,
+      "y": 405,
+      "columnMargin": 0.41903854838358257,
+      "rowMargin": 0.4791728449910977
+    },
+    {
+      "column": 260,
+      "row": 200,
+      "x": 1001,
+      "y": 405,
+      "columnMargin": 0.46440633868058967,
+      "rowMargin": 0.4791728449910977
+    },
+    {
+      "column": 350,
+      "row": 200,
+      "x": 1186,
+      "y": 405,
+      "columnMargin": 0.26144556407069786,
+      "rowMargin": 0.4791728449910977
+    },
+    {
+      "column": 450,
+      "row": 200,
+      "x": 1391,
+      "y": 405,
+      "columnMargin": 0.30681335436770496,
+      "rowMargin": 0.4791728449910977
+    },
+    {
+      "column": 80,
+      "row": 300,
+      "x": 633,
+      "y": 605,
+      "columnMargin": 0.484201663066969,
+      "rowMargin": 0.3964162548182344
+    },
+    {
+      "column": 160,
+      "row": 300,
+      "x": 797,
+      "y": 605,
+      "columnMargin": 0.2715570831104799,
+      "rowMargin": 0.3964162548182344
+    },
+    {
+      "column": 260,
+      "row": 300,
+      "x": 1001,
+      "y": 605,
+      "columnMargin": 0.4555496698189927,
+      "rowMargin": 0.3964162548182344
+    },
+    {
+      "column": 350,
+      "row": 300,
+      "x": 1185,
+      "y": 605,
+      "columnMargin": 0.4254253362620375,
+      "rowMargin": 0.3964162548182344
+    },
+    {
+      "column": 450,
+      "row": 300,
+      "x": 1389,
+      "y": 605,
+      "columnMargin": 0.3905820770294781,
+      "rowMargin": 0.3964162548182344
+    },
+    {
+      "column": 80,
+      "row": 400,
+      "x": 634,
+      "y": 804,
+      "columnMargin": 0.35333811453990904,
+      "rowMargin": 0.4693408333751563
+    },
+    {
+      "column": 160,
+      "row": 400,
+      "x": 797,
+      "y": 804,
+      "columnMargin": 0.38766454163308595,
+      "rowMargin": 0.4693408333751563
+    },
+    {
+      "column": 260,
+      "row": 400,
+      "x": 1001,
+      "y": 804,
+      "columnMargin": 0.4466753901030529,
+      "rowMargin": 0.4693408333751563
+    },
+    {
+      "column": 350,
+      "row": 400,
+      "x": 1184,
+      "y": 804,
+      "columnMargin": 0.40781378878062924,
+      "rowMargin": 0.4693408333751563
+    },
+    {
+      "column": 450,
+      "row": 400,
+      "x": 1388,
+      "y": 804,
+      "columnMargin": 0.4265261429556517,
+      "rowMargin": 0.4693408333751563
+    },
+    {
+      "column": 80,
+      "row": 500,
+      "x": 636,
+      "y": 1002,
+      "columnMargin": 0.28257945923054706,
+      "rowMargin": 0.2636154338479173
+    },
+    {
+      "column": 160,
+      "row": 500,
+      "x": 798,
+      "y": 1002,
+      "columnMargin": 0.461053707525366,
+      "rowMargin": 0.2636154338479173
+    },
+    {
+      "column": 260,
+      "row": 500,
+      "x": 1001,
+      "y": 1002,
+      "columnMargin": 0.43778378409240304,
+      "rowMargin": 0.2636154338479173
+    },
+    {
+      "column": 350,
+      "row": 500,
+      "x": 1184,
+      "y": 1002,
+      "columnMargin": 0.26902321272177687,
+      "rowMargin": 0.2636154338479173
+    },
+    {
+      "column": 450,
+      "row": 500,
+      "x": 1386,
+      "y": 1002,
+      "columnMargin": 0.26152124310800673,
+      "rowMargin": 0.2636154338479173
+    }
+  ],
+  "mathematicalAddressRoundtrip": true,
+  "physicalJointValidation": false,
+  "productionEligible": false
+}

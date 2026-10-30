@@ -17,18 +17,27 @@ public sealed record MeasuredPlanDiagnostics(int SafeMapsBuilt,int SafeMapsReuse
     public MeasuredStrokeSavings? StrokeSavings {get;init;}
 }
 public sealed record MeasuredPlanChoice(int SingleStrokes,int MixedStrokes,int SelectedStrokes,
-    double SingleUnionSeconds,double MixedUnionSeconds,double SelectedSeconds,int SingleColors,int MixedColors,int AddedCoveragePixels);
+    double SingleUnionSeconds,double MixedUnionSeconds,double SelectedSeconds,int SingleColors,int MixedColors,int AddedCoveragePixels)
+{
+    public string SelectedCandidate {get;init;}="";
+    public double HorizontalSeconds {get;init;}
+    public double VerticalSeconds {get;init;}
+}
 
 // Command coordinates retain the measured offset. The entire possible mask
 // must stay in one expected color; only the measured solid mask removes work.
 public static class MeasuredColorPlan
 {
-    public const string Revision="measured-color-cost-selection-v3";
+    public const string Revision="moving-verified-mask-cardinal-sweeps-v5";
     public static MeasuredColorResult? TryBuild(PaintPlan plan,Settings source,CancellationToken token=default)
         =>MeasuredPlanSelection.Build(plan,source,token);
     // Geometry primitive retained independently of route optimization. Its
     // possible-mask checks and solid-mask coverage are frozen by regression tests.
     public static MeasuredColorResult? BuildGeometry(PaintPlan plan,Settings source,CancellationToken token=default)
+        =>BuildGeometryCore(plan,source,token,false,false);
+    public static MeasuredColorResult? BuildSweptGeometry(PaintPlan plan,Settings source,bool vertical,CancellationToken token=default)
+        =>BuildGeometryCore(plan,source,token,true,vertical);
+    private static MeasuredColorResult? BuildGeometryCore(PaintPlan plan,Settings source,CancellationToken token,bool swept,bool vertical)
     {
         if(ReleaseProfile.Standard(source))return null;
         var clock=System.Diagnostics.Stopwatch.StartNew();
@@ -42,12 +51,22 @@ public static class MeasuredColorPlan
             &&(mixed?p.Size<=s.Number("adaptive_max_size",20):p.Size==size&&p.ShapeSlot==s.Int("brush_shape_slot",3)))
             .OrderByDescending(p=>p.SolidCore.Width*p.SolidCore.Height).ThenBy(p=>p.ShapeSlot).ThenBy(p=>p.Size).ToArray();
         if(profiles.Length==0)return null;
-        int w=rect.Width,h=rect.Height;var labels=new int[checked(w*h)];Array.Fill(labels,-1);
-        var xb=Coverage.Partition(0,w,plan.Width);var yb=Coverage.Partition(0,h,plan.Height);
-        for(int y=0;y<plan.Height;y++)
+        var originalRect=rect;
+        // Transpose the geometry axes, not the brush. Emitted commands and IDs
+        // are mapped back to the original measured coordinate system below.
+        if(vertical)
         {
-            token.ThrowIfCancellationRequested();for(int x=0;x<plan.Width;x++)for(int py=yb[y];py<yb[y+1];py++)
-                Array.Fill(labels,plan.Indices[y*plan.Width+x],py*w+xb[x],xb[x+1]-xb[x]);
+            rect=new(rect.Top,rect.Left,rect.Bottom,rect.Right);
+            profiles=profiles.Select(p=>p with{Possible=BrushSweep.Transpose(p.Possible),Solid=BrushSweep.Transpose(p.Solid),
+                SafetyBounds=new(p.SafetyBounds.Top,p.SafetyBounds.Left,p.SafetyBounds.Bottom,p.SafetyBounds.Right),
+                SolidCore=new(p.SolidCore.Top,p.SolidCore.Left,p.SolidCore.Bottom,p.SolidCore.Right)}).ToArray();
+        }
+        int w=rect.Width,h=rect.Height;var labels=new int[checked(w*h)];Array.Fill(labels,-1);
+        var xb=Coverage.Partition(0,w,vertical?plan.Height:plan.Width);var yb=Coverage.Partition(0,h,vertical?plan.Width:plan.Height);
+        for(int y=0;y<(vertical?plan.Width:plan.Height);y++)
+        {
+            token.ThrowIfCancellationRequested();for(int x=0;x<(vertical?plan.Height:plan.Width);x++)for(int py=yb[y];py<yb[y+1];py++)
+                Array.Fill(labels,plan.Indices[vertical?x*plan.Width+y:y*plan.Width+x],py*w+xb[x],xb[x+1]-xb[x]);
         }
         var distance=new int[labels.Length];
         for(int y=0;y<h;y++)
@@ -94,20 +113,25 @@ public static class MeasuredColorPlan
         int ColorAt(ulong[] safe,int index,int coreOffset)=>(safe[index>>6]&(1UL<<(index&63)))!=0?labels[index+coreOffset]:-1;
         void Add(BrushFootprint p,int color,ScreenLine local)
         {
-            groups[color].Add(new(new(rect.Left+local.X1,rect.Top+local.Y1,rect.Left+local.X2,rect.Top+local.Y2),p.Size,p.Reach,0,p.ShapeSlot,p.Id));
+            var line=vertical?new ScreenLine(rect.Top+local.Y1,rect.Left+local.X1,rect.Top+local.Y2,rect.Left+local.X2)
+                :new ScreenLine(rect.Left+local.X1,rect.Top+local.Y1,rect.Left+local.X2,rect.Top+local.Y2);
+            groups[color].Add(new(line,p.Size,p.Reach,0,p.ShapeSlot,p.Id));
             foreach(var row in p.Solid)Array.Fill(covered,true,(local.Y1+row.Y)*w+local.X1+row.Left,local.X2-local.X1+row.Right-row.Left);
         }
         var passClock=System.Diagnostics.Stopwatch.StartNew();
-        foreach(var p in profiles.Where(p=>p.SolidCore.Width>=2&&p.SolidCore.Height>=2))
+        IEnumerable<BrushFootprint> wideProfiles=profiles.Where(p=>swept?p.SolidPixels>0:p.SolidCore.Width>=2&&p.SolidCore.Height>=2);
+        if(swept)wideProfiles=wideProfiles.OrderByDescending(p=>BrushSweep.RowPitch(p.Solid)).ThenByDescending(p=>p.SolidPixels);
+        foreach(var p in wideProfiles)
         {
             var safe=SafeMap(p);var core=p.SolidCore;var b=p.SafetyBounds;int coreOffset=core.Top*w+core.Left;
-            for(int y=Math.Max(0,-b.Top);y<=Math.Min(h-1,h-b.Bottom);y+=core.Height)
+            for(int y=Math.Max(0,-b.Top);y<=Math.Min(h-1,h-b.Bottom);y+=swept?BrushSweep.RowPitch(p.Solid):core.Height)
             {
                 token.ThrowIfCancellationRequested();for(int x=Math.Max(0,-b.Left);x<=Math.Min(w-1,w-b.Right);x++)
                 {
-                    int color=ColorAt(safe,y*w+x,coreOffset);if(color<0||covered[(y+core.Top+core.Height/2)*w+x+core.Left+core.Width/2])continue;
+                    int color=ColorAt(safe,y*w+x,coreOffset);if(color<0||!swept&&covered[(y+core.Top+core.Height/2)*w+x+core.Left+core.Width/2])continue;
                     int start=x;while(x+1<w&&ColorAt(safe,y*w+x+1,coreOffset)==color)x++;
                     if(x-start<Math.Max(4,core.Width))continue;
+                    if(swept&&!p.Solid.Any(row=>Enumerable.Range(start+row.Left,x-start+row.Right-row.Left).Any(px=>!covered[(y+row.Y)*w+px])))continue;
                     Add(p,color,new(start,y,x,y));
                     for(int py=y+core.Top;py<y+core.Bottom;py++)Array.Fill(covered,true,py*w+start+core.Left,x-start+core.Width);
                 }
@@ -154,6 +178,11 @@ public static class MeasuredColorPlan
         foreach(var color in groups.Keys.ToArray())groups[color]=groups[color].OrderBy(p=>p.ShapeSlot).ThenByDescending(p=>p.Size).ToList();
         var unplanned=new bool[labels.Length];int targets=0,count=0;
         for(int i=0;i<labels.Length;i++)if(labels[i]>=0){targets++;if(covered[i])count++;else unplanned[i]=true;}
+        if(vertical)
+        {
+            var mapped=new bool[unplanned.Length];for(int y=0;y<h;y++)for(int x=0;x<w;x++)mapped[x*originalRect.Width+y]=unplanned[y*w+x];
+            unplanned=mapped;
+        }
         return new(groups,targets,count,unplanned){Diagnostics=new(mapsBuilt,mapsReused,peakBytes,clock.ElapsedMilliseconds)
             {AllocatedBytes=GC.GetAllocatedBytesForCurrentThread()-allocated,SafeMapMilliseconds=safeMapMs,WidePassMilliseconds=wideMs,ResidualPassMilliseconds=residualMs}};
     }

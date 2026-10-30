@@ -12,8 +12,8 @@ internal static class ProductAccuracyChecks
                 try{s.Validate();}catch(System.IO.InvalidDataException){refused=true;}Require(refused);
             }
         });
-        test("Edge merge is on by default and preserves transparent and thick regions",()=>{
-            Require(Settings.ExperimentalDefaults().Bool("edge_merge")&&Settings.ExperimentalDefaults().Int("edge_merge_thickness")==2);
+        test("Edge merge is off by default and explicit merging preserves transparent and thick regions",()=>{
+            Require(!Settings.ExperimentalDefaults().Bool("edge_merge")&&Settings.ExperimentalDefaults().Int("edge_merge_thickness")==2);
             int[] labels=Enumerable.Repeat(0,30*30).ToArray();for(int y=10;y<20;y++)for(int x=10;x<20;x++)labels[y*30+x]=1;
             labels[2*30+2]=2;labels[0]=-1;var before=(int[])labels.Clone();var r=EdgeRegionMerge.Apply(labels,30,30,2,4);
             Require(r.ChangedPixels==1&&r.MergedRegions==1&&labels[0]==-1);

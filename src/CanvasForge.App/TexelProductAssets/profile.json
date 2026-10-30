@@ -1,0 +1,7270 @@
+{
+  "Revision": "texel-product-calib1-1196-v2-pic9-domain",
+  "SourceProtocolSha256": "da3f09982c257b6518989bb45c6cacf0b568bab08082958e3345c73d1c3337c2",
+  "Context": {
+    "Canvas": {
+      "Left": 465,
+      "Top": 148,
+      "Right": 1510,
+      "Bottom": 1192,
+      "Width": 1045,
+      "Height": 1044,
+      "Valid": true,
+      "Center": {
+        "X": 987,
+        "Y": 670
+      }
+    },
+    "ClientOrigin": {
+      "X": 0,
+      "Y": 0
+    },
+    "ClientSize": {
+      "Width": 2560,
+      "Height": 1440
+    },
+    "Dpi": 96,
+    "ShapeSlot": 3,
+    "Size": 3,
+    "Speed": {
+      "Name": "Max Speed",
+      "Pitch": 3,
+      "BrushSize": 3,
+      "BatchSize": 16,
+      "PointDelay": 0.0001,
+      "StartDelay": 0.0005,
+      "UpDelay": 0.001
+    },
+    "FrameSeconds": 0.02,
+    "EndHoldSeconds": 0.02,
+    "ReleaseSeconds": 0.02,
+    "ColorMode": "Rust Palette",
+    "Emitter": "standard-sendinput-dense-guard-v3",
+    "MappingRevision": "identity-v1",
+    "RequestedHex": "000000",
+    "EnvironmentId": "4757b0ba8645abcaf3260d4033c066e9893450247d2ae97c3366423b30dfc450",
+    "Id": "7ca94df491ef6b4b482d063914c03a936dd3a82c168bbc6211e62a5a2dfd5850",
+    "RequestedColorKey": 0
+  },
+  "Columns": {
+    "EffectiveColumns": 511.05,
+    "LeftIntercept": 465.8570014489101,
+    "LeftSlope": 0.00919832272676294,
+    "RightIntercept": 1518.4496393486306,
+    "RightSlope": -0.009071760769555693,
+    "InputScaleOffset": -0.0028,
+    "InputAnchor": 987.5,
+    "CursorPhase": 0.716,
+    "LowEdgePhase": 0.2663,
+    "HighEdgePhase": -0.1562,
+    "StampColumns": 3
+  },
+  "Rows": {
+    "Scale": 0.47930899999997834,
+    "PoleY": 57612.96453407507,
+    "TopPhase": -0.42756781793926024,
+    "BottomPhase": 0.15037548668027606,
+    "EdgeLabelSpan": 2
+  },
+  "Family": [
+    {
+      "ScaleOffset": -0.00308,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00308,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00308,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00308,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00306,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00304,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00302,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.003,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00298,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4216,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.422,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00296,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4208,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4212,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4216,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.422,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00294,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.42,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4204,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4208,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4212,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4216,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.422,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00292,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4192,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4196,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.42,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4204,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4208,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4212,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4216,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.422,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0029,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4184,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4188,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4192,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4196,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.42,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4204,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4208,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4212,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4216,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.422,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00288,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4176,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.418,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4184,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4188,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4192,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4196,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.42,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4204,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4208,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4212,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4216,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.422,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00286,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4208,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4212,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4216,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.422,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4224,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4228,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4232,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00284,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4236,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4244,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4248,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4252,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4256,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.426,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4264,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00282,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4268,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4272,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4276,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4284,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4288,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4292,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0028,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4296,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.43,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4304,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4308,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4312,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4316,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4324,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4572,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4576,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.458,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4584,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00278,
+      "Anchor": 670,
+      "Phase": 0.4588,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4328,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4332,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4336,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.434,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4344,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4348,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4352,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4572,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4576,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.458,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4584,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4588,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4592,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4596,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.46,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4604,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00276,
+      "Anchor": 670,
+      "Phase": 0.4608,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4356,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4364,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4368,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4372,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4376,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.438,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4384,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4572,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4576,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.458,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4584,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4588,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4592,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4596,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.46,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4604,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4608,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4612,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4616,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.462,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4624,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00274,
+      "Anchor": 670,
+      "Phase": 0.4628,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4388,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4392,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4396,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.44,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4404,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4408,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4412,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4572,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4576,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.458,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4584,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4588,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4592,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4596,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.46,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4604,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4608,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4612,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4616,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.462,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4624,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4628,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4632,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4636,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4644,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00272,
+      "Anchor": 670,
+      "Phase": 0.4648,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4416,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.442,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4424,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4428,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4432,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4436,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4444,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4572,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4576,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.458,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4584,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4588,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4592,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4596,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.46,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4604,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4608,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4612,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4616,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.462,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4624,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4628,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4632,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4636,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4644,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4648,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4652,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.0027,
+      "Anchor": 670,
+      "Phase": 0.4656,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.446,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4464,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4468,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4472,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4476,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4572,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4576,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.458,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4584,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4588,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4592,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4596,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.46,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4604,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4608,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4612,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4616,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.462,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00268,
+      "Anchor": 670,
+      "Phase": 0.4624,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.448,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4484,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4488,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4492,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4496,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.45,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4504,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4572,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4576,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.458,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4584,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4588,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4592,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00266,
+      "Anchor": 670,
+      "Phase": 0.4596,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4508,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4512,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4516,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.452,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4524,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4528,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4532,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4536,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4544,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4548,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4552,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4556,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.456,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4564,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00264,
+      "Anchor": 670,
+      "Phase": 0.4568,
+      "IndexOffset": 0
+    },
+    {
+      "ScaleOffset": -0.00262,
+      "Anchor": 670,
+      "Phase": 0.454,
+      "IndexOffset": 0
+    }
+  ],
+  "RowSourceSha256": "dc3c56810e829ad8409a1075571f51bd99b7c0bbe5ed48a1acd1300786202e77",
+  "FamilySourceSha256": "b8bc7cc5bcea946e42aca22bcaf78eb95d5b7696193a9ae4599da98fe07699c6",
+  "ColumnSourceSha256": "6932e7ea0503ae269ca17fc5d5bc956ff9719cc6784640daf61d78aa0cf749ad",
+  "ColumnDomain": {
+    "Left": 584,
+    "Top": 200,
+    "Right": 1482,
+    "Bottom": 1101
+  },
+  "RowDomain": {
+    "Left": 520,
+    "Top": 220,
+    "Right": 1431,
+    "Bottom": 1101
+  },
+  "VerifiedTargetDomain": {
+    "Left": 75,
+    "Top": 198,
+    "Right": 460,
+    "Bottom": 538
+  },
+  "ViewPngSha256": "366cc7c58148cddec99c5c1cfe7a04305e9b243398a808905541b76e14f131b8",
+  "ViewMetadataSha256": "e74679a30262f8b7556350a7170e386c564d4b45b4fee153605b3fc657a0e4fc"
+}

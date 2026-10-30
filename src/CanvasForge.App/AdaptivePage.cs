@@ -46,8 +46,8 @@ internal sealed partial class MainWindow
         workingCalibrationStatus=Text("",13);calibration.Children.Add(workingCalibrationStatus);
         calibration.Children.Add(Text(T("Size — значення в Rust, а не діаметр у пікселях. Три незалежні крапки визначають слід від координати миші. Контрольне нанесення в ту саму точку перевіряє насичення; ядро береться лише з першого відбитка.", "Size is the Rust control value, not a diameter in pixels. Three independent dots measure the footprint relative to the mouse command. Another application at the same point checks saturation; the core uses only the first imprint."), 12, Muted));
         AddCombo(calibration,"brush_calibration_size",T("Розміри для калібрування","Sizes to calibrate"),SetupBrushSelection.Options);
-        calibration.Children.Add(Text(T("Комбінована перевірка: 2/3/5/7/10/15/20, три відбитки кожного Size. Розміри 30/40/60/100 можна перевіряти окремо.",
-            "Combined calibration: 2/3/5/7/10/15/20, three imprints per Size. Sizes 30/40/60/100 can be tested separately."),12,Muted));
+        calibration.Children.Add(Text(T("Комбінована перевірка: 2/3/5/7/10/15/20, три відбитки кожного розміру.",
+            "Combined calibration: 2/3/5/7/10/15/20, three imprints per Size."),12,Muted));
         adaptiveCalibrate = CheckButton(T("Калібрувати автоматично", "Calibrate automatically"), BeginBrushCalibration, true);
         calibration.Children.Add(adaptiveCalibrate);
         adaptiveRetry=CheckButton(T("Повторити лише невдалі вибрані Size","Retry only failed selected Sizes"),CalibrateFailedBrush);
@@ -64,15 +64,17 @@ internal sealed partial class MainWindow
         var samples = new StackPanel();
         calibration.Children.Add(new Expander { Header = T("Виміряні розміри пензля", "Measured brush sizes"), Content = samples });
         samples.Children.Add(Text(T("Розмір → діаметр крапки / суцільне покриття (px)", "Size → dot diameter / solid coverage (px)"), 11, Muted));
-        foreach(var p in BrushFootprints.Read(settings,true).Where(p=>p.Size>=2))
+        foreach(var p in BrushFootprints.Read(settings,true).Where(p=>BrushFootprints.CalibrationSizes.Contains(p.Size)))
             samples.Children.Add(Text(T($"Форма {p.ShapeSlot}",$"Shape {p.ShapeSlot}")+$" · Size {p.Size} → {p.SafetyBounds.Width} × {p.SafetyBounds.Height} px · "+T("ядро","core")+$" {p.SolidCore.Width} × {p.SolidCore.Height} px · 3/3",12));
         if (settings.Data["brush_calibration_points"] is JsonArray points && points.Count > 0)
-            foreach (var point in points.OfType<JsonArray>().Where(x => x.Count >= 3&&double.TryParse(x[0]?.ToString(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var size)&&size>=2))
+            foreach (var point in points.OfType<JsonArray>().Where(x => x.Count >= 3&&double.TryParse(x[0]?.ToString(),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var size)&&BrushFootprints.CalibrationSizes.Contains(size)))
                 samples.Children.Add(Text($"{point[0]} → {point[1]} / {point[2]} px", 12));
         else samples.Children.Add(Text(T("Вимірювань ще немає.", "No measurements yet."), 12, Muted));
 
         page.Children.Add(Card(T("3. Адаптивне малювання", "3. Adaptive painting"), out var painting));
-        adaptiveBaseCalibrate=CheckButton(T("Перевірити мінімальний Size 2","Measure minimum Size 2"),CalibrateAdaptiveBase);
+        painting.Children.Add(Text(T("Adaptive використовує стабільний Rapid без з’єднаних швидких проходів. Великі пензлі допускаються лише після перевірки руху H/V.",
+            "Adaptive uses stable Rapid without connected fast sweeps. Wide brushes require verified H/V movement."),12,Muted));
+        adaptiveBaseCalibrate=CheckButton(T("Перевірити Size 2 (необов’язково)","Measure Size 2 (optional)"),CalibrateAdaptiveBase);
         adaptiveBaseCalibrate.Tag="adaptive-base-calibration";painting.Children.Add(adaptiveBaseCalibrate);
         painting.Children.Add(Text(T("Комбінує підтверджені розміри: великі для заливки, найменший для деталей. Мінімальний Size — 2; типовий — 3.","Combines verified Sizes: large brushes for fills, the smallest for details. Minimum Size is 2; default is 3."),12,Muted));
         adaptiveStatus=Text("",13);painting.Children.Add(adaptiveStatus);
@@ -97,12 +99,11 @@ internal sealed partial class MainWindow
         AddCombo(painting, "adaptive_max_size", T("Максимальний розмір широкого пензля", "Maximum wide brush Size"), SetupBrushSelection.SizeOptions.Where(size=>size!="1").ToArray(), true);
         AddCheck(painting,"adaptive_auto_shape",T("Автоматично вибирати виміряні форми","Automatically choose measured shapes"));
         painting.Children.Add(Text(T("Повний можливий слід залишається всередині свого кольору. Вузькі ділянки, куди підтверджені пензлі не поміщаються, показуються перед стартом. Текстури без стабільного ядра не використовуються.", "The full possible footprint stays inside its color. Narrow areas that verified brushes cannot fit are shown before START. Textures without a stable core are excluded."), 12, Muted));
-        painting.Children.Add(Text(T("Режим вмикає точне покриття та прозорість 1. Підтверджені тестом швидкості лінії з Shift сумісні з адаптивним пензлем. Після зміни полотна, кольорового режиму або форми повтори калібрування.", "This mode sets Precision and Opacity 1. Shift lines verified by Speed Probe work with adaptive brushes. Recalibrate after changing Canvas, color mode, or brush shape."), 12, Muted));
+        painting.Children.Add(Text(T("Режим використовує точне покриття. Інтервал 0.01 і прозорість 1.00 встанови вручну в Rust; Pixora їх не змінює й не перевіряє. Після зміни полотна, кольорового режиму або форми повтори калібрування.", "This mode uses Precision. Set Interval 0.01 and Opacity 1.00 manually in Rust; Pixora does not change or verify them. Recalibrate after changing Canvas, color mode or brush shape."), 12, Muted));
         painting.Children.Add(Button(T("Перейти до малювання", "Go to painting"), () => ShowPage("paint")));
-        var values=new StackPanel();page.Children.Add(new Expander{Header=T("Точні значення розміру, інтервалу та прозорості","Exact Size / Interval / Opacity values"),Content=values});
+        var values=new StackPanel();page.Children.Add(new Expander{Header=T("Розмір пензля","Brush Size"),Content=values});
         AddCheck(values,"auto_brush_size",T("Автоматичний розмір пензля","Automatic brush size"));
-        AddNumber(values,"brush_size_value",Option("control","size"));AddNumber(values,"interval_value",Option("control","interval"));
-        AddNumber(values,"paint_opacity_value",Option("control","opacity"));AddCheck(values,"use_fixed_opacity",T("Фіксована прозорість","Fixed opacity"));
+        AddNumber(values,"brush_size_value",Option("control","size"));
         values.Children.Add(Text(T("Мінімальний Size — 2, типовий — 3. Adaptive використовує лише підтверджені розміри зі стабільним ядром.","Minimum Size is 2; default is 3. Adaptive uses only verified Sizes with a stable core."),12,Muted));
         page.Children.Add(Button(T("Перейти до тесту швидкості", "Go to Speed Probe"), ShowSpeedSetup));
     }
@@ -158,11 +159,10 @@ internal sealed partial class MainWindow
     {
         var diagnostics=BrushSignalDiagnostics.Read(settings);
         var speed=SpeedCalibration.Read(settings);
-        foreach(double size in (adaptiveBase?new double[]{2}:SelectedCalibrationSizes().Union(diagnostics.Select(r=>r.Size)).Union(BrushFootprints.Read(settings).Select(r=>r.Size)).Where(size=>size>=2)).Order())
+        foreach(double size in (adaptiveBase?new double[]{2}:SelectedCalibrationSizes().Union(diagnostics.Select(r=>r.Size)).Union(BrushFootprints.Read(settings).Select(r=>r.Size)).Where(size=>BrushFootprints.CalibrationSizes.Contains(size))).Order())
         {
             var attempt=diagnostics.FirstOrDefault(r=>r.Size==size);var profile=BrushFootprints.Find(settings,size);
-            var state=attempt?.State??(profile is {SolidCore.Valid:true}?BrushSignalState.Verified:
-                profile is not null?BrushSignalState.NoSolidCore:(BrushSignalState?)null);
+            var state=BrushSignalDiagnostics.State(settings,settings.Int("brush_shape_slot",3),size);
             var row=new Grid{Margin=new(0,5,0,5),Tag=$"brush-state:{size}"};
             row.ColumnDefinitions.Add(new(){Width=new GridLength(78)});row.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
             var label=Text($"Size {size}",12);label.VerticalAlignment=VerticalAlignment.Center;row.Children.Add(label);
@@ -176,15 +176,27 @@ internal sealed partial class MainWindow
             values.Children.Add(chip);
             if(profile is {SolidCore.Valid:true})
             {
-                bool wide=profile.Size>1&&profile.SolidCore.Width>=2&&profile.SolidCore.Height>=2;
                 var coreChip=new StatusChip{Tag=$"brush-wide:{size}"};
                 coreChip.Set(size==2?T("Базовий пензель","Base brush"):
-                    wide?T("Ядро придатне для широкого планування","Core eligible for wide planning"):
-                    T("Ядро надто вузьке для широкого прискорення","Core too narrow for wide acceleration"),size==2||wide?Success:Warning);
-                coreChip.ToolTip=T($"Стабільне ядро: {profile.SolidCore.Width} × {profile.SolidCore.Height} px. Для широкого планування обидва розміри мають бути ≥2 px. Швидкість руху перевіряється окремо.",
-                    $"Stable core: {profile.SolidCore.Width} × {profile.SolidCore.Height} px. Wide planning requires both dimensions ≥2 px. Motion speed is tested separately.");
+                    T($"Підтверджена маска · {profile.SolidPixels} px",$"Certified mask · {profile.SolidPixels} px"),Success);
+                coreChip.ToolTip=T($"Прямокутник ядра: {profile.SolidCore.Width} × {profile.SolidCore.Height} px; суцільна маска: {profile.SolidPixels} px. План використовує всю підтверджену маску без її розширення. Прискорення залежить від зображення; швидкість руху перевіряється окремо.",
+                    $"Core rectangle: {profile.SolidCore.Width} × {profile.SolidCore.Height} px; solid mask: {profile.SolidPixels} px. Planning uses the whole certified mask without expanding it. Speedup depends on the image; motion speed is tested separately.");
                 values.Children.Add(coreChip);
+                if(size>3)
+                {
+                    bool moving=BrushMotionEvidence.Current(settings,profile);
+                    var actual=StrokeProfiles.Read(settings).Where(p=>p.DotId==profile.Id).ToArray();
+                    values.Children.Add(Text(actual.Length>0?T("Підтверджені штрихи: ","Verified strokes: ")+string.Join(" / ",actual.Select(p=>$"{(p.Vertical?"V":"H")} {p.Length} px")):
+                        moving?T("Рух H/V підтверджено","H/V motion verified"):
+                        T("Крапки підтверджені; рух не підтверджено. Цей Size не використовується в Adaptive.","Dots verified; motion unverified. This Size is excluded from Adaptive."),11,moving?Success:Warning));
+                    if(!moving&&BrushMotionEvidence.Diagnostic(settings,profile) is { } proof)
+                        foreach(var axis in proof.Axes.Where(a=>!a.Passed))
+                            values.Children.Add(Text((axis.Vertical?"V: ":"H: ")+MotionFailure(axis.Reason),11,Warning));
+                }
             }
+            if(profile is not null)
+                foreach(var diagnostic in StrokeProfiles.Diagnostics(settings).Where(d=>d.DotId==profile.Id&&d.Reason!="verified"))
+                    values.Children.Add(Text((diagnostic.Vertical?"V: ":"H: ")+MotionFailure(diagnostic.Reason),11,Warning));
             if(attempt is not null)
             {
                 string detail=T($"Контраст {attempt.Samples.Min(s=>s.Contrast.PeakDelta)}–{attempt.Samples.Max(s=>s.Contrast.PeakDelta)}/80 · шум ≤{attempt.Samples.Max(s=>s.NoisePeak)} · збіг масок {attempt.SpatialAgreement:P0}",
@@ -203,12 +215,18 @@ internal sealed partial class MainWindow
                             repeatText.ToolTip=T($"Непрозорих пікселів: {geometry.SolidPixels}; центр від координати команди: ({geometry.CenterX:0.##}, {geometry.CenterY:0.##}) px. Маска не зміщується до візуального центру.",
                                 $"Opaque pixels: {geometry.SolidPixels}; center from the command: ({geometry.CenterX:0.##}, {geometry.CenterY:0.##}) px. The mask is not shifted to its visual center.");
                         repeats.Children.Add(repeatText);
+                        if(sample.LocalColor is {Passed:false} local)
+                        {
+                            int delta=RustSlider.Delta(local.Reference,local.ConfirmedReference);
+                            repeats.Children.Add(Text(T($"Повтор {sample.Repeat}: зміна після контрольного нанесення {delta}/12; стабільних пікселів {local.StablePixels}.",
+                                $"Repeat {sample.Repeat}: change after the second application {delta}/12; stable pixels {local.StablePixels}."),11,Warning));
+                        }
                     }
                     if(state==BrushSignalState.Verified)values.Children.Add(new Expander{Header=T("Три вимірювання","Three measurements"),Content=repeats});
                     else values.Children.Add(repeats);
                 }
-                if(state==BrushSignalState.NoSolidCore)values.Children.Add(Text(T("Не підтверджено насичення першого відбитка або спільне ядро трьох крапок. Цей слід не вмикає Adaptive або прискорення.",
-                    "First-stamp saturation or a shared core across three dots was not confirmed. This trace does not enable Adaptive or acceleration."),11,Warning));
+                if(state==BrushSignalState.NoSolidCore)values.Children.Add(Text(T("Спільне ядро крапок не підтверджене. Придатність штриха визначається окремою перевіркою руху.",
+                    "A shared dot core was not confirmed. Stroke eligibility is determined by a separate movement check."),11,Warning));
                 if(attempt.State!=BrushSignalState.Stale&&attempt.Samples.Any(s=>s.Color is {Changed:>0,Passed:false}))
                     values.Children.Add(Text(T("Слід не відповідає напрямку вибраного кольору.","Trace does not match the selected color direction."),11,Danger));
                 chip.ToolTip=T("Слабкий слід — діагностика, а не підтверджене суцільне покриття. Він не вмикає Adaptive чи Speed Probe.",
@@ -221,4 +239,21 @@ internal sealed partial class MainWindow
             panel.Children.Add(row);
         }
     }
+    private string MotionFailure(string reason)=>reason switch
+    {
+        "stroke_source_unverified"=>T("Активний колір не підтверджений.","Active color was not verified."),
+        "stroke_background_unstable"=>T("Фон змінюється між кадрами.","Background changes between frames."),
+        "stroke_paint_changes_on_repeat"=>T("Повторний прохід змінює колір лінії.","Another pass changes the line color."),
+        "stroke_heldout_outside_possible" or "stroke_clipped_or_scene_changed"=>T("Незалежна лінія виходить за виміряний слід. Для малювання використай Standard.","The independent line exceeds the measured footprint. Use Standard for painting."),
+        "stroke_heldout_solid_missing" or "stroke_common_solid_missing" or "stroke_solid_missing"=>T("У незалежних лініях немає спільного суцільного сліду. Для малювання використай Standard.","Independent lines have no shared solid footprint. Use Standard for painting."),
+        "stroke_training_color_changed"=>T("Колір ліній у різних місцях не збігається в межах допуску 12.","Line colors at different positions do not agree within tolerance 12."),
+        "source_unverified"=>T("Активний колір не підтверджений.","Active color was not verified."),
+        "background_unstable"=>T("Фон змінюється між кадрами.","Background changes between frames."),
+        "moving_footprint_outside_dot_mask"=>T("Лінія виходить за виміряний слід крапки.","The line extends beyond the measured dot footprint."),
+        "moving_solid_missing"=>T("У лінії є прогалини або нерівномірний колір.","The line contains gaps or uneven color."),
+        "moving_paint_changes_on_repeat"=>T("Повторний прохід змінює колір лінії.","Another pass changes the line color."),
+        "contrast_insufficient" or "stroke_contrast_insufficient"=>T("Контраст лінії нижчий за 80.","Line contrast is below 80."),
+        "insufficient_clean_space"=>T("Бракує чистого місця для перевірки руху. Повтори цей Size окремо.","Not enough clean space for a movement check. Recheck this Size separately."),
+        _=>T("Суцільний слід руху не підтверджений.","Solid moving paint was not verified.")
+    };
 }

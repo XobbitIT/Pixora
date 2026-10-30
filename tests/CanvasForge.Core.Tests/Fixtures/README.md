@@ -1,3 +1,5 @@
 Slider-only crops from the user-provided 2026-10-03 Rust test recording. No usernames, game world, or desktop content are included. Each gzip contains six little-endian int32 values (width, height, hint left/top/right/bottom) followed by RGBA bytes. These fixtures reproduce numeric-field false positives, empty/full fill, legacy partial captures, and post-pause mismatches.
 
+`Texel39_Paths.json` is the unchanged coordinate-only oracle supplied by the user in Claude's texel39.zip (23.10.2026). SHA256 `7b580f8764eb3fbc7e1b21ac56e13291254e738fcfc8a37223a8d7c8b0683e8b`. Five centered paths are mathematical predictions, not measured paint. Its two illustrative controls overlap the centered paths and must not be collected together; the separately prepared ten-line candidate scenario uses disjoint controls.
+
 `beta2-controls` is a controls-only crop from the 17:36 recording, decoded with BT.601 to agree with the native palette samples. It includes labels, brush icons, three complete sliders, and surrounding padding. Used to exercise asymmetric selections, clipped neighbours, ambiguous captures, numeric fields, and the recorded Interval 0.03 mismatch.

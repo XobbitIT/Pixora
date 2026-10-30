@@ -1,3 +1,157 @@
-Pixora 1.0.14-rc.2
+Historical snapshots — Pixora 1.0.14-rc.8. Current canonical state: PROJECT_STATE.md.
+Read PROJECT_STATE.md first. Entries below are historical and can contradict the current implementation.
 
-Branch release/pixora-1.0.14-rc; tag v1.0.14-rc.2. Exact commit/SHA in Build_Manifest.json. RC1 live blockers: strict two-color swatch recovery, focus context/pause, deferred checkpoint and RunKey-bound baseline. Standard Size3 default; Adaptive/Size2/SpeedProbe/audit experimental. Size1 archived. Diagnostic export UI removed. No RC2 Rust test by agent; RC1 Size3 PNGs replayed offline. User package excludes source/testing/reviews/personal data. Full refactor deferred.
+Current operational state: local-line-repair-1, 21.10.2026.
+New 18:33 failure uses fresh reference, not the stale 20 Oct frame. 14/16 structural ROI match; bottom ROI8/9 are covered by a green overlay, source undetermined.
+Preparation removes the intervening topmost preview/foreground switch and confirms the frozen proof plus unchanged Canvas on a second native frame before saving. Runtime reference replacement remains forbidden.
+Offline: native Standard replay plus 26 prefix analysis, 61 exact RGBA frame hashes; one-pixel commands exhibit near-zero/two-pixel frontier steps. No physical straightening is claimed or enabled in ordinary START.
+Primary artifact: Pixora_Standard_Preparation_Fix_Windows_x64.zip. No new live test requested in this stage.
+See DISCRETE_BAND_8_UA.md for current details; entries below are historical.
+Operational state, 21.10.2026: local-frontier-session-2.
+Primary runtime: Pixora_Frontier_Session_Fix_Windows_x64.zip; entry Start_Frontier_Pair.cmd.
+Confirmed startup defect: 20Oct structural reference was frozen into the package; 21Oct failure has 15/16 texture ROI mismatches while all UI groups match.
+New explicit run-session preparation confirms the exact frozen rectangle on a fresh full-frame preview before Painter exists.
+Fresh 16-ROI reference and clean Canvas share one source frame; user confirmation is mandatory. Both directions use the same SHA-bound record/PID.
+Only in-memory editor-reference settings change. Frozen settings files, coordinates, UI locators, RGB12/contrast80/correlation0.985 remain intact.
+Runtime mismatch handlers cannot replace or recapture the reference. Masked failure evidence cannot authorize fresh capture.
+Native stale-reference failure reproduced offline. Physical line correction and new live collection remain unconfirmed.
+Blocker: complete the new same-session pair, then validate the selected physical correction; ordinary START remains unchanged.
+See DISCRETE_BAND_8_UA.md for the single scenario and fix details.
+
+Previous operational state (historical): Discrete Band 8 + frontier-workflow-v1.
+Primary runtime: Pixora_Frontier_Workflow_Windows_x64.zip; entry Start_Frontier_Pair.cmd.
+App/Core binaries and ordinary START remain identical to Discrete Band 8.
+One guided flow checks both protocols before input, requires explicit clean-canvas confirmations 1/2,
+checks Rust PID plus process creation time before/after the second confirmation, and verifies each completed condition.
+No replay of completed/partial strokes. A completed first condition can be explicitly continued only in the same Rust session.
+20 pure workflow cases + 6 full PowerShell launcher cases use fakes; no native input by the agent.
+Native evidence received: ascending 26/26 complete, 702 cursor reads match recorded commands; descending NOT_STARTED; original Rust exited.
+Physical correction is NOT confirmed. RGB12/contrast80 and unqualified dispatch restrictions unchanged.
+Blocker: complete same-session native ascending/descending pair, then physical validation of a concrete selected route.
+See DISCRETE_BAND_8_UA.md for the single collection scenario; existing data and historical packages are preserved.
+
+Historical snapshot entries below (their claims retain their original context):
+Current implementation: 1.0.14-rc.8+local-band-inverse-6, 21.10.2026.
+Package revision portable-launchfix-1: embedded native reference and protocol; SourceRoot is provenance only, not a runtime dependency.
+Offline preflight, persistent launch logs and portable/Unicode/missing-raw regression. Core and the20 corrected paths are unchanged.
+See STANDARD_BAND_INVERSE_6_PORTABLE_FIX_UA.md for the confirmed missing-source-path startup defect.
+Joint full-band inverse candidate produces concrete unit-connected common-warp paths; no independent dot-mask translation or endpoint ramps.
+Two fixed vertical candidates (20 strokes) with an explicit one-attempt native pilot and read-only physical evaluator.
+Predicted two-edge errors0.7304/1.2852px are hypothesis outputs, not measured corrected quality. RGB12/contrast80 unchanged; no Solid or qualification.
+ActualSpeed importer now uses traced case.Sample.Speed instead of the legacy Rapid default. No emitter/timing change.
+Ordinary START/planner/transport/Adaptive unchanged; physical correction is available only through the separate pilot.
+See STANDARD_BAND_INVERSE_6_UA.md and release receipt.
+
+Previous implementation: 1.0.14-rc.8+local-band-response-5, 21.10.2026.
+Complete native observed-prefix model, exact context/baseline/history lookup and both-edge full-body route ranking.
+Separate RGB overlap/lightening/removal accounting; no union-of-deltas footprint or invented Solid.
+60 real states,25980 sections agree with NumPy to4.55e-13px; endpoints/gaps/caps retained.
+Observed-prefix drafts only; no unknown-route inference, physical certification or native dispatch.
+Ordinary START/target/planner/emitter/Adaptive unchanged; see STANDARD_BAND_RESPONSE_5_UA.md and release receipt.
+
+Previous implementation: 1.0.14-rc.8+local-track-increment-4, 20.10.2026.
+Explicit same-build control/shifted pair, H13/V19/V12, 30+30 tracks.
+Native before/after EACH released track; SHA-linked pair/trace and QPC order.
+Separate emitted/captured counters; mandatory validation before DATA_COLLECTED.
+Capture changes inter-track timing in both conditions. Ordinary START unchanged.
+physicalQualityCertified=false; productionEligible=false; no native input by agent.
+See TRACK_INCREMENT_4_UA.md and TRACK_PAIR_SCENARIO_UA.md.
+
+Previous implementation: 1.0.14-rc.8+local-straight-band-3, 20.10.2026.
+The completed variable contour pair measured0/5 GeometryImproved: physical width/center worsened; legacy live entry is now blocked.
+New placement model uses the measured whole band and one constant command translation, including endpoints; no ramps, internal X/Y changes or track-spacing changes.
+Frozen native control18 frames/50 traces verified and copied by hash; new candidate-only collection has clean-baseline and full-route guards.
+669 Core /220 WPF cases incl84 layouts PASS;1205 native sections agree with NumPy to2.274e-13px;8 historical plans/input events unchanged.
+All50 prepared paths straight. New native physical-quality runs0; rigid placement does not promise to repair Rust width or physical curvature.
+Ordinary GUI Standard/Adaptive unchanged; explicit Run_Straight_Lines.cmd uses a new manually created attempt; no auto retry/resume.
+See STANDARD_STRAIGHT_BAND_3_UA.md and STRAIGHT_BAND_SCENARIO_UA.md. No agent native input or Git push.
+
+Previous snapshot (historical statements below retain their original date):
+Current implementation: 1.0.14-rc.8+local-band-contour-2, 20.10.2026.
+Full native reservations now measured, including observed caps. Previous160/25 unavailable sections were omitted analysis windows, not missing native files.
+32 full Possible/stable-contrast masks and16 dual-boundary models agree with independent NumPy. Contrast geometry is not RGB-certified Solid.
+New width-aware two-boundary band algorithm, dense curved-path emitter and explicit guarded paired pilot:5 bands x10 passes per condition.
+Same source geometry/Size3/MaxSpeed/track count/control cap commands. Candidate requires complete matching control and a clean matching baseline before paint.
+663 Core /217 WPF cases including84 layouts PASS; release builds zero warnings/errors; eight ordinary plans/frozen input unchanged.
+Runtime pilot contains frozen personal control/candidate plans; launch Run_Contour_Pair.cmd, not the ordinary GUI.
+No corrected native data yet. Ordinary GUI drawing and Adaptive unchanged; no qualification, agent native input or Git push.
+See STANDARD_BAND_CONTOUR_2_UA.md and CONTOUR_PAIR_SCENARIO_UA.md.
+
+Current correction-development stage: 1.0.14-rc.8+local-edge-correction-1, 20.10.2026.
+Implemented a two-edge integer inverse-path candidate, native edge measurement, exact Canvas/direction/context guards and separate measured-comparison API.
+Offline --standard-edge-correction-review executes before WPF/input lease. No ordinary GUI emitter/planner/target changes.
+656 Core and213 WPF cases PASS, including84 layouts; builds zero warnings/errors.
+13,488 native sections agree with frozen Python edges to2.3e-13px; independent NumPy matches all32 minimax solutions.
+4 vertical steps are12-18px from nearest packet endpoints; this is descriptive, not a timing causal proof.
+Width variation prevents pure transverse translation from straightening both edges to0.5px in3 of4 kink cases, even in its own surrogate.
+No corrected native-path observations; central-only data cannot extrapolate caps. DispatchAllowed and ProductionEligible false.
+Physical Standard fix remains incomplete. Ordinary painting and Adaptive unchanged; no agent native input or Git push.
+See STANDARD_EDGE_CORRECTION_1_UA.md.
+
+Latest live evidence: Size3 Repeat1, 20.10.2026.
+Source D:/Pixora/Size3_Repeats: completed20261020-092539-162bd91a; initial failed attempt before paint retained separately.
+36/104/256 complete;247 native captures;849 original files frozen;6240 real cursor readings,0 mismatches.
+32 same-position strokes x3:40109/40188 contrast pixels repeat-stable atRGB12; second-third changes>12:0.
+4/8 long verticals have repeated steps across all3 passes; max center residual1.472px, range~2.04-2.11px.
+Adjacent white with zero nominal gap shrinks black band8.656px H /13.014px V; gap6 still changes Possible and is not a correction.
+Strict rendered-RGB gate plus position-dependent intersection leaves9 candidate Solid pixels;1/8 model validations passes with only3pixels, no production eligibility.
+C# and NumPy match;96 curves/13488 sections. Source code and production drawing unchanged; no agent native input or Git push.
+See STANDARD_SIZE3_REPEAT_1_LIVE_20261020_UA.md. Previous statement0 live runs refers to the pre-test shipment.
+
+Previous implementation snapshot:
+Current Size3 Repeat snapshot: 1.0.14-rc.8+local-size3-repeat-1 (20.10.2026).
+Explicit collector:36 cases,104 stages,256 strokes,247 metadata-bound native captures; Size3 round, Max Speed dense-v3.
+24 training /8 preregistered heldout /4 black-white neighbour experiments; passes1/2/3 at identical coordinates.
+Training candidate and heldout IDs/hash written before heldout image/trace files open.
+Possible union and RGB12/contrast80/repeat-stable candidate Solid remain offline only; no production dispatch.
+647 Core /212 WPF cases, including84 DPI layouts; builds zero warnings/errors.
+Synthetic full pipeline + independent NumPy comparison; eight historical plans/emitter unchanged; old native dataset replay unchanged.
+New scenario has0 live runs. Ordinary Standard line/thickness correction is not enabled; Adaptive unchanged.
+See STANDARD_SIZE3_REPEAT_1_UA.md and SIZE3_REPEAT_SCENARIO_UA.md.
+
+Previous snapshot:
+Latest offline development build: Pixora 1.0.14-rc.8+local-boundary-model-8
+Previous delivered runtime: Pixora 1.0.14-rc.8+local-state-timing-6-7
+Working source/test build: 1.0.14-rc.8+local-boundary-model-8
+Stage8: physical context and native command-relative full-stroke observations, immutable training candidate and frozen mandatory held-out IDs.
+Stage9 offline candidate: full Possible/caps/color/Canvas checks, Solid-only credit, no unverified overlap, explicit missing pixels and budgets.
+ProductionEligible and DispatchAllowed remain false. Ordinary GUI Standard drawing is unchanged; physical line quality is NOT fixed by this build.
+Read-only CLI: --standard-boundary-review EVIDENCE_DIRECTORY NEW_OUTPUT_DIRECTORY; before UI/input lease, no Native/Painter/config/checkpoint writes.
+User20Oct completed42 cases/44 stages/216 strokes:132 native frames,154336 exact recorded cursor readings,40 observations,14 candidates.
+No established Solid is inferred from single-pass native differences. C# masks/unions/overlap match independent NumPy calculations.
+See STANDARD_BOUNDARY_MODEL_8_UA.md for implementation and remaining physical qualification.
+
+Previous State/Timing snapshot:
+Tasks6/7: canonical config compare-and-save owner, detached worker publication, explicit import CAS, separate timing diagnostics.
+Load/clone/save stamp binds path+revision+raw SHA; process/thread writer lease; stale/deleted/unbound target writes refused.
+Archived masks show Stale, new rejected states remain rejected; RESUME compatibility has specific reasons with identical acceptance.
+Run metadata revision4: exclusive Colors+Motion+Service+Finish+Pause+Countdown=Wall; active remaining estimate; nested input costs never additive.
+All Run-worker SendInput API calls/accepted events, movement costs, requested/actual waits, editor/tool/safety/guard cursor counters.
+626 Core / 204 WPF checks including84 DPI layouts; builds zero warnings/errors.
+Eight historical plans/identities/targets/commands/waits and frozen emitter events unchanged vsTarget1.
+User19Oct22:56 recording: two Standard strips completed86/86 and84/84; local edge max residual~0.08-0.10px.
+Video intermediate black width~72.12px becomes~61.48px after adjacent whites; diagnostic video evidence, not a universal brush model.
+See STATE_TIMING_6_7_UA.md and delivered live analysis. No production geometry correction or acceleration introduced.
+Evidence collector remains explicit:42 cases/44 colour stages/216 strokes; production48-point bridge packets, no fabricated intermediate readings.
+Task 1: image recipe and target preparation are independent of execution profiles.
+Detail presets preserve speed; movement selector preserves detail/colors; valid custom color limits survive form reads.
+Edge merge minimum area no longer depends on calibrated brush cores. RGB checkerboards/black are retained.
+See TARGET_1_UA.md. 609 Core / 187 WPF checks, 256 execution combinations, eight historical target/route replays.
+Native line v3 is explicit opt-in, OFF by default and not physically qualified.
+Optional Standard line diagnostics record baseline/Shift orders with no automatic enabling or retry.
+Standard reorients rectangular strips along their long axis with identical center-path multiset; density and emitter waits unchanged.
+Palette hover: stored quiet point, bounded passive clean-frame wait, original proof thresholds.
+Inline edge thickness validation and explicit config-load repair warning.
+Internal 60-sample Standard physical-quality experiment, explicit CLI only; 0 live samples collected.
+Direction pilot v2: 24 center-anchor H/V forward/reverse Safe/Max cases; packet-end observations explicit, 0 live samples.
+Run metadata v4 updates planning/countdown/running/paused/terminal status and nested input costs independently of checkpoint ownership.
+Dense Standard v3 preserves v2 points, packet endpoints and nominal waits.
+Cursor tracking checks between packets and during existing waits; release before pause on mismatch/read failure.
+Pending transport may advance only along the exact issued packet; next emission requires its endpoint acknowledgement.
+Focus/F6 reasons retain precedence; guard adds no screenshots, new waits, recentering or successful-path logs.
+Start/end cursor confirmation surrounds paint-down/up. Native screenshot conversion is byte-identical and vectorized.
+Old internal v1/v2 diagnostic protocols explicitly retain the legacy emitter; no repeat requested.
+Previous Guard 3 evidence: STANDARD_GUARD_3_UA.md, 603 Core / 186 WPF checks.
+Last vertical video confirms color-boundary overwrite; simple shared constant footprint does not exactly replay the segmented video.
+No qualified moving profile in eight replay contexts. Physical boundary correction remains open; quality not certified.
+Adaptive deferred; no native painting, Git commit or push by agent.

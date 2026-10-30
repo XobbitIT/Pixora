@@ -18,8 +18,8 @@ internal static partial class Program
         var p=BrushFootprints.Build(s,3,2,[empty,empty,empty]);BrushFootprints.Save(s,[p]);
         var samples=Enumerable.Range(1,3).Select(n=>new BrushSignalSample(n,new(n==1?137:n==2?70:2,n==1?23:n==2?10:0,80,new(140,140,140),new(6,6,5)),0,possible)).ToArray();
         BrushSignalDiagnostics.Save(s,[BrushSignalDiagnostics.Summarize(s,3,2,samples,p)]);
-        s.Save(Path.Combine(directory,"config-csharp.json"));
-        var window=new MainWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
+        s.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var window=FixtureWindow(directory);window.ShowPage("adaptive");Render(window,Path.Combine(output,name+".png"),1280);
         var captions=string.Join("\n",Captions(Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"]));
         var page=(ScrollViewer)Field<Dictionary<string,FrameworkElement>>(window,"pages")["adaptive"];
         page.ScrollToVerticalOffset(540);Render(window,Path.Combine(output,name+"-details.png"),1280);
@@ -38,7 +38,7 @@ internal static partial class Program
     {
         bool english=language=="English";string name="brush-snapshots-"+(english?"en":"ua");
         string directory=Path.Combine(output,name),run=Path.Combine(directory,"brush-calibration","run-20261007-000000-test");Directory.CreateDirectory(run);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
         var before=new PixelImage(96,96);for(int i=0;i<96*96;i++)before.Set(i,new(140,140,140));var after=before.Clone();after.Set(48*96+48,new(0,0,0));
         for(int repeat=1;repeat<=3;repeat++)
         {
@@ -48,7 +48,7 @@ internal static partial class Program
                 contrast=new{PeakDelta=137,RequiredDelta=80,ChangedPixels=23},geometry=new{SolidPixels=6,CenterX=0,CenterY=2.5},
                 motion=new BrushDotTrace(BrushDotMotion.Revision,new(515,196),[new("settled",.064,new(515,196)),new("held",.128,new(515,196))])}));
         }
-        Window? shown=null;var window=new MainWindow(directory,w=>shown=w);window.ShowPage("adaptive");
+        Window? shown=null;var window=FixtureWindow(directory,w=>shown=w);window.ShowPage("adaptive");
         Assert(Field<Button>(window,"brushDiagnosticButton").IsEnabled,"Persisted brush snapshots inaccessible after restart");
         Invoke(window,"ShowBrushDiagnostics");Assert(shown is not null,"Brush diagnostic window did not open");
         var root=(FrameworkElement)shown!.Content;root.Measure(new(860,650));root.Arrange(new(0,0,860,650));root.UpdateLayout();

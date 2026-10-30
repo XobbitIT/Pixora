@@ -153,7 +153,9 @@ public static class RustSlider
         var colors = source.ToArray();
         byte Component(Func<Rgb, byte> selector)
         {
-            var sorted = colors.Select(selector).Order().ToArray();
+            var sorted=new byte[colors.Length];
+            for(int i=0;i<colors.Length;i++)sorted[i]=selector(colors[i]);
+            Array.Sort(sorted);
             return (byte)((sorted[(sorted.Length - 1) / 2] + sorted[sorted.Length / 2]) / 2);
         }
         return new(Component(c => c.R), Component(c => c.G), Component(c => c.B));

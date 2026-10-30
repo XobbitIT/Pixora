@@ -13,7 +13,7 @@ public static class CalibrationReliability
 {
     private const string PendingKey="visual_brush_check_pending";
     public static bool Visual(Settings s)=>s.Text("control_confirmation","Clipboard")=="Visual";
-    public static ReadbackOptions Readback(Settings s)=>new(s.Int("readback_polls",24),s.Int("readback_attempts",3),s.Number("readback_retry_pause_ms",50)/1000);
+    public static ReadbackOptions Readback(Settings s)=>Visual(s)?new(54,3,.2):new(24,3,.05);
     public static int StableAttempts(Settings s)=>s.Int("capture_stable_attempts",5);
     public static double StableInterval(Settings s)=>s.Number("capture_stable_interval_ms",80)/1000;
     public static void Validate(Settings s)
@@ -21,7 +21,7 @@ public static class CalibrationReliability
         if(s.Text("control_confirmation","Clipboard") is not ("Clipboard" or "Visual"))throw new InvalidDataException("Invalid control confirmation method.");
         foreach(var (key,fallback) in new[]{("readback_polls",24),("readback_attempts",3),("capture_stable_attempts",5)})
             if(s.Number(key,fallback)!=s.Int(key,fallback))throw new InvalidDataException("Invalid calibration integer: "+key);
-        Readback(s).Validate();
+        new ReadbackOptions(s.Int("readback_polls",24),s.Int("readback_attempts",3),s.Number("readback_retry_pause_ms",50)/1000).Validate();
         if(StableAttempts(s) is <5 or >20||!double.IsFinite(StableInterval(s))||StableInterval(s) is <.04 or >1)
             throw new InvalidDataException("Invalid stable capture budget.");
     }

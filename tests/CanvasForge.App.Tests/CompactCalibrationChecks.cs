@@ -15,7 +15,7 @@ internal static partial class Program
     private static void CheckCompactCapture(string output,string language)
     {
         bool en=language=="English";string name="compact-capture-"+(en?"en":"ua"),directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var s=CompactHexSettings(language);s.Save(Path.Combine(directory,"config-csharp.json"));var w=new MainWindow(directory);
+        var s=CompactHexSettings(language);s.Save(Path.Combine(directory,SettingsStore.ConfigName));var w=FixtureWindow(directory);
         SetField(w,"source",new PixelImage(8,8));Invoke(w,"UpdateReady");
         Assert(SetupSequence.CaptureReady(s)&&Field<Button>(w,"startButton").IsEnabled,"HEX still depends on an unused Tools capture");
         w.ShowPage("capture");Render(w,Path.Combine(output,name+".png"),en?900:1280,780);
@@ -33,8 +33,8 @@ internal static partial class Program
     private static void CheckVisualConfirmationPreset(string output,string language)
     {
         bool en=language=="English";string name="rust-compatibility-"+(en?"en":"ua"),directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var s=CompactHexSettings(language);s.Set("fast_transfer",true);s.Set("input_engine","Experimental 1 ms");s.Save(Path.Combine(directory,"config-csharp.json"));
-        var w=new MainWindow(directory);w.ShowPage("settings");Render(w,Path.Combine(output,name+"-before.png"),900,780);
+        var s=CompactHexSettings(language);s.Set("fast_transfer",true);s.Set("input_engine","Experimental 1 ms");s.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var w=FixtureWindow(directory);w.ShowPage("settings");Render(w,Path.Combine(output,name+"-before.png"),900,780);
         var page=Field<Dictionary<string,FrameworkElement>>(w,"pages")["settings"];
         var compatibility=LogicalNodes(page).OfType<Expander>().Single(e=>Equals(e.Tag,"rust-compatibility"));
         Assert(!compatibility.IsExpanded,"Compatibility controls clutter the default Settings page");
@@ -48,17 +48,17 @@ internal static partial class Program
         Assert(Descendants(page).OfType<Expander>().All(e=>!e.IsExpanded),"Expert settings are expanded by default");
         LogicalNodes(page).OfType<Expander>().Single(e=>Equals(e.Tag,"rust-compatibility")).IsExpanded=true;
         Render(w,Path.Combine(output,name+".png"),900,780);var text=string.Join("\n",Captions(page));
-        Assert(text.Contains(en?"An imprint alone does not prove":"Відбиток сам по собі не доводить"),"Visual-mode limitations are hidden");
+        Assert(text.Contains(en?"Experimental painting requires a verified brush imprint":"Для експериментального малювання потрібен підтверджений відбиток пензля"),"Visual-mode limitations are hidden");
         if(en)Assert(!System.Text.RegularExpressions.Regex.IsMatch(text,@"[\u0400-\u04FF]"),"Visual verification warning or budgets not localized");
         LogicalNodes(page).OfType<Button>().Single(b=>Equals(b.Tag,"confirmation-preset:Clipboard")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
-        live=Field<Settings>(w,"settings");Assert(!CalibrationReliability.Visual(live)&&CalibrationReliability.Readback(live)==new ReadbackOptions(24,3,.05)&&CalibrationReliability.StableAttempts(live)==5,"Numeric preset did not restore normal verification budgets");
+        live=Field<Settings>(w,"settings");Assert(!CalibrationReliability.Visual(live)&&CalibrationReliability.Readback(live)==new ReadbackOptions(24,3,.05)&&CalibrationReliability.StableAttempts(live)==10,"Numeric preset did not restore normal verification budgets");
         Console.WriteLine("PASS "+name);
     }
     private static void CheckVisualStartGate(string output,string language)
     {
         bool en=language=="English";string name="visual-start-"+(en?"en":"ua"),directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
-        var s=CompactHexSettings(language);s.Data.Remove("brush_footprints");CalibrationReliability.ApplyPreset(s,true);s.Save(Path.Combine(directory,"config-csharp.json"));
-        var w=new MainWindow(directory);SetField(w,"source",new PixelImage(8,8));Invoke(w,"UpdateReady");
+        var s=CompactHexSettings(language);s.Data.Remove("brush_footprints");CalibrationReliability.ApplyPreset(s,true);s.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var w=FixtureWindow(directory);SetField(w,"source",new PixelImage(8,8));Invoke(w,"UpdateReady");
         Assert(!Field<Button>(w,"startButton").IsEnabled,"Visual controls without a measured imprint authorized START");
         var live=Field<Settings>(w,"settings");var missing=Field<Button>(w,"startButton").ToolTip.ToString()!;
         Assert(missing.Contains(en?"Measure the working brush":"виміряй робочий пензель"),"Imprint prerequisite is not explained");

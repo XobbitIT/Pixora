@@ -1,4 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><AssemblyName>CanvasForge.App.Tests</AssemblyName></PropertyGroup>
   <ItemGroup><ProjectReference Include="../../src/CanvasForge.App/CanvasForge.App.csproj"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/Texel2D/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowOffgrid/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowCalib/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture2/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture3/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture4/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture5/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture6/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture7/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture8/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/RowPicture9/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
 </Project>

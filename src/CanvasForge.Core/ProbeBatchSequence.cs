@@ -7,7 +7,7 @@ public sealed record ProbeBatchResult(int Passed,int Failed,bool Cancelled);
 public static class ProbeBatchSequence
 {
     public const string Measured="Measured";
-    public static string[] Options=>new[]{Measured,SetupBrushSelection.Combined,"3/10/20","3/10","20/30/40"}.Concat(SetupBrushSelection.SizeOptions).Distinct().ToArray();
+    public static string[] Options=>new[]{Measured,SetupBrushSelection.Combined,"3/10/20","3/10"}.Concat(SetupBrushSelection.SizeOptions).Distinct().ToArray();
     public static ProbeSizeChoices Select(Settings settings,string choice)
     {
         var requested=choice==Measured?DrawingWorkflow.PaintingProfiles(settings).Where(p=>p.SolidCore.Valid).Select(p=>p.Size).Distinct().Order().ToArray()

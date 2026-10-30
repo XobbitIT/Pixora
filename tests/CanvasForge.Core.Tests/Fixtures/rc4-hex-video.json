@@ -1,0 +1,30 @@
+{
+  "source": "Desktop 2026.10.14 - 00.52.17.04.mp4",
+  "scope": "Lossy decoded AV1 video: HEX field structure and UI liveness only, not RGB paint certification. Canvas and unrelated desktop masked.",
+  "frames": [
+    {
+      "file": "rc4-hex-video-0035.rgba.gz",
+      "videoSecond": 35,
+      "decodedFrameSha256": "60a884cc17ab5977d449a885a704ee0d400e95ae4091e9fc1712c2290bf4d19b",
+      "fixtureSha256": "a036c8f56bf3449c44554052607fd8201abe627c4e3ac42fcc4537e0e0551557"
+    },
+    {
+      "file": "rc4-hex-video-0047.rgba.gz",
+      "videoSecond": 47,
+      "decodedFrameSha256": "ac47cc8cc2f9337c4360a7198e0b6c4bb2a25df3551b71cf1ec7fdae754fa810",
+      "fixtureSha256": "cde936fb455c567d6c34acd4fbe83fde90eae87a0dd9ca4ff4180750a4d0fc5f"
+    },
+    {
+      "file": "rc4-hex-video-0069.rgba.gz",
+      "videoSecond": 69,
+      "decodedFrameSha256": "6168de3cd96c3a590c8c3430e64f7f3556ec85d8d229c3014fe4771db529179c",
+      "fixtureSha256": "69104cb02110875610c4887ee99915947f2101cce455f186e8706db252f746e9"
+    },
+    {
+      "file": "rc4-hex-video-1515.rgba.gz",
+      "videoSecond": 1515,
+      "decodedFrameSha256": "b61729103cc1943ef038e52ae23936b7ab55dbaddb680275fafb479d1ce6eb86",
+      "fixtureSha256": "b10db78530e91b292122fc822a8ab4ff6468ac27811fba3741750bd2c7b0a302"
+    }
+  ]
+}

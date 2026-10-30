@@ -11,10 +11,14 @@ public sealed record BrushLocalColorProof(Rgb Requested,Rgb Reference,Rgb Confir
     bool ReferenceColorPassed,bool ConfirmedReferenceColorPassed)
 {
     public BrushPaintSourceProof? PaintSource { get; init; }
-    public bool Passed=>AnchorPixels>0&&StableAnchorPixels==AnchorPixels&&StablePixels>0
-        &&FirstColorPassed&&ConfirmedColorPassed
-        &&(ReferenceColorPassed&&ConfirmedReferenceColorPassed||PaintSource is {Passed:true} source&&source.Requested==Requested)
+    public bool PaintVerified=>PaintSource is {Passed:true} source&&source.Requested==Requested
+        &&FirstColorPassed&&ConfirmedColorPassed;
+    public bool StableAreaVerified=>AnchorPixels>0&&StableAnchorPixels>0&&StablePixels>0
         &&RustSlider.Delta(Reference,ConfirmedReference)<=12;
+    // Source selection and the surviving stable area are independent proofs.
+    // Unstable anchors remain diagnostic and never become solid pixels. An
+    // arbitrary acceptance percentage would certify the wrong thing.
+    public bool Passed=>PaintVerified&&StableAreaVerified;
 }
 
 // A local RGB sample alone cannot distinguish opaque paint from translucent
@@ -24,7 +28,7 @@ public sealed record BrushLocalColorProof(Rgb Requested,Rgb Reference,Rgb Confir
 // contributes to conservative possible bounds, never to guaranteed coverage.
 public static class BrushLocalColor
 {
-    public const string SourceRevision="source-confirmed-local-saturation-v1";
+    public const string SourceRevision="source-confirmed-per-pixel-saturation-v2";
     private static bool ReferenceMatches(Rgb requested,Rgb observed)
     {
         // Permit a neutral local brightness shift, not an arbitrary new hue or

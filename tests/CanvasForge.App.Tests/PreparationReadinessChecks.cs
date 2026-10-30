@@ -9,8 +9,8 @@ internal static partial class Program
     private static void CheckCanonicalPreparation(string output,string language)
     {
         bool en=language=="English";var directory=Path.Combine(output,"canonical-preparation-"+(en?"en":"ua"));Directory.CreateDirectory(directory);
-        var s=ReadySettings(language);s.Set("precision_brush_size","3");s.Data.Remove("brush_footprints");s.Set("control_confirmation","Clipboard");s.Save(Path.Combine(directory,"config-csharp.json"));
-        var w=new MainWindow(directory);SetField(w,"source",new PixelImage(32,32));Invoke(w,"UpdateReady");
+        var s=ReadySettings(language);s.Set("precision_brush_size","3");s.Data.Remove("brush_footprints");s.Set("control_confirmation","Clipboard");s.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var w=FixtureWindow(directory);SetField(w,"source",new PixelImage(32,32));Invoke(w,"UpdateReady");
         Assert(!Field<Button>(w,"startButton").IsEnabled&&Field<TextBlock>(w,"ready").Text.Contains(en?"Brush is unverified":"Пензель не підтверджено"),"Clipboard path still permits an unmeasured brush");
         Assert(!Field<TextBlock>(w,"ready").Text.Contains(en?"Everything is ready":"Усе готово"),"Ready header contradicts brush prerequisite");
         var rows=Field<List<Dictionary<SetupStage,TextBlock>>>(w,"setupRows");
@@ -32,12 +32,12 @@ internal static partial class Program
         var s=ReadySettings("English");
         // Historical failures remain relevant only when no newer manual proof exists.
         foreach(string key in new[]{"speed_probe_profile","shape_speed_profiles","probe_spatial_profiles","shape_spatial_profiles"})s.Data.Remove(key);
-        s.Save(Path.Combine(directory,"config-csharp.json"));var w=new MainWindow(directory);
+        s.Save(Path.Combine(directory,SettingsStore.ConfigName));var w=FixtureWindow(directory);
         var results=Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(w,"setupResults");
-        results[SetupStage.Speed]=(SetupStageState.Failed,"No verified route");Invoke(w,"SaveSetupHistory");Field<Settings>(w,"settings").Save(Path.Combine(directory,"config-csharp.json"));
-        var reopened=new MainWindow(directory);Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(reopened,"setupResults")[SetupStage.Speed].State==SetupStageState.Failed,"Restart discarded optional-stage results");
-        var changed=Field<Settings>(reopened,"settings");changed.Set("precision_brush_size","10");changed.Save(Path.Combine(directory,"config-csharp.json"));
-        var stale=new MainWindow(directory);Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(stale,"setupResults").Count==0,"Different brush reused preparation history");
+        results[SetupStage.Speed]=(SetupStageState.Failed,"No verified route");Invoke(w,"SaveSetupHistory");Field<Settings>(w,"settings").Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var reopened=FixtureWindow(directory);Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(reopened,"setupResults")[SetupStage.Speed].State==SetupStageState.Failed,"Restart discarded optional-stage results");
+        var changed=Field<Settings>(reopened,"settings");changed.Set("precision_brush_size","10");changed.Save(Path.Combine(directory,SettingsStore.ConfigName));
+        var stale=FixtureWindow(directory);Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(stale,"setupResults").Count==0,"Different brush reused preparation history");
         var invalid=Field<Settings>(stale,"settings");invalid.Data["preparation_history"]=System.Text.Json.Nodes.JsonNode.Parse("{\"context\":\"\",\"stages\":{\"Brush\":null}}");
         invalid.Data["preparation_history"]!["context"]=SpeedCalibration.Context(invalid)+":"+PaintTimingPlan.DefaultSize(invalid);
         Invoke(stale,"RestoreSetupHistory");Assert(Field<Dictionary<SetupStage,(SetupStageState State,string Detail)>>(stale,"setupResults").Count==0,"Null saved stage became valid preparation proof");
@@ -45,7 +45,7 @@ internal static partial class Program
     }
     private static void CheckPreparationControlsAndFooter(string output)
     {
-        var directory=Path.Combine(output,"preparation-controls");Directory.CreateDirectory(directory);ReadySettings("English").Save(Path.Combine(directory,"config-csharp.json"));var w=new MainWindow(directory);
+        var directory=Path.Combine(output,"preparation-controls");Directory.CreateDirectory(directory);ReadySettings("English").Save(Path.Combine(directory,SettingsStore.ConfigName));var w=FixtureWindow(directory);
         var page=Field<Dictionary<string,FrameworkElement>>(w,"pages")["paint"];
         var colors=LogicalNodes(page).OfType<Expander>().Single(e=>Equals(e.Tag,"painting-colors"));
         var quality=LogicalNodes(page).OfType<Expander>().Single(e=>Equals(e.Tag,"painting-quality"));

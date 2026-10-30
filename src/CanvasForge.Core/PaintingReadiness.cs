@@ -32,7 +32,7 @@ public static class PaintingReadiness
             : !s.Bool("palette_target_failed") && c.Rect("palette").Valid && s.Palette().Count > 0 && s.Palette().All(p => p.ClickPoint is not null);
         // An independent active swatch is verified/recovered at runtime before
         // any stroke. A missing/stale saved rectangle must not prevent recovery.
-        bool controls = layoutReady && !s.Bool("controls_validation_failed") && new[] { "size", "interval", "opacity" }.All(k => c.Rect(k + "_track").Valid && c.Rect(k + "_value_field").Valid)
+        bool controls = layoutReady && !s.Bool("controls_validation_failed") && new[] { "size" }.All(k => c.Rect(k + "_track").Valid && c.Rect(k + "_value_field").Valid)
             && (s.Mode == ColorMode.HexDirect || c.Point("brush_tool") is not null)
             && (c.Rect("brush_shapes").Valid || c.Point(s.Text("brush_shape") == "Square" ? "square_brush" : "hard_brush") is not null);
         double size = PaintTimingPlan.DefaultSize(s);
@@ -46,7 +46,7 @@ public static class PaintingReadiness
             new PreparationStep("image", hasImage ? PreparationState.Ready : PreparationState.NeedsAction, hasImage ? null : "Відкрий зображення."),
             new PreparationStep("capture", canvas ? PreparationState.Ready : PreparationState.NeedsAction, canvas ? null : "Захопи полотно."),
             new PreparationStep("colors", colors ? PreparationState.Ready : PreparationState.NeedsAction, colors ? null : "Захопи палітру або перевір HEX."),
-            new PreparationStep("controls", controls ? PreparationState.Ready : PreparationState.NeedsAction, controls ? null : "Захопи пензель і три числові поля Rust."),
+            new PreparationStep("controls", controls ? PreparationState.Ready : PreparationState.NeedsAction, controls ? null : "Захопи пензель і поле Size у Rust."),
             new PreparationStep("brush", brushState, brush)
         });
     }

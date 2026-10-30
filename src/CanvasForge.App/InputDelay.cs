@@ -6,6 +6,10 @@ using Microsoft.Win32.SafeHandles;
 namespace CanvasForge.App;
 
 internal readonly record struct DelayCosts(long Calls,double RequestedSeconds,double ActualSeconds);
+internal readonly record struct DelayGuardCosts(long Calls,double Seconds)
+{
+    public static DelayGuardCosts operator -(DelayGuardCosts a,DelayGuardCosts b)=>new(a.Calls-b.Calls,a.Seconds-b.Seconds);
+}
 
 // timeBeginPeriod does not guarantee Sleep(1) precision for an occluded Windows 11
 // app. This timer belongs to one worker; it never changes system/process policy.
@@ -17,6 +21,12 @@ internal sealed class InputDelay : IDisposable
     private double requested,actual;
     internal string Transport => timer is null ? "Sleep fallback" : "high-resolution waitable timer";
     internal DelayCosts Costs => new(calls,requested,actual);
+    // Enabled only by the explicit direction pilot. ActualSeconds includes this
+    // nested guard work; subtracting RequestedSeconds is not pure timer latency.
+    internal bool CaptureGuardCosts {get;set;}
+    private long guardCalls;
+    private double guardSeconds;
+    internal DelayGuardCosts GuardCosts=>new(guardCalls,guardSeconds);
 
     internal InputDelay(bool precise=true)
     {
@@ -33,6 +43,11 @@ internal sealed class InputDelay : IDisposable
         long started=Stopwatch.GetTimestamp();
         double until=started+seconds*Stopwatch.Frequency;
         calls++;requested+=seconds;
+        if(CaptureGuardCosts)
+        {
+            var original=guard;
+            guard=()=>{long at=Stopwatch.GetTimestamp();guardCalls++;try{original();}finally{guardSeconds+=Stopwatch.GetElapsedTime(at).TotalSeconds;}};
+        }
         try
         {
             guard();

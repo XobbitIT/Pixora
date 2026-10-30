@@ -60,7 +60,7 @@ internal sealed partial class MainWindow
                 await RunProbe(spatial);cancel.ThrowIfCancellationRequested();CheckContext();return lastProbeSucceeded;
             },(size,state,message)=>
             {
-                File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_batch_size",details=new{size,state=state.ToString(),message}})+Environment.NewLine);
+                SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_batch_size",details=new{size,state=state.ToString(),message}})+Environment.NewLine);
                 string stage=state switch{ProbeBatchState.Spatial=>T("Просторове калібрування","Spatial calibration"),ProbeBatchState.Speed=>T("Тест швидкості","Speed Probe"),
                     ProbeBatchState.Passed=>T("Перевірено","Verified"),ProbeBatchState.Failed=>T("Помилка","Failed"),_=>T("Скасовано","Cancelled")};
                 combinedProbeSummary=T("Перевірка групи: ","Grouped test: ")+"Size "+size+" · "+stage+(message.Length>0?" — "+T(message):"");
@@ -71,7 +71,7 @@ internal sealed partial class MainWindow
                 $"Completed tests: {result.Passed} Sizes; failed: {result.Failed}.")+"\n"+
                 T($"Size з актуальними маршрутами: {confirmedSizes.Length}.",$"Sizes with current routes: {confirmedSizes.Length}.")+"\n"+
                 T(result.Cancelled?"Групу скасовано.":"Очисти полотно перед малюванням.",result.Cancelled?"Batch cancelled.":"Clear Canvas before painting.");
-            File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_batch_complete",details=new{choice.Requested,choice.Ready,choice.Unavailable,result.Passed,result.Failed,result.Cancelled,confirmedSizes}})+Environment.NewLine);
+            SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_batch_complete",details=new{choice.Requested,choice.Ready,choice.Unavailable,result.Passed,result.Failed,result.Cancelled,confirmedSizes}})+Environment.NewLine);
             SetStatus(combinedProbeSummary);
         }
         finally

@@ -26,26 +26,36 @@ internal sealed partial class MainWindow
             if(Native.ClientOrigin(target)!=origin||Native.ClientSize(target)!=size)
                 throw new InvalidOperationException("Вікно Rust змінило розмір або положення. Повтори захоплення.");
         }
+        CheckCapture();
+        var initial=EditorEvidence.Read(settings,EditorEvidence.Reference(settings),Native.Screenshot(window),window,origin,dpi,size);
+        if(initial.State!=EditorEvidenceState.Present)
+            throw new PreparationInterruptedException("Редактор Rust не підтверджено. Повтори захоплення областей.");
         if(park!=cursor)
         {
             CheckCapture();Native.ReleaseChecked();
-            Native.MovePath([park]);Thread.Sleep((int)Math.Ceiling(StrokeTiming.CursorPark(settings)*1000));
+            GuardedNativeInput.Move(InputCommandGuard.From(settings,window),[park],InputIntent.Parking,CheckCapture,()=>throw new PreparationInterruptedException(),Native.MovePath);Thread.Sleep((int)Math.Ceiling(StrokeTiming.CursorPark(settings)*1000));
         }
         CheckCapture();
         var image=Native.Screenshot(window);
+        var editor=EditorEvidence.Read(settings,EditorEvidence.Reference(settings),image,window,origin,dpi,size);
+        if(editor.State!=EditorEvidenceState.Present)throw new PreparationInterruptedException("Редактор Rust не підтверджено. Повтори захоплення областей.");
         var found=BrushControlsLocator.Find(image,window,old);
         // Existing valid captures remain supported, including custom UI skins.
         // Their usual strict layout check still refuses missing/ambiguous fields.
         if(found is null)return;
         bool Same(string key)=>old.Rect(key)==found.Rect(key);
-        bool stable=new[]{"size_track","interval_track","opacity_track"}.All(Same)
+        bool stable=new[]{"size_track"}.All(Same)
             &&Math.Abs(old.Rect("brush_shapes").Center.Y-found.Rect("brush_shapes").Center.Y)<=2
             &&old.Point("brush_tool")==found.Point("brush_tool");
         if(stable)return;
-        settings.SetPaintCalibration(found);Dirty();Save();
-        File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="controls_relocated",details=new{
+        CheckCapture();
+        var relocated=EditorEvidence.RelocateControls(settings,found,image,window,origin,dpi,size);
+        if(relocated.State!=EditorEvidenceState.Present)
+            throw new PreparationInterruptedException("Редактор Rust не підтверджено. Повтори захоплення областей.");
+        Dirty();Save();
+        SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="controls_relocated",details=new{
             mode=settings.Mode.ToString(),oldSize=old.Rect("size_track"),newSize=found.Rect("size_track"),
             oldShapes=old.Rect("brush_shapes"),newShapes=found.Rect("brush_shapes"),dpi=Native.DpiOf(target),
-            oldFootprintsRetainedAsStale=true}})+Environment.NewLine);
+            oldFootprintsRetainedAsStale=true,editorReferenceRefreshed=true}})+Environment.NewLine);
     }
 }

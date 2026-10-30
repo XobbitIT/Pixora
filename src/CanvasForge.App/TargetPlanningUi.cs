@@ -8,25 +8,36 @@ namespace CanvasForge.App;
 internal sealed partial class MainWindow
 {
     private TextBlock edgeMergeStatus=new();
+    private TextBlock targetChangeNotice=new();
+    private TextBlock targetRecipeSummary=new();
+    private SettingsLoadWarning? edgeThicknessLoadWarning;
+    internal const string EdgeThicknessLoadMessage="Некоректну товщину об’єднання країв відновлено. Перевір значення перед запуском.";
     private void BuildTargetPlanningUi(StackPanel quality)
     {
-        if(ReleaseProfile.Standard(settings))return;
         var controls=new StackPanel();
         AddCheck(controls,"edge_merge",T("Об’єднувати тонкі кольорові краї","Merge thin color edges"),true);
         AddNumber(controls,"edge_merge_thickness",T("Максимальна товщина краю, px","Maximum edge thickness, px"),true);
+        if(edgeThicknessLoadWarning is not null)controls.Children.Add(Text(T(EdgeThicknessLoadMessage),12,Warning));
         controls.Children.Add(Text(T("Змінює підготовлене зображення. Тонкі навмисні деталі також можуть зникнути; переглянь порівняння.",
             "Changes the prepared image. Intentional thin details may disappear too; inspect the comparison."),12,Warning));
         edgeMergeStatus=Text("",12,Muted);controls.Children.Add(edgeMergeStatus);
         controls.Children.Add(Button(T("Краї: до та після","Edges: before and after"),()=>{if(plan is not null)presentAuditDiagnostics(CreateEdgePreviewWindow(plan));}));
-        controls.Children.Add(AsyncButton(T("Порівняти звичайний та Adaptive","Compare ordinary and Adaptive"),ComparePaintingModes));
+        if(!ReleaseProfile.Standard(settings))controls.Children.Add(AsyncButton(T("Порівняти звичайний та Adaptive","Compare ordinary and Adaptive"),ComparePaintingModes));
         quality.Children.Add(new Expander{Header=T("Оптимізація плану","Plan optimization"),Content=controls});
     }
     private void RefreshTargetPlanningUi()
     {
+        targetRecipeSummary.Text=plan?.Recipe is {} recipe
+            ?T($"Ціль: {plan.Width}×{plan.Height} · клітинка {recipe.Cell} px · ліміт кольорів {recipe.ColorLimit}. Клітинка й кольори змінюють зображення; швидкість змінює лише рух.",
+                $"Target: {plan.Width}×{plan.Height} · cell {recipe.Cell} px · color limit {recipe.ColorLimit}. Cell and colors change the image; speed changes only movement.")
+            :"";
+        if(plan?.ExperimentalTexel is {} texel)targetRecipeSummary.Text=T($"Дослідний target: {plan.Width}×{plan.Height} текселів; {texel.Runs.Count} штрихів; скорочення {texel.EndTrimPx}px. Прев’ю — ціль, фізичний результат не сертифікований.", $"Experimental target: {plan.Width}×{plan.Height} texels; {texel.Runs.Count} strokes; trim {texel.EndTrimPx}px. Preview is the target; physical result is unqualified.");
         edgeMergeStatus.Text=plan?.EdgeMerge is {} merge
-            ?T($"Змінено {merge.ChangedPixels:N0} px · об’єднано {merge.MergedRegions:N0} ділянок · проходів {merge.Passes}.",
-                $"Changed {merge.ChangedPixels:N0} px · merged {merge.MergedRegions:N0} regions · passes {merge.Passes}.")
+            ?T($"Змінено {merge.ChangedPixels:N0} px ({100d*merge.ChangedPixels/Math.Max(1,plan!.Width*plan.Height):F2}%) · об’єднано {merge.MergedRegions:N0} ділянок · проходів {merge.Passes}.",
+                $"Changed {merge.ChangedPixels:N0} px ({100d*merge.ChangedPixels/Math.Max(1,plan!.Width*plan.Height):F2}%) · merged {merge.MergedRegions:N0} regions · passes {merge.Passes}.")
             :T("Об’єднання країв вимкнене.","Edge merging is off.");
+        targetChangeNotice.Text=edgeMergeStatus.Text;
+        targetChangeNotice.Visibility=plan?.EdgeMerge is {ChangedPixels:>0}?Visibility.Visible:Visibility.Collapsed;
     }
     private Window CreateEdgePreviewWindow(PaintPlan current)
     {

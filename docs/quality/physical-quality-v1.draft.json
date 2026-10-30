@@ -1,0 +1,204 @@
+{
+  "schema": "pixora.standard-physical-quality-policy.v1-draft",
+  "status": "PARTIALLY_ACCEPTED_LIMITS_NOT_PRODUCTION_FROZEN",
+  "date": "2026-10-22",
+  "frozen": false,
+  "implementedInProduction": false,
+  "productionEligible": false,
+  "historicalEvidenceCanQualify": false,
+  "scope": {
+    "route": "Standard",
+    "shape": "round",
+    "size": 3,
+    "geometry": [
+      "horizontal",
+      "vertical"
+    ],
+    "directionsSeparate": true,
+    "contextsSeparate": true,
+    "adaptiveIncluded": false
+  },
+  "units": "physical-screen-px",
+  "registration": "frozen-origin-only; no fitting to observed after frame",
+  "target": "frozen prepared target plus complete physical annotations before acceptance",
+  "edgeObservablePolicyHash": null,
+  "uncertaintyPolicyHash": null,
+  "colorCoveragePolicyHash": null,
+  "acceptanceMatrixHash": null,
+  "analyzerHash": null,
+  "proposedLimits": {
+    "p95PooledAbsoluteEdgeErrorPx": 0.5,
+    "maxPerEdgeErrorRangePx": 1.0,
+    "maxAbsoluteWidthErrorPx": 1.0,
+    "widthRangePx": 1.0,
+    "maxAdjacentEdgeErrorStepPx": 0.5,
+    "maxCapHausdorffLInfinityPx": 1.0,
+    "maxAbsoluteCapLongitudinalErrorPx": 1.0
+  },
+  "p95": {
+    "rule": "nearest-rank ceil(0.95*M)-1 for an array of M values",
+    "pooled": "P95PooledAbsoluteEdgeErrorPx over 2N absolute edge errors",
+    "row": "P95RowMaxAbsoluteEdgeErrorPx over N row-wise max(abs(low error),abs(high error))",
+    "legacyP95AbsoluteTwoEdgeErrorPx": "read-only pooled alias; meaning unchanged",
+    "proposedThresholdAppliesTo": "pooled",
+    "rowThreshold": null
+  },
+  "lineComparison": {
+    "api": "CompareLineMetric",
+    "incompleteLineVerdict": "Incomplete",
+    "declaredEdgeDefinitionRequired": true,
+    "supportedDiagnosticEdgeDefinition": "native-band-local50-radius32-v1",
+    "requiredHashes": [
+      "EdgeAlgorithmSha256",
+      "CaptureGeometrySha256",
+      "ProfileContextSha256",
+      "SourceEvidenceSha256"
+    ],
+    "contextIncludesTargetGeometryAndCalculationRevision": true,
+    "hashFormatAloneProvesExecution": false,
+    "numericPhysicalUncertaintyValidated": false,
+    "resultConstruction": "factory-only public API; internal constructor, immutable snapshot",
+    "externalResultDeserializationAllowed": false,
+    "hostileInProcessCodeTrustBoundary": false
+  },
+  "missingMandatorySamplesAllowed": 0,
+  "silentlyExcludedRowsAllowed": 0,
+  "uncertainty": {
+    "unknownIsZero": false,
+    "perMetricRequired": true,
+    "studyEvidenceHashAndMethodRevisionRequired": true,
+    "metricAndMeasurementContextMustMatch": true,
+    "residualComponents": [
+      "CaptureResidualPx",
+      "ExtractionResidualPx",
+      "SamplingResidualPx"
+    ],
+    "missingResidualComponentVerdict": "Incomplete",
+    "observedScatterCountedTwice": false,
+    "pass": "metric + U_metric <= limit",
+    "fail": "metric - U_metric > limit",
+    "boundaryOverlapOrUnknown": "INCOMPLETE",
+    "aggregation": "linear sum of component upper bounds",
+    "quadratureAllowed": false,
+    "uniformEdgeSupBound": {
+      "precondition": "proven bound e for every corresponding edge/row; exact target; same observable/context",
+      "factors": {
+        "MaxAbsoluteTwoEdgeError": 1,
+        "P95PooledAbsoluteEdgeError": 1,
+        "P95RowMaxAbsoluteEdgeError": 1,
+        "MaxPerEdgeErrorRange": 2,
+        "MaxAbsoluteWidthError": 2,
+        "WidthRange": 4,
+        "MaxAdjacentEdgeErrorStep": 2
+      },
+      "estimatesPhysicalEdgeBound": false
+    },
+    "studyProtocol": "UNCERTAINTY_STUDY_PROTOCOL.md"
+  },
+  "unchangedSafetyContracts": {
+    "rgbTolerance": 12,
+    "contrastThreshold": 80,
+    "structuralRoiCount": 16,
+    "structuralCorrelation": 0.985,
+    "runtimeRectDeltaPx": 0,
+    "geometryToleranceAuthorizesOverdraw": false,
+    "geometryPassImpliesSolid": false
+  },
+  "verdicts": [
+    "BLOCKED_POLICY",
+    "INCOMPLETE",
+    "FAIL",
+    "GEOMETRY_PASS",
+    "PHYSICAL_QUALITY_PASS"
+  ],
+  "allRequiredCasesMustPassIndividually": true,
+  "nativeInputPerformed": false,
+  "calculationRevision": "standard-physical-metrics-v3",
+  "capComparison": {
+    "api": "CompareCapMetric",
+    "physicalDecisionEnabled": false,
+    "presentGeometryVerdict": "Incomplete",
+    "presentGeometryReason": "cap_evidence_policy_unavailable",
+    "missingGeometryReason": "cap_incomplete",
+    "captureExtractionUncertaintyValidated": false,
+    "scalarHelperCanAuthorizeCap": false
+  },
+  "consumerTrust": {
+    "readyComparisonMayAuthorizeStart": false,
+    "diagnosticComparisonIsMutablePublicRecord": true,
+    "consumerMustVerifyRawEvidenceAndRecompute": true,
+    "externalOrSerializedVerdictTrusted": false,
+    "productionConsumerImplemented": false,
+    "integrationForgeryTestsBeforeFirstConsumerRequired": true
+  },
+  "rawRequestedColorMask": {
+    "revision": "native-requested-rgb12-contrast80-mask-v1",
+    "implementation": "StandardPaintMask.Measure",
+    "rule": "maxRGB(actual,requested)<=12 AND maxRGB(actual,baseline)>80",
+    "requestedColorLearnedFromAfter": false,
+    "opaqueNativePixelsRequired": true,
+    "missingDisconnectedClippedRowsHaveEdges": false,
+    "pixelIndices": "half-open screen indices",
+    "physicalEdges": "FirstPixel-0.5 and EndPixelExclusive-0.5",
+    "productionObservableQualified": false,
+    "existingNativeRows": {
+      "expected": 10426,
+      "complete": 3796,
+      "missing": 2632,
+      "disconnected": 3998,
+      "clipped": 0
+    },
+    "missingOrDisconnectedProvesAbsenceOfPaint": false,
+    "interpretation": "membership in nominal RGB mask only; not a physical hole classification"
+  },
+  "captureControl": {
+    "status": "CAPTURE_CONTROL_PASS",
+    "dpi": 96,
+    "frames": 2,
+    "sourceSize": [
+      257,
+      193
+    ],
+    "allPixelsAndChannelsExact": true,
+    "nativeInput": false,
+    "rustUsed": false,
+    "gameProjectionValidated": false,
+    "scope": "current monitor/Windows session/PerMonitorV2 test process only"
+  },
+  "renderedColorReferenceProposal": {
+    "status": "NOT_IMPLEMENTED_UNVALIDATED",
+    "newObservableRevisionRequired": true,
+    "requestedAndRenderedRgbSeparate": true,
+    "uiSwatchIsCanvasReference": false,
+    "geometryMaskIsPositionBoundColorMap": false,
+    "referenceMustComeFromIndependentCalibration": true,
+    "untouchedValidationRequired": true,
+    "scopeMustInclude": [
+      "absoluteArea",
+      "geometryDpiOrigin",
+      "paintSource",
+      "shapeSize",
+      "emitterSpeedExposure",
+      "opacityInterval",
+      "completePaintHistory",
+      "sceneLightingCameraHud",
+      "rawEvidenceHashes"
+    ],
+    "referenceFromTestAfterAllowed": false,
+    "automaticReferenceReplacementAllowed": false,
+    "unmeasuredPositionInterpolationAllowed": false,
+    "tolerance": 12,
+    "contrastStrictlyAbove": 80
+  },
+  "acceptedLimits": {
+    "maxAbsoluteTwoEdgeErrorPx": 1.0
+  },
+  "acceptanceScope": {
+    "date": "2026-10-22",
+    "source": "Direct user agreement to maximum absolute edge-position error <=1 physical px including uncertainty",
+    "onlyMaximumEdgePositionAccepted": true,
+    "otherMetricsStillProposed": true,
+    "numericPhysicalUncertaintyValidated": false,
+    "completePhysicalQualityPolicyAccepted": false
+  }
+}

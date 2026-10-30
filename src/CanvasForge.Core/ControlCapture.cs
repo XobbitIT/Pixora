@@ -12,7 +12,7 @@ public static class ControlCapture
 
     public static ScreenRect Region(Calibration calibration,ScreenRect window)
     {
-        var regions=new[]{"size","interval","opacity"}.Select(k=>calibration.Rect(k+"_track"))
+        var regions=new[]{"size"}.Select(k=>calibration.Rect(k+"_track"))
             .Where(r=>r.Valid).Select(r=>Bounds(r,window)).Where(r=>r.Valid).ToArray();
         return regions.Length==0?default:new(regions.Min(r=>r.Left),regions.Min(r=>r.Top),
             regions.Max(r=>r.Right),regions.Max(r=>r.Bottom));

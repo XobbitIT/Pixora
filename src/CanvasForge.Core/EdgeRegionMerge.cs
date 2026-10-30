@@ -7,17 +7,10 @@ public sealed record EdgeMergeResult(int ChangedPixels,int MergedRegions,int Pas
 // cells are neither targets nor destinations. Larger regions keep their pixels.
 public static class EdgeRegionMerge
 {
-    public const string Revision="thin-target-components-v1";
-    public static int MinimumArea(Settings s,int width,int height)
-    {
-        var canvas=s.Calibration.Rect("canvas");
-        double scale=canvas.Valid?canvas.Width/(double)width*canvas.Height/height:1;
-        // Preprocessing must not change merely because the user applies the
-        // mode recommendation; both modes must receive the same target.
-        int core=DrawingWorkflow.PaintingProfiles(s,true)
-            .Where(p=>p.SolidCore.Valid).Select(p=>p.SolidCore.Width*p.SolidCore.Height).DefaultIfEmpty(1).Min();
-        return Math.Max(1,(int)Math.Ceiling(core/scale));
-    }
+    public const string Revision="thin-target-components-image-only-v2";
+    // One target cell, independent of the active/calibrated brush. Explicit
+    // thickness remains the user's image-processing choice.
+    public static int MinimumArea(Settings s,int width,int height) => 1;
     public static EdgeMergeResult Apply(int[] grid,int width,int height,int thickness,int minimumArea,CancellationToken token=default,int passes=3)
     {
         if(width<1||height<1||(long)width*height!=grid.Length||thickness is <1 or >4||minimumArea<1||passes is <1 or >3)

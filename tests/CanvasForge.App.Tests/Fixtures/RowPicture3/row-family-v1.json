@@ -1,0 +1,7216 @@
+{
+  "scope": "Finite training grid, not physical uncertainty or an identified unique mapping",
+  "betaGrid": [
+    -0.01,
+    0.0101,
+    0.0001
+  ],
+  "cGrid": [
+    0,
+    1,
+    0.002
+  ],
+  "inputAnchor": 670,
+  "trainingAdmissible": 1148,
+  "bestByTrainingMaxMinMargin": {
+    "beta": -0.0019000000000000492,
+    "c": 0.468,
+    "offset": 0,
+    "minimumTrainingPhaseMargin": 0.08095613231759557
+  },
+  "posthocMatching4H": 570,
+  "posthocMatching4HAnd12AdvancingPrefixes": 50,
+  "matchesAll16PrefixMaxModel": 0,
+  "admissible": [
+    {
+      "beta": -0.0032000000000000414,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0014985089529204743
+    },
+    {
+      "beta": -0.0032000000000000414,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003498508952930024
+    },
+    {
+      "beta": -0.0032000000000000414,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005498508952939574
+    },
+    {
+      "beta": -0.0032000000000000414,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003987472827276406
+    },
+    {
+      "beta": -0.0032000000000000414,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001987472827295278
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0012978709947901734
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003297870994799723
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005297870994809273
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0072978709948188225
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009297870994771529
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011297870994781078
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010215876349263908
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008215876349254359
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0062158763492732305
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004215876349263681
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002215876349254131
+    },
+    {
+      "beta": -0.003100000000000042,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00021587634927300314
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0007713822977848395
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002771382297794389
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004771382297803939
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0067713822978134885
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008771382297823038
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010771382297775745
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012771382297785294
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014771382297794844
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016771382297804394
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016444272354561917
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014444272354552368
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012444272354542818
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01044427235456169
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00844427235455214
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006444272354542591
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004444272354561463
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002444272354551913
+    },
+    {
+      "beta": -0.0030000000000000426,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00044427235454236325
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0002448937562462561
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002244893756255806
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0042448937562653555
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006244893756274905
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008244893756284455
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010244893756294005
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01224489375624671
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01424489375625626
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01624489375626581
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01824489375627536
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02024489375628491
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02224489375629446
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022672660843170434
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020672660843189306
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018672660843179756
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016672660843170206
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014672660843189078
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012672660843179528
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010672660843169979
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00867266084318885
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006672660843179301
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004672660843169751
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0026726608431886234
+    },
+    {
+      "beta": -0.002900000000000043,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0006726608431790737
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0017184053699565993
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003718405369966149
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005718405369975699
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007718405369985248
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009718405369994798
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011718405370004348
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013718405369957054
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015718405369966604
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017718405369976153
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019718405369985703
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021718405369995253
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023718405370004803
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02571840536995751
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02771840536996706
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02890104181528841
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02690104181527886
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02490104181529773
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02290104181528818
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02090104181527863
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018901041815297503
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016901041815287954
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014901041815278404
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012901041815297276
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010901041815287726
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008901041815278177
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006901041815297049
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004901041815287499
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0029010418152779494
+    },
+    {
+      "beta": -0.0028000000000000438,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0009010418152968214
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0011919171391241434
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0031919171390768497
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005191917139086399
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007191917139095949
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009191917139105499
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011191917139115048
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013191917139124598
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015191917139077304
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017191917139086854
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019191917139096404
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021191917139105954
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023191917139115503
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025191917139125053
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02719191713907776
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02919191713908731
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03119191713909686
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03319191713910641
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03512941527074531
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03312941527073576
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.031129415270726213
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029129415270745085
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027129415270735535
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025129415270725985
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023129415270744857
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021129415270735308
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019129415270725758
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01712941527074463
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01512941527073508
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01312941527072553
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011129415270744403
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009129415270734853
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007129415270725303
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005129415270744175
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0031294152707346257
+    },
+    {
+      "beta": -0.0027000000000000444,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001129415270725076
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0006654290635310645
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002665429063540614
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00466542906349332
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00666542906350287
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00866542906351242
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01066542906352197
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01266542906353152
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014665429063541069
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016665429063493775
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018665429063503325
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020665429063512875
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022665429063522424
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024665429063531974
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026665429063541524
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02866542906349423
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03066542906350378
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03266542906351333
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03466542906352288
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03666542906353243
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03866542906354198
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.040665429063494685
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03935778120961686
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03735778120960731
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03535778120959776
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03335778120961663
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03135778120960708
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029357781209597533
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027357781209616405
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025357781209606856
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023357781209597306
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021357781209616178
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019357781209606628
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01735778120959708
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01535778120961595
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0133577812096064
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011357781209596851
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009357781209615723
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0073577812096061734
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005357781209596624
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0033577812096154958
+    },
+    {
+      "beta": -0.002600000000000045,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001357781209605946
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.394,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0001389411432342058
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0021389411432437555
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004138941143253305
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0061389411432060115
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008138941143215561
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01013894114322511
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01213894114323466
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01413894114324421
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01613894114325376
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018138941143206466
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020138941143216016
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022138941143225566
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024138941143235115
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026138941143244665
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028138941143254215
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03013894114320692
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03213894114321647
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03413894114322602
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03613894114323557
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03813894114324512
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04013894114325467
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.042138941143207376
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.044138941143216925
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.046138941143226475
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.045586139631836886
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04358613963185576
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04158613963184621
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03958613963183666
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03758613963185553
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03558613963184598
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03358613963183643
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0315861396318553
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029586139631845754
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027586139631836204
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025586139631855076
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023586139631845526
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021586139631835977
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01958613963185485
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0175861396318453
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01558613963183575
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013586139631854621
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011586139631845072
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009586139631835522
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007586139631854394
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005586139631844844
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0035861396318352945
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0015861396318541665
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.394,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0016124533784136474
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003612453378423197
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005612453378432747
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007612453378385453
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009612453378395003
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011612453378404552
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013612453378414102
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015612453378423652
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0176124533784332
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019612453378385908
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021612453378395458
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023612453378405007
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025612453378414557
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027612453378424107
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029612453378433656
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03161245337838636
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03361245337839591
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03561245337840546
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03761245337841501
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03961245337842456
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04161245337843411
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04361245337838682
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04561245337839637
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04761245337840592
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.049612453378415466
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.051612453378425016
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05181449053756637
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04981449053755682
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04781449053757569
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.045814490537566144
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.043814490537556594
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.041814490537575466
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.039814490537565916
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03781449053755637
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03581449053757524
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03381449053756569
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03181449053755614
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02981449053757501
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02781449053756546
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025814490537555912
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023814490537574784
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021814490537565234
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019814490537555685
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017814490537574557
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015814490537565007
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013814490537555457
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01181449053757433
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00981449053756478
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00781449053755523
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005814490537574102
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003814490537564552
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0018144905375550024
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.392,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0010859657688229163
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.394,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003085965768832466
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005085965768842016
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007085965768851565
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009085965768804272
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011085965768813821
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013085965768823371
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01508596576883292
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01708596576884247
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01908596576885202
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021085965768804726
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023085965768814276
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025085965768823826
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027085965768833375
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029085965768842925
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.031085965768852475
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03308596576880518
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03508596576881473
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03708596576882428
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03908596576883383
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04108596576884338
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04308596576885293
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.045085965768805636
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.047085965768815186
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.049085965768824735
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.051085965768834285
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.053085965768843835
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.055085965768853384
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05708596576880609
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.058042833926663207
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05604283392665366
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05404283392664411
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05204283392666298
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05004283392665343
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04804283392664388
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04604283392666275
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0440428339266532
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04204283392664365
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.040042833926662524
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.038042833926652975
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.036042833926643425
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0340428339266623
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03204283392665275
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030042833926643198
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02804283392666207
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02604283392665252
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02404283392664297
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022042833926661842
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020042833926652293
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018042833926642743
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016042833926661615
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014042833926652065
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012042833926642516
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010042833926661388
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008042833926651838
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006042833926642288
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00404283392666116
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0020428339266516105
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 4.283392664206076e-05
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.39,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0005594783145852489
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.392,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0025594783145947986
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.394,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004559478314604348
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006559478314613898
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008559478314623448
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010559478314576154
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012559478314585704
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014559478314595253
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016559478314604803
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018559478314614353
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020559478314623902
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02255947831457661
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02455947831458616
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026559478314595708
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028559478314605258
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030559478314614807
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03255947831462436
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03455947831457706
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03655947831458661
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03855947831459616
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04055947831460571
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04255947831461526
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04455947831462481
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04655947831457752
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04855947831458707
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05055947831459662
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05255947831460617
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05455947831461572
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05655947831462527
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05855947831457797
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06055947831458752
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06255947831459707
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06427116979921266
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06227116979923153
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06027116979922198
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05827116979921243
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0562711697992313
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05427116979922175
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0522711697992122
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.050271169799231075
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.048271169799221525
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.046271169799211975
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04427116979923085
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0422711697992213
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04027116979921175
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03827116979923062
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03627116979922107
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03427116979921152
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03227116979923039
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030271169799220843
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028271169799211293
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026271169799230165
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024271169799220615
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022271169799211066
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020271169799229938
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018271169799220388
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01627116979921084
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01427116979922971
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01227116979922016
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010271169799210611
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008271169799229483
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006271169799219933
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004271169799210384
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0022711697992292557
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00027116979921970596
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.388,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 3.299101575748864e-05
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.39,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0020329910157670383
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.392,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004032991015776588
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.394,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006032991015786138
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008032991015795687
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010032991015805237
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012032991015757943
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014032991015767493
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016032991015777043
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018032991015786592
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020032991015796142
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022032991015805692
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024032991015758398
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026032991015767948
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028032991015777498
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030032991015787047
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0320329910157966
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03403299101580615
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03603299101575885
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0380329910157684
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04003299101577795
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0420329910157875
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04403299101579705
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0460329910158066
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04803299101575931
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05003299101576886
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05203299101577841
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05403299101578796
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.056032991015797506
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.058032991015807056
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06003299101575976
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06203299101576931
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06403299101577886
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06603299101578841
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06803299101579796
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07003299101580751
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06849949815520517
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06649949815522405
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0644994981552145
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06249949815520495
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06049949815522382
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05849949815521427
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05649949815520472
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05449949815522359
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05249949815521404
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05049949815520449
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.048499498155223364
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.046499498155213814
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.044499498155204265
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04249949815522314
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04049949815521359
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03849949815520404
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03649949815522291
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03449949815521336
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03249949815520381
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030499498155222682
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028499498155213132
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026499498155203582
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024499498155222454
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022499498155212905
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020499498155203355
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018499498155222227
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016499498155212677
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014499498155203128
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012499498155222
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01049949815521245
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0084994981552029
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006499498155221772
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004499498155212223
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002499498155202673
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.000499498155221545
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.388,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0015065038722923418
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.39,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0035065038723018915
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.392,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005506503872311441
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.394,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007506503872320991
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00950650387233054
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01150650387234009
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013506503872292797
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015506503872302346
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017506503872311896
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019506503872321446
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021506503872330995
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023506503872340545
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02550650387229325
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0275065038723028
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02950650387231235
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0315065038723219
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03350650387233145
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.035506503872341
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.037506503872293706
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.039506503872303256
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.041506503872312805
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.043506503872322355
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.045506503872331905
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.047506503872341455
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04950650387229416
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05150650387230371
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05350650387231326
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05550650387232281
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05750650387233236
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05950650387234191
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.061506503872294616
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06350650387230417
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06550650387231371
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06750650387232326
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06950650387233281
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07150650387234236
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07350650387229507
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07550650387230462
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07472781899465986
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0727278189946503
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07072781899466918
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06872781899465963
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06672781899465008
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06472781899466895
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0627278189946594
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06072781899464985
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05872781899466872
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.056727818994659174
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.054727818994649624
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.052727818994668496
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.050727818994658946
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0487278189946494
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04672781899466827
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04472781899465872
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04272781899464917
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04072781899466804
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03872781899465849
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03672781899464894
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.034727818994667814
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.032727818994658264
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030727818994648715
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028727818994667587
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026727818994658037
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024727818994648487
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02272781899466736
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02072781899465781
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01872781899464826
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016727818994667132
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014727818994657582
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012727818994648032
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010727818994666904
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008727818994657355
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006727818994647805
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004727818994666677
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0027278189946571274
+    },
+    {
+      "beta": -0.0020000000000000486,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0007278189946475777
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.386,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00034737979430587984
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.388,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0023473797943154295
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.39,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0043473797942965575
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.392,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006347379794306107
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.394,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008347379794315657
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.396,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010347379794296785
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.398,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012347379794306335
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014347379794315884
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016347379794297012
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018347379794306562
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02034737979431611
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02234737979429724
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02434737979430679
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02634737979431634
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028347379794297467
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030347379794307017
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.032347379794316566
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.034347379794297694
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.036347379794307244
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.038347379794316794
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04034737979429792
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04234737979430747
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04434737979431702
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04634737979429815
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0483473797943077
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05034737979431725
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.052347379794298377
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.054347379794307926
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.056347379794317476
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.058347379794298604
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.060347379794308154
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0623473797943177
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06434737979429883
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06634737979430838
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06834737979431793
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07034737979429906
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07234737979430861
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07434737979431816
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07634737979429929
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07834737979430884
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.08034737979431839
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.08095613231759557
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07895613231758603
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07695613231757648
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07495613231759535
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0729561323175858
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07095613231757625
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06895613231759512
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06695613231758557
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06495613231757602
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06295613231759489
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06095613231758534
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05895613231757579
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.056956132317594665
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.054956132317585116
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.052956132317575566
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05095613231759444
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04895613231758489
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04695613231757534
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04495613231759421
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04295613231758466
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04095613231757511
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03895613231759398
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.036956132317584434
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.034956132317574884
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.032956132317593756
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030956132317584206
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028956132317574657
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02695613231759353
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02495613231758398
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02295613231757443
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0209561323175933
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01895613231758375
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016956132317574202
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014956132317593074
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012956132317583524
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010956132317573974
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008956132317592846
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006956132317583297
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004956132317573747
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002956132317592619
+    },
+    {
+      "beta": -0.0019000000000000492,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0009561323175830694
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.4,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00026196354266971866
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.402,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0022619635426508466
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.404,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004261963542660396
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.406,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006261963542669946
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.40800000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008261963542651074
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.41000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010261963542660624
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.41200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012261963542670173
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014261963542651301
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01626196354266085
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0182619635426704
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02026196354265153
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02226196354266108
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024261963542670628
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026261963542651756
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028261963542661306
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030261963542670856
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.032261963542651984
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03426196354266153
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03626196354267108
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03826196354265221
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04026196354266176
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04226196354267131
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04426196354265244
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04626196354266199
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04826196354267154
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.050261963542652666
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.052261963542662215
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.054261963542671765
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05626196354265289
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05826196354266244
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06026196354267199
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06226196354265312
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06426196354266267
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06626196354267222
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06826196354265335
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0702619635426629
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07226196354267245
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07426196354265358
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07554681741686409
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07354681741685454
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.07154681741684499
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06954681741683544
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06754681741688273
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06554681741687318
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06354681741686363
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06154681741685408
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05954681741684453
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05754681741683498
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05554681741688228
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05354681741687273
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05154681741686318
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04954681741685363
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04754681741684408
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04554681741689137
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04354681741688182
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04154681741687227
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03954681741686272
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03754681741685317
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.035546817416843624
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03354681741689092
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03154681741688137
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029546817416871818
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027546817416862268
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02554681741685272
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02354681741684317
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021546817416890462
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019546817416880913
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017546817416871363
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015546817416861813
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013546817416852264
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011546817416842714
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009546817416890008
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007546817416880458
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005546817416870908
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0035468174168613587
+    },
+    {
+      "beta": -0.0018000000000000498,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001546817416851809
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.41400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00017656156529710643
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002176561565306656
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004176561565316206
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006176561565297334
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008176561565306883
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010176561565316433
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012176561565297561
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014176561565307111
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01617656156531666
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01817656156529779
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020176561565307338
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022176561565316888
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024176561565298016
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026176561565307566
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028176561565317115
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030176561565298243
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03217656156530779
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03417656156531734
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03617656156529847
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03817656156530802
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04017656156531757
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0421765615652987
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04417656156530825
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0461765615653178
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.048176561565298925
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.050176561565308475
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.052176561565318025
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05417656156529915
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0561765615653087
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05817656156531825
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06017656156529938
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06217656156530893
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06417656156531848
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06617656156529961
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06817656156530916
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06999579535056455
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.067995795350555
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06599579535054545
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0639957953505359
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06199579535052635
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0599957953505168
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.057995795350564094
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.055995795350554545
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.053995795350544995
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.051995795350535445
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.049995795350525896
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04799579535057319
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04599579535056364
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04399579535055409
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04199579535054454
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03999579535053499
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03799579535052544
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.035995795350572735
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.033995795350563185
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.031995795350553635
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029995795350544086
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027995795350534536
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025995795350524986
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02399579535057228
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02199579535056273
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01999579535055318
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01799579535054363
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01599579535053408
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013995795350524531
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011995795350571825
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009995795350562275
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007995795350552726
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005995795350543176
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003995795350533626
+    },
+    {
+      "beta": -0.0017000000000000504,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0019957953505240766
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 9.117386224488655e-05
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0020911738622544362
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004091173862235564
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006091173862245114
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008091173862254664
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010091173862235792
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012091173862245341
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014091173862254891
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01609117386223602
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01809117386224557
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02009117386225512
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022091173862236246
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024091173862245796
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026091173862255346
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028091173862236474
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030091173862246023
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03209117386225557
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0340911738622367
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03609117386224625
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0380911738622558
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04009117386223693
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04209117386224648
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04409117386225603
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.046091173862237156
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.048091173862246706
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.050091173862256255
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05209117386223738
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05409117386224693
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05609117386225648
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05809117386223761
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06009117386224716
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06209117386225671
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06409117386223784
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.06244477285446237
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.060444772854509665
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.058444772854500115
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.056444772854490566
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.054444772854481016
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.052444772854471466
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05044477285451876
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04844477285450921
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04644477285449966
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04444477285449011
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04244477285448056
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04044477285447101
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.038444772854518305
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.036444772854508756
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.034444772854499206
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.032444772854489656
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030444772854480107
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028444772854470557
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02644477285451785
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0244447728545083
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02244477285449875
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0204447728544892
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018444772854479652
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016444772854470102
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014444772854517396
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012444772854507846
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010444772854498297
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008444772854488747
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006444772854479197
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004444772854469647
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002444772854516941
+    },
+    {
+      "beta": -0.001600000000000051,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00044477285450739146
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 5.800433484637324e-06
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0020058004334657653
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004005800433475315
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006005800433484865
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008005800433465993
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010005800433475542
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012005800433485092
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01400580043346622
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01600580043347577
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01800580043348532
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020005800433466447
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022005800433475997
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024005800433485547
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026005800433466675
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028005800433476224
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030005800433485774
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0320058004334669
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03400580043347645
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.036005800433486
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03800580043346713
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04000580043347668
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04200580043348623
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04400580043346736
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04600580043347691
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.048005800433486456
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.050005800433467584
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.052005800433477134
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.054005800433486684
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05600580043346781
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05800580043347736
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05689374992880403
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05489374992879448
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05289374992884177
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05089374992883222
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04889374992882267
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04689374992881312
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04489374992880357
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04289374992879402
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.040893749928841316
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03889374992883177
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03689374992882222
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03489374992881267
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03289374992880312
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030893749928793568
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02889374992884086
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.026893749928831312
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024893749928821762
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022893749928812213
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020893749928802663
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018893749928793113
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016893749928840407
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014893749928830857
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012893749928821308
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010893749928811758
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008893749928802208
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0068937499287926585
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004893749928839952
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0028937499288304025
+    },
+    {
+      "beta": -0.0015000000000000516,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0008937499288208528
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0019204412789122216
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003920441278921771
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005920441278902899
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007920441278912449
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009920441278921999
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011920441278903127
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013920441278912676
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015920441278922226
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017920441278903354
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019920441278912904
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021920441278922453
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02392044127890358
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02592044127891313
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02792044127892268
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02992044127890381
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03192044127891336
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03392044127892291
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.035920441278904036
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.037920441278913586
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.039920441278923136
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.041920441278904264
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04392044127891381
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04592044127892336
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04792044127890449
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04992044127891404
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05192044127892359
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05134272657335259
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04934272657334304
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04734272657333349
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.045342726573323944
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04334272657337124
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04134272657336169
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03934272657335214
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03734272657334259
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03534272657333304
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03334272657332349
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03134272657337078
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029342726573361233
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027342726573351683
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025342726573342134
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023342726573332584
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021342726573323034
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019342726573370328
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01734272657336078
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015342726573351229
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013342726573341679
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01134272657333213
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00934272657332258
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007342726573369873
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0053427265733603235
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003342726573350774
+    },
+    {
+      "beta": -0.0014000000000000522,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0013427265733412241
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0018350963985938051
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003835096398574933
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005835096398584483
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007835096398594033
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00983509639857516
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01183509639858471
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01383509639859426
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015835096398575388
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017835096398584938
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019835096398594487
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021835096398575615
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023835096398585165
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025835096398594715
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027835096398575843
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029835096398585392
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03183509639859494
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03383509639857607
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03583509639858562
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03783509639859517
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0398350963985763
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04183509639858585
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0438350963985954
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.045835096398576525
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0457917027882786
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04379170278826905
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0417917027882595
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03979170278824995
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0377917027882404
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03579170278823085
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.033791702788278144
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.031791702788268594
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029791702788259045
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027791702788249495
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025791702788239945
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023791702788230396
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02179170278827769
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01979170278826814
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01779170278825859
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01579170278824904
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01379170278823949
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01179170278822994
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009791702788277235
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007791702788267685
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005791702788258135
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0037917027882485854
+    },
+    {
+      "beta": -0.0013000000000000528,
+      "c": 0.562,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0017917027882390357
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0017497657924536725
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.488,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003749765792463222
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.49,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005749765792472772
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.492,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0077497657924539
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.494,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00974976579246345
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.496,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011749765792473
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.498,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013749765792454127
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015749765792463677
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017749765792473227
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019749765792454355
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021749765792463904
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023749765792473454
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025749765792454582
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02774976579246413
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02974976579247368
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03174976579245481
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03374976579246436
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03574976579247391
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03774976579245504
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.039749765792464586
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.040240678573411515
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.038240678573401965
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03624067857344926
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03424067857343971
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03224067857343016
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03024067857342061
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02824067857341106
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02624067857340151
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.024240678573448804
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.022240678573439254
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.020240678573429705
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.018240678573420155
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.016240678573410605
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014240678573401055
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01224067857344835
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0102406785734388
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00824067857342925
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0062406785734197
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.562,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00424067857341015
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.5640000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0022406785734006007
+    },
+    {
+      "beta": -0.0012000000000000535,
+      "c": 0.5660000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00024067857344789445
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.5,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001664449460548667
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.502,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0036644494605582167
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.504,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005664449460539345
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.506,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007664449460548894
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.508,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009664449460558444
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.51,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011664449460539572
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.512,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013664449460549122
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01566444946055867
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0176644494605398
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01966444946054935
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0216644494605589
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023664449460540027
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025664449460549577
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.027664449460559126
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.029664449460540254
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.031664449460549804
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.033664449460559354
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.034689653928978714
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.032689653928969165
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030689653928959615
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028689653928950065
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02668965392899736
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02468965392898781
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02268965392897826
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02068965392896871
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01868965392895916
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01668965392894961
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.014689653928996904
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012689653928987354
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010689653928977805
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008689653928968255
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.562,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006689653928958705
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.5640000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004689653928949156
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.5660000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0026896539289964494
+    },
+    {
+      "beta": -0.001100000000000054,
+      "c": 0.5680000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0006896539289868997
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.514,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001579147402765102
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.516,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00357914740274623
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.518,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00557914740275578
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.52,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007579147402765329
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.522,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009579147402746457
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.524,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011579147402756007
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.526,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013579147402765557
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015579147402746685
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017579147402756234
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019579147402765784
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021579147402746912
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023579147402756462
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02557914740276601
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02757914740274714
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02913862885469598
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02713862885468643
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02513862885467688
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02313862885466733
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02113862885465778
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.019138628854648232
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017138628854695526
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015138628854685976
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013138628854676426
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011138628854666877
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.562,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009138628854657327
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.5640000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007138628854647777
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.5660000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005138628854695071
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.5680000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0031386288546855212
+    },
+    {
+      "beta": -0.0010000000000000547,
+      "c": 0.5700000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0011386288546759715
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.528,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0014938596191029774
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.53,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003493859619112527
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.532,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005493859619122077
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.534,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007493859619103205
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.536,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009493859619112754
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.538,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011493859619122304
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.54,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013493859619103432
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015493859619112982
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01749385961912253
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01949385961910366
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02149385961911321
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02349385961912276
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021587603350781137
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01958760335082843
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01758760335081888
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.015587603350809331
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013587603350799782
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.562,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011587603350790232
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.5640000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009587603350780682
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.5660000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007587603350827976
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.5680000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005587603350818426
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.5700000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0035876033508088767
+    },
+    {
+      "beta": -0.0009000000000000553,
+      "c": 0.5720000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001587603350799327
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.542,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0014085861095907148
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.544,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0034085861096002645
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.546,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0054085861095813925
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.548,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007408586109590942
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.55,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009408586109600492
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.552,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01140858610958162
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.554,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01340858610959117
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01540858610960072
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.017408586109581847
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01603657741719644
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.562,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01403657741718689
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.5640000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.012036577417177341
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.5660000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010036577417224635
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.5680000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008036577417215085
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.5700000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006036577417205535
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.5720000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004036577417195986
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.5740000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002036577417186436
+    },
+    {
+      "beta": -0.0008000000000000559,
+      "c": 0.5760000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 3.657741717688623e-05
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.556,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.001323326874171471
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.558,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003323326874152599
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.56,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005323326874162149
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.562,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007323326874171698
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.5640000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009323326874152826
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.5660000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011323326874162376
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.5680000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.010485551053875497
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.5700000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.008485551053865947
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.5720000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.006485551053856398
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.5740000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004485551053846848
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.5760000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0024855510538372982
+    },
+    {
+      "beta": -0.0007000000000000565,
+      "c": 0.578,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.00048555105388459197
+    },
+    {
+      "beta": -0.0006000000000000571,
+      "c": 0.5700000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0012380819127884024
+    },
+    {
+      "beta": -0.0006000000000000571,
+      "c": 0.5720000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.003238081912797952
+    },
+    {
+      "beta": -0.0006000000000000571,
+      "c": 0.5740000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005238081912807502
+    },
+    {
+      "beta": -0.0006000000000000571,
+      "c": 0.5760000000000001,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.004934524260818307
+    },
+    {
+      "beta": -0.0006000000000000571,
+      "c": 0.578,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.002934524260865601
+    },
+    {
+      "beta": -0.0006000000000000571,
+      "c": 0.58,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0009345242608560511
+    }
+  ],
+  "matching4HAndAdvancingPrefixes": [
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0175861396318453
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.01558613963183575
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.013586139631854621
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.011586139631845072
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.47800000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.009586139631835522
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.48,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.007586139631854394
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.482,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.005586139631844844
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.484,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0035861396318352945
+    },
+    {
+      "beta": -0.0025000000000000456,
+      "c": 0.486,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0015861396318541665
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.041814490537575466
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.039814490537565916
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03781449053755637
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.462,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03581449053757524
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.464,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03381449053756569
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.466,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03181449053755614
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.468,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02981449053757501
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47000000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.02781449053756546
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47200000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.025814490537555912
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47400000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.023814490537574784
+    },
+    {
+      "beta": -0.002400000000000046,
+      "c": 0.47600000000000003,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.021814490537565234
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.049085965768824735
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.051085965768834285
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.053085965768843835
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.055085965768853384
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.448,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05708596576880609
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.45,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.058042833926663207
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.452,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05604283392665366
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.454,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05404283392664411
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.456,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05204283392666298
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.458,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05004283392665343
+    },
+    {
+      "beta": -0.002300000000000047,
+      "c": 0.46,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04804283392664388
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03655947831458661
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03855947831459616
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04055947831460571
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.432,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04255947831461526
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.434,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04455947831462481
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.436,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04655947831457752
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.438,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04855947831458707
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.44,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05055947831459662
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.442,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05255947831460617
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.444,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05455947831461572
+    },
+    {
+      "beta": -0.0022000000000000474,
+      "c": 0.446,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.05655947831462527
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.41600000000000004,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.028032991015777498
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.418,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.030032991015787047
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.42,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0320329910157966
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.422,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03403299101580615
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.424,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.03603299101575885
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.426,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0380329910157684
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.428,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.04003299101577795
+    },
+    {
+      "beta": -0.002100000000000048,
+      "c": 0.43,
+      "offset": 0,
+      "minimumTrainingPhaseMargin": 0.0420329910157875
+    }
+  ]
+}

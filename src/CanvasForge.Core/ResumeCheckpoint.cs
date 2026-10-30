@@ -2,14 +2,20 @@ using System.Text.Json;
 
 namespace CanvasForge.Core;
 
+public enum ResumeCompatibility { Compatible,IdentityVersionChanged,PlanChanged,InvalidPosition,ProgressMismatch }
 public sealed record ResumeCheckpoint(string Identity, int Group, int Line, int Done)
 {
     public string? RunKey {get;init;}
+    public int IdentityVersion {get;init;}=PlanIdentity.Version;
     public bool Matches(string identity, IReadOnlyList<int> groupCounts)
+        =>Compatibility(identity,groupCounts)==ResumeCompatibility.Compatible;
+    public ResumeCompatibility Compatibility(string identity,IReadOnlyList<int> groupCounts)
     {
-        if (Identity != identity || groupCounts.Any(count => count < 0) || Group < 0 || Group > groupCounts.Count || Line < 0 || Done < 0
-            || Group == groupCounts.Count && Line != 0 || Group < groupCounts.Count && Line > groupCounts[Group]) return false;
-        return groupCounts.Take(Group).Sum(count => (long)count) + Line == Done;
+        if(IdentityVersion!=PlanIdentity.Version)return ResumeCompatibility.IdentityVersionChanged;
+        if(Identity!=identity)return ResumeCompatibility.PlanChanged;
+        if(groupCounts.Any(count=>count<0)||Group<0||Group>groupCounts.Count||Line<0||Done<0
+            ||Group==groupCounts.Count&&Line!=0||Group<groupCounts.Count&&Line>groupCounts[Group])return ResumeCompatibility.InvalidPosition;
+        return groupCounts.Take(Group).Sum(count=>(long)count)+Line==Done?ResumeCompatibility.Compatible:ResumeCompatibility.ProgressMismatch;
     }
 }
 

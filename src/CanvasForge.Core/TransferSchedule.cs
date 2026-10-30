@@ -1,15 +1,17 @@
+using System.Text.Json;
 namespace CanvasForge.Core;
 
-public sealed record PaintBatch(double Size, IReadOnlyList<ScreenLine> Segments, int SourceStrokes, int ShapeSlot=0, string? ProfileId=null);
+public sealed record PaintBatch(double Size, IReadOnlyList<ScreenLine> Segments, int SourceStrokes, int ShapeSlot=0, string? ProfileId=null)
+{[System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]public string? StrokeProfileId {get;init;}}
 
 // Join only axis-aligned paths that stay inside the original fine coverage or
 // inside a same-color area large enough for the calibrated wide brush.
 public static class TransferSchedule
 {
-    public const string Revision="painted-groups-only-v2";
+    public const string Revision="full-stroke-profile-commands-v3";
     public const int MaximumStrokes = 16;
     public const int MaximumConnector = 32;
-    public static bool Fast(Settings s) => !ReleaseProfile.Standard(s)&&s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
+    public static bool Fast(Settings s) => !ReleaseProfile.Standard(s)&&!s.Bool("adaptive_brush")&&s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
     public static bool FastBatch(Settings s,PaintBatch batch)=>Fast(s)
         &&(batch.Segments.Count!=1||SpeedCalibration.Resolve(s,batch.Size>0?batch.Size:PaintTimingPlan.DefaultSize(s),batch.Segments[0],batch.ShapeSlot) is null);
     public static int Length(ScreenLine l) => Math.Max(Math.Abs(l.X2-l.X1), Math.Abs(l.Y2-l.Y1));
@@ -26,11 +28,20 @@ public static class TransferSchedule
     }
 
     public static Dictionary<int,List<PaintBatch>> Build(PaintPlan plan, Settings s,CancellationToken token=default)
-        => Build(plan, s, AdaptiveBrush.Build(plan,s,token),token);
+    {
+        if(plan.ExperimentalTexel is {} candidate)
+        {
+            token.ThrowIfCancellationRequested();TexelExperimentSettings.ValidatePlan(s,candidate);
+            if(plan.Palette.Length!=1||plan.Palette[0].Color!=new Rgb(0,0,0))throw new InvalidDataException("Experimental texel route requires black.");
+            return new(){[0]=candidate.Runs.Select(r=>new PaintBatch(3,[new(r.Path.Points[0].X,r.CommandY,r.Path.Points[^1].X,r.CommandY)],1,3)).ToList()};
+        }
+        if(TexelExperimentSettings.Enabled(s))throw new InvalidDataException("Experimental mode has no compensated plan; ordinary fallback is forbidden.");
+        return Build(plan,s,AdaptiveBrush.Build(plan,s,token),token);
+    }
 
     public static Dictionary<int,List<PaintBatch>> Build(PaintPlan plan, Settings s, Dictionary<int,List<BrushStroke>> source,CancellationToken token=default)
     {
-        s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):s);
+        s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):BrushMotionEvidence.Execution(s));
         var output = new Dictionary<int,List<PaintBatch>>();
         var rect=s.Calibration.Rect("canvas");
         bool join=Fast(s) && s.Int("brush_shape_slot",3) is 3 or 4
@@ -92,6 +103,13 @@ public static class TransferSchedule
             foreach(var op in strokes)
             {
                 token.ThrowIfCancellationRequested();
+                if(op.StrokeProfileId is {} motionId)
+                {
+                    Flush();
+                    if(!StrokeProfiles.Matches(s,motionId,op.Line,out var motion)||motion!.DotId!=op.ProfileId||motion.Size!=op.Size||motion.Shape!=op.ShapeSlot)
+                        throw new InvalidOperationException("Moving stroke profile does not match the command.");
+                    batches.Add(new(op.Size,[op.Line],1,op.ShapeSlot,op.ProfileId){StrokeProfileId=motionId});priorNormal=false;continue;
+                }
                 var next=op.Line;
                 bool normal=join&&SpeedCalibration.Resolve(s,op.Size>0?op.Size:PaintTimingPlan.DefaultSize(s),op.Line,op.ShapeSlot) is null;
                 bool connected=false;

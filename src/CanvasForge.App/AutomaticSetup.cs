@@ -7,6 +7,7 @@ namespace CanvasForge.App;
 internal sealed partial class MainWindow
 {
     private bool setupRunning;
+    private SetupStageState? setupCompletion;
     private bool setupQuick;
     private TaskCompletionSource? setupDone;
     private CancellationTokenSource? setupCancel;
@@ -53,7 +54,7 @@ internal sealed partial class MainWindow
     };
     private void AddAutomaticSetup(StackPanel parent,bool details=false)
     {
-        var button=AsyncButton(T("Підготувати до малювання","Prepare for painting"),()=>RunSetup(true),true);
+        var button=AsyncButton(T("Підготувати до малювання","Prepare for painting"),()=>RunSetup(false),true);
         button.Tag="automatic-setup";allSetupButtons.Add(button);parent.Children.Add(button);
         var summary=Text("",12,Muted);setupSummaries.Add(summary);parent.Children.Add(summary);
         if(details)
@@ -62,7 +63,7 @@ internal sealed partial class MainWindow
             var image=Button(T("Зображення → відкрити","Image → open"),OpenImage);
             image.Content="1. "+image.Content;
             image.Tag="preparation-image";image.HorizontalContentAlignment=HorizontalAlignment.Left;parent.Children.Add(image);
-            foreach(var stage in ReleaseProfile.Standard(settings)?SetupSequence.StandardStages:SetupSequence.Stages)
+            foreach(var stage in SetupSequence.Stages)
             {
                 var row=Text("",12,Muted);rows[stage]=row;parent.Children.Add(row);
                 row.Cursor=System.Windows.Input.Cursors.Hand;row.Focusable=true;
@@ -86,17 +87,20 @@ internal sealed partial class MainWindow
         setupStop.Visibility=setupRunning||inputCheckRunning?Visibility.Visible:Visibility.Collapsed;
         foreach(var button in allSetupButtons)button.IsEnabled=!Painting;
         var current=PaintingReadiness.Read(settings,source is not null);
-        string summaryText=!setupRunning&&ReleaseProfile.Standard(settings)?T("Standard: області, кольори та керування Size 3. Вимірювання пензля необов’язкове.","Standard: regions, colors and Size 3 controls. Brush measurement is optional."):setupRunning&&setupOutcome.Length>0?T(setupOutcome):
+        string summaryText=preparationResume is not null?T("Підготовку призупинено. Натисни «Продовжити».","Preparation paused. Press Resume."):
+            setupRunning&&setupOutcome.Length>0?T(setupOutcome):
+            setupCompletion is SetupStageState.Cancelled or SetupStageState.Failed?T(setupOutcome):
+            !setupRunning&&ReleaseProfile.Standard(settings)?T("Підготовка Standard: полотно, кольори та круглий Size 3. Вимірювання інших пензлів і швидкості доступні в «Експериментально».","Standard setup: Canvas, colors and round Size 3. Other brush measurements and speed checks are available under Experimental."):
             current.FirstIncomplete?.Problem is { } problem?T(problem):
             setupResults.Any(p=>p.Key is SetupStage.Spatial or SetupStage.Speed&&p.Value.State==SetupStageState.Failed)?
                 T("Можна малювати стабільним вводом. Прискорення потребує повторної перевірки.","Stable painting is ready. Acceleration needs another check."):
-                T("Одна підготовка: області, кольори та один робочий пензель. Тест швидкості й додаткові розміри — окремо.",
-                    "One preparation: regions, colors and one working brush. Speed tests and additional Sizes are optional.");
+                T("Одна підготовка: області, кольори, сім розмірів пензля, перевірка руху та швидкість. Окремі перевірки доступні для повторного калібрування.",
+                    "One preparation: regions, colors, seven brush Sizes, movement checks and speed. Individual checks remain available for recalibration.");
         foreach(var summary in setupSummaries)summary.Text=summaryText;
         foreach(var rows in setupRows)foreach(var stage in rows.Keys)
         {
             var result=setupResults.GetValueOrDefault(stage,(SetupStageState.Pending,""));
-            if(!setupRunning&&stage is SetupStage.Capture or SetupStage.Colors or SetupStage.Controls or SetupStage.Brush)
+            if(!setupRunning&&(stage is SetupStage.Capture or SetupStage.Colors or SetupStage.Controls||stage==SetupStage.Brush&&!ReleaseProfile.Standard(settings)))
             {
                 string key=stage.ToString().ToLowerInvariant();
                 var step=current.Steps.Single(s=>s.Key==key);
@@ -113,22 +117,26 @@ internal sealed partial class MainWindow
                 SetupStageState.Paused=>T("пауза","paused"),SetupStageState.Failed=>T("помилка","failed"),SetupStageState.Cancelled=>T("скасовано","cancelled"),_=>T("очікує","pending")
             };
             string detail=string.Join("\n",result.Item2.Split('\n').Select(line=>T(line)));
+            bool optional=stage is SetupStage.Spatial or SetupStage.Speed||stage==SetupStage.Brush&&ReleaseProfile.Standard(settings);
             string icon=result.Item1==SetupStageState.Passed?"✓":result.Item1==SetupStageState.Failed?"!":result.Item1==SetupStageState.Running?"→":"○";
             rows[stage].Text=icon+" "+((int)stage+2)+". "+StageName(stage)+": "+state+
-                (stage is SetupStage.Spatial or SetupStage.Speed?" · "+T("необов'язково","optional"):"");
+                (optional?" · "+T("необов'язково","optional"):"");
             rows[stage].ToolTip=detail.Length>0?detail:null;
             rows[stage].Foreground=result.Item1==SetupStageState.Passed?Success:result.Item1==SetupStageState.Failed?
-                stage is SetupStage.Spatial or SetupStage.Speed?Warning:Danger:
+                optional?Warning:Danger:
                 result.Item1 is SetupStageState.Running or SetupStageState.Cancelled?Warning:Muted;
             rows[stage].IsEnabled=!Painting;
         }
     }
-    private Task RunAutomaticSetup()=>RunSetup(true);
+    private Task RunAutomaticSetup()=>RunSetup(false);
     private void PrepareCombinedSetup()
     {
+        if(ReleaseProfile.Standard(settings))
+        {settings.Set("brush_shape_slot",3);settings.Set("brush_shape","Round");settings.Set("precision_brush_size","3");settings.Set("probe_size",3);}
         AdaptiveBrush.Prepare(settings);
-        settings.Set("brush_calibration_size",SetupBrushSelection.AutomaticSelection(settings.Text("brush_calibration_size","3"),SetupSequence.DrawingSize(settings)));
+        settings.Set("brush_calibration_size",SetupBrushSelection.Combined);
         settings.Set("fast_transfer",false);settings.Set("input_engine","Stable");settings.Set("calibrated_strokes",false);
+        settings.Set("input_frame_delay_ms",Math.Max(20,settings.Number("input_frame_delay_ms",20)));
         // Later calibration stages read the editors again. Synchronize them
         // now so the old single-Size ComboBox cannot erase the combined choice.
         BuildUi();
@@ -147,15 +155,17 @@ internal sealed partial class MainWindow
     private async Task RunSetup(bool quick)
     {
         if(Painting||closing)return;ReadSettings();
-        bool standard=quick&&ReleaseProfile.Standard(settings);
-        var prompt=standard?T("Відкрий редактор Rust. Standard перевірить області, кольори та керування: круглий Size 3, Interval 0.01, Opacity 1. Повне вимірювання пензля не потрібне. Перевір результат у грі. ESC — скасувати. Почати?","Open Rust’s painting editor. Standard checks regions, colors and controls: round Size 3, Interval 0.01, Opacity 1. Full brush measurement is optional. Inspect the result in game. ESC cancels. Begin?"):quick?T("Відкрий чисте полотно Rust та обери інструмент пензля. Програма перевірить кольори, керування і три відбитки одного робочого Size. Малювання використовуватиме Precision, Opacity 1 і стабільний ввід; Adaptive, аудит та прискорення вмикаються окремо. Очисти тестові крапки після завершення. Не рухай мишу; ESC — скасувати. Почати?",
+        bool standard=ReleaseProfile.Standard(settings);
+        bool requestedAdaptive=settings.Bool("adaptive_brush");
+        var prompt=standard?T("Відкрий редактор Rust. Встанови Interval 0.01 і Opacity 1.00 вручну. Standard перевірить області, кольори й круглий Size 3. Повне вимірювання пензля не потрібне. Перевір результат у грі. ESC — скасувати. Почати?","Open Rust’s painting editor. Set Interval to 0.01 and Opacity to 1.00 manually. Standard checks regions, colors and round Size 3. Full brush measurement is optional. Inspect the result in game. ESC cancels. Begin?"):quick?T("Відкрий чисте полотно Rust та обери інструмент пензля. Програма перевірить кольори, керування і три відбитки одного робочого Size. Малювання використовуватиме Precision, Opacity 1 і стабільний ввід; Adaptive, аудит та прискорення вмикаються окремо. Очисти тестові крапки після завершення. Не рухай мишу; ESC — скасувати. Почати?",
             "Open a clean Rust Canvas and select the brush tool. Pixora will check colors, controls and three imprints of one working Size. Painting will use Precision, Opacity 1 and stable input; Adaptive, audit and acceleration are enabled separately. Clear test dots afterwards. Do not move the mouse; ESC cancels. Begin?"):
             T("Відкрий чисте полотно Rust. Одна підготовка перевірить області, вибраний режим кольорів, керування, робочі пензлі та швидкість. Якщо прискорення не підтвердиться, залишиться стабільне малювання. Тестові крапки й лінії залишаться: очисти полотно перед малюванням. Не рухай мишу; ESC — скасувати. Почати?",
             "Open a clean Rust Canvas. One preparation checks regions, the selected color mode, controls, working brushes and speed. If acceleration cannot be verified, stable painting remains available. Test dots and lines remain: clear Canvas before painting. Do not move the mouse; ESC cancels. Begin?");
+        if(!quick&&!standard)prompt=T("Відкрий чисте полотно Rust та вручну встанови інтервал 0.01 і прозорість 1.00. Одна підготовка пройде області, кольори, керування, Size 2/3/5/7/10/15/20, перевірку руху великих пензлів і швидкість. Невдалий Size не скасовує інші. Standard доступний без підтвердженого прискорення. Після завершення очисти тестові сліди. Не рухай мишу; ESC — скасувати. Почати?",
+            "Open a clean Rust Canvas and manually set Interval 0.01 and Opacity 1.00. One preparation runs regions, colors, controls, Sizes 2/3/5/7/10/15/20, moving wide-brush checks and speed. A failed Size does not discard the others. Standard remains available without verified acceleration. Clear test traces afterwards. Do not move the mouse; ESC cancels. Begin?");
         if(!ShowMessage(prompt,T("Підготовка Rust","Rust setup"),true))return;
-        if(!quick)settings.Set("release_profile","Experimental");
         setupQuick=quick;
-        if(!quick)
+        if(!quick&&!standard)
         {
             PrepareCombinedSetup();
         }
@@ -163,8 +173,9 @@ internal sealed partial class MainWindow
         {
             PrepareDrawingSetup();
         }
-        CalibrationReliability.BeginBrushCheck(settings);
-        setupRunning=true;setupDone=new(TaskCreationOptions.RunContinuationsAsynchronously);setupCancel=new();paintCancel=setupCancel;setupOutcome="";setupResults.Clear();SetEditing(false);
+        if(!standard)CalibrationReliability.BeginBrushCheck(settings);
+        if(standard){settings.Set("brush_shape_slot",3);settings.Set("brush_shape","Round");settings.Set("precision_brush_size","3");settings.Set("probe_size",3);BuildUi();}
+        setupCompletion=null;setupRunning=true;setupDone=new(TaskCreationOptions.RunContinuationsAsynchronously);setupCancel=new();paintCancel=setupCancel;setupOutcome="";setupResults.Clear();SetEditing(false);
         try
         {
             Action<SetupStage,SetupStageState,string> report=(stage,state,detail)=>
@@ -177,12 +188,15 @@ internal sealed partial class MainWindow
                 setupResults[stage]=(state,detail);setupOutcome=StageName(stage)+" · "+T(state==SetupStageState.Running?"виконується":"завершено",
                     state==SetupStageState.Running?"running":"finished");
                 RefreshSetupStatus();SetStatus(setupOutcome);
-                File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_stage",details=new{stage=stage.ToString(),state=state.ToString(),detail}})+Environment.NewLine);
+                SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_stage",details=new{stage=stage.ToString(),state=state.ToString(),detail}})+Environment.NewLine);
             };
             bool accelerated=false;
-            if(quick)await SetupSequence.Run((stage,t)=>RunResumableCheck(()=>ExecuteSetupStage(stage,t),t),report,SetupToken,standard?SetupSequence.StandardStages:SetupSequence.DrawingStages);
-            else accelerated=await SetupSequence.Prepare((stage,t)=>RunResumableCheck(()=>ExecuteSetupStage(stage,t),t),report,SetupToken);
+            if(standard||quick)await SetupSequence.Run((stage,t)=>RunResumableCheck(()=>ExecuteSetupStage(stage,t),t),report,SetupToken,SetupSequence.InitialStages(settings,quick));
+            else accelerated=await SetupSequence.Prepare((stage,t)=>RunResumableCheck(()=>ExecuteSetupStage(stage,t),t),report,SetupToken,brushOptional:standard);
             if(!quick)settings.Set("calibrated_strokes",accelerated&&SpeedCalibration.Current(settings));
+            if(!standard)settings.Set("adaptive_brush",requestedAdaptive&&AdaptiveBrush.CalibrationCurrent(settings));
+            setupCompletion=SetupStageState.Passed;
+            if(standard){settings.Set("precision_brush_size","3");settings.Set("brush_shape_slot",3);settings.Set("brush_shape","Round");}
             setupOutcome=standard?T("Standard готовий. Відкрий зображення й натисни «Почати». Результат перевір у Rust.","Standard ready. Open an image and press Start. Inspect the result in Rust."):quick?T("Пензель готовий. Очисти тестові крапки, відкрий зображення й натисни «Почати».",
                 "Brush ready. Clear the test dots, open an image and press Start."):
                 accelerated?T("Підготовка завершена. Очисти тестові крапки й лінії та натисни «Почати».",
@@ -190,8 +204,8 @@ internal sealed partial class MainWindow
                 T("Пензель готовий. Прискорення не підтверджено; доступне стабільне малювання. Очисти тестові сліди перед стартом.",
                     "Brush ready. Acceleration is unverified; stable painting is available. Clear test traces before Start.");
         }
-        catch(OperationCanceledException){setupOutcome=T("Перевірку скасовано. Завершені етапи збережені; очисти тестове полотно.","Setup cancelled. Completed stages are retained; clear the test Canvas.");}
-        catch(SetupStageException e){setupOutcome=StageName(e.Stage)+": "+T(e.Message);}
+        catch(OperationCanceledException){setupCompletion=SetupStageState.Cancelled;setupOutcome=T("Перевірку скасовано. Завершені етапи збережені; очисти тестове полотно.","Setup cancelled. Completed stages are retained; clear the test Canvas.");}
+        catch(SetupStageException e){setupCompletion=SetupStageState.Failed;setupOutcome=StageName(e.Stage)+": "+T(e.Message);}
         finally
         {
             setupWorkspace=null;setupRunning=false;setupCancel?.Dispose();setupCancel=null;paintCancel=null;
@@ -206,11 +220,7 @@ internal sealed partial class MainWindow
         switch(stage)
         {
             case SetupStage.Capture:
-                bool recapture=!SetupSequence.CaptureReady(settings);
-                if(!recapture)try{AlignRustForTest();}
-                    catch(InvalidOperationException e) when(e.Message is CalibrationSession.DpiChangedMessage or CalibrationSession.SizeChangedMessage){recapture=true;}
-                if(recapture)await CaptureWizard();
-                if(!SetupSequence.CaptureReady(settings))throw new InvalidOperationException(T("Не всі області захоплені. Повтори виділення.","Some regions are missing. Repeat the selections."));
+                await EnsureSetupScene();
                 setupWorkspace=new(settings.Calibration.Rect("canvas"));break;
             case SetupStage.Colors:
                 if(settings.Mode==ColorMode.HexDirect)await TestHex();
@@ -222,7 +232,8 @@ internal sealed partial class MainWindow
                     {
                         // A valid old rectangle can still contain a changed UI.
                         // Repair this capture inside the same preparation flow.
-                        await Capture("palette",T("ПАЛІТРА 4×16","PALETTE 4×16"));
+                        if(settings.Calibration.Rect("quick").Valid)await CaptureWizard();
+                        else await Capture("palette",T("ПАЛІТРА 4×16","PALETTE 4×16"));
                         await TestPaletteTargets();
                     }
                 }
@@ -238,16 +249,16 @@ internal sealed partial class MainWindow
     private async Task CalibrateSetupBrush()
     {
         Task Measure()=>SetupBrushCalibrator?.Invoke()??CalibrateBrush();
-        double? Selected()=>SetupBrushSelection.Select(lastBrushProfiles,settings.Int("brush_shape_slot",3),settings.Number("probe_size",3));
+        double? Selected()=>SetupBrushSelection.Select(lastBrushProfiles,settings.Int("brush_shape_slot",3),settings.Number("precision_brush_size",3));
         CalibrationReliability.BeginBrushCheck(settings);
         await Measure();
-        if(Selected() is null&&!setupQuick&&settings.Int("brush_shape_slot",3)==3)
+        if(Selected() is null&&!setupQuick&&!ReleaseProfile.Standard(settings)&&settings.Int("brush_shape_slot",3)==3)
         {
             var points=settings.Data["brush_calibration_points"]?.DeepClone();
             var context=settings.Data["brush_calibration_context"]?.DeepClone();
             var originalProfiles=lastBrushProfiles;string originalFailure=adaptiveFailure;
             bool keepFallback=false;
-            File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_brush_fallback",details=new{fromShape=3,toShape=4,reason=adaptiveFailure}})+Environment.NewLine);
+            SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_brush_fallback",details=new{fromShape=3,toShape=4,reason=adaptiveFailure}})+Environment.NewLine);
             settings.Set("brush_shape_slot",4);settings.Set("brush_shape","Square");settings.Set("adaptive_brush",false);
             settings.Data.Remove("brush_calibration_points");settings.Data.Remove("brush_calibration_context");
             try
@@ -264,7 +275,7 @@ internal sealed partial class MainWindow
                     if(context is not null)settings.Data["brush_calibration_context"]=context;
                     lastBrushProfiles=originalProfiles;
                     adaptiveFailure=originalFailure+"\n"+adaptiveFailure;
-                    File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_brush_fallback_rejected",details=new{restoredShape=3,appliedInRust=false}})+Environment.NewLine);
+                    SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_brush_fallback_rejected",details=new{restoredShape=3,appliedInRust=false}})+Environment.NewLine);
                 }
             }
         }
@@ -274,7 +285,7 @@ internal sealed partial class MainWindow
         settings.Set("precision_brush_size",selected.ToString(System.Globalization.CultureInfo.InvariantCulture));
         if(setupQuick||!AdaptiveBrush.CalibrationCurrent(settings))settings.Set("adaptive_brush",false);
         CalibrationReliability.ConfirmBrushCheck(settings,lastBrushProfiles??[]);
-        File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_brush_selected",details=new{shape=settings.Int("brush_shape_slot",3),size=selected,baseVerified=AdaptiveBrush.CalibrationCurrent(settings)}})+Environment.NewLine);
+        SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="setup_brush_selected",details=new{shape=settings.Int("brush_shape_slot",3),size=selected,baseVerified=AdaptiveBrush.CalibrationCurrent(settings)}})+Environment.NewLine);
         BuildUi();SetEditing(false);
     }
 }

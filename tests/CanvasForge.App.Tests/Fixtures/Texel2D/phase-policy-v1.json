@@ -1,0 +1,86 @@
+{
+  "revision": "texel-2d-control-phase-policy-v1",
+  "status": "PRECOLLECTION_RESEARCH_POLICY_NOT_PHYSICAL_UNCERTAINTY",
+  "date": "2026-10-25",
+  "authority": "Codex adopted reviewer0061 proposal for the new research protocol; not a new user quality budget, not old-data acceptance",
+  "parentBlueprintSha256": "4c20c70681eef95ba0882eae9b45085264e5ebbea75463bd83c373c048ac2bf6",
+  "modelCoefficientsChanged": false,
+  "sourceReviewSha256": "7e6fbe61b587f92a745e3e98be908a640e3f097ca3f8efee6fa0b863df77c49b",
+  "sourceScope": "Only fixed model and prospective paths; no new native evidence or old observed event rescore",
+  "detector": "D unchanged: adjacent absolute delta>=0.3px, consecutive same-sign transitions, accumulated absolute delta>=1.2px",
+  "eventRepresentative": "StartY: first changed screen row; do not choose best row from event interval after seeing data",
+  "phase": "u(x,y)=N*(x+beta*(x-anchor)-L(y))/W(y)+c; same frozen0039 parameters; unwrapped absolute phase, no nearest-integer modulo",
+  "predictedIdentity": "Exact integer threshold crossed by floor(u) in the frozen control; negative sign uses old index, positive sign uses new index",
+  "match": {
+    "maximumAbsolutePhaseErrorTexels": 0.2,
+    "inclusive": true,
+    "signMustMatch": true,
+    "assignment": "Monotone one-to-one maximum-cardinality matching, then minimum sum absolute phase error; deterministic skip-observed/skip-predicted/match tie order",
+    "thresholdMayNotBeReassigned": true,
+    "rowError": "Reported diagnostic only; no fixed15row acceptance"
+  },
+  "perEdgeGate": {
+    "nonvacuous": true,
+    "minimumPrecision": 0.8,
+    "minimumRecall": 0.8,
+    "denominator": "All observed D-events and all predicted mandatory-body thresholds on each edge. Extra, opposite-sign or duplicated events remain in observed denominator."
+  },
+  "completeness": "Missing/invalid/out-of-order/duplicate mandatory section or frame/trace/protocol failure -> INCOMPLETE before detection/matching; no denominator removal",
+  "centeredLines": "Primary new mechanism observation: both LongLeft/LongRight, zero D-events on BOTH edges across all767 mandatory body sections. This alone is not exact-width, Solid or product B certification.",
+  "controls": "Secondary nonvacuity/phase-consistency observation. Report each edge separately; a failed control cannot promote the overall research result. Final whole-study aggregation remains to be frozen in runnable protocol.",
+  "noPosthocRelaxation": true,
+  "physicalUncertainty": null,
+  "productionEligible": false,
+  "physicalQualityCertified": false,
+  "nativeInput": false,
+  "predictions": [
+    {
+      "label": "LongLeftControl",
+      "controlX": 693,
+      "predictedScreenRow": 545,
+      "phaseThreshold": 110,
+      "sign": -1,
+      "continuousThresholdY": 544.0873411898965,
+      "inclusiveIntegerRowsFor020": [
+        467,
+        621
+      ]
+    },
+    {
+      "label": "LongLeftControl",
+      "controlX": 693,
+      "predictedScreenRow": 928,
+      "phaseThreshold": 109,
+      "sign": -1,
+      "continuousThresholdY": 927.071047126755,
+      "inclusiveIntegerRowsFor020": [
+        851,
+        1003
+      ]
+    },
+    {
+      "label": "LongRightControl",
+      "controlX": 1329,
+      "predictedScreenRow": 594,
+      "phaseThreshold": 421,
+      "sign": 1,
+      "continuousThresholdY": 593.4812272279149,
+      "inclusiveIntegerRowsFor020": [
+        524,
+        663
+      ]
+    },
+    {
+      "label": "LongRightControl",
+      "controlX": 1329,
+      "predictedScreenRow": 942,
+      "phaseThreshold": 422,
+      "sign": 1,
+      "continuousThresholdY": 941.1841765816039,
+      "inclusiveIntegerRowsFor020": [
+        872,
+        1010
+      ]
+    }
+  ]
+}

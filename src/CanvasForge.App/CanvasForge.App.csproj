@@ -3,4 +3,5 @@
 <ItemGroup><ProjectReference Include="../CanvasForge.Core/CanvasForge.Core.csproj"/><PackageReference Include="SkiaSharp" Version="2.88.9"/><EmbeddedResource Include="translations.json" LogicalName="CanvasForge.Translations"/></ItemGroup>
 <ItemGroup><InternalsVisibleTo Include="CanvasForge.App.Tests"/><EmbeddedResource Include="international.json" LogicalName="CanvasForge.International"/></ItemGroup>
 <ItemGroup><Resource Include="app.ico"/><Resource Include="BrandLogo.png"/></ItemGroup>
+<ItemGroup><EmbeddedResource Include="TexelProductAssets/*" LogicalName="Pixora.TexelProduct.%(Filename)%(Extension)"/></ItemGroup>
 </Project>

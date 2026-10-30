@@ -10,7 +10,7 @@ internal static partial class Program
         bool en=language=="English";string name="execution-timing-"+(en?"en":"ua"),directory=Path.Combine(output,name);Directory.CreateDirectory(directory);
         var s=ReadySettings(language);s.Set("calibrated_strokes",true);s.Set("precision_brush_size","3");
         var p=SpeedCalibration.Read(s)!;s.Set("speed_probe_profile",p with{Samples=p.Samples.Select(sample=>sample with{MaxLength=15}).ToList()});
-        s.Save(Path.Combine(directory,"config-csharp.json"));var w=new MainWindow(directory);SetField(w,"source",new PixelImage(8,8));Invoke(w,"UpdateReady");
+        s.Save(Path.Combine(directory,SettingsStore.ConfigName));var w=FixtureWindow(directory);SetField(w,"source",new PixelImage(8,8));Invoke(w,"UpdateReady");
         var summary=Field<TextBlock>(w,"workingBrushSummary");Assert(summary.Text.Contains("15 px")&&summary.Text.Contains("12"),"Actual tested span and delay are hidden");
         Assert(summary.ToolTip?.ToString()?.Contains(en?"when faster than normal stable movement":"коли він швидший за звичайний стабільний рух")==true,"Fast Transfer limitation is not explained");
         var t=new RemainingTime(Enumerable.Range(0,30).Select(i=>new TimedWork($"m{i}","3:H",.08,true)));

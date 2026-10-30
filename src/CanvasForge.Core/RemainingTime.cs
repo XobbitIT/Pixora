@@ -112,7 +112,7 @@ public sealed class RemainingTime
             return planned*(1+confidence*(b.SampleActual/b.SamplePlanned-1));
         }
         if(Measured(b))return count*b.SampleActual/b.Samples.Count;
-        double fallback=planned*(cycles.Count>=Warmup?cycleActual/cyclePlanned:1);
+        double fallback=planned*(b.Motion&&cycles.Count>=Warmup?cycleActual/cyclePlanned:1);
         // Full-cycle samples already contain checkpoint/report overhead. The
         // common per-operation overhead is added once by Estimate below.
         if(b.Motion&&cycles.Count>=Warmup&&operationOverhead.Count>0)

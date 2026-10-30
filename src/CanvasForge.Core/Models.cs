@@ -66,12 +66,14 @@ public sealed class PixelImage
 public sealed class Settings
 {
     internal bool MeasurementSnapshot { get; set; }
+    internal ConfigStamp? SavedConfig{get;set;}
     public JsonObject Data { get; }
 
     public Settings(JsonObject? data = null) => Data = data ?? new();
     public int Int(string k, int fallback = 0) => (int)Number(k, fallback);
     public double Number(string k, double fallback = 0)
     {
+        if(!Data.ContainsKey(k)&&VerificationPolicy.Number(k) is {} policy)return policy;
         try
         {
             return Data[k] is JsonValue v && v.TryGetValue<double>(out var d) ? d : double.TryParse(Data[k]?.ToString(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out d) ? d : fallback;
@@ -82,15 +84,23 @@ public sealed class Settings
         }
     }
 
-    public bool Bool(string k, bool fallback = false) => bool.TryParse(Data[k]?.ToString(), out var b) ? b : fallback;
+    public bool Bool(string k, bool fallback = false) => bool.TryParse(Data[k]?.ToString(), out var b) ? b : VerificationPolicy.Boolean(k) ?? fallback;
     public string Text(string k, string fallback = "") => Data[k]?.ToString() ?? fallback;
-    public void Set<T>(string k, T value) => Data[k] = JsonSerializer.SerializeToNode(value);
-    public Settings Clone() => new((JsonObject)Data.DeepClone());
+    internal List<ConfigMutation> ConfigMutations { get; }=[];
+    public void Set<T>(string k, T value,[System.Runtime.CompilerServices.CallerMemberName] string source="")
+    {
+        var node=JsonSerializer.SerializeToNode(value);
+        if(k is "brush_footprints" or "brush_footprint_archive" or "brush_motion_proofs" or "stroke_profiles")
+            ConfigMutations.Add(new(k,source,ConfigHistory.Ids(Data[k]),ConfigHistory.Ids(node)));
+        Data[k]=node;
+    }
+    public Settings Clone()
+    {var clone=new Settings((JsonObject)Data.DeepClone()){SavedConfig=SavedConfig};clone.ConfigMutations.AddRange(ConfigMutations);return clone;}
     public ColorMode Mode => Text("color_mode") == "HEX Direct" ? ColorMode.HexDirect : ColorMode.RustPalette;
     public Calibration Calibration => new(Data["calibration"] as JsonObject ?? new());
 
     public bool HexControlsReady => Data["hex_controls"] is JsonObject obj
-        && new[] { "size_track", "interval_track", "opacity_track", "brush_shapes" }.All(k => new Calibration(obj).Rect(k).Valid);
+        && new[] { "size_track", "brush_shapes" }.All(k => new Calibration(obj).Rect(k).Valid);
     public Calibration PaintCalibration()
     {
         var result = new Calibration((JsonObject)Calibration.Data.DeepClone());
@@ -98,7 +108,7 @@ public sealed class Settings
         {
             if (!HexControlsReady) throw new InvalidOperationException("Захопи пензель і повзунки HEX у розділі Захоплення Rust.");
             foreach (var entry in (JsonObject)Data["hex_controls"]!)
-                if (new[] { "size_", "interval_", "opacity_", "brush_shapes_", "brush_shape_cols" }.Any(prefix => entry.Key.StartsWith(prefix, StringComparison.Ordinal)))
+                if (new[] { "size_", "brush_shapes_", "brush_shape_cols" }.Any(prefix => entry.Key.StartsWith(prefix, StringComparison.Ordinal)))
                     result.Data[entry.Key] = entry.Value?.DeepClone();
         }
         return result;
@@ -149,6 +159,7 @@ public sealed class Settings
     public void Validate()
     {
         if(Text("release_profile","Standard") is not ("Standard" or "Experimental"))throw new InvalidDataException("Invalid release profile.");
+        TexelExperimentSettings.Validate(this);
         CalibrationReliability.Validate(this);
         foreach(var key in Defaults().Data.Where(p=>p.Value is JsonValue v&&v.GetValueKind()==JsonValueKind.Number).Select(p=>p.Key))
             if(Data.ContainsKey(key)&&(Data[key] is not JsonValue
@@ -228,6 +239,10 @@ public sealed class Settings
             ["language"] = "Українська",
             ["input_frame_delay_ms"] = 20,
             ["input_experimental_delay_ms"] = 12,
+            [TexelExperimentSettings.EnabledKey] = false,
+            [TexelExperimentSettings.TrimKey] = 0,
+            [TexelExperimentSettings.ColumnKey] = 225,
+            [TexelExperimentSettings.RowKey] = 203,
             ["input_engine"] = "Stable",
             ["control_confirmation"] = "Clipboard",
             ["readback_polls"] = 24,
@@ -238,6 +253,7 @@ public sealed class Settings
             ["color_mode"] = "Rust Palette",
             ["cell_px"] = 3,
             ["max_colors"] = "Auto",
+            ["quick_palette_rows"] = "Auto",
             ["hex_max_colors"] = "128",
             ["fit_mode"] = "fit square",
             ["alpha_threshold"] = 16,
@@ -289,7 +305,8 @@ public sealed class Settings
             ["adaptive_threshold"] = 1.0,
             ["min_line_width"] = 4,
             ["adaptive_brush"] = false,
-            ["edge_merge"] = true,
+            ["edge_merge"] = false,
+            ["edge_merge_policy"] = 1,
             ["edge_merge_thickness"] = 2,
             ["fast_transfer"] = false,
             ["fast_path_batch_points"] = 8,
@@ -305,13 +322,19 @@ public sealed class Settings
 
         )
             s.Set(k, v);
-        s.Set("release_profile","Experimental");return s;
+        s.Set("release_profile","Experimental");SettingsStore.Migrate(s.Data);return s;
     }
 
     public static Settings Load(string path)
     {
-        var obj = JsonNode.Parse(File.ReadAllText(path)) as JsonObject ?? throw new InvalidDataException("Expected JSON object.");
+        if(new FileInfo(path).Length>8L*1024*1024)throw new InvalidDataException("Settings file exceeds 8 MiB. The original has been preserved.");
+        byte[] bytes=File.ReadAllBytes(path);
+        var obj = JsonNode.Parse(System.Text.Encoding.UTF8.GetString(bytes).TrimStart('\uFEFF')) as JsonObject ?? throw new InvalidDataException("Expected JSON object.");
+        long storedRevision=new Settings(obj).Int("config_state_revision");
+        SettingsStore.Migrate(obj);
+        var warning=SettingsStore.RepairLoadedEdgeThickness(obj);
         var s = Defaults();
+        s.LoadWarning=warning;
         foreach (var p in obj)
             s.Data[p.Key] = p.Value?.DeepClone();
         if (s.Text("color_mode") != "HEX Direct")
@@ -319,16 +342,17 @@ public sealed class Settings
         DrawingWorkflow.Normalize(s);
         s.Validate();
         AdaptiveBrush.UpgradeCalibrationContext(s);
+        ConfigOwnership.Observe(s,path,bytes,storedRevision);
         return s;
     }
 
-    public void Save(string path)
+    public SettingsLoadWarning? LoadWarning {get;private set;}
+
+    public void Save(string path, [System.Runtime.CompilerServices.CallerMemberName] string source = "")
     {
+        SettingsStore.Migrate(Data);
         Data["build_version"] = BuildInfo.Full;
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        var temp = path + ".tmp";
-        File.WriteAllText(temp, Data.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-        File.Move(temp, path, true);
+        ConfigHistory.Save(this,path,source);
     }
 }
 
@@ -427,10 +451,11 @@ public static class CalibrationSession
     // A new capture starts fresh rather than mixing incompatible geometries.
     public static void Reset(Settings settings)
     {
-        settings.Data.Remove("calibration");
+        settings.Data.Remove("calibration");settings.Data.Remove("editor_evidence");settings.Data.Remove("editor_references");
         foreach (var key in new[] { "hex_controls", "rust_palette", "palette_click_points", "palette_sources", "brush_calibration_points", "brush_calibration_context",
-            "brush_footprints","shape_speed_profiles","shape_spatial_profiles","speed_probe_profile","probe_spatial_profiles" })
+            "shape_speed_profiles","shape_spatial_profiles","speed_probe_profile","probe_spatial_profiles","canvas_structure" })
             settings.Data.Remove(key);
+        BrushFootprints.InvalidateAll(settings,"calibration_session_reset");
     }
 }
 
@@ -513,6 +538,9 @@ public sealed class PaintPlan
     public required Dictionary<int, List<Stroke>> Strokes { get; init; }
     public required Dictionary<int, int> Counts { get; init; }
     public required string Identity { get; init; }
+    public TexelCompensatedPlan? ExperimentalTexel {get;init;}
+    public string TargetIdentity {get;init;}="";
+    public ImageRecipe? Recipe {get;init;}
     public int? BackgroundColor { get; init; }
     public double Error { get; init; }
     public int[]? BeforeEdgeMerge { get; init; }
@@ -523,25 +551,35 @@ public sealed class PaintPlan
 
 public static class PlanIdentity
 {
+    public const int Version=2;
     public static string Compute(PixelImage image, Settings settings, IEnumerable<PaletteEntry> palette)
     {
         if(ReleaseProfile.Standard(settings))settings=DrawingWorkflow.Effective(settings);
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(image.Rgba);
-        hash.AppendData(System.Text.Encoding.UTF8.GetBytes("canonical-plan-json-v1"));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes("semantic-plan-json-v2"));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(DrawingWorkflow.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeMotion.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StandardStrokeMotion.Revision));
+        if(StandardStrokeMotion.Emitter(settings)!=StandardStrokeMotion.Revision)
+            hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StandardStrokeMotion.Emitter(settings)));
+        if(ReleaseProfile.Standard(settings))hash.AppendData(System.Text.Encoding.UTF8.GetBytes(Coverage.StandardRevision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(TransferSchedule.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeTiming.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(SpeedCalibration.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(BrushFootprints.Revision));
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes(MeasuredColorPlan.Revision));
+        hash.AppendData(System.Text.Encoding.UTF8.GetBytes(StrokeProfiles.Revision));
         if(settings.Mode==ColorMode.RustPalette)hash.AppendData(System.Text.Encoding.UTF8.GetBytes(Planner.PaletteRevision));
         if (settings.Bool("auto_brush_size", true)
             && (settings.Text("coverage_mode", "Precision") != "Precision" || !settings.Bool("force_precision_controls", true)))
             hash.AppendData(System.Text.Encoding.UTF8.GetBytes(AutomaticBrush.Revision));
         var paintSettings = (JsonObject)settings.Data.DeepClone();
+        SettingsStore.Migrate(paintSettings);
+        foreach(string key in new[]{"schema_version","schema_id","version","build_version","editor_evidence","editor_references","diagnostic_debug","motion_transport_rate"})paintSettings.Remove(key);
+        if(!TexelExperimentSettings.Enabled(settings))
+            foreach(var key in TexelExperimentSettings.Keys)paintSettings.Remove(key);
+        else hash.AppendData(System.Text.Encoding.UTF8.GetBytes(TexelCompensatedPlanner.Revision));
         // Recovering the verification display changes no color or stroke. Keep
         // STOP/RESUME identity stable when its sample is relocated in the UI.
         if(paintSettings["calibration"] is JsonObject calibration)
@@ -549,9 +587,13 @@ public static class PlanIdentity
             foreach(var key in calibration.Select(p=>p.Key).Where(k=>k.StartsWith("palette_swatch_",StringComparison.Ordinal)).ToArray())calibration.Remove(key);
             if(calibration.Count==0)paintSettings.Remove("calibration");
         }
-        if(!settings.Bool("edge_merge",true))
+        if(!settings.Bool("edge_merge",false))
         {paintSettings.Remove("edge_merge");paintSettings.Remove("edge_merge_thickness");}
         else hash.AppendData(System.Text.Encoding.UTF8.GetBytes(EdgeRegionMerge.Revision));
+        paintSettings.Remove("edge_merge_policy");paintSettings.Remove("config_state_revision");
+        paintSettings.Remove("brush_footprint_archive");paintSettings.Remove("canvas_structure");
+        paintSettings.Remove("brush_footprint_change_reason");paintSettings.Remove("stroke_profile_policy");
+        paintSettings.Remove("stroke_profile_diagnostics");paintSettings.Remove("legacy_brush_motion_proofs");
         foreach(var key in new[]{"preparation_history","palette_target_failed","controls_validation_failed","probe_sizes"})paintSettings.Remove(key);
         foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance" })
             paintSettings.Remove(key);
@@ -617,6 +659,8 @@ public static class StrokeTiming
 
     public static double Estimate(Settings settings, SpeedProfile speed, int length, bool shift,bool? fast=null)
     {
+        if(StandardLineMotion.Applies(settings,new(0,0,length,0)))
+            return MotionTransportTiming.Standard(settings,speed,new(0,0,length,0));
         if((fast??TransferSchedule.Fast(settings))&&!shift)
             return TransferSchedule.EstimateBatch(settings,speed,new(0,new[]{new ScreenLine(0,0,length,0)},1));
         var travel = shift ? settings.Number("stroke_speed", .028) * Math.Max(1, length) / 100

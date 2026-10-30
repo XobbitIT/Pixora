@@ -19,7 +19,7 @@ internal static partial class Program
         Assert(!System.Text.RegularExpressions.Regex.IsMatch(Translations.ForLanguage(error.Message,true),@"[\u0400-\u04ff]"),"Interruption not translated");
         var click=typeof(Painter).GetMethod("Click",BindingFlags.Instance|BindingFlags.NonPublic)!;
         byte[] il=click.GetMethodBody()!.GetILAsByteArray()!;
-        var cursor=typeof(Painter).GetMethod("MoveCursor",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var cursor=typeof(Painter).GetMethod("MoveIntentCursor",BindingFlags.Instance|BindingFlags.NonPublic)!;
         var set=typeof(Native).GetMethod("SetCursorPos",BindingFlags.Static|BindingFlags.NonPublic)!;
         bool Calls(MethodInfo method)=>Enumerable.Range(0,Math.Max(0,il.Length-4))
             .Any(i=>il[i]==0x28&&BitConverter.ToInt32(il,i+1)==method.MetadataToken);

@@ -35,8 +35,13 @@ internal sealed partial class MainWindow
                 $"Palette: {plan.Palette.Length} available; drawing: {scheduled} colors. No safe strokes: {skipped} colors.");
         }
         if(p.Diagnostics?.Choice is {} choice)
-            measuredPlanStatus.Text+="\n"+T($"Комбінований план: {choice.SelectedStrokes:N0} штрихів; широкий варіант: {choice.MixedStrokes:N0}. Вибір за часом із тим самим покриттям.",
-                $"Combined plan: {choice.SelectedStrokes:N0} strokes; wide candidate: {choice.MixedStrokes:N0}. Selected by time with the same coverage.");
+        {
+            string sizes=string.Join(" / ",p.Groups.Values.SelectMany(g=>g).Select(op=>op.Size).Distinct().Order());
+            measuredPlanStatus.Text+="\n"+T($"Adaptive: Size {sizes}; {choice.SelectedStrokes:N0} штрихів.",$"Adaptive: Size {sizes}; {choice.SelectedStrokes:N0} strokes.");
+            measuredPlanStatus.Text+="\n"+T($"Модель часу: {choice.SelectedSeconds:F0} с; базовий варіант із тим самим покриттям: {choice.SingleUnionSeconds:F0} с. Це прогноз, не вимір у Rust.",
+                $"Modeled time: {choice.SelectedSeconds:F0} s; base candidate with the same coverage: {choice.SingleUnionSeconds:F0} s. This is a prediction, not a Rust measurement.");
+            if(choice.MixedColors==0)measuredPlanStatus.Text+="\n"+T("Великі пензлі не обрано: модель віддала перевагу підтвердженому базовому пензлю.","Large brushes were not selected: the model chose the certified base brush.");
+        }
         if(p.Diagnostics?.StrokeSavings is {} savings)
             measuredPlanStatus.Text+="\n"+T($"Прибрано зайвих штрихів: {savings.RemovedStrokes:N0}; скорочено: {savings.TrimmedStrokes:N0}. Покриття за суцільним ядром збережено.",
                 $"Redundant strokes removed: {savings.RemovedStrokes:N0}; shortened: {savings.TrimmedStrokes:N0}. Solid-core coverage is preserved.");

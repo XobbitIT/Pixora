@@ -13,7 +13,7 @@ public sealed class StrokeExecutionPlan
     public bool Fast {get;}
     public StrokeExecutionPlan(Settings source)
     {
-        settings=BrushFootprints.Snapshot(source.Clone());
+        settings=BrushFootprints.Snapshot(BrushMotionEvidence.Execution(source.Clone()));
         speed=SpeedProfile.Get(settings.Text("speed_profile","Rapid"));
         defaultSize=PaintTimingPlan.DefaultSize(settings,speed);
         resolve=SpeedCalibration.CreateEstimateResolver(settings);
@@ -21,5 +21,6 @@ public sealed class StrokeExecutionPlan
     }
     public SpeedSample? Resolve(double size,ScreenLine line,int shape=0)=>resolve(size,line,shape);
     public bool FastBatch(PaintBatch batch)=>Fast&&(batch.Segments.Count!=1||Resolve(batch.Size>0?batch.Size:defaultSize,batch.Segments[0],batch.ShapeSlot) is null);
+    public double EstimateForTiming(PaintBatch batch)=>PaintTimingPlan.EstimateMotion(settings,speed,batch,resolve,Fast);
     public double Estimate(PaintBatch batch)=>TransferSchedule.EstimateBatch(settings,speed,batch,resolve,Fast);
 }

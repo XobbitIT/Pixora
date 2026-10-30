@@ -48,6 +48,9 @@ public static class BrushDotMotion
 public static class BrushControlReuse
 {
     public static string[] Required(bool sameShape,IReadOnlyDictionary<string,double> verified,
+        double size,Func<string,double,bool> visualMatch)
+        =>!sameShape||!verified.TryGetValue("size",out double value)||value!=size||!visualMatch("size",size)?["size"]:[];
+    public static string[] Required(bool sameShape,IReadOnlyDictionary<string,double> verified,
         double size,double interval,double opacity,Func<string,double,bool> visualMatch)
         =>new[]{("size",size),("interval",interval),("opacity",opacity)}
             .Where(p=>!sameShape||!verified.TryGetValue(p.Item1,out double value)||value!=p.Item2||!visualMatch(p.Item1,p.Item2))

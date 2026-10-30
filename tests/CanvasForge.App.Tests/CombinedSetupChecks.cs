@@ -13,7 +13,7 @@ internal static partial class Program
             // Controls, Brush and subsequent stages all re-read editors.
             Invoke(w,"ReadSettings");Invoke(w,"ReadSettings");
             var live=Field<Settings>(w,"settings");
-            Assert(live.Text("brush_calibration_size")== (choice=="3"?SetupBrushSelection.Combined:choice),"A stale single-Size editor erased the combined setup choice");
+            Assert(live.Text("brush_calibration_size")==SetupBrushSelection.Combined,"One-button preparation must select all seven supported Sizes");
             Assert(live.Text("input_engine")=="Stable"&&!live.Bool("fast_transfer")&&!live.Bool("calibrated_strokes"),"Preparation did not preserve safe input settings");
             Assert(PaintTimingPlan.DefaultSize(live)==3,"Combined preparation changed ordinary default Size");
         }

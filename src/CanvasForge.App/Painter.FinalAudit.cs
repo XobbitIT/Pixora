@@ -48,7 +48,7 @@ internal sealed partial class Painter
 
     private void BeginFinalAudit(PaintPlan plan,bool resume)
     {
-        if(ReleaseProfile.Standard(settings))return;
+        if(ReleaseProfile.Standard(settings)){nativeSegmentResumed=resume;CaptureStandardEvidence("before",plan,resume);return;}
         var canvas=settings.Calibration.Rect("canvas");
         finalAuditDirectory=Path.Combine(Path.GetDirectoryName(logPath)!,"coverage-audit");
         try
@@ -76,7 +76,7 @@ internal sealed partial class Painter
 
     private void CompleteFinalAudit(PaintPlan plan)
     {
-        if(ReleaseProfile.Standard(settings))return;
+        if(ReleaseProfile.Standard(settings)){CaptureStandardEvidence("after",plan,nativeSegmentResumed);return;}
         var canvas=settings.Calibration.Rect("canvas");PixelImage? after=null;
         try
         {

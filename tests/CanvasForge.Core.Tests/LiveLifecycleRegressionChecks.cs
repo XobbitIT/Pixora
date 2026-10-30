@@ -14,7 +14,7 @@ internal static class LiveLifecycleRegressionChecks
                 var cursor=new ScreenPoint(2488,491);
                 var parked=ControlCapture.ParkingPoint(c,window,cursor,dpi);
                 Require(parked is not null,"No clear parking position");
-                foreach(string kind in new[]{"size","interval","opacity"})
+                foreach(string kind in new[]{"size"})
                 {
                     var r=ControlCapture.Bounds(c.Rect(kind+"_track"),window);var p=parked!.Value;
                     int margin=CaptureCursor.Clearance(0,dpi);
@@ -39,7 +39,7 @@ internal static class LiveLifecycleRegressionChecks
             c.SetRect("interval_track",new(1750,450,2000,475));c.SetRect("opacity_track",new(1750,500,2000,525));
             c.SetRect("brush_shapes",new(1600,225,2030,275));c.SetPoint("brush_tool",new(1750,130));
             var window=new ScreenRect(0,0,2048,1152);var region=BrushControlsLocator.CaptureRegion(window,c);
-            foreach(var cursor in new[]{new ScreenPoint(1750,130),new ScreenPoint(1780,250),new ScreenPoint(1980,700)})
+            foreach(var cursor in new[]{new ScreenPoint(1750,130),new ScreenPoint(1780,250),new ScreenPoint(1980,440)})
             {
                 var parked=CaptureCursor.ParkingPoint(region,window,cursor,CaptureCursor.Clearance(0));
                 Require(parked is not null&&parked!=cursor,"Locator kept cursor inside a scanned row");

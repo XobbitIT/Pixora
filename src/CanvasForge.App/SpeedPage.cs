@@ -174,7 +174,7 @@ internal sealed partial class MainWindow
                 void LogResult(string action,StrokeMethod method,bool vertical,double interval,string phase,ProbeAnalysisResult result)
                 {
                     var coverage=result.CoreCoverage;
-                    File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action,details=new{
+                    SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action,details=new{
                         size,method,vertical,intervalMs=interval,phase,scope=result.Spatial is null?"solid_core":"spatial_core_occupancy",coverage=coverage.Coverage,
                         missing=coverage.Missing,unknown=coverage.Unknown,passed=result.Passed,failure=result.Failure.ToString(),
                         core=result.CoreMeasurement,full=result.FullMeasurement,result.PerpendicularOffset,result.LongitudinalGaps,
@@ -232,7 +232,7 @@ internal sealed partial class MainWindow
                     },()=>slot<tiles.Count,failed=>
                     {
                         diagnostics.RejectedControl(ProbeAnalysis.Explain(failed));
-                        File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_local_control_retry",details=new{controlId=diagnostics.ActiveId,size,method,vertical,interval,phase,reason=failed.Failure.ToString(),freshTile=slot}})+Environment.NewLine);
+                        SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_local_control_retry",details=new{controlId=diagnostics.ActiveId,size,method,vertical,interval,phase,reason=failed.Failure.ToString(),freshTile=slot}})+Environment.NewLine);
                     });
                     var line=vertical?tile.Vertical:tile.Horizontal;
                     // Neither geometry nor color may be learned from the fast line.
@@ -259,7 +259,7 @@ internal sealed partial class MainWindow
                     {
                         selected.Add(new(size,method,vertical,timing.TestedMs,timing.SafeMs,Math.Max(1,2*footprint.Inner+1),TransferSchedule.Length(tiles[0].Horizontal),3,1,spatialModel!.Id));
                         diagnostics.Checkpoint(selected);
-                        File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_route_verified",details=selected[^1]})+Environment.NewLine);
+                        SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_route_verified",details=selected[^1]})+Environment.NewLine);
                     }
                 }
                 }
@@ -273,7 +273,7 @@ internal sealed partial class MainWindow
                 // Other Sizes still refer to their unchanged spatial profiles.
                 if(old is not null)StoreProbeRoutes(settings,old,[],size,probeContext,measuredSpatial!.Id);
                 lastProbeSucceeded=true;Dirty();
-                File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_spatial_complete",details=measuredSpatial})+Environment.NewLine);
+                SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_spatial_complete",details=measuredSpatial})+Environment.NewLine);
                 SetStatus(T("Просторове калібрування збережене. Очисти полотно, потім запусти тест швидкості.","Spatial calibration saved. Clear Canvas, then run Speed Probe."));return;
             }
             lastProbeSucceeded=selected.Count>0;
@@ -281,7 +281,7 @@ internal sealed partial class MainWindow
             StoreProbeRoutes(settings,old,selected,size,probeContext,spatialModel!.Id);
             Dirty();
             if(selected.Count==0)speedFailure=T("Жоден маршрут для цього розміру не пройшов перевірку. Очисти полотно і повтори тест.","No route for this Size passed verification. Clear Canvas and repeat the test.");
-            File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_complete",details=new{version=BuildInfo.Version,size,selected,profileContext=SpeedCalibration.Context(settings)}})+Environment.NewLine);
+            SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_complete",details=new{version=BuildInfo.Version,size,selected,profileContext=SpeedCalibration.Context(settings)}})+Environment.NewLine);
             SetStatus(selected.Count>0?T("Тест завершено. Підтверджені маршрути збережено; очисти полотно перед початком малювання.","Test complete. Verified routes saved; clear Canvas before START."):T("Жоден маршрут не пройшов перевірку. Збережено звичайний ввід.","No route passed verification. Normal input remains active."));
         }
         catch(OperationCanceledException e)
@@ -292,7 +292,7 @@ internal sealed partial class MainWindow
             {
                 var failure=new ProbeBudgetExceededException(T("Тест швидкості перевищив ліміт часу. Очисти полотно перед повтором.","Speed Probe exceeded its time budget. Clear Canvas before retrying."),e);
                 RecordFailure(failure);speedFailure=failure.Message;SetStatus(speedFailure);
-                File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_timeout",details=new{budgetSeconds}})+Environment.NewLine);
+                SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_timeout",details=new{budgetSeconds}})+Environment.NewLine);
                 if(setupRunning||combinedProbeRunning)throw failure;
             }
             else{RecordFailure(e);speedFailure=T("Тест швидкості скасовано. Очисти полотно перед повтором.","Speed Probe cancelled. Clear Canvas before retrying.");SetStatus(speedFailure);if(setupRunning||combinedProbeRunning)throw;}
@@ -305,12 +305,12 @@ internal sealed partial class MainWindow
             {
                 await Task.Run(()=>
                 {
-                    try{restore.RestoreAfterProbe();File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_complete"})+Environment.NewLine);}
-                    catch(Exception e){File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_failed",details=new{message=e.Message}})+Environment.NewLine);}
+                    try{restore.RestoreAfterProbe();SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_complete"})+Environment.NewLine);}
+                    catch(Exception e){SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_failed",details=new{message=e.Message}})+Environment.NewLine);}
                     finally{worker?.RestoreLastStrokeCursor();}
                 });
             }
-            else if(restore is not null)File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_skipped",details=new{reason=closing?"closing":interrupted||cancel.IsCancellationRequested?"cancelled":"focus_lost"}})+Environment.NewLine);
+            else if(restore is not null)SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_restore_skipped",details=new{reason=closing?"closing":interrupted||cancel.IsCancellationRequested?"cancelled":"focus_lost"}})+Environment.NewLine);
             worker?.Dispose();restore?.Dispose();painter=null;if(ownsCancel)cancel.Dispose();if(!setupRunning)paintCancel=null;Save();
             if(!closing){var message=status.Text;BuildUi();ShowSpeedSetup();SetEditing(true);SetStatus(message);Show();Activate();}
         }
@@ -322,11 +322,11 @@ internal sealed partial class MainWindow
             {
                 StoreProbeRoutes(settings,old,selected,size,probeContext,spatialModel!.Id);
                 Dirty();
-                File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_partial_saved",details=new{size,selected,error=e.Message}})+Environment.NewLine);
+                SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="speed_probe_partial_saved",details=new{size,selected,error=e.Message}})+Environment.NewLine);
             }
             try{diagnostics.Failed(e);}
             catch(Exception saveError) when(saveError is IOException or UnauthorizedAccessException)
-            {File.AppendAllText(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_diagnostics_save_failed",details=new{message=saveError.Message}})+Environment.NewLine);}
+            {SessionLog.AppendJson(LogPath,JsonSerializer.Serialize(new{time=DateTimeOffset.UtcNow,action="probe_diagnostics_save_failed",details=new{message=saveError.Message}})+Environment.NewLine);}
         }
     }
 

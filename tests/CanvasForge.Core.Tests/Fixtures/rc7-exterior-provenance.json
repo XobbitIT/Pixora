@@ -1,0 +1,86 @@
+{
+  "scope": "Historical exterior including toolbar/tool row and 24px inner boundary. Canvas interior masked. No newly collected native positive pairs; old fixtures unchanged.",
+  "files": [
+    {
+      "file": "rc3-editor-palette.rc7.rgba.gz",
+      "source": "rc2-oct13-review\\video\\750.png",
+      "sourceSha256": "18814dcbef1a437ebfca8199d0ee470273290275b38ba205ca11f57a2a2255f6",
+      "sha256": "0de629c8e9e589bda4576f582d2cc19d52cd50ba6f8e9ebb2565fb8765415f40",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc3-editor-painted.rc7.rgba.gz",
+      "source": "rc2-oct13-review\\video\\815.png",
+      "sourceSha256": "69974d1b00d74e2ef4deb6adb4dea9262b2dd5f4dbb051e794684db6ca783241",
+      "sha256": "45e5aea2c63dd3d757318eceb295118c5703e0759ef3c3e177b40b5525a01614",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc3-editor-hex.rc7.rgba.gz",
+      "source": "rc2-oct13-review\\video\\110.png",
+      "sourceSha256": "4a504efa2c945584d47d486216f1cf9fc8946e42bcd933498b5cc3f139a12e82",
+      "sha256": "5ad43d73e1188b51a36935e003ca6fc8422e1cf9891f9442f84a62e56ea3259f",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc3-startfix-controls.rc7.rgba.gz",
+      "source": "rc3-startfix-video\\60.png",
+      "sourceSha256": "ff7310df8b5c0d1aa5cb5566b8c6098aa396a328160294761571b56eff2dd29b",
+      "sha256": "a0e54055825bae2a0af3424fabc65f3b1f27f15ec55462bd3b34b46c1edb1e50",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc3-palette-extra.rc7.rgba.gz",
+      "source": "rc3-live-20261013\\video\\rust-0950.png",
+      "sourceSha256": "5f65171ac81dcaa6920676e0ff90dc581df17ebc69a30b3cf2a272f258a799a4",
+      "sha256": "37e112649e7ec0f06a79ea4834645990d745f574cdfc9c383d12c2ed2191ae33",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc4-hex-video-0035.rc7.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-0035.png",
+      "sourceSha256": "60a884cc17ab5977d449a885a704ee0d400e95ae4091e9fc1712c2290bf4d19b",
+      "sha256": "6660b3599b86a14383d3ca415e2c44a7eb10f1b9e87505ec52c226d05bf3e586",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc4-hex-video-0047.rc7.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-0047.png",
+      "sourceSha256": "ac47cc8cc2f9337c4360a7198e0b6c4bb2a25df3551b71cf1ec7fdae754fa810",
+      "sha256": "5782db5201ca0e3eb82382439364a770fa4e9dab4f4b2a8e3462224f84097de1",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc4-hex-video-0069.rc7.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-0069.png",
+      "sourceSha256": "6168de3cd96c3a590c8c3430e64f7f3556ec85d8d229c3014fe4771db529179c",
+      "sha256": "53566ed8fe50391803ac54c581945503352795dafc94c5a5f2c7dd5628dc7545",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    },
+    {
+      "file": "rc4-hex-video-1515.rc7.rgba.gz",
+      "source": "rc3-live-20261014\\video\\desktop-1515.png",
+      "sourceSha256": "b61729103cc1943ef038e52ae23936b7ab55dbaddb680275fafb479d1ce6eb86",
+      "sha256": "553b66d775b1e3ade9ec34339e9e8431eb64118f8ab88680434983ce4030baa5",
+      "width": 2560,
+      "height": 1440,
+      "nativeQualification": false
+    }
+  ]
+}

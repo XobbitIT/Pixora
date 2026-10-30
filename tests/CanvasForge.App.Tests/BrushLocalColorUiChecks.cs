@@ -11,15 +11,15 @@ internal static partial class Program
     {
         bool english=language=="English";string name="brush-local-color-"+(english?"en":"ua");
         string directory=Path.Combine(output,name),run=Path.Combine(directory,"brush-calibration","run-20261007-000000-local");Directory.CreateDirectory(run);
-        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,"config-csharp.json"));
+        var settings=ReadySettings(language);settings.Save(Path.Combine(directory,SettingsStore.ConfigName));
         var before=new PixelImage(96,96);for(int i=0;i<96*96;i++)before.Set(i,new(180,180,180));
         var after=before.Clone();for(int y=50;y<54;y++)for(int x=47;x<51;x++)after.Set(y*96+x,new(28,28,28));
-        var stamp=BrushLocalColor.Measure(before,after,after.Clone(),new(48,48),3,new(0,0,0));
+        var stamp=BrushLocalColor.Measure(before,after,after.Clone(),new(48,48),3,new(0,0,0),new(new(0,0,0),true,true));
         string stem="shape-3-size-3-repeat-1";
         Images.Save(before,Path.Combine(run,stem+"-before.png"));Images.Save(after,Path.Combine(run,stem+"-after.png"));
         Images.Save(after,Path.Combine(run,stem+"-saturation.png"));
         File.WriteAllText(Path.Combine(run,stem+"-metrics.json"),JsonSerializer.Serialize(new{shape=3,size=3,repeat=1,localColor=stamp.LocalColor}));
-        var window=new MainWindow(directory);var dialog=(Window)Invoke(window,"CreateBrushDiagnosticWindow",run)!;
+        var window=FixtureWindow(directory);var dialog=(Window)Invoke(window,"CreateBrushDiagnosticWindow",run)!;
         var root=(FrameworkElement)dialog.Content;root.Measure(new(860,650));root.Arrange(new(0,0,860,650));root.UpdateLayout();
         string text=Descendants(root).OfType<TextBlock>().Single(x=>Equals(x.Tag,"brush-repeat-metrics")).Text;
         Assert(text.Contains("1/1")&&text.Contains(english?"Saturation: confirmed":"Насичення: підтверджено"),"Local saturation evidence hidden or marked failed");

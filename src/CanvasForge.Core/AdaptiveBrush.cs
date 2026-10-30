@@ -1,7 +1,8 @@
 using System.Text.Json.Nodes;
 
 namespace CanvasForge.Core;
-public readonly record struct BrushStroke(ScreenLine Line, double Size, int OuterRadius = 0, int FillRadius = 0, int ShapeSlot = 0, string? ProfileId = null);
+public readonly record struct BrushStroke(ScreenLine Line, double Size, int OuterRadius = 0, int FillRadius = 0, int ShapeSlot = 0, string? ProfileId = null)
+{[System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]public string? StrokeProfileId {get;init;}}
 
 public static class AdaptiveBrush
 {
@@ -19,8 +20,8 @@ public static class AdaptiveBrush
         if (s.Mode == ColorMode.HexDirect && !s.HexControlsReady) return "Захопи пензель і повзунки HEX.";
         var cal = s.PaintCalibration();
         if (cal.SessionClient is null || cal.SessionSize is null) return "Повтори налаштування Rust для поточного вікна.";
-        if (new[] { "size_track", "interval_track", "opacity_track" }.Any(k => !cal.Rect(k).Valid))
-            return "Захопи Size, Interval та Opacity разом із числами справа.";
+        if (new[] { "size_track" }.Any(k => !cal.Rect(k).Valid))
+            return "Захопи Size разом із числом справа.";
         if (s.Mode==ColorMode.RustPalette&&cal.Point("brush_tool") is null) return "Захопи інструмент пензля через налаштування Rust.";
         if (!cal.Rect("brush_shapes").Valid && cal.Point(s.Text("brush_shape", "Round") == "Square" ? "square_brush" : "hard_brush") is null)
             return "Захопи ряд форм пензля через налаштування Rust.";
@@ -32,7 +33,7 @@ public static class AdaptiveBrush
     }
 
     public static bool CalibrationCurrent(Settings s) => (s.Mode != ColorMode.HexDirect || s.HexControlsReady)
-        && (s.Data["brush_footprints"] is not null?DrawingWorkflow.PaintingProfiles(s,s.Bool("adaptive_auto_shape")).Any(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20))
+        && (s.Data["brush_footprints"] is not null?DrawingWorkflow.PaintingProfiles(s,s.Bool("adaptive_auto_shape")).Any(p=>p.SolidCore.Valid&&p.Size<=s.Number("adaptive_max_size",20)&&BrushMotionEvidence.Current(s,p))
             :s.Int("brush_shape_slot",3) is 3 or 4&&s.Text("brush_calibration_context") == Context(s) && Samples(s).Length >= 2);
 
     public static void Prepare(Settings s)
@@ -107,14 +108,14 @@ public static class AdaptiveBrush
     public static Dictionary<int, List<BrushStroke>> Build(PaintPlan plan, Settings s, CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();
-        s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):s);
+        s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):BrushMotionEvidence.Execution(s));
         if(s.Bool("adaptive_brush"))Validate(s);
         if(MeasuredColorPlan.TryBuild(plan,s,token) is { } measured)return measured.Groups;
         var basic = Coverage.Build(plan, s);
         var output = basic.ToDictionary(x => x.Key, x => x.Value.Select(l => new BrushStroke(l, 0)).ToList());
         if (!s.Bool("adaptive_brush")) return output;
         Validate(s);
-        if(BrushFootprints.Read(s).Count>0)return MeasuredAdaptive.Build(plan,s,basic,token);
+        if(s.Data["brush_footprints"] is not null)throw new InvalidOperationException("No current measured brush route is available. Recalibrate the brush or use Standard.");
         var rect = s.Calibration.Rect("canvas");
         int w = rect.Width, h = rect.Height;
         var labels = new int[checked(w * h)];

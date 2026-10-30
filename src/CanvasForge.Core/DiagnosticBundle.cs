@@ -5,9 +5,11 @@ namespace CanvasForge.Core;
 
 public static class DiagnosticBundle
 {
-    private static readonly HashSet<string> Files=["config-csharp.json","session-csharp.jsonl","resume-csharp.json","crash.log"];
+    private static readonly HashSet<string> Files=["config-csharp.json","config-v3.json","session-csharp.jsonl","session-csharp.1.jsonl","session-csharp.2.jsonl","debug.jsonl","failures.jsonl","resume-csharp.json","resume-v3.json","crash.log"];
     private static readonly HashSet<string> Extensions=[".png",".json",".jsonl",".log"];
-    private static bool DiagnosticDirectory(string name)=>name=="last-run"||name.Contains("calibration",StringComparison.OrdinalIgnoreCase)
+    private static bool Allowed(string name)=>Extensions.Contains(Path.GetExtension(name).ToLowerInvariant())
+        ||name.EndsWith(".rgba.gz",StringComparison.OrdinalIgnoreCase)||name.EndsWith(".json.gz",StringComparison.OrdinalIgnoreCase);
+    private static bool DiagnosticDirectory(string name)=>name is "last-run" or "config-history" or "canvas-captures" or "editor-diagnostics" or "standard-line-diagnostics"||name.Contains("calibration",StringComparison.OrdinalIgnoreCase)
         ||name.Contains("probe",StringComparison.OrdinalIgnoreCase)||name.Contains("audit",StringComparison.OrdinalIgnoreCase)
         ||name.Contains("control",StringComparison.OrdinalIgnoreCase);
     public static void Export(string root,string destination,string version,CancellationToken token=default,IReadOnlyDictionary<string,byte[]>? attachments=null)
@@ -18,7 +20,7 @@ public static class DiagnosticBundle
         bool Link(string path)=>(File.GetAttributes(path)&FileAttributes.ReparsePoint)!=0;
         IEnumerable<string> Walk(string path)
         {
-            foreach(string file in Directory.EnumerateFiles(path))if(!Link(file)&&Extensions.Contains(Path.GetExtension(file).ToLowerInvariant()))yield return file;
+            foreach(string file in Directory.EnumerateFiles(path))if(!Link(file)&&Allowed(file))yield return file;
             foreach(string dir in Directory.EnumerateDirectories(path))if(!Link(dir))foreach(string file in Walk(dir))yield return file;
         }
         try
@@ -27,6 +29,7 @@ public static class DiagnosticBundle
             using(var zip=ZipFile.Open(temp,ZipArchiveMode.Create))
             {
                 var candidates=Files.Select(name=>Path.Combine(root,name)).Where(File.Exists)
+                    .Concat(Directory.EnumerateFiles(root).Where(p=>new[]{"session-csharp.jsonl.","debug.jsonl.","failures.jsonl."}.Any(prefix=>Path.GetFileName(p).StartsWith(prefix,StringComparison.Ordinal))&&!Link(p)))
                     .Concat(Directory.EnumerateDirectories(root).Where(d=>!Link(d)&&DiagnosticDirectory(Path.GetFileName(d))).SelectMany(Walk)).Order(StringComparer.Ordinal);
                 foreach(string path in candidates)
                 {
@@ -49,7 +52,7 @@ public static class DiagnosticBundle
                 foreach(var pair in attachments??new Dictionary<string,byte[]>())
                 {
                     token.ThrowIfCancellationRequested();string name=pair.Key;
-                    if(!name.StartsWith("current/")&&!name.StartsWith("last-run/")||name.Contains("..")||name.Contains('\\')||!Extensions.Contains(Path.GetExtension(name)))throw new IOException("Invalid diagnostic attachment name.");
+                    if(!name.StartsWith("current/")&&!name.StartsWith("last-run/")||name.Contains("..")||name.Contains('\\')||!Allowed(name))throw new IOException("Invalid diagnostic attachment name.");
                     using var entry=zip.CreateEntry(name,CompressionLevel.Fastest).Open();entry.Write(pair.Value);included.Add(name);
                 }
                 using var metadata=zip.CreateEntry("diagnostic-export.json").Open();

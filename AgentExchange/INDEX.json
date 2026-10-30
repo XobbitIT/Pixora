@@ -1,0 +1,1722 @@
+{
+  "schema": "pixora.agent-exchange.v1",
+  "date": "2026-10-22",
+  "status": "stopped_by_user",
+  "automaticSyncConfigured": false,
+  "claudeLocalFolderReadConfirmed": false,
+  "transferredPackage": {
+    "name": "Pixora_Claude_Boundary_Review_20261022.zip",
+    "bytes": 11041702,
+    "sha256": "c3fa632950184d762d5cf8d61a217586afeb93c572526b0a048dc8175e2d33c8"
+  },
+  "entries": [
+    {
+      "id": "0001",
+      "file": "0001_CODEX_HANDOFF.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "delivered",
+      "receipt": "Claude response observed in the authorized chat",
+      "sha256": "0463b28bac78170acb2e8fff110a2afee84ebfe278a15c5010b8b2c8ed538db7"
+    },
+    {
+      "id": "0002",
+      "file": "0002_CLAUDE_REVIEW_OBSERVED.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "observed review summary; not verbatim original",
+      "delivery": "received_and_read",
+      "sha256": "c06c1257e54c8eb0a8f313708bc1ff51b3af9aad91794d821766ab18ad85da7f"
+    },
+    {
+      "id": "0003",
+      "file": "0003_CODEX_RECONCILIATION.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "sha256": "c62eeb23bddca5d16946f431eee501280695092c70d905000199cf5b4cfb00c6",
+      "receiptFile": "0004_CLAUDE_RESPONSE_1.md",
+      "receipt": "User returned original Claude response acknowledging reading 0003; no automatic exchange resumed",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0004",
+      "file": "0004_CLAUDE_RESPONSE_1.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "94bdc20f3487eb90b6663da75206bb7e981aef01c580b15ec2b2fa26ed8231f6"
+    },
+    {
+      "id": "0005",
+      "file": "0005_CODEX_REPRO_2.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "sha256": "c733a022de7798188f2cd979975c1440db079f44c5434e707c706e5a600f9fd4",
+      "receiptFile": "0006_CLAUDE_RESPONSE.md",
+      "receipt": "User returned original Claude response with exact hash of 0005; no automatic exchange resumed",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0006",
+      "file": "0006_CLAUDE_RESPONSE.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "89676288a8d9a67337d65860fca03ae14495561501a7ff95024678c09c222eff"
+    },
+    {
+      "id": "0007",
+      "file": "0007_CODEX_REPRO_3.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "acfa851b4f2977b7096aa38cd8380f05a137e1a4d33e71b7fc232c095b300013"
+    },
+    {
+      "id": "0009",
+      "file": "0009_CLAUDE_REVIEW_PHYSICAL_METRICS.md",
+      "author": "Claude",
+      "delivery": "received_from_user_file",
+      "sha256": "08695eaec322c91f970adc77ccf6368daea4b8876d41710c1d94aec6678e46bb",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "scope": "source file review and CSV arithmetic; no C# execution; no inferred delivery of other local responses"
+    },
+    {
+      "id": "0010",
+      "file": "0010_CODEX_PHYSICAL_METRICS_REVIEW.md",
+      "author": "Codex",
+      "delivery": "manual_delivery_acknowledged_by_incoming_review",
+      "sha256": "ef969d21551c75318182c76810c30b5a2ebf2bde8cbc36ca517eaccfc559b681",
+      "recipient": "Claude",
+      "reason": "automatic_exchange_stopped_by_user",
+      "receiptFile": "0011_CLAUDE_METRICS_V2_REVIEW_PASTED.md",
+      "receipt": "User pasted review explicitly identifying exact 42-file package hash; reviewer states no C# execution",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0011",
+      "file": "0011_CLAUDE_METRICS_V2_REVIEW_PASTED.md",
+      "author": "Claude",
+      "sha256": "846227e241fedd875116f23301c50ef078f848b7886646e443c15fb5a4e95b61",
+      "recordedBy": "Codex",
+      "representation": "user-pasted review transcription; not original Claude attachment bytes",
+      "delivery": "received_via_user_message"
+    },
+    {
+      "id": "0012",
+      "file": "0012_CODEX_METRICS_V3_RESPONSE.md",
+      "author": "Codex",
+      "sha256": "57468616d92db0960094380fd9c293e43de19d4e53c9b768e42c75d15eb0bd6b",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_review",
+      "reason": "automatic_exchange_stopped_by_user",
+      "receiptFile": "0013_CLAUDE_REVIEW_METRICS_V3.md",
+      "receipt": "Incoming original file identifies exact v3 package SHA and reviews diff/tests/logs; reviewer did not execute C#",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0013",
+      "file": "0013_CLAUDE_REVIEW_METRICS_V3.md",
+      "author": "Claude",
+      "sha256": "43cafebc79c758427ceb0f8483386f7a7ad2f9450b493ceb421c2b2c64c820e0",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file"
+    },
+    {
+      "id": "0014",
+      "file": "0014_CODEX_REVIEW_CLOSURE_AND_UNCERTAINTY.md",
+      "author": "Codex",
+      "sha256": "ba44535914573466a334ffd4764055237c32e08bb1a6a2a2334aa3103a63a8ac",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_review",
+      "reason": "automatic_exchange_stopped_by_user",
+      "receiptFile": "0015_CLAUDE_REVIEW_UNCERTAINTY_PROTOCOL.md",
+      "receipt": "Incoming original identifies exact hashes of 0014 and protocol; reviewer explicitly did not have passive analysis artifacts",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0015",
+      "file": "0015_CLAUDE_REVIEW_UNCERTAINTY_PROTOCOL.md",
+      "author": "Claude",
+      "sha256": "0c04e4ffe5bf0f67437461779303b5eb4e75fdc738b9f28dbe7b1499735f5fdd",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file"
+    },
+    {
+      "id": "0016",
+      "file": "0016_CODEX_STRICT_MASK_IMPLEMENTATION.md",
+      "author": "Codex",
+      "sha256": "c3fbf671bac9fef2272e88f1f5d78ecc9085f889ece53ba6cef3c4124171f68b",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_review",
+      "reason": "automatic_exchange_stopped_by_user",
+      "receiptFile": "0017_CLAUDE_REVIEW_STRICT_MASK.md",
+      "receipt": "Original incoming file identifies exact 85-file packet hash; independent Python on slices, not original full-frame bindings; no C# execution",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0017",
+      "file": "0017_CLAUDE_REVIEW_STRICT_MASK.md",
+      "author": "Claude",
+      "sha256": "6e1cbe883f33e6dac70363011d29a40ed6403f9f39b70445a27fdf8e0e1bd424",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file"
+    },
+    {
+      "id": "0018",
+      "file": "0018_CODEX_RENDERED_COLOR_RECONCILIATION.md",
+      "author": "Codex",
+      "sha256": "4a3432cd5ecf7b5c99adad88b86a1ec35a5c5c18f2f13c02bbc435967b7b1fdc",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "receiptFile": "0019_CLAUDE_RESPONSE.md",
+      "receipt": "Original incoming file identifies exact hash of 0018; reviewer explicitly did not receive the analysis artifacts",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0019",
+      "file": "0019_CLAUDE_RESPONSE.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "b4436a1474755644558a44f453e59f59e953aaf494d06416548b58233097aaa0"
+    },
+    {
+      "id": "0020",
+      "file": "0020_CODEX_REVIEW_CLOSURE.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "713249c78e337dc594bd4393ad8b6012ff391d01895eb216d10ce5457cfd14ba"
+    },
+    {
+      "id": "0021",
+      "file": "0021_CLAUDE_TEXEL_HYPOTHESIS.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "2fa5b70be51ca966ae1eb75864d1ffd320fdb51913fe4e1dcaad6e2af4ac9b05",
+      "acknowledgesReport": {
+        "file": "../../frontier-pair-live-20261023/REPORT_UA.md",
+        "sha256": "8eed12236e37d4ff8864f1b78aed44e83e9cdf739d02cfaad5d850f54c930c39",
+        "scope": "report read; original expressly did not have summary/CSV/candidates"
+      }
+    },
+    {
+      "id": "0022",
+      "file": "0022_CODEX_TEXEL_HYPOTHESIS_CHECK.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "07213bf9e79dd7267f5434e0805ef9b0cc22763d88eb38f0aba9631101b4921b",
+      "receiptFile": "0023_CLAUDE_RESPONSE.md",
+      "receipt": "Original 0023 acknowledges exact 0022 hash; reviewer explicitly had only document tables, not native/CSV artifacts",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0023",
+      "file": "0023_CLAUDE_RESPONSE.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "d5600d767df018ff5bbd9bd7aee3bee86a2f4bef4b1ef5eb727ff0bdb1ba337a"
+    },
+    {
+      "id": "0024",
+      "file": "0024_CODEX_QUAD_DIRECTION_CHECK.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "65861dc6fbc6404a84852787fe84b290fa970afb0cedadfe3d7a30a99393e7be",
+      "receiptFile": "0025_CLAUDE_RESPONSE.md",
+      "receipt": "Original 0025 identifies exact 0024 hash; reviewer explicitly did not have raw quad artifacts",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0025",
+      "file": "0025_CLAUDE_RESPONSE.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "b8372eb7c6d717b339e7e4c187d72f647d4bbeb53bcfc287fc14e4c4385f870c"
+    },
+    {
+      "id": "0026",
+      "file": "0026_CLAUDE_DECISION_B_TEST_SPEC.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "b758ecddffea107278c5af458450e5f1ec02b406a4413717ca8a3d823e2ec145"
+    },
+    {
+      "id": "0027",
+      "file": "0027_CODEX_DECISION_B_PREFLIGHT.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "b4029b5c18182d76f5ca3f7e4e14812e20dcd415b49d907d3780c9c970dd57c0",
+      "receiptFile": "0028_CLAUDE_C3_REVISION.md",
+      "receipt": "Original 0028 identifies exact 0027 hash; reviewer explicitly had no preflight artifacts",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0028",
+      "file": "0028_CLAUDE_C3_REVISION.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original incoming file; byte-identical",
+      "delivery": "received_from_user_file",
+      "sha256": "f43800742d9a71fd7abe4a6156671a4f496d0dbb8d5769340d55976d8046ca14"
+    },
+    {
+      "id": "0029",
+      "file": "0029_CODEX_C3_PRIME_CHECK.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_user_pasted_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "98a0ec96956225a74a43d11dbacb8772e6eb674ac61d16ab57c9d62d8c4bed04",
+      "receiptFile": "0030_CLAUDE_ACCEPTANCE_PASTED.md",
+      "receipt": "User pasted 0030 identifying exact 0029 hash. Reviewer explicitly had no uv-c3-revision artifacts and did not verify its numbers.",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0030",
+      "file": "0030_CLAUDE_ACCEPTANCE_PASTED.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "user-pasted text; local UTF-8 transcription, not an original attachment",
+      "delivery": "received_from_user_pasted_text",
+      "sha256": "9a4c7cc15442497c049a602ec5b5b003338608ca21c9d8568698baea6d600838"
+    },
+    {
+      "id": "0031",
+      "file": "0031_CODEX_UV_IMPLEMENTATION.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_user_pasted_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "74753764e1b12c98e816b6f53622fc0f1d47e36529e18ac1fa14d4e17203cad6",
+      "receiptFile": "0032_CLAUDE_UV_REVIEW_PASTED.md",
+      "receipt": "User pasted 0032 identifying exact 0031 SHA. Reviewer reports independent formula regeneration of all10812 paths, reading C3-prime source and test logs; C# not built.",
+      "historicalAutomaticDelivery": "not_delivered_user_stopped_exchange"
+    },
+    {
+      "id": "0032",
+      "file": "0032_CLAUDE_UV_REVIEW_PASTED.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "user-pasted text; local UTF-8 transcription, not an original attachment",
+      "delivery": "received_from_user_pasted_text",
+      "sha256": "10ba48673eb32457523a68f772aeccdba8aec3afb9e5005cc8064ebd088fdaad",
+      "reviewerScope": {
+        "independentFormulaPoints": 10812,
+        "reportedPathDifferences": 0,
+        "sourceRead": true,
+        "logsRead": true,
+        "cSharpBuilt": false,
+        "nativeTrialPerformed": false
+      },
+      "accessReport": {
+        "source": "reviewer statement in user-pasted0032",
+        "readOnly": true,
+        "via": "staging",
+        "codexObservedAccess": false,
+        "automaticExchangeReauthorized": false
+      }
+    },
+    {
+      "id": "0033",
+      "file": "0033_CODEX_UV_LIVE_ANALYSIS.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "acaf89cde5d6a3deb289c344e58250c5d7e6bbab6d4e03d40b74c8637c58efe1",
+      "scope": {
+        "nativeTrialPerformedBy": "user",
+        "collectedStrokes": 12,
+        "frozenVerdict": "INCOMPLETE",
+        "missingMandatoryY": 200,
+        "allTwelveLinesMissingFirstRow": true,
+        "exploratoryOnlyRows": [
+          201,
+          1100
+        ],
+        "productCodeChanged": false,
+        "nativeInputByReviewer": false
+      }
+    },
+    {
+      "id": "0034",
+      "file": "0034_CODEX_UV_MODEL_REVIEW.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "129853e2c57a7fa8ec8d278b0c28ec0a16e8586b50b15b6a296730930a7f8150",
+      "scope": {
+        "postRunExploratory": true,
+        "productSourceChanged": false,
+        "modelDraftFile": "../docs/quality/UV_RESPONSE_MODEL.md",
+        "modelDraftSha256": "0b85ccb1b6987ca0cdac60dfa877232bba8ccea67a8f36dc14c2a87ee46efa90",
+        "mappingFits": 0,
+        "frozenVerdict": "INCOMPLETE",
+        "nativeInput": false
+      }
+    },
+    {
+      "id": "0035",
+      "file": "0035_CODEX_OBSERVATION_MODEL_IMPLEMENTATION.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "8d6bc7025f074a34367334cf2e421243a8238e7fcea817d2b588938a807736be",
+      "scope": {
+        "pureCoreForwardObservationFromSuppliedGeometry": true,
+        "physicalInputMappingIdentified": false,
+        "coreTestsPassed": 750,
+        "newScenarios": 13,
+        "nativeComparisons": 384,
+        "fitApplied": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0036",
+      "file": "0036_CODEX_CLAUDE_REVIEW_REQUEST_UA.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_read_acknowledged_in_user_pasted0037",
+      "reason": "User requested a document; automatic exchange remains stopped",
+      "sha256": "dd8da1468309edf511157cce8ec15def6a882027e0f0e50fbf69adc6f1eea863",
+      "scope": {
+        "reviewRequest": true,
+        "sourceLinksChecked": 16,
+        "productCodeChanged": false,
+        "nativeInput": false
+      },
+      "receipt": "0037 quotes exact0036 SHA; reviewer scope is explicit, C# not run"
+    },
+    {
+      "id": "0037",
+      "file": "0037_CLAUDE_UV_OBSERVATION_REVIEW_PASTED.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "User-pasted text, locally transcribed Markdown; not an original attached file",
+      "delivery": "received_from_user",
+      "scope": {
+        "arithmeticReproduced": true,
+        "csharpExecutedByReviewer": false,
+        "sourceAccess": "Reported by reviewer, not observed by Codex",
+        "frozenVerdict": "INCOMPLETE"
+      },
+      "sha256": "3785fd9e30fada3c54a1450af64db0273417b2ffdc63d6c7e54a0f3b92655169"
+    },
+    {
+      "id": "0039",
+      "file": "0039_CLAUDE_TEXEL_GRID_AND_MAPPING.md",
+      "author": "Claude (cloud session)",
+      "delivery": "original_received_in_user_zip",
+      "archiveSha256": "7816968ae2d578f14914e03a9bc8f16e8e9539cb9f0666c65e09129695e95c60",
+      "scope": {
+        "authorCodeReplayedUnchanged": true,
+        "independentFixedModelReplay": true,
+        "reportedCriterionChronologyNotObserved": true,
+        "nativeInput": false
+      },
+      "sha256": "6932e7ea0503ae269ca17fc5d5bc956ff9719cc6784640daf61d78aa0cf749ad"
+    },
+    {
+      "id": "0040",
+      "file": "0040_CODEX_TEXEL39_REPLAY_AND_CANDIDATE.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "scope": {
+        "texelColumnMathImplemented": true,
+        "ordinaryStartChanged": false,
+        "nativeRunnerReady": false,
+        "coreTestsPassed": 757,
+        "focusedChecksPassed": 86,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      },
+      "sha256": "d604522bb8feea8c81d72f902e1521203c27c8885b3d2ebb6e3da80b5b0fea67"
+    },
+    {
+      "id": "0041",
+      "file": "0041_CODEX_TEXEL_PILOT_READY.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "29fc2b390b3bd4da8fd51a2ea45878a7a19ad95089848204c42a78fafb47d538",
+      "scope": {
+        "nativeRunnerReady": true,
+        "agentNativeInput": false,
+        "status": "NOT_STARTED",
+        "appGroups": 7,
+        "wpfCases": 244,
+        "wpfScope": "Before final CLI-help/report-field-only changes; covered by final focused/package checks",
+        "coreFocused": 86,
+        "launcherCases": 7,
+        "packageChecks": 5,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0042",
+      "file": "0042_CODEX_TEXEL_VIEW_STARTUP_FIX.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "dd4dce12b056e28989cfa700edf368877386eafa2e16ed77c1774b1d63a1f62b",
+      "scope": {
+        "failedOldAttempt": "INCOMPLETE_ZERO_PAINT",
+        "newAttempt": "NOT_STARTED",
+        "viewPolicy": "texel-view-native-support-zero-registration-v2",
+        "unchangedModelAndPaths": true,
+        "agentNativeInput": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0043",
+      "file": "0043_CODEX_TEXEL_PILOT_LIVE_ANALYSIS.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "read_confirmed_by_user_returned_original",
+      "reason": "manual_return_via_user_not_automatic_channel",
+      "sha256": "795f2342a79b62072ad8a41cbd2b2193767a3545900eb69d191c971f26d0b6d7",
+      "scope": {
+        "liveStrokesCollected": 10,
+        "frozenVerdict": "INCOMPLETE",
+        "observedBodyRows": 8209,
+        "requiredBodyRows": 8210,
+        "fullyObservedCenteredLinesWithoutDetectedEvents": 5,
+        "controlTimingGateConfirmed": false,
+        "productCodeChanged": false,
+        "agentNativeInput": false,
+        "physicalQualityCertified": false
+      },
+      "receipt": "0044 original quotes exact SHA256795f2342...d6d7; reviewer reports reading sections.csv and Paths.json; no C# execution"
+    },
+    {
+      "id": "0044",
+      "file": "0044_CLAUDE_REVIEW_TEXEL_PILOT.md",
+      "author": "Claude",
+      "recipient": "Codex",
+      "delivery": "received_file_from_user",
+      "reason": "manual_file_from_user",
+      "sha256": "c4b2f4249a0461bad3cfaedcdce71e7e8e6c21307d3a170493b3a282670f2da2",
+      "scope": {
+        "reportedIndependentFiveCenteredZeroEvents": true,
+        "claimedCodeBuild": false,
+        "phaseArithmeticRecheckedIn": "0045"
+      }
+    },
+    {
+      "id": "0045",
+      "file": "0045_CODEX_REVIEW44_RECONCILIATION.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "read_confirmed_by_user_returned_original",
+      "reason": "manual_return_via_user_not_automatic_channel",
+      "sha256": "1bef5c2fe7b1bdc286988ff8d9160e7834a84a023316fee21eed8c1d5bd47242",
+      "scope": {
+        "maxKnownEventStartPhaseDifference": 0.16155404909204663,
+        "fiveCenteredResultPreserved": true,
+        "frozenVerdict": "INCOMPLETE",
+        "horizontalInventory": 20,
+        "productChanged": false
+      },
+      "receipt": "0046 quotes exact0045 SHA; explicitly did not read review44 artifacts, not independent replay"
+    },
+    {
+      "id": "0046",
+      "file": "0046_CLAUDE_ACK_0045.md",
+      "author": "Claude",
+      "recipient": "Codex",
+      "delivery": "received_file_from_user",
+      "reason": "manual_file_from_user",
+      "sha256": "1e3287ed6c0d9628ae183063a9e104b6509f1c8bbe224a7071e9193b4c41ff04",
+      "scope": {
+        "admitsUnitError": true,
+        "withdrawsFivefoldMargin": true,
+        "codeOrArtifactsReplayed": false
+      }
+    },
+    {
+      "id": "0047",
+      "file": "0047_CODEX_HORIZONTAL_PROVENANCE_AND_B_DRAFT.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "856c33c13c91a0fed09c99bb4355d9505317693112c606ef7a0985b820c3ce00",
+      "scope": {
+        "horizontalPairsVerified": 20,
+        "singlePairs": 18,
+        "packetPairs": 2,
+        "oldNativeFrames": 42,
+        "currentContextTransferEligible": false,
+        "userGoalAccepted": false,
+        "productChanged": false
+      }
+    },
+    {
+      "id": "0048",
+      "file": "0048_CODEX_B_ACCEPTED_ROW_AXIS_IMPLEMENTATION.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "970555cd20284230262b2f413919fd8c4386c68e3f6bd4f4ddc61d4bbdd4396b",
+      "scope": {
+        "userGoalAccepted": true,
+        "qualityGoal": "zero unexpected H/V texel transitions and exact target width",
+        "productChanged": true,
+        "ordinaryStartChanged": false,
+        "rowPilotStatus": "NOT_STARTED",
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0049",
+      "file": "0049_CODEX_ROW_STARTUP_BASELINE_FIX.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "2adcb1c335c5f666d18c5e0a8286990cc63ccb88c23c4c9a90c9276d4fe2562e",
+      "scope": {
+        "rowStartupFix": true,
+        "failedPriorPaintStrokes": 0,
+        "newAttemptStatus": "NOT_STARTED",
+        "baselinePolicy": "explicit-fresh-confirmed-canvas-rgb12-v1",
+        "ordinaryStartChanged": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0050",
+      "file": "0050_CODEX_ROW_CLIPBOARD_AND_CONSOLE_FIX.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "ed626e20abb280565cfeb99aa9ca0dc62e14ed43c7b7d751ef58fb9d2de1c08b",
+      "scope": {
+        "sizeVisualClipboardIndependent": true,
+        "rowConsoleResult": true,
+        "failedPriorPaintStrokes": 0,
+        "newAttemptStatus": "NOT_STARTED",
+        "userClipboardAccessed": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0051",
+      "file": "0051_CODEX_ROW_LIVE_TRAINING_ANALYSIS.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "53ebf0af160f4bc668eb46ba533edc20d65eeb31bb96dac370da3d21c66d9762",
+      "scope": {
+        "rowCollection": "12/12 DATA_COLLECTED",
+        "trainingBodySections": 6648,
+        "trainingZeroDEventLines": 8,
+        "heldOutMeasurementsOpened": false,
+        "independentExtractorMaximumDifferencePx": 0,
+        "productChanged": false,
+        "nativeInputByReviewer": false,
+        "physicalQualityCertified": false
+      },
+      "receiptFile": "0052_CLAUDE_ROW_MODEL_FROZEN_PREDICTION.md",
+      "receipt": "User supplied original0052, explicitly acknowledging0051 and its exact SHA; automatic exchange remains stopped",
+      "historicalDelivery": "local_not_delivered"
+    },
+    {
+      "id": "0052",
+      "file": "0052_CLAUDE_ROW_MODEL_FROZEN_PREDICTION.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original_user_file_byte_identical_to_zip_entry",
+      "delivery": "received_and_read",
+      "sha256": "26d64449aae2a0927af12c8ec61f52a8ea36ffc0ec75b2b05a899825d8b4b6c6",
+      "archiveSha256": "c97e64044ff7429f9aa36c78d38ef8f07c8da52d4348d7ea0b91df3f18c8ed62",
+      "independentCheck": "Training fit/LOO/mapping and frozen predictions reproduced; no held-out measurements opened",
+      "artifactReceipt": "../../row-model-review52-20261024/Receipt.json"
+    },
+    {
+      "id": "0053",
+      "file": "0053_CODEX_ROW52_TRAINING_REVIEW.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "2606dc247987b0c8a56c20086e4573494cfb8a656cf7d30f07bf3a841585c7b6",
+      "scope": {
+        "trainingFitReproduced": true,
+        "modelFrozenPredictionReplay": true,
+        "maximumTrainingLocalResidualTexel": 0.37062694529971196,
+        "maximumPredictedEdgeDriftPx": 1.0662534091517162,
+        "heldOutMeasurementsOpened": false,
+        "measurementUncertaintyEstablished": false,
+        "productChanged": false,
+        "physicalQualityCertified": false
+      },
+      "historicalDelivery": "local_not_delivered",
+      "receiptFile": "0054_CLAUDE_ROW_MODEL_V2_RESEARCH_REVISION.md",
+      "receipt": "Original0054 supplied by user quotes exact0053SHA and responds to its findings; automatic exchange remains stopped"
+    },
+    {
+      "id": "0054",
+      "file": "0054_CLAUDE_ROW_MODEL_V2_RESEARCH_REVISION.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original_user_file",
+      "delivery": "received_and_read",
+      "sha256": "8baf1b5cd3bf6b6a70f4d623afaf174d0c6fb82591ee41bb440573a717520882",
+      "linkedCodeSha256": "b6611f3008f2be669d0b09492c6efc0c069cbec90e8a56a4e1d044fd731a41b7",
+      "linkedPredictionsSha256": "d7f5b23ab992dbd13d5f902685c8a9c6e39a35ae63210f58592980d0796434d2",
+      "independentCheck": "Training/LOO/mapping/predictions reproduced; originalV2 research rules evaluated on4heldout after explicit research freeze",
+      "artifactReceipt": "../../row-model-v2-review54-20261024/Receipt.json"
+    },
+    {
+      "id": "0055",
+      "file": "0055_CODEX_ROW_V2_HELDOUT_RESEARCH.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "ef1a2f727fd9f311b65f747f045a97600acc4be6677e1f1913e85aa3d7c38b06",
+      "scope": {
+        "researchRevision": "ROW-RESEARCH-V2-CODEX-REPLAY-1",
+        "grid": "INCONCLUSIVE",
+        "mapping": "PASS",
+        "DEvents": 0,
+        "heldOutBodySections": 3324,
+        "heldOutMeasurementsOpened": true,
+        "heldOutSetConsumed": true,
+        "modelRetunedAfterHeldout": false,
+        "measurementUncertaintyEstablished": false,
+        "productChanged": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      },
+      "historicalDelivery": "local_not_delivered",
+      "receiptFile": "0056_CLAUDE_ACK_0055.md",
+      "receipt": "Original0056 supplied by user quotes exact0055SHA and accepts its reported outcome; explicitly did not inspect analysis artifacts. Not independent data replay."
+    },
+    {
+      "id": "0056",
+      "file": "0056_CLAUDE_ACK_0055.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "representation": "original_user_file",
+      "delivery": "received_and_read",
+      "sha256": "f8604506bf467cf18b5fc27c27767eff0cf920971831840ab197b50f7b68cbca",
+      "reviewScope": "Acknowledges0055; source analysis artifacts not read and figures accepted from report",
+      "acceptedOutcome": {
+        "grid": "INCONCLUSIVE",
+        "mapping": "PASS",
+        "DEvents": 0
+      },
+      "codexQualifications": [
+        "Accepted quality goal B already exists from direct user reply23.10; no repeat approval of that goal. Observable/U, full footprint and eligibility remain pending.",
+        "Approximately511 column periods and525 row periods describe effective fitted coordinate spans on this rect; not an established physical texture resolution, exact texel count or full2D model qualification.",
+        "New2D experiment is a reviewer proposal, not an executed test or user authorization of native input. First assess model/context compatibility on existing consumed data, preserve H300 INCONCLUSIVE and unknown U.",
+        "Reviewer read0055 only, not row-model-v2 artifacts; acknowledgement is not independent confirmation of native arithmetic."
+      ],
+      "artifactReceipt": "../../row-review56-20261024/Receipt.json"
+    },
+    {
+      "id": "0057",
+      "file": "0057_CLAUDE_PRODUCT_UPDATE_PROPOSAL.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "delivery": "received_and_read",
+      "receivedVia": "local file explicitly identified by0059",
+      "originalPath": "claude-local/proposals/0057_CLAUDE_PRODUCT_UPDATE_PROPOSAL.md",
+      "scope": "Product proposal only; fill pitch/eligibility not adopted.",
+      "sha256": "2a2229ec58c8e6f33fcec1b155803366da158167582d2773462c9b8ac35a3dec"
+    },
+    {
+      "id": "0058",
+      "file": "0058_CODEX_H300_AND_2D_CORE.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "f8f349efc7823e762c4d1285aaa8988088804a109368e6891e1626461455ecb6",
+      "scope": {
+        "H300Posthoc": true,
+        "oldGridVerdict": "INCONCLUSIVE unchanged",
+        "implementation": "pureCore row and joint2D address hypothesis, noSTARTintegration",
+        "independentAddresses": 141351,
+        "coreTestsPassed": 766,
+        "focusedPassed": 95,
+        "productAppCompatibilityBuild": true,
+        "twoDStudy": "offline draft,not runnable",
+        "measurementUncertaintyEstablished": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      },
+      "receiptFile": "0059_CLAUDE_REVIEW_2D_BLUEPRINT.md",
+      "acknowledgementScope": "Exact0058 andv1SHA acknowledged; reviewer didnot readCSharp/build."
+    },
+    {
+      "id": "0059",
+      "file": "0059_CLAUDE_REVIEW_2D_BLUEPRINT.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "delivery": "received_and_read",
+      "receivedVia": "user-mentioned file",
+      "scope": "0058/v1review, not CSharp/build; Vindex field claim independently checked against unchangedv1.",
+      "sha256": "b925ebf753cc081ba6a16f5983e0a40484be6978bd091c62911600293e6199dd"
+    },
+    {
+      "id": "0060",
+      "file": "0060_CODEX_DENSE_2D_AND_REVIEW59.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_text_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "scope": {
+        "corePassed": 769,
+        "focusedPassed": 98,
+        "newGroups": 3,
+        "independentDensePaths": 10,
+        "blueprintCases": 13,
+        "twoDTestStatus": "OFFLINE_DRAFT_NOT_RUNNABLE",
+        "nativeInput": false,
+        "productionEligible": false,
+        "physicalQualityCertified": false
+      },
+      "sha256": "f7ec493bb789c65d6babfc522df696615ab7453ba1b2484f50a3b3c5dc53be2a",
+      "receiptFile": "0061_CLAUDE_ACK_0060.md",
+      "acknowledgementScope": "0060 content matches normalized UTF8/LF SHA, NOT raw bytes. Blueprint v2 raw SHA identical; own model calculation reported, no CSharp read/build.",
+      "acknowledgedNormalizedUtf8LfSha256": "889579498c15020aa7e2b58928570d41cc11a6098efcfe25b9ffd28618dd2ef5"
+    },
+    {
+      "id": "0061",
+      "file": "0061_CLAUDE_ACK_0060.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "delivery": "received_and_read",
+      "receivedVia": "user_file",
+      "sha256": "7e6fbe61b587f92a745e3e98be908a640e3f097ca3f8efee6fa0b863df77c49b",
+      "scope": {
+        "acknowledged": "0060 normalized text and rawBlueprintv2",
+        "reviewerReadCSharp": false,
+        "reviewerBuiltCSharp": false,
+        "reviewerIndependentlyCheckedFixedModel": true,
+        "oldVindexClaimWithdrawn": true,
+        "desired035RequirementWithdrawn": true,
+        "controlPhaseProposal": 0.2
+      },
+      "codexReconciliation": "10 scalar model checks; four thresholds predicted. Adopted prospective research control policy, not measured U or retroactive0043 rescoring.",
+      "artifactReceipt": "../../texel-2d-review61-20261025/Receipt.json"
+    },
+    {
+      "id": "0062",
+      "file": "0062_CODEX_2D_PILOT_IMPLEMENTED.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "5f188ed5250b1f322576b29eeb43edce6c2e6c78992b3ce4730a09ca90cdcb5c",
+      "scope": {
+        "runnable": true,
+        "cases": 13,
+        "strokes": 28,
+        "pathPoints": 4538,
+        "mandatoryBodySections": 3466,
+        "appGroupsPassed": 7,
+        "wpfPassed": 244,
+        "rowRegressionGroupsPassed": 5,
+        "launcherCasesPassed": 11,
+        "packagedChecks": 6,
+        "coreRerun": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      },
+      "artifactReceipt": "../../texel-2d-runtime-20261025/Receipt.json"
+    },
+    {
+      "id": "0063",
+      "file": "0063_CODEX_2D_LIVE_ANALYSIS.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "31da9965ed38e1c04cc76fd6824c22987841802234a588c4471e755887a6b539",
+      "scope": {
+        "liveRunByUser": true,
+        "completedStrokes": 28,
+        "mandatoryBodySections": 3466,
+        "mechanism": "CONSISTENT",
+        "status": "MEASURED_NOT_QUALIFIED",
+        "independentExtractorDifferencePx": 0,
+        "controlMatches": 8,
+        "posthocBlockPrefixes": 16,
+        "rowAddressingQualified": false,
+        "physicalQualityCertified": false,
+        "nativeInputByReviewer": false
+      },
+      "artifactReceipt": "../../texel-2d-live-20261025/Receipt.json",
+      "receiptFile": "0064_CLAUDE_REVIEW_2D_LIVE_ROW_ALIAS.md",
+      "acknowledgementScope": "0064 explicitly responds to0063; source data partial SHA independently matched. No exact0063 document SHA acknowledgement was supplied."
+    },
+    {
+      "id": "0064",
+      "file": "0064_CLAUDE_REVIEW_2D_LIVE_ROW_ALIAS.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "delivery": "received_and_read",
+      "receivedVia": "user-mentioned file",
+      "sha256": "6f4b6d262a7908fd7b3dc862e1b76cad8f3d2776346ff0074bf033fc6c35f502",
+      "scope": {
+        "rowV2ScaleWithdrawn": true,
+        "aliasHypothesisPosthoc": true,
+        "verticalNarrowResultAccepted": true,
+        "reviewerChangedProduct": false
+      },
+      "artifactReceipt": "../../row-alias-review64-20261025/Receipt.json"
+    },
+    {
+      "id": "0065",
+      "file": "0065_CODEX_ROW_ALIAS_RECONCILIATION.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "c13b9d7c6d09569fa240813e4379803e45110bf9b925bbbb7c239f9e325d3b4e",
+      "scope": {
+        "independentTrainingSections": 6648,
+        "independentTrainingPositions": 8,
+        "oldHeldOutSameModulo80": true,
+        "trainingMappings": 1148,
+        "posthocMappingsMatching4H": 570,
+        "posthocMappingsMatching4HAnd12Prefixes": 50,
+        "mappingsMatchingAll16Prefixes": 0,
+        "newGaugeIntegerSpan": 2,
+        "physicalStampRows": null,
+        "cursorMapping": null,
+        "observationCandidateFrozen": true,
+        "productChanged": false,
+        "newBuild": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      },
+      "artifactReceipt": "../../row-alias-review64-20261025/Receipt.json",
+      "receiptFile": "0066_CLAUDE_ACK_0065_NEXT_DESIGN.md",
+      "acknowledgementScope": "0066 explicitly accepts0065 and matches frozen candidate partialSHA; reviewer reports independent design calculations. No exact0065 documentSHA acknowledgement supplied."
+    },
+    {
+      "id": "0066",
+      "file": "0066_CLAUDE_ACK_0065_NEXT_DESIGN.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "delivery": "received_and_read",
+      "receivedVia": "user-mentioned file",
+      "sha256": "b3e48b4c138d9a02762bad37a6b24b9ce6f426f3a5e2791a198419ac6354d140",
+      "scope": {
+        "accepts0065": true,
+        "reportsIndependentFamilyDesignCheck": true,
+        "allRivalPerLineProposal": true,
+        "centered15Proposal": true,
+        "sameSessionControlProposal": true,
+        "reviewerNativeInput": false
+      },
+      "artifactReceipt": "../../row-design-review66-20261025/Receipt.json"
+    },
+    {
+      "id": "0067",
+      "file": "0067_CODEX_ROW_JOINT_DESIGN.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "591c67c516bceef070663d24f40f19b75af6dfca199e6a0e35d99c4dbdf3d125",
+      "scope": {
+        "trainingPeaks": 7,
+        "wholeYPositionsScanned": 841,
+        "strictPerLineAllRival025Eligible": 0,
+        "jointRuleRivalWitnessesMinimum": 3,
+        "shortHorizontalCommandsY": [
+          288,
+          329,
+          521,
+          562,
+          827,
+          898
+        ],
+        "releasedStrokesPlanned": 37,
+        "mandatorySectionsPlanned": 1123,
+        "offlineSyntheticChecksPassed": 22,
+        "runnable": false,
+        "productChanged": false,
+        "newBuild": false,
+        "nativeInput": false,
+        "physicalQualityCertified": false
+      },
+      "protocolSha256": "d7ce47bd343e18b0b779201c1304cfff45c0ac0d93184f9e22c08f8d68e83e40",
+      "artifactReceipt": "../../row-design-review66-20261025/Receipt.json",
+      "receiptFile": "0068_CLAUDE_ACK_0067_FAST_TRACK.md",
+      "acknowledgementScope": "0068 accepts0067 and matches protocolv1a partialSHA; exact0067 documentSHA not supplied. New v1b median proposal applied; no claim that reviewer testedCSharp."
+    },
+    {
+      "id": "0068",
+      "file": "0068_CLAUDE_ACK_0067_FAST_TRACK.md",
+      "author": "Claude",
+      "recordedBy": "Codex",
+      "delivery": "received_and_read",
+      "receivedVia": "user-mentioned file",
+      "sha256": "c85a0162f4b30158a39ff5e74c57a0222131d21a7ffa10e6b2a10f028fd6f137",
+      "scope": {
+        "v1aAccepted": true,
+        "symmetricMedianProposedBeforeCollection": true,
+        "corePrototypeProposal": true,
+        "descriptiveExtraNativeImageProposalNotApplied": true
+      }
+    },
+    {
+      "id": "0069",
+      "file": "0069_CODEX_OFFGRID_IMPLEMENTED.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "7e951c6fa5dc0a4939a54a7620721affca04f6ad8e1c3d6a05e9bfa0fb794297",
+      "artifactReceipt": "../../row-offgrid-implementation68-20261025/Receipt.json",
+      "scope": {
+        "runnable": true,
+        "coreTexelGridTargetPlanner": true,
+        "experimentalOnly": true,
+        "releasedStrokes": 37,
+        "requiredBodySections": 1123,
+        "coreTestsPassed": 779,
+        "wpfCasesPassed": 244,
+        "appGroupsPassed": 8,
+        "launcherCasesPassed": 11,
+        "packageChecksPassed": 8,
+        "newNativeRuns": 0,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0070",
+      "file": "0070_CODEX_OFFGRID_LIVE_ANALYSIS.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "0a8f9b6038125d773e3362d3be99102ca0dc48f7efc0aa39f7003120b466db0e",
+      "artifactReceipt": "../../row-offgrid-live-20261025/Receipt.json",
+      "scope": {
+        "userNativeRun": true,
+        "completedStrokes": 37,
+        "mandatorySections": 1123,
+        "gridVerdict": "CONSISTENT",
+        "stepVerdict": "WITHIN_RESEARCH_BAND",
+        "incrementVerdict": "CONSISTENT_WITH_PHASE_DEPENDENCE",
+        "independentEdgeDifferencePx": 0,
+        "independentArithmeticDifference": 0,
+        "centeredOneIncrements": 14,
+        "controlZeroIncrements": 4,
+        "controlTwoIncrements": 3,
+        "productionEligible": false,
+        "physicalQualityCertified": false,
+        "productChanged": false
+      },
+      "historicalDelivery": "local_not_delivered",
+      "receiptFile": "0071_CLAUDE_REVIEW_OFFGRID_LIVE.md",
+      "acknowledgementScope": "Reviewer accepts0070 and explicitly checked increments CSV and selected native crops; no exact0070 documentSHA or full rerun supplied."
+    },
+    {
+      "id": "0071",
+      "file": "0071_CLAUDE_REVIEW_OFFGRID_LIVE.md",
+      "author": "Claude",
+      "delivery": "received_from_user_file",
+      "representation": "original incoming file, byte-identical",
+      "sha256": "07f752356b55b54ff1f0515c7871116411e9b092c95a88af309d6da983e3c042",
+      "scope": "Accepts0070; own increments/crop checks, not full metric rerun. PID/new-process and baseline/causal overstatements checked/corrected in0072."
+    },
+    {
+      "id": "0072",
+      "file": "0072_CODEX_REPEATABILITY_AND_ENVELOPE.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "manual_delivery_acknowledged_by_incoming_response",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "3a09eef862bd4a221c98240829c6590e0ee01f1a5fc8718a7efac4bd4126ccc7",
+      "artifactReceipt": "../../offgrid-review71-20261025/Receipt.json",
+      "scope": {
+        "controlCropsBitIdentical": 32,
+        "sameRecordedPid": 30588,
+        "independentRestartProven": false,
+        "wholePngFilesDifferent": 32,
+        "exactHistoryEnvelopes": 37,
+        "consecutiveAddressableRows": 15,
+        "coreApiAuditPassed": true,
+        "productChanged": false,
+        "nativeInputByReviewer": false,
+        "physicalQualityCertified": false
+      },
+      "historicalDelivery": "local_not_delivered",
+      "receiptFile": "0073_CLAUDE_ACK_0072_MAPPING_CALIBRATION.md",
+      "acknowledgementScope": "Reviewer accepts all0072 corrections and proposes calibration; no exact0072 documentSHA supplied."
+    },
+    {
+      "id": "0073",
+      "file": "0073_CLAUDE_ACK_0072_MAPPING_CALIBRATION.md",
+      "author": "Claude",
+      "delivery": "received_from_user_file",
+      "representation": "original incoming file, byte-identical",
+      "sha256": "83d2b49f35aa2e835fbfc21d33ff49a4ae7b2ca1baaeb88e929308bb3f71cd04",
+      "scope": "Accepts0072, reports offline finite-family minimax design. No native input or new mapping fit. Largest-class counts reproduced; all-branch availability checked/corrected in0074."
+    },
+    {
+      "id": "0074",
+      "file": "0074_CODEX_MAPPING_DESIGN_13_PROBES.md",
+      "author": "Codex",
+      "recipient": "Claude",
+      "delivery": "local_not_delivered",
+      "reason": "automatic_exchange_stopped_by_user",
+      "sha256": "117d43a1e5c669e6f2cbc8e1e870f7f268b5ee7a3bbd516a03ed20a242339674",
+      "artifactReceipt": "../../mapping-review73-20261025/Receipt.json",
+      "scope": {
+        "authorDesignReproduced": true,
+        "allBranchAvailabilityAudited": true,
+        "original23BadBranches": 1,
+        "calibrationDesignProbes": 13,
+        "possibleBranches": 43,
+        "conditionalMinimumConsecutiveRows": 42,
+        "rowMargin": 0.25,
+        "coreForecastsChecked": 14924,
+        "coreApiAuditPassed": true,
+        "liveLabelsCollected": false,
+        "productChanged": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0077",
+      "file": "0077_CLAUDE_LOCAL_CALIBRATION_PACKAGE.md",
+      "author": "Claude (local session acting for Codex)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "reason": "user decision 25.10: Codex paused, local Claude implements Row_Calib_1",
+      "sha256": "ff164d59ad1840f8cc427daa2d315b62a1912af09395ff1910b140d48a2c62dd",
+      "artifactReceipt": "../../row-calib-implementation-20261025/Receipt.json",
+      "scope": {
+        "calibrationProbes": 16,
+        "pictureRuns": 24,
+        "strokes": 40,
+        "refinedFamilyMembers": 28663,
+        "predictedMinSupportedRows": 44,
+        "rowMargin": 0.25,
+        "corePassed": 779,
+        "wpfPassed": 244,
+        "calibAppGroups": 8,
+        "packagedChecks": 7,
+        "liveLabelsCollected": false,
+        "nativeInputByAgent": false,
+        "productionEligible": false,
+        "physicalQualityCertified": false
+      },
+      "pendingLocalClaudeDrafts": [
+        "claude-local/row64/0075_CLAUDE_ACK_0074.md",
+        "claude-local/row64/0076_CLAUDE_FAST_TRACK_V2.md"
+      ]
+    },
+    {
+      "id": "0078",
+      "file": "0078_CLAUDE_LOCAL_CALIBRATION_RESULT.md",
+      "author": "Claude (local session acting for Codex)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "92521ec7a7db5de92b52ecb83a9bc16eeeba28dabbe80f6106c6d7c36cd1bafe",
+      "evidence": "../../../outputs/Pixora_Row_Calib_1_20261026/Analysis_Calib_20261025-222447-fb38fdb7",
+      "scope": {
+        "status": "CALIBRATED_RESEARCH_NOT_QUALIFIED",
+        "labelsAccepted": 16,
+        "coarseRemaining": 48,
+        "coarseSupportedLongest": 84,
+        "refinedRemaining": 1196,
+        "refinedSupportedLongest": 50,
+        "pythonRecomputeMatched": true,
+        "picture": "UNMEASURED (end-of-stroke offset; outer edges straight, outside 0)",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0079",
+      "file": "0079_CLAUDE_LOCAL_PICTURE2_PACKAGE.md",
+      "author": "Claude (local session acting for Codex)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "82dcf48ca1dcdab2d636660f8d66af06268dc6cbf67ada603dd55af224a944bb",
+      "artifactReceipt": "../../row-picture2-implementation-20261026/Receipt.json",
+      "scope": {
+        "userDecision": "compensate stroke footprint (option 1)",
+        "controls": 3,
+        "pictureARuns": 79,
+        "pictureBRuns": 24,
+        "strokes": 106,
+        "derivedFamilyMembers": 1196,
+        "compensation": "start +2 col, end +1 col, vertical 2-row stamp",
+        "corePassed": 779,
+        "wpfPassed": 244,
+        "pic2AppGroups": 6,
+        "packagedChecks": 7,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0080",
+      "file": "0080_CLAUDE_LOCAL_PICTURE2_RESULT.md",
+      "author": "Claude (local session acting for Codex)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "308c34a2496306f955c2e099cba3429fac1ebb2a442afeccb13bdcf8692b7728",
+      "evidence": "../../../outputs/Pixora_Row_Picture_2_20261026/Analysis_Picture_20261025-230417-3864839c",
+      "scope": {
+        "controls": "DERIVED_FAMILY_CONFIRMED 3/3",
+        "pictureA": "PREDICTIONS_NOT_MET (step-top H residual -0.245)",
+        "pictureB": "PREDICTIONS_MET",
+        "endOvershootCols": [
+          0.56,
+          0.63
+        ],
+        "evaluationOmission": "outer top/left edges missing from frozen list; measured post-hoc",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0081",
+      "file": "0081_CLAUDE_LOCAL_PICTURE3_PACKAGE.md",
+      "author": "Claude (local session acting for Codex)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "a67234b5b1d274762e60bd4be705eb8e2cceaa5d7ffc716cd91098c562025250",
+      "artifactReceipt": "../../row-picture3-implementation-20261026/Receipt.json",
+      "scope": {
+        "controls": 4,
+        "pictureARuns": 79,
+        "strokes": 83,
+        "endTrimPx": 1,
+        "vEndLimit": 0.35,
+        "edges": 14,
+        "pic2ReplayIdentical": true,
+        "corePassed": 779,
+        "wpfPassed": 244,
+        "packagedChecks": 7,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0082",
+      "file": "0082_CLAUDE_LOCAL_PICTURE3_RESULT_AND_SPLIT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "70bd6cd84450e4203b9c3eaefda44ff9cb9b941d266fdeec1af0a466f04b7028",
+      "evidence": "../../../outputs/Pixora_Row_Picture_3_20261026_Try4/Analysis_Picture3_20261026-182525-9b39c957",
+      "scope": {
+        "status": "DATA_COLLECTED",
+        "strokes": 83,
+        "controlsVerdict": "DERIVED_FAMILY_CONFIRMED",
+        "controlsMatched": 4,
+        "pictureA": "UNMEASURED",
+        "vEndWithinLimit": 1,
+        "vEndEdges": 3,
+        "failedAttemptsBeforePaint": 3,
+        "failedAttemptCause": "user timer window overlapping Rust tool panel",
+        "workSplitProposed": true,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0083",
+      "file": "0083_CLAUDE_LOCAL_END_AND_R227_ANALYSIS.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "7f06c4ad94d62a74349e3717e1cfd9f67e88ca1c7276d6c8a2917e46487ad321",
+      "scope": {
+        "offlineOnly": true,
+        "strokePairsMeasured": 185,
+        "correctsNote": "0080 c228 V-end sign (+0.33 -> -0.333)",
+        "endShiftQuantizedPx": 2.05,
+        "endTrimCanReachLimit": false,
+        "r227TopEdge": "measurement artifact: startCross on transition pixel; control Ctl3 has identical profile",
+        "frozenVerdictsChanged": false,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0084",
+      "file": "0084_CLAUDE_LOCAL_CODEX_TRACK_REVIEW_AND_PICTURE4_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "acb1850edfb7c1ed98bfd003885739003474a61b4aa2fdd2a81e1fc546c04222",
+      "artifactReceipt": "../../row-picture4-implementation-20261026/Receipt.json",
+      "scope": {
+        "codexReplayMatch": true,
+        "codexTrackDefectsFixed": [
+          "WPF localization caption"
+        ],
+        "productAppTestAdded": true,
+        "liveProductTest": false,
+        "strokes": 24,
+        "controls": 4,
+        "endOffsets": [
+          -3,
+          -2,
+          -1,
+          0,
+          1
+        ],
+        "startOffsets": [
+          -2,
+          -1,
+          0,
+          1,
+          2
+        ],
+        "corePassed": "783/783",
+        "wpf": "244/244",
+        "packagedChecks": 7,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0085",
+      "file": "0085_CLAUDE_LOCAL_PICTURE4_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "b665b550fb07920e17a19028929743b43dbb4572745e32a8c2f3e4a0f289ac36",
+      "evidence": "../../../outputs/Pixora_Row_Picture_4_20261026/Analysis_Picture4_20261026-194120-5d1ca735",
+      "scope": {
+        "status": "DATA_COLLECTED",
+        "strokes": 24,
+        "controlsVerdict": "DERIVED_FAMILY_CONFIRMED",
+        "endLR": "UNMEASURED",
+        "startRL": "UNMEASURED",
+        "reverseStartHypothesis": "refuted",
+        "isolatedEndD0": [
+          0.08,
+          -0.159
+        ],
+        "leftShiftDirectionIndependent": true,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0086",
+      "file": "0086_CLAUDE_LOCAL_END_CAP_HALF_TEXEL.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "443d65f732a028625995d283e3bf8f1fbc096acb9cf1a369248a448124507eb6",
+      "scope": {
+        "offlineOnly": true,
+        "overlapHypothesis0085": "refuted",
+        "rightEdgeStates": "k+0.55 / k-0.45 (half texel)",
+        "roundBrushEndCanReachLimit": false,
+        "nextCandidate": "square brush shape, separate package",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0087",
+      "file": "0087_CLAUDE_LOCAL_PICTURE5_SQUARE_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "5ddc716eb26935bc20fdc2feeed34d46f4c4818189296c9651ad5454b047acf9",
+      "artifactReceipt": "../../row-picture5-implementation-20261026/Receipt.json",
+      "scope": {
+        "brushShapeSlot": 4,
+        "strokes": 24,
+        "controls": 4,
+        "endOffsets": [
+          -3,
+          -2,
+          -1,
+          0,
+          1
+        ],
+        "perSampleRule": true,
+        "editorProofSquareOffline": true,
+        "corePassed": "783/783",
+        "wpf": "244/244",
+        "packagedChecks": 7,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0088",
+      "file": "0088_CLAUDE_LOCAL_PICTURE5_SHAPE_FIX.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "a7f4820969648b1bd176f9b4dd3cf031a74b22ba5c30d2fadefa29ebd11f7801",
+      "artifactReceipt": "../../row-picture5b-implementation-20261026/Receipt.json",
+      "scope": {
+        "firstPic5PaintedRound": true,
+        "cause": "DrawingWorkflow.Effective -> ReleaseProfile.ApplyStandard resets brush_shape_slot",
+        "fix": "research_brush_shape_slot applied after normalisation; effective shape checked at preflight",
+        "roundReplicationBitwise": true,
+        "corePassed": "783/783",
+        "wpf": "244/244",
+        "packagedChecks": 7,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0089",
+      "file": "0089_CLAUDE_LOCAL_PICTURE5B_SQUARE_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "b4e0e0773e3469c121335f063b52549aef0ac95e8c93cad50b6a6ff575e92bc5",
+      "evidence": "../../../outputs/Pixora_Row_Picture_5b_20261026/Analysis_Picture5_20261026-210355-f6c35ede",
+      "scope": {
+        "status": "DATA_COLLECTED",
+        "brushShape": 4,
+        "endLR": "END_NO_EXACT_STATE",
+        "endLR2": "END_NO_EXACT_STATE",
+        "squareRemovesRoundCap": true,
+        "halfTexelIndependentOfShape": true,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0090",
+      "file": "0090_USER_DECISION_RIGHT_EDGE_FULL_COVERAGE.md",
+      "author": "User decision recorded by Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "c658bf2002955e2dedfdce895c445b303a627b4c403fa83b8d57a72c6c37e290",
+      "scope": {
+        "decision": "accept right-edge half-texel; choose full-coverage state",
+        "quote": "Прийняти, але повне покриття",
+        "date": "2026-10-26",
+        "thresholdsRelaxedSilently": false
+      }
+    },
+    {
+      "id": "0091",
+      "file": "0091_CLAUDE_LOCAL_PICTURE6_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "86effa5c153c272459a7db9ccbe87f136af71e0e3727140b225b10f4deb716ad",
+      "artifactReceipt": "../../row-picture6-implementation-20261026/Receipt.json",
+      "scope": {
+        "endRule": "first pixel with column phase >= b+1.5",
+        "vEndWindow": [
+          -0.15,
+          0.75
+        ],
+        "topStartInside": true,
+        "strokes": 83,
+        "corePassed": "783/783",
+        "wpf": "244/244",
+        "packagedChecks": 7,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0092",
+      "file": "0092_CLAUDE_LOCAL_PICTURE6_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "c5d489127d3ba9bb3d4f061e5173059d4a022b1bf4a4a33a36380ffb55ad10ba",
+      "evidence": "../../../outputs/Pixora_Row_Picture_6_20261026/Analysis_Picture6_20261026-212858-99325e57",
+      "scope": {
+        "status": "DATA_COLLECTED",
+        "controls": "DERIVED_FAMILY_CONFIRMED",
+        "pictureA": "PREDICTIONS_MET",
+        "vEnd": [
+          0.665,
+          0.626,
+          0.56
+        ],
+        "edgesMeasured": "14/14",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0093",
+      "file": "0093_CLAUDE_LOCAL_PICTURE7_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "a6d05c464f7e80415f5f60b6ad6ea472613ac7a2560a0988c2ebb4b7eeb0958a",
+      "artifactReceipt": "../../row-picture7-implementation-20261026/Receipt.json",
+      "scope": {
+        "rules": "pic6",
+        "targets": [
+          "A 40x40 cols 300..339",
+          "B 24x24 checker cols 365..388"
+        ],
+        "strokes": 151,
+        "corePassed": "783/783",
+        "wpf": "244/244",
+        "packagedChecks": 7,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0094",
+      "file": "0094_CLAUDE_LOCAL_PICTURE7_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "8488056e40771cc982272a77e7a642c3b44fa6916230db17128034c75c14d883",
+      "evidence": "../../../outputs/Pixora_Row_Picture_7_20261026/Analysis_Picture7_20261029-202129-e89d939f",
+      "scope": {
+        "status": "DATA_COLLECTED",
+        "controls": "DERIVED_FAMILY_CONFIRMED",
+        "pictureA": "PREDICTIONS_NOT_MET",
+        "pictureB": "PREDICTIONS_NOT_MET",
+        "failingEdges": [
+          "right-c339 V-end -0.573, 1 D-event",
+          "pictureB V-start c365/c371/c371/c383 > 0.35"
+        ],
+        "exploratoryVStartDriftPerColumn": -0.00275,
+        "scaleVsOffsetSeparated": false,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0095",
+      "file": "0095_CLAUDE_LOCAL_PICTURE8_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "524cdea0d07ecd58bb062c678d60eb9fd033f089df2062b9f453af15eb96ebf7",
+      "artifactReceipt": "../../row-picture8-implementation-20261029/Receipt.json",
+      "corrects": "0094 column-drift hypothesis",
+      "scope": {
+        "rules": "pic7 targets; end phase >= b+1.867; V edges in texel-grid frame",
+        "strokes": 151,
+        "corePassed": "783/783",
+        "wpf": "244/244",
+        "packagedChecks": 7,
+        "replayPic7Pic6Identical": true,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0096",
+      "file": "0096_CLAUDE_LOCAL_PICTURE8_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "b88f9e9923f254d22d625bc3d711578c93317d269124d7076ea45c4bb74652f4",
+      "evidence": "../../../outputs/Pixora_Row_Picture_8_20261029/Analysis_Picture8_20261029-211323-5e06ff25",
+      "scope": {
+        "status": "DATA_COLLECTED",
+        "controls": "DERIVED_FAMILY_CONFIRMED",
+        "pictureA": "PREDICTIONS_MET",
+        "pictureB": "PREDICTIONS_MET",
+        "vEndC339": 0.625,
+        "edgesMeasured": "66/66",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0097",
+      "file": "0097_CLAUDE_LOCAL_PICTURE9_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "73771bcfcab719b6504177b7fa295821e90b6ea2e4eefe2ceb10942c58012019",
+      "artifactReceipt": "../../row-picture9-implementation-20261029/Receipt.json",
+      "scope": {
+        "rules": "pic8",
+        "targets": [
+          "R 40x40 cols 420..459 rows 203..242",
+          "L 40x40 cols 75..114 rows 493..532",
+          "C 24x24 cols 240..263 rows 452..475"
+        ],
+        "controls": 6,
+        "strokes": 260,
+        "corePassed": "783/783",
+        "wpf": "244/244",
+        "packagedChecks": 7,
+        "independentOracle": true,
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0098",
+      "file": "0098_CLAUDE_LOCAL_PICTURE9_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "8ce8412376adae8cfb4b81a1b488b84c4d8eae101a51b845f07658c49694e32e",
+      "evidence": "../../../outputs/Pixora_Row_Picture_9_20261029/Analysis_Picture9_20261029-215853-7ac86dc6",
+      "scope": {
+        "status": "DATA_COLLECTED",
+        "controls": "DERIVED_FAMILY_CONFIRMED 6/6",
+        "pictureR": "PREDICTIONS_MET",
+        "pictureL": "PREDICTIONS_MET",
+        "pictureC": "PREDICTIONS_MET",
+        "edgesMeasured": "100/100",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0099",
+      "file": "0099_CLAUDE_LOCAL_TEXEL_PRODUCT_V2.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "ea17b68c7e90da900f921c420786d9bacf66752b98e6516b72b299597919127b",
+      "artifactReceipt": "../../texel-product-endphase-20261030/Receipt.json",
+      "scope": {
+        "plannerRevision": "texel-compensated-mask-start2-end1-two-row-v2-endphase",
+        "endPhase": 1.867,
+        "columns": "75..459",
+        "rows": "198..537 jointly addressed",
+        "corePassed": "785/785",
+        "wpf": "244/244",
+        "nativeReplayPic8": "PREDICTIONS_MET identical edges",
+        "liveProductRun": "NOT_STARTED",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    }
+  ],
+  "manuallyReturnedReproduction": {
+    "file": "claude_repro_2.zip",
+    "sha256": "ea18dcc359983d8896a5ed71fa6245a13d52dc054de4256c5ddb451b2244d866",
+    "receivedVia": "user_file",
+    "receipt": "../../claude-repro-2-20261022/Receipt.json"
+  },
+  "manuallyReturnedReproductions": [
+    {
+      "file": "claude_repro_2.zip",
+      "sha256": "ea18dcc359983d8896a5ed71fa6245a13d52dc054de4256c5ddb451b2244d866",
+      "receivedVia": "user_file",
+      "receipt": "../../claude-repro-2-20261022/Receipt.json"
+    },
+    {
+      "file": "claude_repro_3.zip",
+      "sha256": "767d3e9c36b558973245649af7903c2e14dbbe93301f9f571cd61e19fcfb66c7",
+      "receivedVia": "user_file",
+      "receipt": "../../claude-repro-3-20261022/Receipt.json"
+    },
+    {
+      "file": "claude_repro_4.zip",
+      "sha256": "87aba42aa5f4651c23f35874ca1197a4f38a68823a0f01c1f17f728b26f0cf36",
+      "receivedVia": "user_file",
+      "receipt": "../../claude-repro-4-20261022/Receipt.json"
+    }
+  ],
+  "preparedManualResponsePackage": {
+    "file": "Pixora_Claude_Repro3_Verified_20261022.zip",
+    "bytes": 147900,
+    "sha256": "53d39282c7d3375d29dc9ae68bb6c2b2aea0ad0ba90d8b9469e0dc47df9a7349",
+    "delivery": "prepared_not_delivered",
+    "receipt": "../../../outputs/Pixora_Claude_Repro3_Verified_20261022.zip.receipt.json"
+  },
+  "closedResearchBranches": [
+    {
+      "branch": "Q/jitter",
+      "date": "2026-10-22",
+      "authority": "direct user instruction in current chat",
+      "reason": "no basis for production corrector; return to physical-quality contract",
+      "reopenWithoutNewUserDirection": false
+    }
+  ],
+  "updated": "2026-10-30",
+  "currentProductTarget": {
+    "target": "B: straightness in sign texture/UV",
+    "authority": "direct user message in current chat",
+    "quote": "я обираю варіант б",
+    "date": "2026-10-23",
+    "uvNumericalQualityContractFrozen": false,
+    "screenToleranceAutomaticallyReinterpreted": false,
+    "qualityGoalAccepted": true,
+    "qualityGoalAcceptedDate": "2026-10-23",
+    "qualityGoalAuthority": "direct user answer: Так, приймаю цю основу",
+    "unexpectedTexelTransitions": 0,
+    "widthMustEqualTargetTexelCount": true,
+    "uvMeasurementBudgetsFrozen": false,
+    "rightEdgeAcceptedState": "full coverage (+0.3..+0.65 column spill)",
+    "rightEdgeDecisionDate": "2026-10-26",
+    "rightEdgeDecisionSource": "0090_USER_DECISION_RIGHT_EDGE_FULL_COVERAGE.md"
+  },
+  "stopAllVerticalResearchAfterOneRejectedCandidate": {
+    "confirmedByDirectUser": false,
+    "sourceClaim": "0026_CLAUDE_DECISION_B_TEST_SPEC.md",
+    "policy": "A reviewer asked the user elsewhere; no answer in this chat. Do not apply stop-all.",
+    "correctionSource": "0028_CLAUDE_C3_REVISION.md",
+    "latestSource": "0030_CLAUDE_ACCEPTANCE_PASTED.md"
+  },
+  "missingReferencedMessages": [
+    {
+      "id": "0038",
+      "scope": "Referenced in0039; not supplied to this local exchange. No claim to have reproduced that message."
+    }
+  ]
+}

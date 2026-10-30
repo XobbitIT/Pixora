@@ -44,7 +44,7 @@ internal sealed partial class MainWindow
     private void BuildWorkflow(StackPanel parent)
     {
         workflowChips.Clear();
-        foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")), ("speed", T("Швидкість", "Speed Probe")), ("coverage", T("Покриття", "Coverage")) })
+        foreach (var (key, title) in new[] { ("image", T("Зображення", "Image")), ("rust", "Rust"), ("brush", T("Пензель", "Brush")) })
         {
             var row = new Grid { Margin = new Thickness(0, 3, 0, 3) };
             row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
@@ -85,8 +85,8 @@ internal sealed partial class MainWindow
         Set("brush",brush.State,brush.Problem,"Size "+PaintTimingPlan.DefaultSize(settings));
         if(brush.State==PreparationState.Ready&&!ReleaseProfile.Standard(settings))workflowChips["brush"].ToolTip=T("Робочий Size підтверджений. Мінімальний розмір пензля — 2.",
             "Working Size is verified. Minimum brush Size is 2.");
-        SetSpeedChip(workflowChips["speed"]);RefreshCoverageStatus();
-        if(ReleaseProfile.Standard(settings)){workflowChips["speed"].Set(T("Необов’язково","Optional"),Muted);workflowChips["coverage"].Set(T("Без аудиту","Unaudited"),Muted);workflowChips["brush"].ToolTip=T("Size 3 застосовується без вимірювання фізичного сліду.","Size 3 is applied without measuring its physical footprint.");}
+        RefreshCoverageStatus();
+        if(ReleaseProfile.Standard(settings)){workflowChips["brush"].ToolTip=T("Size 3 застосовується без вимірювання фізичного сліду.","Size 3 is applied without measuring its physical footprint.");}
     }
 
     private void UpdateDetailPreset()
@@ -99,7 +99,7 @@ internal sealed partial class MainWindow
             pair.Value.BorderBrush = selected ? Accent : BorderColor;
             pair.Value.Background = selected ? BrushOf("#38302A") : Input;
         }
-        string name = value switch { 2 => T("Чітко", "Detail"), 3 => T("Баланс", "Balanced"), 5 => T("Швидко", "Fast"), 8 => T("Чернетка", "Draft"), _ => T("Власне значення", "Custom") };
+        string name = value switch { 2 => T("Чітко", "Detail"), 3 => T("Баланс", "Balanced"), 5 => T("Грубіше", "Coarser"), 8 => T("Чернетка", "Draft"), _ => T("Власне значення", "Custom") };
         detailState.Text = valid ? $"{name} · {value:0} px · {T("Рух", "Movement")}: {Option("speed_profile",settings.Text("speed_profile"))}" : T("Введи ціле значення від 1 до 32 px.", "Enter a whole number from 1 to 32 px.");
         detailState.Foreground = valid ? Muted : Danger;
     }

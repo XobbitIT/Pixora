@@ -4,8 +4,8 @@ namespace CanvasForge.Core;
 public static class SetupBrushSelection
 {
     public const string Combined="2/3/5/7/10/15/20";
-    public static string[] SizeOptions=>BrushFootprints.Sizes.Where(size=>size>=DrawingWorkflow.MinimumSize).Select(Format).ToArray();
-    public static string[] Options=>new[]{"3",Combined,"3/10/20","20/30/40"}
+    public static string[] SizeOptions=>BrushFootprints.CalibrationSizes.Select(Format).ToArray();
+    public static string[] Options=>new[]{"3",Combined,"3/10/20"}
         .Concat(SizeOptions).Distinct().ToArray();
     private static string Format(double size)=>size.ToString(System.Globalization.CultureInfo.InvariantCulture);
     public static double[] Sizes(string selection,bool automatic)
@@ -14,7 +14,7 @@ public static class SetupBrushSelection
         foreach(var field in fields)
         {
             if(!double.TryParse(field,System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out double size)
-                ||size<DrawingWorkflow.MinimumSize||!BrushFootprints.Sizes.Contains(size)||sizes.Contains(size))throw new ArgumentException("Invalid calibration Sizes.");
+                ||!BrushFootprints.CalibrationSizes.Contains(size)||sizes.Contains(size))throw new ArgumentException("Invalid calibration Sizes.");
             sizes.Add(size);
         }
         // Size 3 remains the reliable ordinary default; Size 2 is the minimum.
@@ -27,7 +27,7 @@ public static class SetupBrushSelection
     }
     public static double? Select(IReadOnlyList<BrushFootprint>? profiles,int shape,double preferred)
     {
-        var sizes=(profiles??[]).Where(p=>p.Size>=2&&p.ShapeSlot==shape&&p.SolidCore.Valid)
+        var sizes=(profiles??[]).Where(p=>BrushFootprints.CalibrationSizes.Contains(p.Size)&&p.ShapeSlot==shape&&p.SolidCore.Valid)
             .Select(p=>p.Size).Distinct().Order().ToArray();
         return sizes.Contains(preferred)?preferred:sizes.Length>0?sizes[0]:null;
     }

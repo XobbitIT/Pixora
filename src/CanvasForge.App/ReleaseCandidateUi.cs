@@ -8,7 +8,8 @@ internal sealed partial class MainWindow
 {
     private void SelectReleaseProfile(bool experimental)
     {
-        ReadSettings();settings.Set("release_profile",experimental?"Experimental":"Standard");
+        ReadSettings();if(experimental&&TexelExperimentSettings.Enabled(settings))throw new InvalidOperationException(T("Спочатку вимкни тексельний маршрут.","Disable the texel route first."));
+        settings.Set("release_profile",experimental?"Experimental":"Standard");
         CancelPreview();Save();BuildUi();ShowPage(experimental?"experimental":"paint");Dirty();
     }
     private void BuildExperimental()
@@ -17,6 +18,7 @@ internal sealed partial class MainWindow
         page.Children.Add(Text(T("Експериментально","Experimental"),24));
         page.Children.Add(Text(T("Adaptive, Size 2, тест швидкості й аудит потребують окремих вимірювань. Їхня перевага у швидкості залежить від зображення. Standard використовує Size 3 без цих можливостей.",
             "Adaptive, Size 2, Speed Probe and coverage audit require separate measurements. Their speed benefit depends on the image. Standard uses Size 3 without these capabilities."),13,Warning));
+        BuildTexelProductUi(page);
         page.Children.Add(Button(T("Увімкнути експериментальне малювання","Enable experimental painting"),()=>SelectReleaseProfile(true),true));
         page.Children.Add(Button(T("Повернутися до Standard","Return to Standard"),()=>SelectReleaseProfile(false)));
         foreach(var (key,uk,en) in new[]{("adaptive","Пензлі та Adaptive","Brushes and Adaptive"),("speed","Тест швидкості й аудит","Speed Probe and audit")})
@@ -31,6 +33,7 @@ internal sealed partial class MainWindow
     private async Task WaitPreparationResume(CancellationToken token,string? reason=null)
     {
         Native.Release();preparationResume=new(TaskCreationOptions.RunContinuationsAsynchronously);
+        UpdateReady();
         SetStatus(T("Підготовку призупинено. Повернись у редактор Rust і натисни «Продовжити». Незавершені вимірювання відкинуто; перед повтором очисти тестові сліди.",
             "Preparation paused. Return to Rust's editor and press Resume. Incomplete measurements were discarded; clear test traces before retrying."));
         if(!string.IsNullOrWhiteSpace(reason))SetStatus(T(reason)+"\n"+T("Для повтору натисни «Продовжити».","Press Resume to retry."));
@@ -48,9 +51,12 @@ internal sealed partial class MainWindow
             // measurement or a partly drawn speed trial.
             var interrupted=setupResults.Where(p=>p.Value.State==SetupStageState.Running).Select(p=>p.Key).ToArray();
             foreach(var stage in interrupted)setupResults[stage]=(SetupStageState.Paused,"");
+            if(interrupted.Length>0)setupOutcome=StageName(interrupted[0])+" · "+T("пауза","paused");
             if(setupRunning)RefreshSetupStatus();
             await WaitPreparationResume(token,e.Message);
             foreach(var stage in interrupted)setupResults[stage]=(SetupStageState.Running,"");
+            if(interrupted.Length>0)setupOutcome=StageName(interrupted[0])+" · "+T("виконується","running");
+            RefreshRuntimeReadiness();
             if(setupRunning)RefreshSetupStatus();
             if(setupWorkspace is not null)setupWorkspace=new(settings.Calibration.Rect("canvas"));
         }

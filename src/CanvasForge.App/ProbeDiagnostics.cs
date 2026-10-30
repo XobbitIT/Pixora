@@ -39,6 +39,7 @@ internal sealed class ProbeDiagnosticSession
         string root=Path.Combine(folder,"speed-probe");Directory.CreateDirectory(root);
         string name=$"run-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}"[..28];
         DirectoryPath=Path.Combine(root,name);Directory.CreateDirectory(DirectoryPath);
+        DiagnosticRetention.Prune(root,DirectoryPath);
         report=new(BuildInfo.Version,SpeedCalibration.Revision,context,DateTimeOffset.UtcNow,size,outer,inner,ProbeAnalysis.EndMargin,
             "solid_core",null,"running","prepare",null,[],[]);
         Persist();AtomicJson(Path.Combine(root,"latest.json"),new{run=name});

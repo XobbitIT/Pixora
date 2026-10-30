@@ -8,7 +8,7 @@ internal static partial class Program
 {
     private static MainWindow PaintingUiWindow(string output,string name,Settings s,Action<Window>? present=null)
     {
-        var folder=Path.Combine(output,name);Directory.CreateDirectory(folder);s.Save(Path.Combine(folder,"config-csharp.json"));return new MainWindow(folder,present);
+        var folder=Path.Combine(output,name);Directory.CreateDirectory(folder);s.Save(Path.Combine(folder,SettingsStore.ConfigName));return FixtureWindow(folder,present);
     }
     private static IEnumerable<T> Editors<T>(MainWindow w,string key) where T:FrameworkElement
         =>Field<Dictionary<string,FrameworkElement>>(w,"pages").Values.SelectMany(LogicalNodes).OfType<T>().Where(e=>Equals(e.Tag,key)).Distinct();
@@ -48,16 +48,16 @@ internal static partial class Program
         // Add a second settings surface to regress the old last-reader-wins
         // behavior, while keeping the actual production UI concise.
         var peers=new StackPanel();((Panel)((ScrollViewer)Field<Dictionary<string,FrameworkElement>>(w,"pages")["settings"]).Content).Children.Add(peers);
-        Invoke(w,"AddNumber",peers,"paint_opacity_value","Opacity replica fixture",false);
-        Invoke(w,"AddCheck",peers,"use_fixed_opacity","Fixed opacity replica fixture",false);
-        var boxes=Editors<TextBox>(w,"paint_opacity_value").ToArray();Assert(boxes.Length>=2,"No duplicate editor fixture");
-        boxes[0].Text="0.75";Assert(Field<Settings>(w,"settings").Number("paint_opacity_value")==.75&&boxes.All(b=>b.Text=="0.75"),"The last duplicate editor discarded the first editor's change");
+        Invoke(w,"AddNumber",peers,"cell_px","Opacity replica fixture",false);
+        Invoke(w,"AddCheck",peers,"adaptive_auto_shape","Fixed opacity replica fixture",false);
+        var boxes=Editors<TextBox>(w,"cell_px").ToArray();Assert(boxes.Length>=2,"No duplicate editor fixture");
+        boxes[0].Text="4";Assert(Field<Settings>(w,"settings").Number("cell_px")==4&&boxes.All(b=>b.Text=="4"),"The last duplicate editor discarded the first editor's change");
         boxes[0].Text="invalid";Invoke(w,"RefreshAdaptiveStatus");
-        Assert(Field<Settings>(w,"settings").Number("paint_opacity_value")==.75&&!Field<Button>(w,"startButton").IsEnabled,"Invalid input persisted or left START active");
-        boxes[0].Text="1";Assert(boxes.All(b=>b.Text=="1")&&Field<Settings>(w,"settings").Number("paint_opacity_value")==1&&Field<Button>(w,"startButton").IsEnabled,"Correcting the first editor did not restore readiness");
-        var checks=Editors<CheckBox>(w,"use_fixed_opacity").ToArray();Assert(checks.Length>=2,"No duplicate checkbox fixture");
+        Assert(Field<Settings>(w,"settings").Number("cell_px")==4&&!Field<Button>(w,"startButton").IsEnabled,"Invalid input persisted or left START active");
+        boxes[0].Text="3";Assert(boxes.All(b=>b.Text=="3")&&Field<Settings>(w,"settings").Number("cell_px")==3&&Field<Button>(w,"startButton").IsEnabled,"Correcting the first editor did not restore readiness");
+        var checks=Editors<CheckBox>(w,"adaptive_auto_shape").ToArray();Assert(checks.Length>=2,"No duplicate checkbox fixture");
         checks[0].IsChecked=false;checks[0].RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
-        Assert(!Field<Settings>(w,"settings").Bool("use_fixed_opacity")&&checks.All(c=>c.IsChecked==false),"Duplicate checkboxes lost or hid a preference change");
+        Assert(!Field<Settings>(w,"settings").Bool("adaptive_auto_shape")&&checks.All(c=>c.IsChecked==false),"Duplicate checkboxes lost or hid a preference change");
         w.ShowPage("settings");Render(w,Path.Combine(output,name+".png"),900,780);Console.WriteLine("PASS "+name);
     }
     private static void CheckColorChoice(string output,string language)
@@ -71,12 +71,14 @@ internal static partial class Program
         var live=Field<Settings>(w,"settings");var c=live.Calibration;c.SetPoint("brush_tool",new(1050,80));live.SetCalibration(c);Invoke(w,"UpdateReady");
         Assert(!Field<Button>(w,"startButton").IsEnabled,"HEX imprint authorized a palette brush without its own proof");
         BrushFootprints.Save(live,[SetupStamp(live,3,3)]);Invoke(w,"UpdateReady");
+        Assert(!Field<Button>(w,"startButton").IsEnabled,"Palette reused HEX editor evidence");
+        InstallFixtureEditorReference(w);
         Assert(Field<Button>(w,"startButton").IsEnabled,"Measured Rust palette mode remains blocked");
         Render(w,Path.Combine(output,name+"-palette.png"),1280,780);
         Pick("HEX Direct");Assert(Field<Settings>(w,"settings").Mode==ColorMode.HexDirect&&!Field<Button>(w,"startButton").IsEnabled,"Changed color mode reused a physical imprint with another context");
         live=Field<Settings>(w,"settings");
         BrushFootprints.Save(live,[SetupStamp(live,3,3)]);Invoke(w,"UpdateReady");Assert(Field<Button>(w,"startButton").IsEnabled,"HEX button lost its independent captured controls");
-        Assert(Settings.Load(Path.Combine(output,name,"config-csharp.json")).Mode==ColorMode.HexDirect,"Mode choice was not saved");
+        Assert(Settings.Load(Path.Combine(output,name,SettingsStore.ConfigName)).Mode==ColorMode.HexDirect,"Mode choice was not saved");
         Render(w,Path.Combine(output,name+"-hex.png"),1280,780);Console.WriteLine("PASS "+name);
     }
     private static void CheckMeasuredPlanOverlay(string output)

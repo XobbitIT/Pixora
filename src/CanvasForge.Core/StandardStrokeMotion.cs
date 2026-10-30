@@ -5,7 +5,63 @@ namespace CanvasForge.Core;
 public static class StandardStrokeMotion
 {
     public const string Revision="standard-sendinput-v1";
+    public const string DenseRevision="standard-sendinput-dense-guard-v3";
+    public static string Emitter(Settings s)=>StandardLineMotion.Enabled(s)
+        ?StandardLineMotion.Revision:ReleaseProfile.Standard(s)?DenseRevision:Revision;
     public static void Draw(ScreenLine line,Settings settings,SpeedProfile speed,bool reverse,ICalibratedStrokeInput input)
+    {
+        if(line.X1!=line.X2&&line.Y1!=line.Y2)throw new ArgumentException("Expected an axis-aligned stroke.");
+        if(StandardLineMotion.Applies(settings,line)){StandardLineMotion.Draw(line,settings,reverse,input);return;}
+        if(ReleaseProfile.Standard(settings)){DrawDense(line,settings,speed,reverse,input);return;}
+        DrawLegacy(line,settings,speed,reverse,input);
+    }
+
+    // Standard's coverage is dense, so its actual movement events must be dense
+    // too. Pitch selects the speed/packet span, never which pixels are omitted.
+    // Packet endpoints and requested waits match v1; intermediate points fill
+    // its 2/3-pixel gaps. This is an input contract, not a physical brush proof.
+    private static void DrawDense(ScreenLine line,Settings settings,SpeedProfile speed,bool reverse,ICalibratedStrokeInput input)
+    {
+        if(speed.Pitch is <1 or >3||speed.BatchSize is <1 or >16)
+            throw new ArgumentOutOfRangeException(nameof(speed));
+        var a=new ScreenPoint(reverse?line.X2:line.X1,reverse?line.Y2:line.Y1);
+        var b=new ScreenPoint(reverse?line.X1:line.X2,reverse?line.Y1:line.Y2);
+        int length=TransferSchedule.Length(line),dx=Math.Sign(b.X-a.X),dy=Math.Sign(b.Y-a.Y);
+        int span=speed.Pitch*speed.BatchSize;
+        try
+        {
+            input.Move([a]);input.Wait(StrokeTiming.Settle(settings,speed));
+            Confirm(a);
+            if(input is ITrackedStrokeInput tracking)tracking.BeginCursorTracking(a);
+            input.Button(false);double heldFrom=input.Seconds;
+            input.Wait(StrokeTiming.Frame(settings));
+            for(int first=1;first<=length;)
+            {
+                int count=Math.Min(span,length-first+1);
+                var points=new ScreenPoint[count];
+                for(int i=0;i<count;i++)points[i]=new(a.X+(first+i)*dx,a.Y+(first+i)*dy);
+                input.Move(points);
+                input.Wait(speed.PointDelay*((count+speed.Pitch-1)/speed.Pitch));
+                first+=count;
+            }
+            input.Wait(StrokeTiming.EndHold(settings,speed));
+            double held=input.Seconds-heldFrom;if(held<.04)input.Wait(.04-held);
+        }
+        finally
+        {
+            try{input.Button(true);}
+            finally{if(input is ITrackedStrokeInput tracking)tracking.EndCursorTracking();}
+        }
+        // Release before validation can capture the editor or write a failure.
+        Confirm(b);
+        input.Wait(StrokeTiming.Release(settings));
+        void Confirm(ScreenPoint expected)
+        {if(input is IPositionVerifiedStrokeInput verified)verified.ConfirmPosition(expected);}
+    }
+
+    // Frozen v1 remains available for the registered old diagnostic protocols
+    // and Experimental fallback. It must not silently change with Standard.
+    public static void DrawLegacy(ScreenLine line,Settings settings,SpeedProfile speed,bool reverse,ICalibratedStrokeInput input)
     {
         if(line.X1!=line.X2&&line.Y1!=line.Y2)throw new ArgumentException("Expected an axis-aligned stroke.");
         var a=new ScreenPoint(reverse?line.X2:line.X1,reverse?line.Y2:line.Y1);

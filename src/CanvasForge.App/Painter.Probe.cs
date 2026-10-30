@@ -15,12 +15,12 @@ internal sealed partial class Painter
         int shape=settings.Int("brush_shape_slot",3);
         var desired=DesiredControls(size);
         var required=BrushControlReuse.Required(activeShape==shape&&!needsReprime,verifiedControls,
-            desired.Size,desired.Interval,desired.Opacity,
+            desired,
             (kind,value)=>ReadSlider(kind) is { } observed&&observed.Matches(ControlCurve.Fraction(kind,value)));
         if(activeShape!=shape||needsReprime)ApplyBrushShape();
-        foreach(string kind in required)Slider(kind,kind=="size"?desired.Size:kind=="interval"?desired.Interval:desired.Opacity);
-        activeAdaptiveSize=desired.Size;needsReprime=false;CheckProbe();
-        Log("brush_controls",new{shape,size,verifiedNow=required,reused=new[]{"size","interval","opacity"}.Except(required).ToArray()});
+        foreach(string kind in required)Slider(kind,desired);
+        activeAdaptiveSize=desired;needsReprime=false;CheckProbe();
+        Log("brush_controls",new{shape,size,verifiedNow=required,reused=new[]{"size"}.Except(required).ToArray()});
     }
     public BrushDotTrace ProbeDot(ScreenPoint command)
     {
@@ -43,6 +43,12 @@ internal sealed partial class Painter
         CheckProbe();CalibratedMotion.Draw(line,sample,motionInput);CheckProbe();
         lastPaintPoint=Native.Cursor();
     }
+    public void ProbeBrushStroke(ScreenLine line)
+    {
+        CheckProbe();StandardStrokeMotion.Draw(line,settings,SpeedProfile.Get("Rapid"),false,motionInput);CheckProbe();lastPaintPoint=Native.Cursor();
+    }
+    public void ProbeExposureDot(ScreenPoint point,int milliseconds)
+    {CheckProbe();BrushExposureMotion.Draw(point,milliseconds,motionInput);CheckProbe();lastPaintPoint=Native.Cursor();}
     public PixelImage StableProbeShot(ScreenRect area,Action<PixelImage,PixelImage,int> unstableFrames,Action<PixelImage,PixelImage>? settledFrames=null)
     {
         try{return StableShot(area,unstableFrames,settledFrames);}
@@ -58,10 +64,11 @@ internal sealed partial class Painter
         var original=Native.Cursor();
         // A tile capture only needs the cursor outside that tile. Moving to the
         // nearest clear edge avoids repeated travel to the right-hand controls.
-        double size=verifiedControls.GetValueOrDefault("size",DesiredControls().Size);
+        double size=verifiedControls.GetValueOrDefault("size",DesiredControls());
         // Manual/interpolated Sizes may have no exact measured sample. Use a
         // conservative bound in that case rather than preventing an existing audit.
         int radius=BrushFootprints.CaptureRadius(settings,size,activeShape);
+        if(probeMode)radius=Math.Max(radius,(int)Math.Ceiling(size*2)+12);
         int margin=CaptureCursor.Clearance(radius,windowDpi);
         var park=CaptureCursor.ParkingPoint(area,windowRect,original,margin)
             ??throw new InvalidOperationException("Немає місця для знімка без курсора. Повтори захоплення полотна.");
@@ -114,7 +121,7 @@ internal sealed partial class Painter
                 break;
             }
             var operations=repairPlan.Operations;
-            double restoreSize=activeAdaptiveSize??DesiredControls().Size;int restoreShape=activeShape;
+            double restoreSize=activeAdaptiveSize??DesiredControls();int restoreShape=activeShape;
             ApplyBrushShape(operations[0].ShapeSlot);ApplyControls(operations[0].Size);
             if(plan.Mode==ColorMode.HexDirect)
             {if(!ApplyHex(plan.Palette[color].Color,true))throw new InvalidOperationException("HEX verification failed before repair.");}

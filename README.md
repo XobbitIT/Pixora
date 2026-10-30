@@ -1,10 +1,19 @@
-# Pixora 1.0.14-rc.1 — Standard release candidate
+Current verified runtime: **1.0.14-rc.8+local-line-repair-1**. Standard physical waviness remains unresolved; Adaptive qualification is deferred.
 
-Default: round Size 3, stable input, one minimal preparation for Rust regions, colors and controls. Brush imprints and Speed Probe are optional. Adaptive, Size 2, accelerated routes and measured auditing are under Experimental. Standard does not certify physical color boundaries or full coverage: inspect the result in Rust.
+Project notebook: [rules](AGENTS.md) → [current state](PROJECT_STATE.md); consult [architecture](ARCHITECTURE.md), [test matrix](TEST_MATRIX.md), and [Steam readiness](STEAM_RELEASE.md) as needed.
+
+## Historical release notes
+
+
+RC5: one preparation runs seven supported Sizes and optional motion/spatial/speed checks; background removal is gone. Wide Adaptive brushes require moving-footprint evidence and use ordinary Stable/Rapid input. See release/Quick_Start.md and TESTING_RC5_UA.md.
+
+# Pixora 1.0.14-rc.5 — Standard release candidate
+
+Default: round Size 3 and stable Rapid input. One preparation checks regions, colors, Size controls, the seven supported brush Sizes and optional movement/spatial/speed evidence. Failed optional checks do not block Standard. Adaptive, Size 2, accelerated routes and measured auditing are under Experimental. Standard does not certify physical color boundaries or full coverage: inspect the result in Rust.
 
 Focus loss pauses preparation and resumes a whole transaction; incomplete physical trials must be cleared before retrying. Diagnostic export includes logs/config/images and identified, rebased run snapshots. Exclusive timing separates colors, strokes, service and pause. User runtime contains only executable dependencies, licenses and Quick Start. No new RC live test has been performed; the user runs it.
 
-Use the fixed release candidate branch and v1.0.14-rc.1 tag. Change only reproduced release blockers. Full MainWindow/Painter refactoring is deferred. See [RC changes](CHANGES_RC_UA.md), [test checklist](TESTING_RC_UA.md) and [architecture](ARCHITECTURE_UA.md).
+Use the release/pixora-1.0.14-rc branch. RC5 is an uncommitted local build; its receipt records the exact binaries and source fingerprint. Full MainWindow/Painter refactoring is deferred. See [RC changes](CHANGES_RC_UA.md), [RC5 test checklist](TESTING_RC5_UA.md) and [architecture](ARCHITECTURE_UA.md).
 
 ## Historical beta.60 notes
 

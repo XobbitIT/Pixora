@@ -18,7 +18,7 @@ internal sealed partial class MainWindow
                 if(!File.Exists(path)||!File.Exists(image)||new FileInfo(path).Length>65536)continue;
                 using var json=JsonDocument.Parse(File.ReadAllText(path));
                 string kind=json.RootElement.GetProperty("kind").GetString()??"";
-                if(kind is not ("size" or "interval" or "opacity"))continue;
+                if(kind != "size")continue;
                 return (image,kind,json.RootElement.GetProperty("diagnosis").GetProperty("reason").GetString()??"");
             }
             catch(IOException){}catch(JsonException){}catch(KeyNotFoundException){}catch(InvalidOperationException){}

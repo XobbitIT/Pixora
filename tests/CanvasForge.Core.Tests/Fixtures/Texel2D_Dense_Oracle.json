@@ -1,0 +1,128 @@
+{
+  "canonicalPathFormat": "ASCII x,y newline for every screen point, LF, no header",
+  "lines": [
+    {
+      "label": "H1",
+      "vertical": false,
+      "column": null,
+      "row": 133,
+      "firstAddress": 155,
+      "lastAddress": 195,
+      "pointCount": 83,
+      "canonicalPathSha256": "e87a834691389c159827b12edf8d0ac46998a276a6a0be3e2f0a715b344c51b8",
+      "minimumColumnMargin": 0.0016423743289522008,
+      "minimumRowMargin": 0.4979477512170263
+    },
+    {
+      "label": "H2",
+      "vertical": false,
+      "column": null,
+      "row": 206,
+      "firstAddress": 260,
+      "lastAddress": 300,
+      "pointCount": 83,
+      "canonicalPathSha256": "4f8390de8e34f4211fdbebb0f38e979381858baefb0215a2d0c10da824bbf289",
+      "minimumColumnMargin": 0.0008190772351781561,
+      "minimumRowMargin": 0.49370066411353264
+    },
+    {
+      "label": "H3",
+      "vertical": false,
+      "column": null,
+      "row": 331,
+      "firstAddress": 140,
+      "lastAddress": 180,
+      "pointCount": 83,
+      "canonicalPathSha256": "0409bd6717c79f85e6053b33a9f7b49fd3de6d8eb5b0e3560dc8cf002ab9d10a",
+      "minimumColumnMargin": 0.009104967386804219,
+      "minimumRowMargin": 0.4999585251839562
+    },
+    {
+      "label": "H4",
+      "vertical": false,
+      "column": null,
+      "row": 406,
+      "firstAddress": 280,
+      "lastAddress": 320,
+      "pointCount": 82,
+      "canonicalPathSha256": "2d9c50452d93eccaf648b9a4bd45a43e3e2aeacd822d66ae4b2e7442032ec94c",
+      "minimumColumnMargin": 0.002798126086361208,
+      "minimumRowMargin": 0.47373313748170176
+    },
+    {
+      "label": "V1",
+      "vertical": true,
+      "column": 243,
+      "row": null,
+      "firstAddress": 120,
+      "lastAddress": 160,
+      "pointCount": 81,
+      "canonicalPathSha256": "d373edcf9b59644a8c3ae5cde8f325c988780abaf6946028b3ec511954eda759",
+      "minimumColumnMargin": 0.48902372656968396,
+      "minimumRowMargin": 0.0026573179156059723
+    },
+    {
+      "label": "V2",
+      "vertical": true,
+      "column": 366,
+      "row": null,
+      "firstAddress": 200,
+      "lastAddress": 240,
+      "pointCount": 81,
+      "canonicalPathSha256": "273051c342f2e4939f2681e2e34389d2a5a13f0c912e29f7c3c5a0415cbb3b6f",
+      "minimumColumnMargin": 0.3412287320780365,
+      "minimumRowMargin": 0.0002477566594620839
+    },
+    {
+      "label": "V3",
+      "vertical": true,
+      "column": 241,
+      "row": null,
+      "firstAddress": 320,
+      "lastAddress": 360,
+      "pointCount": 81,
+      "canonicalPathSha256": "a71c649a0b66f949a8f80f129a5833455ac2b9d406360ec8ea5c68ed04c761f6",
+      "minimumColumnMargin": 0.42706943428925115,
+      "minimumRowMargin": 0.00216630887376823
+    },
+    {
+      "label": "V4",
+      "vertical": true,
+      "column": 377,
+      "row": null,
+      "firstAddress": 400,
+      "lastAddress": 440,
+      "pointCount": 80,
+      "canonicalPathSha256": "ac8f245df3bc9bdd6173d99130806c8e4bef21e963bfe7b70f8a2b5e78f9bdd1",
+      "minimumColumnMargin": 0.4132613562046572,
+      "minimumRowMargin": 0.0022372339426510734
+    },
+    {
+      "label": "LongLeft",
+      "vertical": true,
+      "column": 70,
+      "row": null,
+      "firstAddress": 120,
+      "lastAddress": 545,
+      "pointCount": 847,
+      "canonicalPathSha256": "e136dc9a01b042e451dce49a7640d97d41cf5c3b4f3ae32ac739f79dac62b962",
+      "minimumColumnMargin": 0.25410394720861973,
+      "minimumRowMargin": 0.0002477566594620839
+    },
+    {
+      "label": "LongRight",
+      "vertical": true,
+      "column": 460,
+      "row": null,
+      "firstAddress": 120,
+      "lastAddress": 545,
+      "pointCount": 847,
+      "canonicalPathSha256": "e8714a482b51c32073dc4aad31dcd8a5944c69dfc6829ed2a0d2ccd4874c9dba",
+      "minimumColumnMargin": 0.2547938704210537,
+      "minimumRowMargin": 0.0002477566594620839
+    }
+  ],
+  "sourceRowModelSha256": "d7f5b23ab992dbd13d5f902685c8a9c6e39a35ae63210f58592980d0796434d2",
+  "fittedParametersChanged": false,
+  "nativeInput": false
+}

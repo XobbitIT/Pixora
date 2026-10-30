@@ -11,8 +11,8 @@ internal static partial class Program
 {
     private static void CheckProductUi(string output)
     {
-        string data=Path.Combine(output,"product-beta57");Directory.CreateDirectory(data);ReadySettings("English").Save(Path.Combine(data,"config-csharp.json"));
-        Window? displayed=null;var window=new MainWindow(data,w=>displayed=w);
+        string data=Path.Combine(output,"product-beta57");Directory.CreateDirectory(data);ReadySettings("English").Save(Path.Combine(data,SettingsStore.ConfigName));
+        Window? displayed=null;var window=FixtureWindow(data,w=>displayed=w);
         var missing=new PhysicalCoverageResult(100,70,20,10,new bool[100],new bool[100]);
         typeof(MainWindow).GetMethod("RenderPhysicalCoverage",BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(window,[missing,data]);
         Assert(Field<TextBlock>(window,"physicalCoverageLabel").Text.Contains(70d.ToString("F1")+"%")&&Field<TextBlock>(window,"physicalCoverageLabel").Text.Contains(20d.ToString("F1")+"%"),"Physical percentages missing");
@@ -53,8 +53,8 @@ internal static partial class Program
         foreach(string language in LanguageCatalog.Names)foreach(int dpi in new[]{96,120,144})foreach(string state in new[]{"initial","ready","paused","audit"})
         {
             string name=$"matrix-{LanguageCatalog.Code(language)}-{dpi}-{state}",data=Path.Combine(output,name);Directory.CreateDirectory(data);
-            var settings=state=="initial"?Settings.ExperimentalDefaults():ReadySettings(language);settings.Set("language",language);settings.Save(Path.Combine(data,"config-csharp.json"));
-            var window=new MainWindow(data,_=>{});
+            var settings=state=="initial"?Settings.ExperimentalDefaults():ReadySettings(language);settings.Set("language",language);settings.Save(Path.Combine(data,SettingsStore.ConfigName));
+            var window=FixtureWindow(data,_=>{});
             if(state!="initial")
             {
                 var source=new PixelImage(32,32);for(int i=0;i<1024;i++)source.Set(i,new(0,0,0));

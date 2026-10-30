@@ -108,7 +108,7 @@ internal sealed class ClipboardLease:IDisposable
         finally{try{backup.Dispose();}finally{(store as IDisposable)?.Dispose();}}
     }
 }
-internal sealed class WindowsClipboardStore(Action<object>? report=null):IClipboardStore,IDisposable
+internal sealed class WindowsClipboardStore(Action<object>? report=null,Action<object>? failure=null):IClipboardStore,IDisposable
 {
     // Keep the owner alive for the whole transaction. Destroying it between
     // writes changes the clipboard sequence and looks like an external copy.
@@ -126,9 +126,12 @@ internal sealed class WindowsClipboardStore(Action<object>? report=null):IClipbo
         }
         catch(Native.ClipboardFormatException e)
         {
-            report?.Invoke(new{status="format_unavailable",format=e.Format,formatName=e.FormatName,error=e.NativeErrorCode});throw;
+            ReportFormatFailure(e,OwnerProcess,failure??report);throw;
         }
     }
+    internal static void ReportFormatFailure(Native.ClipboardFormatException error,uint ownerProcess,Action<object>? failure)
+        =>failure?.Invoke(new{status="format_unavailable",format=error.Format,formatName=error.FormatName,
+            error=error.NativeErrorCode,ownerProcess,preservable=false,operation="capture",payloadRecorded=false});
     private void ReportMessages()=>owner?.DrainMessages(message=>report?.Invoke(new
         {status="owner_message",message=message.Message,time=message.Time,window=owner.Handle.ToInt64(),thread=owner.OwnerThreadId}));
     public ClipboardObservation Read()

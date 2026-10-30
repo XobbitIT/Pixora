@@ -241,10 +241,9 @@ public static class ImageProcessing
     // Premultiplied Lanczos resampling prevents dark fringes around transparent art.
     public static PixelImage Prepare(PixelImage source, int width, int height, Settings settings, CancellationToken token)
     {
-        var removeBackground = settings.Bool("remove_bg");
-        var im = removeBackground ? RemoveBackground(source, token) : source;
+        var im = source;
         if (settings.Bool("fill_subject"))
-            im = removeBackground ? CropSubject(im) : CropOpaqueSubject(im, token);
+            im = CropOpaqueSubject(im, token);
         var mode = settings.Text("fit_mode", "fit square");
         if (mode == "smart")
             mode = settings.Bool("fill_subject") ? "crop" : "fit whole";

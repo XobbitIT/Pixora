@@ -9,6 +9,7 @@ internal static class BrushLocalColorChecks
     private static void Require(bool ok){if(!ok)throw new Exception("Local brush color regression");}
     private static readonly ScreenPoint Command=new(48,48);
     private static readonly Rgb Black=new(0,0,0);
+    private static readonly BrushPaintSourceProof Source=new(Black,true,true);
     private static PixelImage Frame()
     {var im=new PixelImage(96,96);for(int i=0;i<96*96;i++)im.Set(i,new(180,180,180));return im;}
     private static PixelImage Dot(PixelImage before,int level,int dx=0)
@@ -26,7 +27,7 @@ internal static class BrushLocalColorChecks
             {
                 var after=Dot(before,level);int calls=0;
                 var confirmed=BrushLocalColor.Confirm(before,after,Command,3,Black,0,()=>{calls++;return after.Clone();});
-                var signal=batch.RecordLocal(3,++repeat,before,before,after,confirmed,Command,Black);
+                var signal=batch.RecordLocal(3,++repeat,before,before,after,confirmed,Command,Black,Source);
                 Require(calls==1&&signal.LocalColor is {Passed:true,StablePixels:16,AnchorPixels:1});
             }
             var p=batch.Profiles.Single();Require(p.SolidPixels==16&&p.SolidCore==new ScreenRect(-1,2,3,6));
@@ -49,20 +50,20 @@ internal static class BrushLocalColorChecks
             {
                 var dark=Frame();for(int i=0;i<96*96;i++)dark.Set(i,new(30,30,30));var after=dark.Clone();
                 for(int y=50;y<54;y++)for(int x=47;x<51;x++)after.Set(y*96+x,colors.Item2);
-                Require(BrushLocalColor.Measure(dark,after,after.Clone(),Command,3,colors.Item1).LocalColor is {Passed:true});
+                Require(BrushLocalColor.Measure(dark,after,after.Clone(),Command,3,colors.Item1,new(colors.Item1,true,true)).LocalColor is {Passed:true});
             }
         });
         test("Translucent dots and merely darker local references do not become solid",()=>{
             var before=Frame();
             foreach(var levels in new[]{(90,45),(45,11),(25,3)})
             {
-                var stamp=BrushLocalColor.Measure(before,Dot(before,levels.Item1),Dot(before,levels.Item2),Command,3,Black);
+                var stamp=BrushLocalColor.Measure(before,Dot(before,levels.Item1),Dot(before,levels.Item2),Command,3,Black,Source);
                 Require(stamp.Solid.Length==0&&stamp.LocalColor is {Passed:false});
             }
         });
         test("Paint added by saturation check never fills a first-stamp hole in the model",()=>{
             var before=Frame();var first=Dot(before,20);first.Set(52*96+49,new(180,180,180));var full=Dot(before,20);
-            var stamp=BrushLocalColor.Measure(before,first,full,Command,3,Black);
+            var stamp=BrushLocalColor.Measure(before,first,full,Command,3,Black,Source);
             Require(stamp.LocalColor is {Passed:true}&&!BrushFootprints.Points(stamp.Solid).Contains(new(1,4)));
             Require(BrushFootprints.Points(stamp.Possible).Contains(new(1,4)));
         });
@@ -70,13 +71,13 @@ internal static class BrushLocalColorChecks
             var before=Frame();var first=Dot(before,20);var second=Dot(before,20);
             first.Set(54*96+48,new(100,100,100));second.Set(54*96+48,new(55,55,55));
             second.Set(55*96+48,new(150,150,150));
-            var stamp=BrushLocalColor.Measure(before,first,second,Command,3,Black);
+            var stamp=BrushLocalColor.Measure(before,first,second,Command,3,Black,Source);
             Require(stamp.LocalColor is {Passed:true}&&BrushFootprints.Points(stamp.Solid).Count()==16);
             Require(BrushFootprints.Points(stamp.Possible).Contains(new(0,7))&&!BrushFootprints.Points(stamp.Solid).Contains(new(0,6)));
         });
         test("Three locally verified but displaced cores still intersect at command coordinates",()=>{
             var before=Frame();var s=Settings.ExperimentalDefaults();var stamps=new[]{-5,0,5}.Select(dx=>{
-                var dot=Dot(before,20,dx);return BrushLocalColor.Measure(before,dot,dot.Clone(),Command,3,Black);
+                var dot=Dot(before,20,dx);return BrushLocalColor.Measure(before,dot,dot.Clone(),Command,3,Black,Source);
             }).ToArray();
             Require(stamps.All(p=>p.LocalColor is {Passed:true}));
             var profile=BrushFootprints.Build(s,3,3,stamps);Require(!profile.SolidCore.Valid&&profile.SolidPixels==0);
@@ -94,15 +95,15 @@ internal static class BrushLocalColorChecks
             var wrong=Dot(wrongBefore,255);var right=Dot(before,20);
             Require(BrushLocalColor.Confirm(wrongBefore,wrong,Command,3,Black,0,()=>throw new Exception("Wrong color repainted")) is null);
             Require(BrushLocalColor.Confirm(before,right,Command,3,Black,13,()=>throw new Exception("Noise repainted")) is null);
-            Require(BrushLocalColor.Measure(wrongBefore,wrong,wrong,Command,3,Black).Solid.Length==0);
+            Require(BrushLocalColor.Measure(wrongBefore,wrong,wrong,Command,3,Black,Source).Solid.Length==0);
             var background=Frame();background.Set(0,new(160,160,160));var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[3]);
-            for(int i=1;i<=3;i++)batch.RecordLocal(3,i,background,before,right,right,Command,Black);
+            for(int i=1;i<=3;i++)batch.RecordLocal(3,i,background,before,right,right,Command,Black,Source);
             Require(batch.Profiles.Count==0&&batch.Diagnostics.Single().State==BrushSignalState.Rejected);
         });
         test("Missing paint or wrong-color confirmation invalidates first opaque pixels",()=>{
             var before=Frame();var after=Dot(before,20);
-            Require(BrushLocalColor.Measure(before,after,before,Command,3,Black).Solid.Length==0);
-            Require(BrushLocalColor.Measure(before,after,Dot(before,255),Command,3,Black).Solid.Length==0);
+            Require(BrushLocalColor.Measure(before,after,before,Command,3,Black,Source).Solid.Length==0);
+            Require(BrushLocalColor.Measure(before,after,Dot(before,255),Command,3,Black,Source).Solid.Length==0);
         });
         test("Saturation clipping and size mismatch remain fatal scene errors",()=>{
             var before=Frame();var after=Dot(before,20);var clipped=after.Clone();clipped.Set(0,Black);
@@ -111,7 +112,7 @@ internal static class BrushLocalColorChecks
         });
         test("Interrupted saturation capture propagates with no partial Size publication",()=>{
             var before=Frame();var after=Dot(before,20);var batch=new BrushCalibrationBatch(Settings.ExperimentalDefaults(),3,[3]);
-            batch.RecordLocal(3,1,before,before,after,after,Command,Black);
+            batch.RecordLocal(3,1,before,before,after,after,Command,Black,Source);
             try{BrushLocalColor.Confirm(before,after,Command,3,Black,0,()=>throw new OperationCanceledException());throw new Exception("Cancellation swallowed");}
             catch(OperationCanceledException){}
             Require(batch.Profiles.Count==0&&batch.Diagnostics.Count==0&&batch.ShouldMeasure(3));
