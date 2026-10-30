@@ -5,6 +5,8 @@ internal static class TexelCompensatedChecks
     private static string Assets(string version)=>Path.Combine(AppContext.BaseDirectory,"Fixtures","RowPicture"+version);
     private static void Need(bool c,string m){if(!c)throw new Exception(m);}
     private static void Refuse(Action a){try{a();}catch(InvalidDataException){return;}throw new Exception("Unsupported compensated route accepted");}
+    // Ties a refusal to one guard: a different guard or exception type fails the check.
+    private static void Refuse(Action a,string reason){try{a();}catch(InvalidDataException e)when(e.Message.StartsWith(reason,StringComparison.Ordinal)){return;}throw new Exception("Compensated route not refused by: "+reason);}
     private static TexelGrid Grid(JsonElement protocol,string version,bool derived)
     {
         var geometry=protocol.GetProperty("context").Deserialize<StandardGeometryContext>()!;
@@ -48,6 +50,48 @@ internal static class TexelCompensatedChecks
             Refuse(()=>TexelCompensatedPlanner.Plan(true,g,g.Context,["####","####"],new(300,203,304,205),1,default,TexelCompensatedPlanner.FullCoverageEndPhase));
             Refuse(()=>TexelCompensatedPlanner.Plan(true,g,g.Context,["####","####"],new(300,203,304,205),0,default,2.5));
             Refuse(()=>TexelCompensatedPlanner.Plan(true,g,g.Context,["####","####"],new(300,203,304,205),0,default,double.NaN));
+        });
+        const string PhaseRange="End phase must be in [1.5,2.5)",DomainExit="Run end leaves the measured row domain.";
+        test("Compensated end phase accepts 1.5 and refuses below 1.5 or infinite",()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("9"),"protocol-pic9.json")));var root=doc.RootElement;
+            var p=root.GetProperty("pictureR");var g=Grid(root,"9",true);var mask=p.GetProperty("mask").EnumerateArray().Select(x=>x.GetString()!).ToArray();var rect=p.GetProperty("indexRect").Deserialize<ScreenRect>();
+            TexelCompensatedPlan P(double end)=>TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,end);
+            var low=P(1.5);
+            Need(low.EndPhase==1.5&&low.EndTrimPx==0&&low.Runs.Count==P(TexelCompensatedPlanner.FullCoverageEndPhase).Runs.Count,"Lower end phase bound not accepted");
+            // The range guard itself must refuse; +Infinity must not reach the row-domain walk.
+            foreach(double e in new[]{1.4999,double.PositiveInfinity})Refuse(()=>P(e),PhaseRange);
+        });
+        // Same mask, same original route: a later end phase only appends forward points to each run.
+        foreach(var (version,names) in new[]{("8",new[]{"pictureA","pictureB"}),("9",new[]{"pictureR","pictureL","pictureC"})})test("Compensated full-coverage end extends end phase 1.5 runs on Picture"+version,()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets(version),"protocol-pic"+version+".json")));var root=doc.RootElement;var g=Grid(root,version,true);bool longer=false;
+            foreach(string name in names)
+            {
+                var p=root.GetProperty(name);var mask=p.GetProperty("mask").EnumerateArray().Select(x=>x.GetString()!).ToArray();var rect=p.GetProperty("indexRect").Deserialize<ScreenRect>();
+                var low=TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,1.5);
+                var full=TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,TexelCompensatedPlanner.FullCoverageEndPhase);
+                Need(low.Runs.Count==full.Runs.Count,"Run count depends on end phase: "+version+"/"+name);
+                for(int i=0;i<low.Runs.Count;i++)
+                {
+                    var l=low.Runs[i];var f=full.Runs[i];var lp=l.Path.Points;var fp=f.Path.Points;
+                    Need(l.Row==f.Row&&l.FirstColumn==f.FirstColumn&&l.LastColumn==f.LastColumn&&lp[0]==fp[0]&&l.CommandY==f.CommandY,"Run identity depends on end phase: "+version+"/"+name+"/"+i);
+                    Need(fp[^1].X>=lp[^1].X&&fp.Count>=lp.Count&&lp.SequenceEqual(fp.Take(lp.Count)),"Full-coverage end shortened or rerouted a run: "+version+"/"+name+"/"+i);
+                    Need(g.Columns.PredictedPhase(lp[^1])>=l.LastColumn+1.5&&g.Columns.PredictedPhase(fp[^1])>=f.LastColumn+TexelCompensatedPlanner.FullCoverageEndPhase,"Run end phase not reached: "+version+"/"+name+"/"+i);
+                    longer|=fp.Count>lp.Count;
+                }
+            }
+            Need(longer,"End phase 1.867 never extends beyond 1.5: Picture"+version);
+        });
+        // Row 203 commands Y420 where column 469 is centred at X1429: b+1.5 ends at the last measured X1430, b+1.867 needs X1431=RowDomain.Right.
+        test("Compensated full-coverage end refuses leaving the measured row domain",()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("9"),"protocol-pic9.json")));var g=Grid(doc.RootElement,"9",true);
+            string[] mask=["####","####"];var rect=new ScreenRect(465,203,469,205);
+            var original=TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect).Runs.Single().Path.Points;
+            var edge=TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,1.5).Runs.Single().Path.Points;
+            Need(original[^1].X<g.RowDomain.Right-1&&edge[^1].X==g.RowDomain.Right-1&&edge.All(v=>v.X<g.RowDomain.Right),"Row-domain edge fixture moved");
+            Refuse(()=>TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,TexelCompensatedPlanner.FullCoverageEndPhase),DomainExit);
         });
         test("Compensated rejects implicit enable, partial/isolated features, trim, context and cancellation",()=>
         {
