@@ -86,6 +86,57 @@ internal static partial class Program
         }
         var low=TexelProductReview.Review(run2,Path.Combine(output,"rows-below-025-review"));
         Assert(low.Status!="INCOMPLETE"&&low.Picture is not null,"Review of rows with margin 0.20..0.25 not scored: "+low.Status+" "+low.Reason);
+        void CheckDetails(TexelProductReview.Summary summary,string review,PixelImage after)
+        {
+            var grid=TexelProduct.Grid();var route2=plan2.ExperimentalTexel!;
+            var pts=route2.Runs.SelectMany(r=>r.Path.Points).ToArray();
+            var reserve=new ScreenRect(pts.Min(p=>p.X)-16,pts.Min(p=>p.Y)-16,pts.Max(p=>p.X)+17,pts.Max(p=>p.Y)+17);
+            var evaluation=StandardRowPicturePilot.Evaluate(grid,route2.Mask.ToArray(),route2.Indices,true,true,route2.RowMargin);
+            var picture=new StandardRowPicturePilot.Picture("product",route2.Indices,route2.Mask.ToArray(),"derived",
+                route2.Runs.Select(r=>new StandardRowPicturePilot.PictureRun(r.Row,r.FirstColumn,r.LastColumn,r.CommandY,r.Path.Points.ToArray())).ToArray(),reserve,evaluation);
+            // Baseline path without the optional section collector, serialized using the unchanged summary contract.
+            var baseline=StandardRowPictureAnalysis.Picture(picture,grid,canvas,blank,after,.75,-.15,true);
+            var expected=new TexelProductReview.Summary(baseline.Status,"",Path.GetFullPath(run2),null,route2.Runs.Count,route2.Indices,0,baseline,TexelProductReview.Rule,false,false);
+            string json=System.Text.Json.JsonSerializer.Serialize(expected,new System.Text.Json.JsonSerializerOptions{WriteIndented=true,Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping});
+            Assert(File.ReadAllBytes(Path.Combine(review,"summary.json")).SequenceEqual(System.Text.Encoding.UTF8.GetBytes(json)),"Summary bytes differ from review without details");
+            var sections=System.Text.Json.JsonSerializer.Deserialize<StandardRowPictureAnalysis.EdgeSections[]>(File.ReadAllText(Path.Combine(review,"sections.json")))!;
+            using var reader=File.OpenText(Path.Combine(review,"edges-margins.csv"));var margins=TexelReviewMargins.Read(reader);
+            Assert(sections.Length==baseline.Edges.Length&&margins.Length==baseline.Edges.Length,"Detail edge denominator changed");
+            foreach(var edge in baseline.Edges)
+            {
+                var detail=sections.Single(e=>e.Name==edge.Name);var samples=detail.Sections;
+                var csv=margins.Single(e=>e.Name==edge.Name);
+                Assert(detail.Vertical==edge.Vertical&&csv.Vertical==edge.Vertical&&csv.MedianResidual==edge.MedianResidual&&csv.Events==edge.Events&&csv.Measured==edge.Measured&&csv.Required==edge.Required,"CSV edge values changed");
+                Assert(samples.SelectMany(s=>s.Events).Distinct().Count()==edge.Events,"Section events differ from edge count");
+                Assert(samples.Length==edge.Required&&samples.Count(s=>s.Measured)==edge.Measured,"Section denominator changed");
+                Assert(samples.All(s=>s.Measured?s.Residual is not null&&s.MissingReason is null:s.Residual is null&&s.MissingReason is not null),"Missing sample metadata");
+                var median=TexelReviewMargins.Median(samples.Where(s=>s.Measured).Select(s=>s.Residual!.Value));
+                Assert(edge.Measured<StandardRowPictureAnalysis.MeasuredFraction*edge.Required?edge.MedianResidual is null:median==edge.MedianResidual,"Section median differs");
+            }
+            foreach(int row in Enumerable.Range(483,10))
+            {
+                double margin=grid.CenteredRowScreenSpan(grid.Context,row,grid.RowDomain.Left,grid.RowDomain.Left,route2.RowMargin).MinimumRowMargin!.Value;
+                Assert(margin>=.20&&margin<.25,"Low-margin row changed");
+                // Two-row route: runs sit on rows 483..491; row 492 is covered by the second row of run 491.
+                Assert(route2.Runs.Any(r=>r.Row==row)==(row<492)&&route2.Runs.Where(r=>r.Row==row).All(r=>r.Path.MinimumRowMargin==margin),"Grid margin differs from rebuilt route");
+                Assert(margins.Where(e=>!e.Vertical&&e.Index==row).All(e=>e.RowMargin==margin),"CSV row margin differs from grid");
+            }
+            var original=File.ReadAllBytes(Path.Combine(review,"summary.json"));
+            UvRefuses(()=>TexelProductReview.Review(run2,review),"Detailed review overwrote output");
+            Assert(File.ReadAllBytes(Path.Combine(review,"summary.json")).SequenceEqual(original),"Refused review changed summary");
+        }
+        CheckDetails(low,Path.Combine(output,"rows-below-025-review"),blank);
+        // Paint a synthetic route to exercise measured per-section residuals as well as missing samples.
+        var painted=new PixelImage(canvas.Width,canvas.Height,blank.Rgba.ToArray());
+        foreach(var r in plan2.ExperimentalTexel!.Runs)foreach(var pt in r.Path.Points)
+            for(int dy=-2;dy<=2;dy++)painted.Set((pt.Y+dy-canvas.Top)*canvas.Width+pt.X-canvas.Left,new(0,0,0));
+        Images.Save(painted,Path.Combine(run2,"native-after.png"));
+        var loaded=Images.LoadNative(Path.Combine(run2,"native-after.png"));
+        File.WriteAllText(Path.Combine(run2,"native-after.json"),System.Text.Json.JsonSerializer.Serialize(new{rect=canvas,canvasRgbaSha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(loaded.Rgba)).ToLowerInvariant()}));
+        string measuredReview=Path.Combine(output,"measured-sections-review");
+        var measured=TexelProductReview.Review(run2,measuredReview);
+        Assert(measured.Picture!.Edges.Any(e=>e.MedianResidual is not null),"Synthetic paint did not exercise measured edges");
+        CheckDetails(measured,measuredReview,loaded);
         Console.WriteLine("PASS texel-product-review-roundtrip-incomplete-and-no-overwrite");
     }
     // Package check: the plan the GUI would build from a saved settings file and target (same loaders as MainWindow and START).

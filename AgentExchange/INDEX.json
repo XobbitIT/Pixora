@@ -1723,6 +1723,22 @@
         "nativeInputByAgent": false,
         "physicalQualityCertified": false
       }
+    },
+    {
+      "id": "0106",
+      "file": "0106_CLAUDE_RACE_A_B_RESULTS.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "13fbd643108406f8ca585efb4b12b1aa6a43c8310f86e70849dc79490f243997",
+      "scope": {
+        "raceA": "20261031-122127 codex, commit 925d17d, session calibration design (not accepted yet)",
+        "raceB": "20261031-124922 codex, review sections + edges-margins.csv",
+        "corePassed": "799/799",
+        "wpf": "244/244",
+        "reviewSummariesUnchanged": "P1,P2,P3,pic8 replay",
+        "nativeInputByAgent": false
+      }
     }
   ],
   "manuallyReturnedReproduction": {

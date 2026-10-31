@@ -8,6 +8,8 @@ internal static class StandardRowPictureAnalysis
     internal const double HLimit=.15,VStartLimit=.35,VEndLimit=1.0,MeasuredFraction=.8;
     internal sealed record ControlResult(string Label,int Row,int CommandY,int Observed,int? MeasuredRow,double? TopMedianAbsolute,double? BottomMedianAbsolute,bool Accepted,bool MatchesRow);
     internal sealed record EdgeResult(string Name,bool Vertical,string Role,int Required,int Measured,int Events,double? MedianResidual,double? MedianAbsoluteResidual,double? Minimum,double? Maximum,string[] MissingReasons);
+    internal sealed record Section(int Coordinate,double? Residual,bool Measured,string? MissingReason,StandardTexelAnalysis.Event[] Events);
+    internal sealed record EdgeSections(string Name,bool Vertical,Section[] Sections);
     internal sealed record PictureResult(string Name,string Status,int InteriorRequired,int InteriorGaps,int HoleRequired,int HoleChanges,int EdgesWithEvents,EdgeResult[] Edges)
     {public bool ProductionEligible=>false;public bool PhysicalQualityCertified=>false;}
     // Values / TopRow / BottomRow are pic5 additions, omitted when null so pic4 reviews serialize exactly as before.
@@ -64,7 +66,7 @@ internal static class StandardRowPictureAnalysis
         if(at>k+2||a1<=a0)return(null,"nonmonotone_edge");
         return(at-1+(threshold-a0)/(a1-a0),null);
     }
-    internal static PictureResult Picture(StandardRowPicturePilot.Picture picture,TexelGrid grid,ScreenRect canvas,PixelImage before,PixelImage after,double vEndLimit=VEndLimit,double vEndLow=double.NaN,bool gridFrame=false)
+    internal static PictureResult Picture(StandardRowPicturePilot.Picture picture,TexelGrid grid,ScreenRect canvas,PixelImage before,PixelImage after,double vEndLimit=VEndLimit,double vEndLow=double.NaN,bool gridFrame=false,List<EdgeSections>? detail=null)
     {
         double At(PixelImage image,ScreenPoint p)=>Gray(image.Color((p.Y-canvas.Top)*canvas.Width+p.X-canvas.Left));
         bool In(ScreenPoint p)=>p.X>=canvas.Left&&p.X<canvas.Right&&p.Y>=canvas.Top&&p.Y<canvas.Bottom;
@@ -73,20 +75,34 @@ internal static class StandardRowPictureAnalysis
         var ev=picture.Evaluation;var rows=grid.Rows;
         var edges=ev.Edges.Select(e=>
         {
-            var values=new List<(double Along,double Residual,double Position)>();var missing=new List<string>();
+            var values=new List<(double Along,double Residual,double Position)>();var missing=new List<string>();var samples=new List<Section>();
             foreach(var s in e.Starts)
             {
                 var (step,reason)=EdgeStep(before,after,canvas,s,e.StepX,e.StepY);
-                if(step is not double t){missing.Add(reason!);continue;}
+                if(step is not double t){missing.Add(reason!);if(detail is not null)samples.Add(new(e.Vertical?s.Y:s.X,null,false,reason,[]));continue;}
                 if(e.Vertical){double x=s.X+t*e.StepX;values.Add((s.Y,(gridFrame?GridPhase(grid.Columns,x,s.Y):ColumnPhase(grid.Columns,x,s.Y))-e.Boundary,x));}
                 else{double y=s.Y+t*e.StepY;values.Add((s.X,grid.ObservationCoordinate(y)-(e.Boundary+(e.StepY<0?rows.TopPhase:rows.BottomPhase)),y));}
+            }
+            void Save(StandardTexelAnalysis.Event[] events)
+            {
+                if(detail is null)return;
+                var measured=values.ToDictionary(v=>(int)v.Along);
+                var missingSamples=samples.ToDictionary(s=>s.Coordinate);
+                detail.Add(new(e.Name,e.Vertical,e.Starts.Select(s=>
+                {
+                    int along=e.Vertical?s.Y:s.X;
+                    if(missingSamples.TryGetValue(along,out var absent))return absent;
+                    var v=measured[along];
+                    return new Section(along,v.Residual,true,null,events.Where(ev=>along>=ev.StartY&&along<=ev.EndY).ToArray());
+                }).ToArray()));
             }
             // A left boundary of paint is a stroke start; a right boundary a stroke end.
             string role=e.Vertical?(e.StepX<0?"V-start":"V-end"):(e.StepY<0?"H-top":"H-bottom");
             // Measured when >=80% of samples are; the detector runs over each consecutive measured stretch.
-            if(values.Count<MeasuredFraction*e.Starts.Length)return new EdgeResult(e.Name,e.Vertical,role,e.Starts.Length,values.Count,0,null,null,null,null,missing.Distinct().ToArray());
-            var sections=values.Select(v=>new StandardEdgeSection((int)v.Along,v.Position,v.Position+1)).ToArray();int detected=0;
-            for(int i=0;i<sections.Length;){int s=i;while(i+1<sections.Length&&sections[i+1].Along==sections[i].Along+1)i++;if(i>s)detected+=StandardTexelAnalysis.Detect(sections[s..(i+1)],true).Length;i++;}
+            if(values.Count<MeasuredFraction*e.Starts.Length){Save([]);return new EdgeResult(e.Name,e.Vertical,role,e.Starts.Length,values.Count,0,null,null,null,null,missing.Distinct().ToArray());}
+            var sections=values.Select(v=>new StandardEdgeSection((int)v.Along,v.Position,v.Position+1)).ToArray();int detected=0;var allEvents=new List<StandardTexelAnalysis.Event>();
+            for(int i=0;i<sections.Length;){int s=i;while(i+1<sections.Length&&sections[i+1].Along==sections[i].Along+1)i++;if(i>s){var found=StandardTexelAnalysis.Detect(sections[s..(i+1)],true);detected+=found.Length;allEvents.AddRange(found);}i++;}
+            Save(allEvents.ToArray());
             return new EdgeResult(e.Name,e.Vertical,role,e.Starts.Length,values.Count,detected,
                 StandardRowCalibAnalysis.Median(values.Select(v=>v.Residual)),StandardRowCalibAnalysis.Median(values.Select(v=>Math.Abs(v.Residual))),values.Min(v=>v.Residual),values.Max(v=>v.Residual),missing.Distinct().ToArray());
         }).ToArray();

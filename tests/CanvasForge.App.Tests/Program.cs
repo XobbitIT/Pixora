@@ -14,6 +14,17 @@ internal static partial class Program
     {
         try
         {
+        if(args.Length>=3&&args[0]=="--texel-review-margins")
+        {
+            var reviews=args.Skip(2).Select(d=>{using var reader=File.OpenText(Path.Combine(d,"edges-margins.csv"));return (Directory:Path.GetFullPath(d),Rows:TexelReviewMargins.Read(reader));}).ToArray();
+            using(var writer=new StreamWriter(new FileStream(args[1],FileMode.CreateNew)))
+            {
+                writer.WriteLine("review,"+TexelReviewMargins.Header);
+                foreach(var review in reviews)foreach(var row in review.Rows)writer.WriteLine(TexelReviewMargins.Escape(review.Directory)+","+TexelReviewMargins.Format(row));
+            }
+            foreach(var stat in TexelReviewMargins.Summarize(reviews.SelectMany(r=>r.Rows)))Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(stat));
+            return;
+        }
         var caseFailures=new List<Exception>();
         int passedCases=0;
         void Case(Action check){try{check();passedCases++;}catch(Exception e){caseFailures.Add(e);Console.Error.WriteLine("FAIL UI: "+e.Message+"\n"+e.StackTrace);}}

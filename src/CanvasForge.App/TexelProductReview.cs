@@ -27,15 +27,17 @@ internal static class TexelProductReview
     {
         run=Path.GetFullPath(run);output=Path.GetFullPath(output);
         if(Directory.Exists(output)||File.Exists(output))throw new IOException("Output already exists; reviews never overwrite.");
-        Summary result;
-        try{result=Score(run);}
+        Summary result;var sections=new List<StandardRowPictureAnalysis.EdgeSections>();var margins=new List<TexelReviewMargin>();
+        try{result=Score(run,sections,margins);}
         catch(Exception e) when(e is IOException or InvalidDataException or JsonException or KeyNotFoundException or InvalidOperationException)
         {result=new("INCOMPLETE",e.Message,run,null,0,null,0,null,Rule,false,false);}
         Directory.CreateDirectory(output);
         File.WriteAllText(Path.Combine(output,"summary.json"),JsonSerializer.Serialize(result,new JsonSerializerOptions{WriteIndented=true,Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
+        File.WriteAllText(Path.Combine(output,"sections.json"),JsonSerializer.Serialize(sections,new JsonSerializerOptions{WriteIndented=true}));
+        File.WriteAllLines(Path.Combine(output,"edges-margins.csv"),new[]{TexelReviewMargins.Header}.Concat(margins.Select(TexelReviewMargins.Format)));
         return result;
     }
-    private static Summary Score(string run)
+    private static Summary Score(string run,List<StandardRowPictureAnalysis.EdgeSections> sections,List<TexelReviewMargin> margins)
     {
         var settings=Settings.Load(Path.Combine(run,"effective-settings.json"));
         string? outcome=null;
@@ -57,7 +59,28 @@ internal static class TexelProductReview
         var picture=new StandardRowPicturePilot.Picture("product",plan.Indices,mask,"derived",
             plan.Runs.Select(r=>new StandardRowPicturePilot.PictureRun(r.Row,r.FirstColumn,r.LastColumn,r.CommandY,r.Path.Points.ToArray())).ToArray(),reserve,
             StandardRowPicturePilot.Evaluate(grid,mask,plan.Indices,true,true,plan.RowMargin));
-        var scored=StandardRowPictureAnalysis.Picture(picture,grid,canvas,before,after,.75,-.15,true);
+        var scored=StandardRowPictureAnalysis.Picture(picture,grid,canvas,before,after,.75,-.15,true,sections);
+        foreach(var (edge,result) in picture.Evaluation.Edges.Zip(scored.Edges))
+        {
+            string kind=edge.Vertical?(edge.StepX<0?"left":"right"):(edge.StepY<0?"top":"bottom");
+            int index=edge.Boundary-((kind=="bottom"||kind=="right")?1:0);
+            if(!edge.Vertical)
+            {
+                var row=grid.CenteredRowScreenSpan(grid.Context,index,grid.RowDomain.Left,grid.RowDomain.Left,plan.RowMargin);
+                margins.Add(new(edge.Name,false,kind,index,row.Points[0].Y,row.MinimumRowMargin,null,result.MedianResidual,result.Events,result.Measured,result.Required));
+            }
+            else
+            {
+                // A vertical edge spans several rows: report the minimum centre-addressing column margin
+                // over those rows and the command X at its first sampled row. Stroke endpoint compensation
+                // is not a column centre and must not be confused with its addressing reserve.
+                var rows=plan.Runs.Where(r=>r.FirstColumn<=index&&r.LastColumn>=index&&r.CommandY>=edge.Starts[0].Y&&r.CommandY<=edge.Starts[^1].Y).ToArray();
+                var centres=rows.Select(r=>grid.CenteredHorizontal(grid.Context,r.Row,index,index,plan.RowMargin,TexelCompensatedPlanner.MinimumMargin)).ToArray();
+                int command=centres.Length>0?centres[0].Points[0].X:edge.Starts[0].X;
+                double? column=centres.Length>0?centres.Min(p=>grid.Columns.PredictedMargin(p.Points[0])):null;
+                margins.Add(new(edge.Name,true,kind,index,command,rows.Length>0?rows.Min(r=>r.Path.MinimumRowMargin):null,column,result.MedianResidual,result.Events,result.Measured,result.Required));
+            }
+        }
         int outside=0;
         for(int y=canvas.Top;y<canvas.Bottom;y++)for(int x=canvas.Left;x<canvas.Right;x++)
         {

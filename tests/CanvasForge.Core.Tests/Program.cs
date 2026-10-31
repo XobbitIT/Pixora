@@ -46,6 +46,7 @@ if(args.FirstOrDefault()=="--texel-grid-only")
     if(args.Length==2)TexelResearchChecks.Export(args[1]);
     Console.WriteLine($"ALL {passed} TEXEL GRID CHECKS PASSED");return;
 }
+TexelReviewMarginChecks.Run(Test);
 StandardStabilityChecks.Run(Test);
 StandardDirectionChecks.Run(Test);
 StandardMotionChecks.Run(Test);
