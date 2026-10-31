@@ -104,6 +104,8 @@ public static class TexelExperimentSettings
     public static void ValidatePlan(Settings s,TexelCompensatedPlan plan)
     {
         Validate(s);
+        // The texel route is measured only with the Rust palette; HEX Direct would read hex_controls (or throw) in PaintCalibration.
+        if(s.Mode!=ColorMode.RustPalette)throw new InvalidDataException("The texel experiment requires Rust Palette; HEX Direct is not supported.");
         // The product always uses the full-coverage end; the legacy trim key stays readable but no longer shapes the route.
         if(!Enabled(s)||plan.EndTrimPx!=0||plan.EndPhase!=TexelCompensatedPlanner.FullCoverageEndPhase||s.Int(ColumnKey,225)!=plan.Indices.Left||s.Int(RowKey,203)!=plan.Indices.Top
             ||s.PaintCalibration().Rect("canvas")!=plan.Context.Geometry.Canvas)

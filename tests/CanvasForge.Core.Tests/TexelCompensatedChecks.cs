@@ -155,5 +155,29 @@ internal static class TexelCompensatedChecks
             Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set(TexelExperimentSettings.ColumnKey,-1)),plan),InvalidInteger+TexelExperimentSettings.ColumnKey);
             Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set("release_profile","Experimental")),plan),NeedsStandard);
         });
+        const string NeedsRustPalette="The texel experiment requires Rust Palette";
+        test("Compensated ValidatePlan refuses HEX Direct before reading the paint calibration",()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("9"),"protocol-pic9.json")));var root=doc.RootElement;
+            var p=root.GetProperty("pictureR");var g=Grid(root,"9",true);var mask=p.GetProperty("mask").EnumerateArray().Select(x=>x.GetString()!).ToArray();var rect=p.GetProperty("indexRect").Deserialize<ScreenRect>();
+            var plan=TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,TexelCompensatedPlanner.FullCoverageEndPhase);var canvas=plan.Context.Geometry.Canvas;
+            Settings Bound(bool hexControls)
+            {
+                var s=Settings.Defaults();s.Set(TexelExperimentSettings.EnabledKey,true);
+                s.Set(TexelExperimentSettings.ColumnKey,plan.Indices.Left);s.Set(TexelExperimentSettings.RowKey,plan.Indices.Top);
+                var calibration=s.Calibration;calibration.SetRect("canvas",canvas);s.SetPaintCalibration(calibration);
+                TexelExperimentSettings.ValidatePlan(s,plan);
+                s.Set("color_mode","HEX Direct");Need(s.Mode==ColorMode.HexDirect,"HEX Direct fixture not applied");
+                if(hexControls)
+                {
+                    var hex=new Calibration(new System.Text.Json.Nodes.JsonObject());hex.SetRect("size_track",new(40,40,240,60));hex.SetRect("brush_shapes",new(40,80,240,140));s.SetPaintCalibration(hex);
+                    // With captured controls the paint calibration still matches the plan Canvas, so only the mode guard can refuse.
+                    Need(s.HexControlsReady&&s.PaintCalibration().Rect("canvas")==canvas,"HEX controls fixture not ready");
+                }
+                else Need(!s.HexControlsReady,"HEX controls unexpectedly present");
+                return s;
+            }
+            foreach(bool hexControls in new[]{false,true})Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(hexControls),plan),NeedsRustPalette);
+        });
     }
 }
