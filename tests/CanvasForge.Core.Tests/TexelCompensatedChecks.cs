@@ -179,5 +179,35 @@ internal static class TexelCompensatedChecks
             }
             foreach(bool hexControls in new[]{false,true})Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(hexControls),plan),NeedsRustPalette);
         });
+        // User decision 0101: the product addresses rows with margin 0.20; columns and the research default stay 0.25.
+        const string RowMarginRange="Row margin must be in [0.20,0.5].";
+        test("Compensated product row margin 0.20 widens addressable rows without rerouting supported ones",()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("9"),"protocol-pic9.json")));var root=doc.RootElement;var g=Grid(root,"9",true);
+            int Supported(double m)=>Enumerable.Range(198,537-198+1).Count(row=>{try{g.CenteredRowScreenSpan(g.Context,row,g.RowDomain.Left,g.RowDomain.Left,m);return true;}catch(InvalidDataException){return false;}});
+            // Core counts equal the offline Python estimate (306 at 0.25, 340 at 0.20).
+            int at25=Supported(TexelCompensatedPlanner.MinimumMargin),at20=Supported(TexelCompensatedPlanner.ProductRowMargin);
+            Need(at25==306&&at20==340,"Supported row count changed: "+at25+" at 0.25, "+at20+" at 0.20");
+            var p=root.GetProperty("pictureR");var mask=p.GetProperty("mask").EnumerateArray().Select(x=>x.GetString()!).ToArray();var rect=p.GetProperty("indexRect").Deserialize<ScreenRect>();
+            var research=TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,TexelCompensatedPlanner.FullCoverageEndPhase);
+            var product=TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,TexelCompensatedPlanner.FullCoverageEndPhase,TexelCompensatedPlanner.ProductRowMargin);
+            Need(research.RowMargin==TexelCompensatedPlanner.MinimumMargin&&product.RowMargin==TexelCompensatedPlanner.ProductRowMargin&&research.Id!=product.Id,"Row margin not recorded in the plan identity");
+            Need(research.Runs.Count==product.Runs.Count&&research.Runs.Zip(product.Runs).All(q=>q.First.Row==q.Second.Row&&q.First.Path.Points.SequenceEqual(q.Second.Path.Points)),"Lower row margin rerouted a supported row");
+            foreach(double m in new[]{.19,.51,double.NaN,double.PositiveInfinity})
+                Refuse(()=>TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,TexelCompensatedPlanner.FullCoverageEndPhase,m),RowMarginRange);
+        });
+        test("Compensated product row margin 0.20 plans Picture8 A at rows 453-492 refused at 0.25",()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("9"),"protocol-pic9.json")));var g=Grid(doc.RootElement,"9",true);
+            using var pic8=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("8"),"protocol-pic8.json")));
+            var mask=pic8.RootElement.GetProperty("pictureA").GetProperty("mask").EnumerateArray().Select(x=>x.GetString()!).ToArray();var rect=new ScreenRect(340,453,380,493);
+            TexelCompensatedPlan P(double m)=>TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,0,default,TexelCompensatedPlanner.FullCoverageEndPhase,m);
+            Refuse(()=>P(TexelCompensatedPlanner.MinimumMargin),"No jointly supported integer command with the requested margin.");
+            var plan=P(TexelCompensatedPlanner.ProductRowMargin);
+            Need(plan.Runs.Count>0&&plan.Runs.All(r=>r.Path.MinimumRowMargin>=TexelCompensatedPlanner.ProductRowMargin),"Product run below row margin 0.20");
+            Need(plan.Runs.Any(r=>r.Row>=483)&&plan.Runs.Where(r=>r.Row>=483).All(r=>r.Path.MinimumRowMargin<TexelCompensatedPlanner.MinimumMargin),"Rows 483+ unexpectedly reach margin 0.25");
+            for(int row=483;row<=492;row++)
+                Need(g.CenteredRowScreenSpan(g.Context,row,g.RowDomain.Left,g.RowDomain.Left,TexelCompensatedPlanner.ProductRowMargin).MinimumRowMargin<TexelCompensatedPlanner.MinimumMargin,"Row "+row+" unexpectedly reaches margin 0.25");
+        });
     }
 }

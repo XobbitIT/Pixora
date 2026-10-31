@@ -34,15 +34,18 @@ internal static partial class Program
             "Product schedule does not map one batch per run");
         // The legacy trim setting no longer shapes the route.
         Assert(TexelProduct.Build(image,TexelProductSettings(1,300,203)).ExperimentalTexel!.Runs.Zip(plan.ExperimentalTexel!.Runs).All(q=>q.First.Path.Points.SequenceEqual(q.Second.Path.Points)),"Legacy trim changed the route");
-        // Refusals before any input: colour, partial alpha, oversize, columns/rows outside the verified domain, rows without joint addressing.
+        // Refusals before any input: colour, partial alpha, oversize, columns/rows outside the verified domain.
         var red=image.Clone();red.Set(0,new(200,0,0));UvRefuses(()=>TexelProduct.Build(red,settings),"Coloured texel accepted");
         var half=image.Clone();half.Set(0,new(0,0,0),128);UvRefuses(()=>TexelProduct.Build(half,settings),"Partial alpha accepted");
         UvRefuses(()=>TexelProduct.Build(new PixelImage(41,40),settings),"Oversize target accepted");
         UvRefuses(()=>TexelProduct.Build(image,TexelProductSettings(0,74,203)),"Column left of the verified domain accepted");
         UvRefuses(()=>TexelProduct.Build(image,TexelProductSettings(0,421,203)),"Column right of the verified domain accepted");
         UvRefuses(()=>TexelProduct.Build(image,TexelProductSettings(0,300,499)),"Row below the verified domain accepted");
-        string? gap=null;try{TexelProduct.Build(image,TexelProductSettings(0,300,240));}catch(InvalidDataException e){gap=e.Message;}
-        Assert(gap is not null&&gap.Contains("248",StringComparison.Ordinal)&&gap.Contains("надійної адресації",StringComparison.Ordinal),"Rows without joint addressing accepted or not named: "+gap);
+        // Decision 0101: the product row margin 0.20 makes the former gap (rows 240..279, row 248 below 0.25) addressable. Every row 198..537
+        // is now jointly supported by the derived family, so the unsupported-row refusal is not reachable inside the verified domain.
+        var former=TexelProduct.Build(image,TexelProductSettings(0,300,240)).ExperimentalTexel!;
+        Assert(former.RowMargin==TexelCompensatedPlanner.ProductRowMargin&&former.Runs.All(r=>r.Path.MinimumRowMargin>=TexelCompensatedPlanner.ProductRowMargin)
+            &&former.Runs.Any(r=>r.Row==248&&r.Path.MinimumRowMargin<TexelCompensatedPlanner.MinimumMargin),"Former gap row 248 not planned with product row margin 0.20");
         var off=settings.Clone();off.Set(TexelExperimentSettings.EnabledKey,false);
         Assert(TexelProduct.Build(image,off).ExperimentalTexel is null,"Disabled route still produced a texel plan");
         Console.WriteLine("PASS texel-product-route-equals-pic8-pic9-fullcoverage-and-refusals");

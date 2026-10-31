@@ -61,13 +61,13 @@ internal static class TexelProduct
         if(image.Width>40||image.Height>40||left<p.VerifiedTargetDomain.Left||top<p.VerifiedTargetDomain.Top
             ||(long)left+image.Width>p.VerifiedTargetDomain.Right||(long)top+image.Height>p.VerifiedTargetDomain.Bottom)
             throw new InvalidDataException("Тексельний експеримент: зображення до 40×40 без масштабування, в межах стовпців 75–459 та рядків 198–537.");
-        // Rows are addressable only where the derived family agrees with margin 0.25 (389 rows in bands; 0098).
+        // Rows are addressable only where the derived family agrees with the product row margin 0.20 (user decision 0101).
         var grid=Grid();var unsupported=new List<int>();
         for(int row=top;row<top+image.Height;row++)
-            try{grid.CenteredRowScreenSpan(grid.Context,row,grid.RowDomain.Left,grid.RowDomain.Left,TexelCompensatedPlanner.MinimumMargin);}
+            try{grid.CenteredRowScreenSpan(grid.Context,row,grid.RowDomain.Left,grid.RowDomain.Left,TexelCompensatedPlanner.ProductRowMargin);}
             catch(InvalidDataException){unsupported.Add(row);}
         if(unsupported.Count>0)
-            throw new InvalidDataException("Тексельний експеримент: рядки "+string.Join(", ",unsupported)+" не мають надійної адресації. Наживо перевірені смуги рядків 203–242, 452–475 і 493–532.");
+            throw new InvalidDataException("Тексельний експеримент: рядки "+string.Join(", ",unsupported)+" не мають надійної адресації із запасом рядка 0.20. Наживо перевірені смуги рядків 203–242, 452–475 і 493–532.");
         var mask=new string[image.Height];var indices=new int[image.Width*image.Height];int count=0;
         for(int y=0;y<image.Height;y++)
         {
@@ -82,7 +82,7 @@ internal static class TexelProduct
             mask[y]=new(row);
         }
         // The legacy end-trim setting is ignored: every run ends at the full-coverage phase (pic8/pic9).
-        var route=TexelCompensatedPlanner.Plan(true,grid,grid.Context,mask,new(left,top,left+image.Width,top+image.Height),0,token,TexelCompensatedPlanner.FullCoverageEndPhase);
+        var route=TexelCompensatedPlanner.Plan(true,grid,grid.Context,mask,new(left,top,left+image.Width,top+image.Height),0,token,TexelCompensatedPlanner.FullCoverageEndPhase,TexelCompensatedPlanner.ProductRowMargin);
         var entry=settings.Palette().FirstOrDefault(e=>e.Color==new Rgb(0,0,0)&&e.ClickPoint is not null)
             ??throw new InvalidDataException("Захопи чорний колір палітри Rust для експерименту.");
         var guard=InputCommandGuard.From(settings,new(p.Context.ClientOrigin.X,p.Context.ClientOrigin.Y,p.Context.ClientOrigin.X+p.Context.ClientSize.Width,p.Context.ClientOrigin.Y+p.Context.ClientSize.Height));

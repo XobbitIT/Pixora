@@ -18,14 +18,16 @@ public sealed class TexelCompensatedPlan
     public int EndTrimPx{get;}
     // Null for the trim-only research routes (pic2/pic3); otherwise each run ends at the first pixel with cursor phase >= b+EndPhase.
     public double? EndPhase{get;}
+    // Row addressing margin; the column margin is always MinimumMargin.
+    public double RowMargin{get;}
     public bool PhysicalQualityCertified=>false;
     public bool ProductionEligible=>false;
     public int EstablishedSolidPixels=>0;
-    internal TexelCompensatedPlan(TexelGrid grid,ScreenRect indices,string[] mask,int trim,double? endPhase,TexelCompensatedRun[] runs)
+    internal TexelCompensatedPlan(TexelGrid grid,ScreenRect indices,string[] mask,int trim,double? endPhase,double rowMargin,TexelCompensatedRun[] runs)
     {
-        GridId=grid.Id;Context=grid.Context;Indices=indices;EndTrimPx=trim;EndPhase=endPhase;
+        GridId=grid.Id;Context=grid.Context;Indices=indices;EndTrimPx=trim;EndPhase=endPhase;RowMargin=rowMargin;
         Mask=Array.AsReadOnly(mask.ToArray());Runs=Array.AsReadOnly(runs.ToArray());
-        Id=GeometryHash.Of(new{TexelCompensatedPlanner.Revision,GridId,indices,mask,trim,endPhase,
+        Id=GeometryHash.Of(new{TexelCompensatedPlanner.Revision,GridId,indices,mask,trim,endPhase,rowMargin,
             runs=runs.Select(r=>new{r.Row,r.FirstColumn,r.LastColumn,points=r.Path.Points})});
     }
 }
@@ -34,12 +36,16 @@ public static class TexelCompensatedPlanner
     // v2 adds the full-coverage end (pic8/pic9, 0095-0098); trim-only routes are unchanged.
     public const string Revision="texel-compensated-mask-start2-end1-two-row-v2-endphase";
     public const double MinimumMargin=.25;
+    // User decision 0101 (AgentExchange/0101_USER_DECISION_ROW_MARGIN_020.md): the product route addresses rows with margin 0.20; columns keep 0.25.
+    public const double ProductRowMargin=.20;
     // Full coverage needs cursor phase >= b+1.617 (pic7 c339); 1.867 adds the 0.25 margin. Verified natively by pic8 and pic9.
     public const double FullCoverageEndPhase=1.867;
     public static TexelCompensatedPlan Plan(bool experimental,TexelGrid grid,StandardBandResponseContext context,
-        IEnumerable<string> mask,ScreenRect indices,int endTrimPx=0,CancellationToken token=default,double? endPhase=null)
+        IEnumerable<string> mask,ScreenRect indices,int endTrimPx=0,CancellationToken token=default,double? endPhase=null,double rowMargin=MinimumMargin)
     {
         ArgumentNullException.ThrowIfNull(grid);ArgumentNullException.ThrowIfNull(mask);grid.ValidateContext(context);
+        if(!double.IsFinite(rowMargin)||rowMargin<ProductRowMargin||rowMargin>.5)
+            throw new InvalidDataException("Row margin must be in [0.20,0.5].");
         if(!experimental||!indices.Valid||indices.Left<0||indices.Top<0||indices.Right>32768||indices.Bottom>32768
             ||(long)indices.Width*indices.Height>1_000_000||endTrimPx is <0 or >8)
             throw new InvalidDataException("Invalid experimental mask bounds or end trim (integer0..8px).");
@@ -65,7 +71,7 @@ public static class TexelCompensatedPlanner
                 int first=x;while(x+1<indices.Width&&T(x+1,y)&&T(x+1,y+1))x++;
                 int a=indices.Left+first,b=indices.Left+x++;
                 if(b+1<a+2)throw new InvalidDataException("Feature is too narrow for the experimental endpoint compensation.");
-                var original=grid.CenteredHorizontal(context,indices.Top+y,a+2,b+1,MinimumMargin,MinimumMargin);
+                var original=grid.CenteredHorizontal(context,indices.Top+y,a+2,b+1,rowMargin,MinimumMargin);
                 if(original.Points.Count-endTrimPx<2)throw new InvalidDataException("Run too short for the selected end trim.");
                 var points=original.Points.Take(original.Points.Count-endTrimPx).ToArray();
                 if(endPhase is double end)
@@ -84,7 +90,7 @@ public static class TexelCompensatedPlanner
             }
         }
         if(runs.Count==0)throw new InvalidDataException("The experimental target has no paintable runs.");
-        return new(grid,indices,cells,endTrimPx,endPhase,runs.ToArray());
+        return new(grid,indices,cells,endTrimPx,endPhase,rowMargin,runs.ToArray());
     }
 }
 public static class TexelExperimentSettings
