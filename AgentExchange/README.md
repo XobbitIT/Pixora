@@ -118,6 +118,10 @@
 - [0097 — пакет Row_Picture_9: правила pic8 біля країв полотна й у нижніх смугах рядків, NOT_STARTED](0097_CLAUDE_LOCAL_PICTURE9_PACKAGE.md)
 - [0098 — результат Row_Picture_9: PREDICTIONS_MET для R, L і C; контролі 6/6](0098_CLAUDE_LOCAL_PICTURE9_RESULT.md)
 - [0099 — продуктовий тексельний маршрут v2: кінець b+1.867, межі pic9, огляд прогону; живий тест NOT_STARTED](0099_CLAUDE_LOCAL_TEXEL_PRODUCT_V2.md)
+- [0102 — пакет Texel_Product_2: живий тест запасу рядка 0.20 (pic8 A на 340/453); NOT_STARTED](0102_CLAUDE_LOCAL_TEXEL_PRODUCT_2_PACKAGE.md)
+- [0103 — Texel_Product_2: PREDICTIONS_MET із запасом рядка 0.20; виправлено огляд рядків <0.25](0103_CLAUDE_TEXEL_PRODUCT_2_RESULT.md)
+- [0104 — пакет Texel_Product_3: запас рядка проти форми (340/487); NOT_STARTED](0104_CLAUDE_LOCAL_TEXEL_PRODUCT_3_PACKAGE.md)
+- [0105 — Texel_Product_3: PREDICTIONS_MET; найнижчий запас рядка зсуває верхні H-краї до −0.10…−0.14](0105_CLAUDE_TEXEL_PRODUCT_3_RESULT.md)
 
 0057 тепер прочитано оригіналом із `claude-local/proposals`; попередня відсутність Downloads-файла з `_1` не означає відсутності нового оригіналу.0059 підтверджує ручне прочитання0058 за точнимSHA.0061 підтверджує отримання нормалізованого UTF8/LF тексту0060 і byte-exact blueprintv2; rawSHA0060 не ідентичний. Автоматичний канал лишається зупиненим.
 

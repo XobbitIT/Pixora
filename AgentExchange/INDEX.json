@@ -1644,6 +1644,85 @@
         "nativeInputByAgent": false,
         "physicalQualityCertified": false
       }
+    },
+    {
+      "id": "0102",
+      "file": "0102_CLAUDE_LOCAL_TEXEL_PRODUCT_2_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "c4cf34e02e3147c28291d8cc396aa7fc1ba37c7ddb7a04b2217b19118a6c10b3",
+      "artifactReceipt": "../../texel-product2-20261031/package-checks.json",
+      "scope": {
+        "package": "outputs/Pixora_Texel_Product_2_20261031",
+        "productRowMargin": 0.2,
+        "columnMargin": 0.25,
+        "target": "pic8 pictureA at columns 340..379, rows 453..492",
+        "runs": 107,
+        "lowRowsMargin": "0.203..0.245 (runs on rows 483..491)",
+        "upperRowsMargin": ">=0.255",
+        "corePassed": "793/793",
+        "wpf": "244/244",
+        "nativeReplayPic8": "PREDICTIONS_MET identical edges (settings copy at 300/203)",
+        "liveProductRun": "NOT_STARTED",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0103",
+      "file": "0103_CLAUDE_TEXEL_PRODUCT_2_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "102a4c7a58ecb1afc2964d83a7566ee0b371efd8cb4281f996e224e11b3e534d",
+      "scope": {
+        "liveRun": "20261031-111550 107/107 completed",
+        "packagedReviewer": "INCOMPLETE (Evaluate hard-coded row margin 0.25)",
+        "fixedReviewerAppSha256": "4666f2a3182c6de4cb793defa3752f8af7b3a3e6a6def123d382e7324837816f",
+        "verdict": "PREDICTIONS_MET",
+        "worstH": "top-r490 -0.139 (limit 0.15)",
+        "corePassed": "793/793",
+        "wpf": "244/244",
+        "nativeInputByAgent": false,
+        "commitOrPush": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0104",
+      "file": "0104_CLAUDE_LOCAL_TEXEL_PRODUCT_3_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "dde0ac1ead0c4c94b1370f4e2b63fe2e33e11285b1f1691c1da255adea614977",
+      "artifactReceipt": "../../texel-product3-20261031/package-checks.json",
+      "scope": {
+        "package": "outputs/Pixora_Texel_Product_3_20261031",
+        "target": "pic8 pictureA at 340/487",
+        "outerTop487Margin": 0.203,
+        "innerTop524Margin": 0.364,
+        "appSha256": "4666f2a3182c6de4cb793defa3752f8af7b3a3e6a6def123d382e7324837816f",
+        "liveProductRun": "NOT_STARTED",
+        "nativeInputByAgent": false
+      }
+    },
+    {
+      "id": "0105",
+      "file": "0105_CLAUDE_TEXEL_PRODUCT_3_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "f378bc585e23d89ae62f0b9b4f4aa13f3a3fe96f2c9477ed4ffe96b4f7832ce3",
+      "scope": {
+        "liveRun": "20261031-113744 107/107 completed",
+        "verdict": "PREDICTIONS_MET",
+        "outerTop487": "-0.109 at margin 0.203",
+        "innerTop524": "+0.011 at margin 0.364",
+        "conclusion": "lowest row margins shift top H edges to about -0.10..-0.14, within 0.15; not a shape feature",
+        "nativeInputByAgent": false,
+        "physicalQualityCertified": false
+      }
     }
   ],
   "manuallyReturnedReproduction": {
@@ -1688,7 +1767,7 @@
       "reopenWithoutNewUserDirection": false
     }
   ],
-  "updated": "2026-10-30",
+  "updated": "2026-10-31",
   "currentProductTarget": {
     "target": "B: straightness in sign texture/UV",
     "authority": "direct user message in current chat",

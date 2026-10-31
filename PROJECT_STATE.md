@@ -20,26 +20,25 @@
 - **App `TexelProduct`:**
   - профіль `4d9d4e1d…`, похідна родина 1196 ([0078](AgentExchange/0078_CLAUDE_LOCAL_CALIBRATION_RESULT.md));
   - ціль ≤40×40 без масштабування, стовпці 75–459, рядки 198–537;
-  - рядок без спільної адресації із запасом 0.25 → відмова з номером рядка;
+  - рядки адресуються із запасом 0.20 (0101; стовпці 0.25), рядок без спільної адресації → відмова з номером рядка;
   - лише чорний #000000 і прозорий фон.
 - **Умови:** те саме полотно 465/148/1510/1192, Standard Size 3 круглий, Rapid, 20 мс, той самий вид (перевірка кадру перед першим штрихом).
 - **CLI:** `Pixora.exe --texel-product-review RUN|latest OUT`, `--data-folder DIR`.
-- **Живі докази:** **Texel_Product_1 через «Почати» — PREDICTIONS_MET** ([0100](AgentExchange/0100_CLAUDE_TEXEL_PRODUCT_1_RESULT.md), 107/107, 0 розривів/0 подій). Пілоти pic8/pic9 PREDICTIONS_MET ([0096](AgentExchange/0096_CLAUDE_LOCAL_PICTURE8_RESULT.md), [0098](AgentExchange/0098_CLAUDE_LOCAL_PICTURE9_RESULT.md)) на стовпцях 75–459 у смугах рядків 203–242, 452–475, 493–532; контролі 6/6.
-- **Тести:** Release 0/0; Core 791; WPF 244; App texel-product/pic8/pic9 PASS.
+- **Живі докази:** **Texel_Product_1 через «Почати» — PREDICTIONS_MET** ([0100](AgentExchange/0100_CLAUDE_TEXEL_PRODUCT_1_RESULT.md), 107/107, 0 розривів/0 подій). **Texel_Product_2 (запас рядка 0.20, 340/453) — PREDICTIONS_MET** ([0103](AgentExchange/0103_CLAUDE_TEXEL_PRODUCT_2_RESULT.md)), але тільки після виправлення огляду. Пілоти pic8/pic9 PREDICTIONS_MET ([0096](AgentExchange/0096_CLAUDE_LOCAL_PICTURE8_RESULT.md), [0098](AgentExchange/0098_CLAUDE_LOCAL_PICTURE9_RESULT.md)) на стовпцях 75–459 у смугах рядків 203–242, 452–475, 493–532; контролі 6/6.
+- **Тести (незакомічене виправлення огляду, App `4666f2a3…`):** Release 0/0; Core 793; WPF 244; App texel-product (план і огляд 340/453)/pic8/pic9 PASS.
 - Не сертифіковано: кольори, Solid/U, інші Size/форми/вид/rect, чиста Windows. `physicalQualityCertified=false`.
 
 ## Відомі обмеження
-- Між смугами є рядки без спільної адресації (≈389 підтриманих). Картинку через межу смуг цими правилами не намалювати; потрібне додаткове калібрування.
+- Із запасом 0.20 спільно адресовані всі рядки 198–537; живі прогони Product_2/3 дали PREDICTIONS_MET. На рядках із запасом ≲0.26 верхні H-краї −0.10…−0.14, резерв до порогу 0.15 малий ([0105](AgentExchange/0105_CLAUDE_TEXEL_PRODUCT_3_RESULT.md)).
+- Пакет Product_2 містить старий огляд: він дає INCOMPLETE на рядках із запасом <0.25. Виправлений бінарник — `work/texel-product2-20261031/FixedReviewer`.
 - H-залишки на тих самих місцях фігури повторюються (pic9 і продукт): верх суцільної рамки ≈−0.08, низ останнього блоку сходинки +0.10…+0.14 (поріг 0.15). Риса форми, не ділянки; для розбору потрібен вивід огляду по перерізах.
 - Основний конфіг користувача (`%LOCALAPPDATA%\Pixora`) має полотно 465/151/1509/1192 і `Max Speed`, тому тексельний START там відмовить. Без калібрування сесії (етап 3) звичайний користувач режим не запустить.
 - Legacy-ключ `texel_end_trim_px` маршрут не змінює, але входить в ідентичність плану. Рішення користувача відкрите.
 
 ## Наступна дія
-1. **Рядки між смугами — рішення [0101](AgentExchange/0101_USER_DECISION_ROW_MARGIN_020.md):** продуктовий запас рядка 0.20 (340/340 рядків 198–537 без нового калібрування). Порядок:
-   - race-завдання (Core + TexelProduct + тести);
-   - WPF-тести;
-   - пакет Texel_Product_2: ціль A pic8 на стовпцях 340–379, рядках 453–492;
-   - живий прогін.
+1. **Закомітити виправлення огляду** (`Evaluate` rowMargin + `TexelProductReview` + тести; лише за дорученням). Наступні пакети — з цієї збірки.
+   - Запас 0.20 ([0101](AgentExchange/0101_USER_DECISION_ROW_MARGIN_020.md)) пройшов живий тест Product_2 ([0102](AgentExchange/0102_CLAUDE_LOCAL_TEXEL_PRODUCT_2_PACKAGE.md), [0103](AgentExchange/0103_CLAUDE_TEXEL_PRODUCT_2_RESULT.md)).
+   - **Texel_Product_3 — PREDICTIONS_MET** ([0105](AgentExchange/0105_CLAUDE_TEXEL_PRODUCT_3_RESULT.md)). −0.139 — ефект найнижчого запасу (≲0.26), а не форми: верхні H-краї там −0.10…−0.14 при порозі 0.15. Запас 0.20 пройшов 2/2 живих прогони.
 2. Калібрування сесії (тексельний режим з основного конфігу), потім колір.
 3. Огляд картинок: вивід залишків по перерізах (для верху рамки й низу сходинки).
 4. Етап 0: злиття в release/push (лише за дорученням), прибрати `--standard-cursor-only/` і `TESTING_BETA56_UA – копія.md`.

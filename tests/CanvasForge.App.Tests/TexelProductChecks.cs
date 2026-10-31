@@ -46,6 +46,10 @@ internal static partial class Program
         var former=TexelProduct.Build(image,TexelProductSettings(0,300,240)).ExperimentalTexel!;
         Assert(former.RowMargin==TexelCompensatedPlanner.ProductRowMargin&&former.Runs.All(r=>r.Path.MinimumRowMargin>=TexelCompensatedPlanner.ProductRowMargin)
             &&former.Runs.Any(r=>r.Row==248&&r.Path.MinimumRowMargin<TexelCompensatedPlanner.MinimumMargin),"Former gap row 248 not planned with product row margin 0.20");
+        // Texel_Product_2 (0101): pic8 A at columns 340..379, rows 453..492. Rows 483..492 carry only 0.203..0.248, the upper 30 rows at least 0.255.
+        var p2=TexelProduct.Build(image,TexelProductSettings(0,340,453)).ExperimentalTexel!;
+        Assert(p2.Runs.Count==107&&p2.Runs.All(r=>r.Path.MinimumRowMargin>=TexelCompensatedPlanner.ProductRowMargin&&(r.Row>=483)==(r.Path.MinimumRowMargin<TexelCompensatedPlanner.MinimumMargin)),
+            "Texel_Product_2 route does not split at row 483 between margins 0.20 and 0.25");
         var off=settings.Clone();off.Set(TexelExperimentSettings.EnabledKey,false);
         Assert(TexelProduct.Build(image,off).ExperimentalTexel is null,"Disabled route still produced a texel plan");
         Console.WriteLine("PASS texel-product-route-equals-pic8-pic9-fullcoverage-and-refusals");
@@ -69,7 +73,26 @@ internal static partial class Program
         var changed=TexelProductReview.Review(Run("changed-route",other),Path.Combine(output,"changed-route-review"));
         Assert(changed.Status=="INCOMPLETE"&&changed.Reason.Contains("відрізняється",StringComparison.Ordinal),"Changed route accepted: "+changed.Reason);
         UvRefuses(()=>TexelProductReview.Review(Path.Combine(output,"no-frames"),Path.Combine(output,"no-frames-review")),"Review overwrote an existing output");
+        // Texel_Product_2 (0102): rows 483..492 carry margin < 0.25; the review must sample them with the plan's row margin 0.20, not refuse.
+        var s2=TexelProductSettings(0,340,453);var plan2=TexelProduct.Build(TexelMaskImage(pic.Mask),s2);var canvas=s2.PaintCalibration().Rect("canvas");
+        string run2=Path.Combine(output,"rows-below-025");Directory.CreateDirectory(run2);
+        File.WriteAllText(Path.Combine(run2,"effective-settings.json"),s2.Data.ToJsonString());Images.Save(plan2.Preview,Path.Combine(run2,"target.png"));
+        File.WriteAllText(Path.Combine(run2,"experimental-texel-plan.json"),System.Text.Json.JsonSerializer.Serialize(new{revision=TexelCompensatedPlanner.Revision,profileSha256=TexelProduct.ProfileSha256,route=plan2.ExperimentalTexel}));
+        var blank=new PixelImage(canvas.Width,canvas.Height);for(int i=0;i<canvas.Width*canvas.Height;i++)blank.Set(i,new(255,255,255));
+        foreach(var ph in new[]{"before","after"})
+        {
+            Images.Save(blank,Path.Combine(run2,$"native-{ph}.png"));
+            File.WriteAllText(Path.Combine(run2,$"native-{ph}.json"),System.Text.Json.JsonSerializer.Serialize(new{rect=canvas,canvasRgbaSha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Images.LoadNative(Path.Combine(run2,$"native-{ph}.png")).Rgba)).ToLowerInvariant()}));
+        }
+        var low=TexelProductReview.Review(run2,Path.Combine(output,"rows-below-025-review"));
+        Assert(low.Status!="INCOMPLETE"&&low.Picture is not null,"Review of rows with margin 0.20..0.25 not scored: "+low.Status+" "+low.Reason);
         Console.WriteLine("PASS texel-product-review-roundtrip-incomplete-and-no-overwrite");
+    }
+    // Package check: the plan the GUI would build from a saved settings file and target (same loaders as MainWindow and START).
+    private static void PrintTexelProductPlan(string settingsPath,string target)
+    {
+        var route=TexelProduct.Build(Images.Load(target),Settings.Load(settingsPath)).ExperimentalTexel!;
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{route.RowMargin,route.EndPhase,runs=route.Runs.Select(r=>new{r.Row,r.FirstColumn,r.LastColumn,margin=r.Path.MinimumRowMargin,points=r.Path.Points.Count})}));
     }
     // Offline editor proof on a full-screen screenshot: the same frame and brush-row checks a pilot runs before input.
     private static void CheckEditorProofFrame(string settingsPath,string screenshot)

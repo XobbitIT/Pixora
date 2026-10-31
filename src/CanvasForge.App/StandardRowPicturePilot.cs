@@ -137,12 +137,13 @@ internal static class StandardRowPicturePilot
         }
         return runs.ToArray();
     }
-    internal static Evaluation Evaluate(TexelGrid grid,string[] mask,ScreenRect indices,bool outerEdges=false,bool topStartInside=false)
+    // rowMargin only gates which rows may be sampled; the chosen command Y does not depend on it, so pilots (0.25) are unchanged.
+    internal static Evaluation Evaluate(TexelGrid grid,string[] mask,ScreenRect indices,bool outerEdges=false,bool topStartInside=false,double rowMargin=.25)
     {
         int H=mask.Length,Wd=indices.Width;bool T(int c,int r)=>r>=0&&r<H&&c>=0&&c<Wd&&mask[r][c]=='#';
-        var ys=Enumerable.Range(0,H).Select(r=>grid.CenteredRowScreenSpan(grid.Context,indices.Top+r,grid.RowDomain.Left,grid.RowDomain.Left,.25).Points[0].Y).ToArray();
+        var ys=Enumerable.Range(0,H).Select(r=>grid.CenteredRowScreenSpan(grid.Context,indices.Top+r,grid.RowDomain.Left,grid.RowDomain.Left,rowMargin).Points[0].Y).ToArray();
         var cache=new Dictionary<(int,int),int>();
-        int X(int c,int r){if(!cache.TryGetValue((c,r),out int x))cache[(c,r)]=x=grid.CenteredHorizontal(grid.Context,indices.Top+r,indices.Left+c,indices.Left+c,.25,.25).Points[0].X;return x;}
+        int X(int c,int r){if(!cache.TryGetValue((c,r),out int x))cache[(c,r)]=x=grid.CenteredHorizontal(grid.Context,indices.Top+r,indices.Left+c,indices.Left+c,rowMargin,.25).Points[0].X;return x;}
         var interior=new List<ScreenPoint>();var holes=new List<ScreenPoint>();
         for(int r=0;r<H;r++)for(int c=0;c<Wd;c++)
         {

@@ -56,7 +56,7 @@ internal static class TexelProductReview
         var reserve=new ScreenRect(points.Min(p=>p.X)-16,points.Min(p=>p.Y)-16,points.Max(p=>p.X)+17,points.Max(p=>p.Y)+17);
         var picture=new StandardRowPicturePilot.Picture("product",plan.Indices,mask,"derived",
             plan.Runs.Select(r=>new StandardRowPicturePilot.PictureRun(r.Row,r.FirstColumn,r.LastColumn,r.CommandY,r.Path.Points.ToArray())).ToArray(),reserve,
-            StandardRowPicturePilot.Evaluate(grid,mask,plan.Indices,true,true));
+            StandardRowPicturePilot.Evaluate(grid,mask,plan.Indices,true,true,plan.RowMargin));
         var scored=StandardRowPictureAnalysis.Picture(picture,grid,canvas,before,after,.75,-.15,true);
         int outside=0;
         for(int y=canvas.Top;y<canvas.Bottom;y++)for(int x=canvas.Left;x<canvas.Right;x++)
