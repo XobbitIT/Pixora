@@ -116,5 +116,44 @@ internal static class TexelCompensatedChecks
             string first=PlanIdentity.Compute(image,s,palette);s.Set(TexelExperimentSettings.TrimKey,0);Need(first!=PlanIdentity.Compute(image,s,palette),"Trim omitted from identity");
             s.Set(TexelExperimentSettings.TrimKey,.5);Refuse(()=>s.Validate());s.Set(TexelExperimentSettings.TrimKey,0);s.Set("release_profile","Experimental");Refuse(()=>s.Validate());
         });
+        // R1: ValidatePlan is the last Core guard between a built product route and START (Painter.PrepareTexelProduct via TexelProduct.ValidateSettings).
+        const string PlanChanged="Experimental plan or captured Canvas changed.",InvalidInteger="Invalid experimental integer setting: ",NeedsStandard="The texel experiment requires Standard Size3";
+        test("Compensated ValidatePlan accepts only the full-coverage route bound to its settings and Canvas",()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("9"),"protocol-pic9.json")));var root=doc.RootElement;
+            var p=root.GetProperty("pictureR");var g=Grid(root,"9",true);var mask=p.GetProperty("mask").EnumerateArray().Select(x=>x.GetString()!).ToArray();var rect=p.GetProperty("indexRect").Deserialize<ScreenRect>();
+            TexelCompensatedPlan Route(int trim,double? end)=>TexelCompensatedPlanner.Plan(true,g,g.Context,mask,rect,trim,default,end);
+            var plan=Route(0,TexelCompensatedPlanner.FullCoverageEndPhase);var canvas=plan.Context.Geometry.Canvas;
+            Settings Bound(Action<Settings>? change=null)
+            {
+                var s=Settings.Defaults();s.Set(TexelExperimentSettings.EnabledKey,true);
+                s.Set(TexelExperimentSettings.ColumnKey,plan.Indices.Left);s.Set(TexelExperimentSettings.RowKey,plan.Indices.Top);
+                var calibration=s.Calibration;calibration.SetRect("canvas",canvas);s.SetPaintCalibration(calibration);
+                change?.Invoke(s);return s;
+            }
+            void Moved(Settings s,ScreenRect r){var calibration=s.Calibration;calibration.SetRect("canvas",r);s.SetPaintCalibration(calibration);}
+            TexelExperimentSettings.ValidatePlan(Bound(),plan);
+            // The legacy trim key stays readable and valid but no longer shapes the product route (0099).
+            foreach(int legacy in new[]{1,8})TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set(TexelExperimentSettings.TrimKey,legacy)),plan);
+            Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set(TexelExperimentSettings.EnabledKey,false)),plan),PlanChanged);
+            // Research routes (trim-only pic2/pic3 and the lower end phase) are never accepted as product routes.
+            foreach(var (trim,end) in new (int,double?)[]{(0,null),(1,null),(0,1.5)})
+            {
+                var research=Route(trim,end);Need(research.EndTrimPx==trim&&research.EndPhase==end,"Research route fixture changed");
+                Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(),research),PlanChanged);
+            }
+            Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set(TexelExperimentSettings.ColumnKey,plan.Indices.Left+1)),plan),PlanChanged);
+            Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set(TexelExperimentSettings.RowKey,plan.Indices.Top-1)),plan),PlanChanged);
+            // The user's ordinary Canvas (465,151,1509,1192) and every single-side move are refused.
+            foreach(var moved in new[]{new ScreenRect(465,151,1509,1192),canvas with{Left=canvas.Left-1},canvas with{Top=canvas.Top+1},canvas with{Right=canvas.Right-1},canvas with{Bottom=canvas.Bottom+1}})
+            {
+                Need(moved!=canvas,"Canvas fixture equals the plan Canvas");
+                Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>Moved(s,moved)),plan),PlanChanged);
+            }
+            // Validate runs first: invalid integers and a non-Standard profile are refused before the plan comparison.
+            Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set(TexelExperimentSettings.TrimKey,.5)),plan),InvalidInteger+TexelExperimentSettings.TrimKey);
+            Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set(TexelExperimentSettings.ColumnKey,-1)),plan),InvalidInteger+TexelExperimentSettings.ColumnKey);
+            Refuse(()=>TexelExperimentSettings.ValidatePlan(Bound(s=>s.Set("release_profile","Experimental")),plan),NeedsStandard);
+        });
     }
 }
