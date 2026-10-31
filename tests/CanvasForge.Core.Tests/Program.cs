@@ -36,6 +36,7 @@ void Assert(bool condition, string message = "Assertion failed")
 if(args.FirstOrDefault()=="--texel-compensated-only")
 {
     TexelCompensatedChecks.Run(Test);
+    TexelSessionBindingChecks.Run(Test);
     if(failures.Count>0)throw new AggregateException(failures);
     Console.WriteLine($"ALL {passed} COMPENSATED CORE CHECKS PASSED");return;
 }
@@ -2615,6 +2616,7 @@ StandardTexelColumnChecks.Run(Test);
 StandardTexelPlaneChecks.Run(Test);
 TexelResearchChecks.Run(Test);
 TexelCompensatedChecks.Run(Test);
+TexelSessionBindingChecks.Run(Test);
 StandardCoverageRunChecks.Run(Test);
 StandardNativeLineChecks.Run(Test);
 StandardLineDiagnosticChecks.Run(Test);
