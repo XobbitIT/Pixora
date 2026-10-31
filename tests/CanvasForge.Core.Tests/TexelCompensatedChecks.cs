@@ -18,6 +18,27 @@ internal static class TexelCompensatedChecks
     }
     internal static void Run(Action<string,Action> test)
     {
+        test("Session calibration rect changes grid and route identity without rebasing commands",()=>
+        {
+            using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets("9"),"protocol-pic9.json")));
+            var original=Grid(doc.RootElement,"9",true);
+            var geometry=original.Context.Geometry with{Canvas=new(465,151,1509,1192)};
+            var context=original.Context with{Geometry=geometry};
+            var columns=new StandardTexelColumnHypothesis(context,original.Columns.Parameters,original.Columns.Domain,original.Columns.SourceEvidenceSha256);
+            var rebound=new TexelGrid(true,columns,original.Rows,original.RowDomain,original.InputFamily,original.RowSourceSha256,original.InputFamilySourceSha256);
+            TexelCompensatedPlan Route(TexelGrid g)=>TexelCompensatedPlanner.Plan(true,g,g.Context,["####","####"],new(300,203,304,205),
+                endPhase:TexelCompensatedPlanner.FullCoverageEndPhase,rowMargin:TexelCompensatedPlanner.ProductRowMargin);
+            var before=Route(original);var after=Route(rebound);
+            Need(geometry.Id!=original.Context.Geometry.Id&&context.Id!=original.Context.Id&&rebound.Id!=original.Id&&after.Id!=before.Id,
+                "Selected rect must invalidate every context/grid/route identity");
+            Need(before.Runs.Count==after.Runs.Count&&before.Runs.Zip(after.Runs).All(p=>p.First.Path.Points.SequenceEqual(p.Second.Path.Points)),
+                "Canvas metadata silently rebased the absolute-screen model");
+            Refuse(()=>rebound.ValidateContext(original.Context));
+            var settings=Settings.Defaults();settings.Set(TexelExperimentSettings.EnabledKey,true);
+            var image=new PixelImage(2,2);var palette=new[]{new PaletteEntry(new(0,0,0),new(20,30),"rust")};
+            var identity=PlanIdentity.Compute(image,settings,palette);settings.Set("language","en");
+            Need(PlanIdentity.Compute(image,settings,palette)==identity,"Display language must not invalidate a checkpoint");
+        });
         foreach(string version in new[]{"2","3"})test("Compensated Core exact frozen Picture"+version+" UTF8 runs",()=>
         {
             using var doc=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(Assets(version),"protocol-pic"+version+".json")));var root=doc.RootElement;
