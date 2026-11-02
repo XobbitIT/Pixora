@@ -1,6 +1,6 @@
 {
   "schema": "pixora.agent-exchange.v1",
-  "date": "2026-10-22",
+  "date": "2026-11-02",
   "status": "stopped_by_user",
   "automaticSyncConfigured": false,
   "claudeLocalFolderReadConfirmed": false,
@@ -1787,6 +1787,44 @@
         "bindingActive": true,
         "startEnabled": false,
         "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0109",
+      "file": "0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "f604b116af85a321be988377913e26e739b74c66d2707a94ae253182af4d343f",
+      "artifactReceipt": "../../../outputs/Pixora_Session_Product_1_20261102/Product1_Session/Analysis_Product1_20261102-202541-8816b8ef/summary.json",
+      "scope": {
+        "status": "PREDICTIONS_MET",
+        "runBy": "user, 2026-11-02T20:23Z",
+        "sessionCalib": "SESSION_TRANSFER_CONFIRMED (attempt 2; attempt 1 INCOMPLETE before paint)",
+        "liveBindingId": "4993dab0c96685067fbf0bf3322e998e5b12bf6992a181151860d57865d2f0bc",
+        "appSha256": "38382f4d",
+        "coreSha256": "5c4a8d88",
+        "strokes": "107/107",
+        "gaps": "0/249",
+        "holes": "0/413",
+        "edgesWithEvents": 0,
+        "outsideChangedPixels": 0,
+        "mainConfig": "465/151/1509/1192 Max Speed",
+        "nativeInputByAgent": false,
+        "committed": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0110",
+      "file": "0110_USER_DECISION_RELEASE_BUILD_CALIBRATION.md",
+      "author": "User decision, recorded by Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "ff2bcd50e8e28a56629d3293512e9b2b9e7e660075a006ad69ffe8c114b84311",
+      "scope": {
+        "decision": "session binding stays pinned to App/Core SHA; calibrate only the final release build",
+        "modelIdentityBinding": false
       }
     }
   ],

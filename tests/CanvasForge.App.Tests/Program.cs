@@ -30,6 +30,8 @@ internal static partial class Program
         void Case(Action check){try{check();passedCases++;}catch(Exception e){caseFailures.Add(e);Console.Error.WriteLine("FAIL UI: "+e.Message+"\n"+e.StackTrace);}}
         if(NativeClipboardChecks.CaptureOnly())return;
         Native.OfflineTestHost=true;
+        if(args.Length==2&&args[1]=="--texel-session-start-only")
+        {CheckTexelSessionStart(Path.GetFullPath(args[0]));Console.WriteLine("ALL SESSION START APP CHECKS PASSED; nativeInput=false; physicalQualityCertified=false");return;}
         if(args.Length==3&&args[1]=="--visual-size-only")
         {
             CheckVisualSizeExisting();CheckVisualSizeEditAndFailures();CheckVisualSizeKeyRelease();CheckRowConsoleResult();ReplayVisualSizeFailure(args[0],args[2]);
@@ -349,6 +351,7 @@ internal static partial class Program
         Case(()=>CheckPalettePreparationUi(destination));Case(()=>CheckQuickPaletteUi(destination));Case(()=>CheckInterruptedResumeWait());
         Case(()=>CheckEditorFailureReplay(destination));Case(()=>CheckClipboardFailureRetention(destination));
         Case(CheckFrontierSessionPreparation);Case(CheckFrontierSessionCaptureNegatives);Case(()=>CheckFrontierSessionArtifact(destination));Case(CheckFrontierSessionWindow);Case(CheckFrontierStableFrames);
+        Case(()=>CheckTexelSessionStart(Path.Combine(destination,"texel-session-start")));
         Case(()=>CheckFrontierBaselineBeforePaint(destination));Case(CheckFrontierParkingConfirmation);
         Case(()=>CheckRc4AdaptiveStatus(destination));
         Case(()=>CheckRc5DrawingUi(destination));

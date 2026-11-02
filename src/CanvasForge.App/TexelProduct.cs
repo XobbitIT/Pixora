@@ -11,6 +11,12 @@ namespace CanvasForge.App;
 // binding to the running binary permits research execution, not certification.
 internal static class TexelProduct
 {
+    internal static string Identity(PixelImage image,Settings settings,IEnumerable<PaletteEntry> palette,TexelProductSession.Admission? session=null)
+    {
+        if(TexelExperimentSettings.Enabled(settings))session??=TexelProductSession.Resolve(settings);
+        var identity=PlanIdentity.Compute(image,settings,palette);
+        return session is null?identity:Hash(System.Text.Encoding.UTF8.GetBytes(identity+":"+session.Identity));
+    }
     internal const string ProfileSha256="4d9d4e1daf8f7caa28aa5d1410c87ac7870d4368bf774bb5150d810a0a63ab4c";
     private sealed record Profile(string Revision,string SourceProtocolSha256,StandardGeometryContext Context,
         StandardTexelColumnParameters Columns,TexelRowObservation Rows,TexelRowInputMapping[] Family,
@@ -38,24 +44,25 @@ internal static class TexelProduct
         var columns=new StandardTexelColumnHypothesis(context,p.Columns,p.ColumnDomain,p.ColumnSourceSha256);
         return new(true,columns,p.Rows,p.RowDomain,p.Family,p.RowSourceSha256,p.FamilySourceSha256);
     }
-    internal static void ValidateSettings(Settings settings,TexelCompensatedPlan? plan=null)
+    internal static void ValidateSettings(Settings settings,TexelCompensatedPlan? plan=null,TexelProductSession.Admission? session=null)
     {
         TexelExperimentSettings.Validate(settings);var p=ReadProfile();
+        session??=TexelProductSession.Resolve(settings);
         if(!TexelExperimentSettings.Enabled(settings)||!ReleaseProfile.Standard(settings)||settings.Mode!=ColorMode.RustPalette
-            ||settings.PaintCalibration().Rect("canvas")!=p.Context.Canvas||StandardLineMotion.Enabled(settings)
+            ||session is null&&settings.PaintCalibration().Rect("canvas")!=p.Context.Canvas||StandardLineMotion.Enabled(settings)
             ||settings.Int("brush_shape_slot",3)!=3||PaintTimingPlan.DefaultSize(settings)!=3||StrokeTiming.Frame(settings)!=.02
-            ||settings.Text("speed_profile","Rapid")!="Rapid"||settings.Bool("adaptive_brush")||settings.Bool("coverage_audit"))
+            ||session is null&&settings.Text("speed_profile","Rapid")!="Rapid"||settings.Bool("adaptive_brush")||settings.Bool("coverage_audit"))
             throw new InvalidDataException("Тексельний експеримент: потрібні те саме полотно, Standard Size 3, палітра Rust, 20 мс та профіль Rapid. Інші умови не перевірені.");
         if(plan is not null)
         {
             TexelExperimentSettings.ValidatePlan(settings,plan);
-            if(plan.GridId!=Grid().Id)throw new InvalidDataException("Experimental model or binary context changed.");
+            if(plan.GridId!=(session?.Grid??Grid()).Id||plan.SessionBindingIdentity!=session?.Identity)throw new InvalidDataException("Experimental model, binding or binary context changed.");
         }
     }
-    internal static PaintPlan Build(PixelImage image,Settings settings,IProgress<string>? progress=null,CancellationToken token=default)
+    internal static PaintPlan Build(PixelImage image,Settings settings,IProgress<string>? progress=null,CancellationToken token=default,TexelProductSession.Admission? session=null)
     {
         if(!TexelExperimentSettings.Enabled(settings))return Planner.Build(image,settings,progress,token);
-        token.ThrowIfCancellationRequested();ValidateSettings(settings);var p=ReadProfile();
+        token.ThrowIfCancellationRequested();session??=TexelProductSession.Resolve(settings);ValidateSettings(settings,session:session);var p=ReadProfile();
         // A source pixel is exactly one requested texel. Never shrink a large image
         // into the supported window or silently convert colors/partial alpha.
         int left=settings.Int(TexelExperimentSettings.ColumnKey,225),top=settings.Int(TexelExperimentSettings.RowKey,203);
@@ -63,7 +70,7 @@ internal static class TexelProduct
             ||(long)left+image.Width>p.VerifiedTargetDomain.Right||(long)top+image.Height>p.VerifiedTargetDomain.Bottom)
             throw new InvalidDataException("Тексельний експеримент: зображення до 40×40 без масштабування, в межах стовпців 75–459 та рядків 198–537.");
         // Rows are addressable only where the derived family agrees with the product row margin 0.20 (user decision 0101).
-        var grid=Grid();var unsupported=new List<int>();
+        var grid=session?.Grid??Grid();var unsupported=new List<int>();
         for(int row=top;row<top+image.Height;row++)
             try{grid.CenteredRowScreenSpan(grid.Context,row,grid.RowDomain.Left,grid.RowDomain.Left,TexelCompensatedPlanner.ProductRowMargin);}
             catch(InvalidDataException){unsupported.Add(row);}
@@ -83,14 +90,24 @@ internal static class TexelProduct
             mask[y]=new(row);
         }
         // The legacy end-trim setting is ignored: every run ends at the full-coverage phase (pic8/pic9).
-        var route=TexelCompensatedPlanner.Plan(true,grid,grid.Context,mask,new(left,top,left+image.Width,top+image.Height),0,token,TexelCompensatedPlanner.FullCoverageEndPhase,TexelCompensatedPlanner.ProductRowMargin);
+        var route=TexelCompensatedPlanner.Plan(true,grid,grid.Context,mask,new(left,top,left+image.Width,top+image.Height),0,token,TexelCompensatedPlanner.FullCoverageEndPhase,TexelCompensatedPlanner.ProductRowMargin,session?.Identity);
+        if(session is not null&&route.Runs.SelectMany(r=>r.Path.Points).Any(point=>point.X-16<grid.Context.Geometry.Canvas.Left||point.X+16>=grid.Context.Geometry.Canvas.Right
+            ||point.Y-17<grid.Context.Geometry.Canvas.Top||point.Y+17>=grid.Context.Geometry.Canvas.Bottom))throw new InvalidDataException("Session rect clips route reservation.");
         var entry=settings.Palette().FirstOrDefault(e=>e.Color==new Rgb(0,0,0)&&e.ClickPoint is not null)
             ??throw new InvalidDataException("Захопи чорний колір палітри Rust для експерименту.");
         var guard=InputCommandGuard.From(settings,new(p.Context.ClientOrigin.X,p.Context.ClientOrigin.Y,p.Context.ClientOrigin.X+p.Context.ClientSize.Width,p.Context.ClientOrigin.Y+p.Context.ClientSize.Height));
         if(route.Runs.Any(r=>!guard.Allows(r.Path.Points)))throw new InvalidDataException("Experimental command intersects a control or leaves the captured Canvas.");
+        if(session is not null)
+        {
+            var points=route.Runs.SelectMany(r=>r.Path.Points).ToArray();
+            int minX=points.Min(p=>p.X)-16,maxX=points.Max(p=>p.X)+16,minY=points.Min(p=>p.Y)-17,maxY=points.Max(p=>p.Y)+17;
+            for(int y=minY;y<=maxY;y++)
+                for(int x=minX;x<=maxX;x++)
+                    if(!guard.Allows(new ScreenPoint(x,y)))throw new InvalidDataException("Session route reservation intersects a control or leaves Canvas.");
+        }
         var strokes=route.Runs.Select(r=>new Stroke(0,r.FirstColumn-left,r.Row-top,r.LastColumn-left,r.Row-top)).ToList();
         return new(){Width=image.Width,Height=image.Height,Mode=ColorMode.RustPalette,Palette=[entry],Indices=indices,Preview=image.Clone(),
-            Strokes=new(){[0]=strokes},Counts=new(){[0]=count},Identity=PlanIdentity.Compute(image,settings,[entry]),
+            Strokes=new(){[0]=strokes},Counts=new(){[0]=count},Identity=Identity(image,settings,[entry],session),
             TargetIdentity=TexelTarget.Resample(true,image,route.Indices).Id,ExperimentalTexel=route};
     }
     internal static void ValidateLive(TexelCompensatedPlan plan,ScreenPoint origin,ScreenSize size,int dpi)

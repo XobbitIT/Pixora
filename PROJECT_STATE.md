@@ -1,6 +1,6 @@
 # Pixora — поточний стан
 
-Оновлено **02.11.2026**, Claude (локально) після живого прогону Session_Calib_1 ([0108](AgentExchange/0108_CLAUDE_SESSION_CALIB_1_RESULT.md)); попередній запис — пакет [0107](AgentExchange/0107_CLAUDE_LOCAL_SESSION_CALIB_1_PACKAGE.md). Спершу [AGENTS.md](AGENTS.md); за потреби [архітектура](ARCHITECTURE.md), [перевірки](TEST_MATRIX.md), [Steam](STEAM_RELEASE.md). Історія — в [AgentExchange](AgentExchange/README.md) ([INDEX](AgentExchange/INDEX.json)) і тематичних звітах. Попередня версія цього файлу — в коміті `1ab3dcf`.
+Оновлено **02.11.2026**, Claude (локально) після Product_1 з основного конфігу ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)); попередній запис — [0108](AgentExchange/0108_CLAUDE_SESSION_CALIB_1_RESULT.md). Спершу [AGENTS.md](AGENTS.md); за потреби [архітектура](ARCHITECTURE.md), [перевірки](TEST_MATRIX.md), [Steam](STEAM_RELEASE.md). Історія — в [AgentExchange](AgentExchange/README.md) ([INDEX](AgentExchange/INDEX.json)) і тематичних звітах. Попередня версія цього файлу — в коміті `1ab3dcf`.
 
 ## Репозиторій і місця
 - Код: `D:\Pixora\work\pixora-source`, гілка `ai-team/baseline-20261030` (від `release/pixora-1.0.14-rc`).
@@ -36,18 +36,20 @@
 - Причину залишків H ще не встановлено: Product_3 змінив залишок того самого краю, а лише 4 верхні краї мають низький запас. Не оголошувати ні форму, ні запас єдиною доведеною причиною. Вивід sections.json і edges-margins.csv закомічено (`4caa0ef`), зведення P1–P3 — у [0106](AgentExchange/0106_CLAUDE_RACE_A_B_RESULTS.md); причинний аналіз відкладено.
 - Основний конфіг користувача (`%LOCALAPPDATA%\Pixora`, SHA `0fca2a34…`) має полотно 465/151/1509/1192 і `Max Speed`. Тексельний START там і далі відмовляє: його не змінено.
   - Етап 0 — Passed (0107); етапи 1+2 — CONFIRMED (0108).
-  - START з основного конфігу — крок 3, ще не реалізований; потребує окремого доручення.
+  - START з основного конфігу — крок 3: PREDICTIONS_MET (0109), лише Product_1 і лише з binding цієї збірки.
 - Лаунчер Session1 у `-Mode Check` після спроби показує трасу стека (`retained data; retry/resume disabled`) замість короткого пояснення. Захист правильний, UX — дрібний недолік.
 - Legacy-ключ `texel_end_trim_px` маршрут не змінює, але входить в ідентичність плану. Рішення користувача відкрите.
 
 ## Наступна дія
 
-1. **Крок 3 (потрібне доручення користувача):** START Product_1 з основного конфігу через binding `1542dd10…`.
-   - Зміст: START дозволений лише за активного binding зі збігом live-ідентичності (rect/speed/Size/DPI/App/Core/view), тести сумісності settings/checkpoint, frozen-протокол Product_1, пакет і огляд.
-   - Session_Calib_1 підтвердив лише 3 контролі; нову підгонку не робити.
-2. Commit патча 0107 + 0108 — за дорученням (зараз незакомічено).
-3. Причинний аналіз H-перерізів зібраних прогонів — окремо; frozen-пороги не змінювати.
-4. Commit патча 0107, release merge/push — лише за дорученням. Прибирання історичних дублів — після звірки. Колір і розширення домену — після session-binding.
+**02.11 — крок 3 виконано ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)):** Product_1 через «Почати» з основного конфігу (465/151/1509/1192, Max Speed) через session binding `4993dab0…` — **PREDICTIONS_MET** (107/107, gaps 0/249, holes 0/413, 0 подій, 0 змін поза). Перед цим Session_Calib_1 на новій збірці — CONFIRMED (спроба 1 INCOMPLETE до paint-down через `brush-shape-row`). Пакет `outputs/Pixora_Session_Product_1_20261102` (App `38382f4d…`, Core `5c4a8d88…`).
+- **Незакомічено:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).
+
+1. Commit патча + 0109 — за дорученням.
+2. Лаунчер Product_1 не запустив огляд після закриття UI (агент запустив вручну) — з'ясувати й виправити.
+3. Нестабільний збій WPF `CheckBoundProbeRecovery` — відтворити й усунути.
+4. **Рішено ([0110](AgentExchange/0110_USER_DECISION_RELEASE_BUILD_CALIBRATION.md)):** binding лишається за SHA App/Core; калібрувати лише фінальну релізну збірку. Живий тексельний тест dev-збірки — зі свіжим Session_Calib_1 цієї збірки. Для релізу потрібне штатне калібрування сесії в UI.
+5. Причинний аналіз H-перерізів — окремо; frozen-пороги не змінювати. Колір і розширення домену — наступні напрями.
 
 Нового Rust-вводу агентом не було.
 ## Відкриті рішення користувача

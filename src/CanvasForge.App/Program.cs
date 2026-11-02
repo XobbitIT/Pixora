@@ -8,6 +8,16 @@ internal static class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        if(args.FirstOrDefault()=="--texel-session-package")
+        {
+            try
+            {
+                if(args.Length!=6)throw new ArgumentException("Use --texel-session-package MAIN_CONFIG BINDING_JSON SESSION_EDITOR_JSON PIC8_ASSETS NEW_OUTPUT.");
+                TexelSessionProductPackage.Create(args[1],args[2],args[3],args[4],args[5]);
+                Console.WriteLine("Product_1 session package prepared; nativeInput=false; physicalQualityCertified=false");
+            }
+            catch(Exception e){Console.Error.WriteLine(e.Message);Environment.ExitCode=1;}return;
+        }
         // pic4 launcher reads redirected output as UTF-8; without a console the default is the ANSI code page,
         // which turned Ukrainian failure reasons into replacement characters in earlier launcher logs.
         if(args.FirstOrDefault()=="--standard-contour-pilot"&&(args.ElementAtOrDefault(1)?.StartsWith("pic4-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic5-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic6-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic7-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic8-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic9-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("session1-",StringComparison.Ordinal)==true))

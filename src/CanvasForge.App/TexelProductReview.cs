@@ -40,20 +40,47 @@ internal static class TexelProductReview
     private static Summary Score(string run,List<StandardRowPictureAnalysis.EdgeSections> sections,List<TexelReviewMargin> margins)
     {
         var settings=Settings.Load(Path.Combine(run,"effective-settings.json"));
+        TexelProductSession.Admission? session=null;
+        JsonElement? sessionSnapshot=null;
+        if(TexelProductSession.Requested(settings))
+        {
+            var bytes=File.ReadAllBytes(Path.Combine(run,"session-binding.json"));
+            using var binding=JsonDocument.Parse(bytes);var live=binding.RootElement.GetProperty("liveBinding");
+            session=TexelProductSession.Resolve(settings,bytes,live.GetProperty("AppSha256").GetString(),live.GetProperty("CoreSha256").GetString());
+            using var snapshot=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"texel-session.json")));var s=snapshot.RootElement;
+            sessionSnapshot=s.Clone();
+            if(s.GetProperty("bindingId").GetString()!=session!.Binding.Id||s.GetProperty("bindingRecordSha256").GetString()!=session.RecordSha256
+                ||s.GetProperty("requestedSpeed").GetString()!=session.Binding.RequestedSpeed||s.GetProperty("effectiveSpeed").Deserialize<SpeedProfile>()!=session.Binding.EffectiveEmitterSpeed
+                ||s.GetProperty("rect").Deserialize<ScreenRect>()!=session.Binding.UserRect)throw new InvalidDataException("Session snapshot identity differs.");
+            var fresh=Images.LoadNative(Path.Combine(run,"texel-fresh-view.png"));TexelProduct.RequireView(fresh);
+            using var meta=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"texel-fresh-view.json")));
+            if(meta.RootElement.GetProperty("bindingId").GetString()!=session.Binding.Id||meta.RootElement.GetProperty("rgbaSha256").GetString()!=TexelProductSession.Hash(fresh.Rgba))
+                throw new InvalidDataException("Fresh session view identity differs.");
+            var b=session.Binding;var local=new ScreenRect(b.UserRect.Left-b.ClientOrigin.X,b.UserRect.Top-b.ClientOrigin.Y,b.UserRect.Right-b.ClientOrigin.X,b.UserRect.Bottom-b.ClientOrigin.Y);
+            var proof=CanvasStructure.Read(CanvasStructure.Reference(settings),local,fresh,new(0,0,2560,1440),b.ClientOrigin,b.Dpi,b.ClientSize);
+            if(!proof.Passed)throw new InvalidDataException("Session structure: "+proof.Reason);
+        }
         string? outcome=null;
         if(File.Exists(Path.Combine(run,"run.json"))){using var r=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"run.json")));if(r.RootElement.TryGetProperty("Outcome",out var o)||r.RootElement.TryGetProperty("outcome",out o))outcome=o.ToString();}
         // Rebuild the route from the saved target and settings; it must equal the route the run saved before input.
-        var plan=TexelProduct.Build(Images.LoadNative(Path.Combine(run,"target.png")),settings).ExperimentalTexel
+        var rebuilt=TexelProduct.Build(Images.LoadNative(Path.Combine(run,"target.png")),settings,session:session);
+        var plan=rebuilt.ExperimentalTexel
             ??throw new InvalidDataException("Прогін не використовував тексельний маршрут.");
+        if(sessionSnapshot is {} snap&&(snap.GetProperty("revision").GetString()!=TexelProductSession.Revision
+            ||snap.GetProperty("modelRevision").GetString()!=TexelCompensatedPlanner.Revision||snap.GetProperty("profileSha256").GetString()!=TexelProduct.ProfileSha256
+            ||snap.GetProperty("routeId").GetString()!=plan.Id||snap.GetProperty("planIdentity").GetString()!=rebuilt.Identity||outcome!="completed"))
+            throw new InvalidDataException("Session run identity differs or run is not completed.");
         using(var saved=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"experimental-texel-plan.json"))))
         {
             var root=saved.RootElement;var runs=root.GetProperty("route").GetProperty("Runs").EnumerateArray().ToArray();
+            if(session is not null&&!System.Text.Json.Nodes.JsonNode.DeepEquals(System.Text.Json.Nodes.JsonNode.Parse(root.GetProperty("route").GetRawText()),JsonSerializer.SerializeToNode(plan)))
+                throw new InvalidDataException("Session route identity differs.");
             if(root.GetProperty("revision").GetString()!=TexelCompensatedPlanner.Revision||root.GetProperty("profileSha256").GetString()!=TexelProduct.ProfileSha256
                 ||runs.Length!=plan.Runs.Count||runs.Zip(plan.Runs).Any(q=>!q.First.GetProperty("Path").GetProperty("Points").Deserialize<ScreenPoint[]>()!.SequenceEqual(q.Second.Path.Points)))
                 throw new InvalidDataException("Збережений маршрут прогону відрізняється від маршруту цієї збірки; оцінка неможлива.");
         }
         var canvas=settings.PaintCalibration().Rect("canvas");var before=Canvas(run,"before",canvas);var after=Canvas(run,"after",canvas);
-        var grid=TexelProduct.Grid();var mask=plan.Mask.ToArray();
+        var grid=session?.Grid??TexelProduct.Grid();var mask=plan.Mask.ToArray();
         var points=plan.Runs.SelectMany(r=>r.Path.Points).ToArray();
         var reserve=new ScreenRect(points.Min(p=>p.X)-16,points.Min(p=>p.Y)-16,points.Max(p=>p.X)+17,points.Max(p=>p.Y)+17);
         var picture=new StandardRowPicturePilot.Picture("product",plan.Indices,mask,"derived",

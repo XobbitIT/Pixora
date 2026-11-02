@@ -59,6 +59,7 @@ internal sealed partial class Painter : IDisposable
         runSnapshotDirectory=snapshotDirectory;runStartedUtc=requestedUtc;
         runSnapshotSequence=snapshotDirectory is null?0:1;
         probeMode=preparation;
+        if(TexelExperimentSettings.Enabled(s)&&TexelProductSession.Requested(s))TexelProduct.ValidateSettings(s);
         settings = DrawingWorkflow.Effective(s);
         LoadTransportTiming(settings,Path.GetDirectoryName(log)!);
         window = target;

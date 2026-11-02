@@ -24,7 +24,7 @@ internal sealed partial class MainWindow : Window
     private string? configReadProblem;
     private Settings EffectiveSettings
     {
-        get{var effective=DrawingWorkflow.Effective(settings);Painter.LoadTransportTiming(effective,folder);return effective;}
+        get{var source=TexelSessionSettings();var effective=DrawingWorkflow.Effective(source);Painter.LoadTransportTiming(effective,folder);return effective;}
     }
     private PixelImage? source;
     private PixelImage? capturedCanvas;
@@ -759,7 +759,7 @@ internal sealed partial class MainWindow : Window
             &&(settings.Mode==ColorMode.HexDirect||cal.Point("brush_tool") is not null)&&(cal.Rect("brush_shapes").Valid||cal.Point(settings.Text("brush_shape")=="Square"?"square_brush":"hard_brush") is not null);
         var activeSettings=EffectiveSettings;
         var preparationState=PaintingReadiness.Read(activeSettings,source is not null);
-        string? missing=TransferPreparationProblem(activeSettings);
+        string? missing=TexelSessionProblem()??TransferPreparationProblem(activeSettings);
         missing=configWriteProblem??missing;
         if(configReadProblem is not null)missing??=T("Не вдалося прочитати налаштування. Імпортуй справний конфіг у Налаштуваннях.","Settings could not be read. Import a valid configuration in Settings.");
         if(numberErrors.Count>0)missing=numberErrors.Values.First();
@@ -947,6 +947,7 @@ internal sealed partial class MainWindow : Window
         var cancel = planCancel = activeOperation?CancellationTokenSource.CreateLinkedTokenSource(SetupToken,startCancel?.Token??CancellationToken.None):new();
         CancelPreview();plan=null;resumeSchedule=null;
         var id = ++generation;
+        if(TexelSessionProblem() is {} sessionProblem){SetStatus(sessionProblem);UpdateReady();return;}
         var snapshot = EffectiveSettings;
         var src = source;
         SetStatus(T("Будую план…", "Building plan…"));
@@ -1033,15 +1034,16 @@ internal sealed partial class MainWindow : Window
             return;
         ReadSettings();
         Save();
+        if(TexelSessionProblem() is {} sessionProblem)throw new InvalidOperationException(sessionProblem);
         var execution = EffectiveSettings;
         if(PaintingReadiness.BrushProblem(execution) is {} visualProblem)
             throw new InvalidOperationException(T(visualProblem));
         try { AdaptiveBrush.Validate(execution); }
         catch (InvalidOperationException) { ShowPage("adaptive"); throw; }
-        if (plan is null || plan.Identity != PlanIdentity.Compute(source, execution, plan.Palette))
+        if (plan is null || plan.Identity != TexelProduct.Identity(source, execution, plan.Palette))
             await BuildPlanCore(true);
         startCancel!.Token.ThrowIfCancellationRequested();
-        if (plan is null || plan.Identity!=PlanIdentity.Compute(source,execution,plan.Palette))
+        if (plan is null || plan.Identity!=TexelProduct.Identity(source,execution,plan.Palette))
             throw new InvalidOperationException(T("Не вдалося побудувати план.", "Cannot build plan."));
         var cal = settings.Calibration;
         if (!cal.Rect("canvas").Valid)

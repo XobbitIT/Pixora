@@ -1,5 +1,21 @@
 [
   [
+    "Attach confirmed session binding",
+    "Dołącz potwierdzone powiązanie sesji",
+    "Bestätigte Sitzungsbindung laden",
+    "Charger la liaison de session confirmée",
+    "Cargar vínculo de sesión confirmado",
+    "Подключить подтверждённую привязку сессии"
+  ],
+  [
+    "Detach session binding",
+    "Odłącz powiązanie sesji",
+    "Sitzungsbindung trennen",
+    "Détacher la liaison de session",
+    "Desconectar vínculo de sesión",
+    "Отключить привязку сессии"
+  ],
+  [
     "Paused: the system cursor did not reach the commanded line point. Keep the mouse still and check the connection. Input was released; the unfinished line is unverified.",
     "Pauza: kursor systemowy nie dotarł do zadanej pozycji linii. Nie ruszaj myszą i sprawdź połączenie. Zwolniono wejście; niedokończona linia nie jest potwierdzona.",
     "Pause: Der Systemcursor hat den vorgegebenen Linienpunkt nicht erreicht. Maus ruhig halten und Verbindung prüfen. Eingaben wurden losgelassen; die unfertige Linie ist nicht bestätigt.",

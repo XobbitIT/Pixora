@@ -125,6 +125,8 @@
 - [0106 — race A (дизайн калібрування сесії) і B (огляд по перерізах і запасах)](0106_CLAUDE_RACE_A_B_RESULTS.md)
 - [0107 — пакет Session_Calib_1: frozen-модель на основному конфігу (етапи 1+2), NOT_STARTED](0107_CLAUDE_LOCAL_SESSION_CALIB_1_PACKAGE.md)
 - [0108 — Session_Calib_1: SESSION_TRANSFER_CONFIRMED (3/3 контролі, 0 змін поза резерваціями)](0108_CLAUDE_SESSION_CALIB_1_RESULT.md)
+- [0109 — Product_1 з основного конфігу через session binding: PREDICTIONS_MET (107/107, 0 розривів/подій)](0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)
+- [0110 — рішення: binding за SHA, калібрувати лише фінальну релізну збірку](0110_USER_DECISION_RELEASE_BUILD_CALIBRATION.md)
 
 0057 тепер прочитано оригіналом із `claude-local/proposals`; попередня відсутність Downloads-файла з `_1` не означає відсутності нового оригіналу.0059 підтверджує ручне прочитання0058 за точнимSHA.0061 підтверджує отримання нормалізованого UTF8/LF тексту0060 і byte-exact blueprintv2; rawSHA0060 не ідентичний. Автоматичний канал лишається зупиненим.
 

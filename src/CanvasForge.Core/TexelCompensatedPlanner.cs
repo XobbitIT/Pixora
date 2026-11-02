@@ -23,12 +23,16 @@ public sealed class TexelCompensatedPlan
     public bool PhysicalQualityCertified=>false;
     public bool ProductionEligible=>false;
     public int EstablishedSolidPixels=>0;
-    internal TexelCompensatedPlan(TexelGrid grid,ScreenRect indices,string[] mask,int trim,double? endPhase,double rowMargin,TexelCompensatedRun[] runs)
+    [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? SessionBindingIdentity{get;}
+    internal TexelCompensatedPlan(TexelGrid grid,ScreenRect indices,string[] mask,int trim,double? endPhase,double rowMargin,TexelCompensatedRun[] runs,string? sessionBindingIdentity=null)
     {
         GridId=grid.Id;Context=grid.Context;Indices=indices;EndTrimPx=trim;EndPhase=endPhase;RowMargin=rowMargin;
         Mask=Array.AsReadOnly(mask.ToArray());Runs=Array.AsReadOnly(runs.ToArray());
         Id=GeometryHash.Of(new{TexelCompensatedPlanner.Revision,GridId,indices,mask,trim,endPhase,rowMargin,
             runs=runs.Select(r=>new{r.Row,r.FirstColumn,r.LastColumn,points=r.Path.Points})});
+        SessionBindingIdentity=sessionBindingIdentity;
+        if(sessionBindingIdentity is not null)Id=GeometryHash.Of(new{route=Id,sessionBindingIdentity});
     }
 }
 public static class TexelCompensatedPlanner
@@ -41,7 +45,7 @@ public static class TexelCompensatedPlanner
     // Full coverage needs cursor phase >= b+1.617 (pic7 c339); 1.867 adds the 0.25 margin. Verified natively by pic8 and pic9.
     public const double FullCoverageEndPhase=1.867;
     public static TexelCompensatedPlan Plan(bool experimental,TexelGrid grid,StandardBandResponseContext context,
-        IEnumerable<string> mask,ScreenRect indices,int endTrimPx=0,CancellationToken token=default,double? endPhase=null,double rowMargin=MinimumMargin)
+        IEnumerable<string> mask,ScreenRect indices,int endTrimPx=0,CancellationToken token=default,double? endPhase=null,double rowMargin=MinimumMargin,string? sessionBindingIdentity=null)
     {
         ArgumentNullException.ThrowIfNull(grid);ArgumentNullException.ThrowIfNull(mask);grid.ValidateContext(context);
         if(!double.IsFinite(rowMargin)||rowMargin<ProductRowMargin||rowMargin>.5)
@@ -90,7 +94,7 @@ public static class TexelCompensatedPlanner
             }
         }
         if(runs.Count==0)throw new InvalidDataException("The experimental target has no paintable runs.");
-        return new(grid,indices,cells,endTrimPx,endPhase,rowMargin,runs.ToArray());
+        return new(grid,indices,cells,endTrimPx,endPhase,rowMargin,runs.ToArray(),sessionBindingIdentity);
     }
 }
 public static class TexelExperimentSettings

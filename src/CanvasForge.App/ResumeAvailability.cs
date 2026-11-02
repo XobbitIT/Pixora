@@ -7,12 +7,13 @@ internal sealed partial class MainWindow
 {
     private string? ResumeProblem()
     {
+        if(TexelSessionProblem() is {} sessionProblem)return sessionProblem;
         var execution = EffectiveSettings;
         if(execution.Bool("coverage_audit"))return T("Аудит потребує нового запуску.","Audit requires a fresh START.");
         if(!File.Exists(ResumePath))return T("Немає збереженого прогресу.","No saved progress.");
         if(plan is null || source is null || resumeSchedule is not { } schedule || schedule.Plan!=plan)
             return T("Дочекайся побудови плану для перевірки прогресу.","Wait for the plan to check saved progress.");
-        if(plan.Identity!=PlanIdentity.Compute(source,execution,plan.Palette))
+        if(plan.Identity!=TexelProduct.Identity(source,execution,plan.Palette))
             return T("План змінився. Потрібен новий запуск.","The plan changed. A fresh START is required.");
         try
         {
