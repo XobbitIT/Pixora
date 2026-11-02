@@ -479,6 +479,7 @@ internal sealed partial class MainWindow
         var tiles=setupWorkspace?.Brush(sizes)??BrushFootprints.Tiles(r,sizes); // Reject insufficient space before any input.
         if (!setupRunning && !ShowMessage(T($"Відкрий чисте полотно. Буде {tiles.Count} крапок: по три незалежні вимірювання кожного Size. Кожна придатна крапка отримує контрольне нанесення в ту саму точку для перевірки насичення. Не рухай мишу; ESC — скасувати. Після калібрування очисти полотно. Почати?", $"Open a clean Canvas. {tiles.Count} dots will be drawn: three independent measurements per Size. Each eligible dot gets another application at the same point to check saturation. Do not move the mouse; ESC cancels. Clear Canvas afterwards. Start?"), T("Автоматичне калібрування", "Automatic calibration"), true)) return;
         if (Native.FindRustAt(r.Center) != target) throw new InvalidOperationException("Canvas is outside Rust.");
+        var changedWindowMessage=T("Вікно Rust змінило розмір або положення. Повтори захоплення.");
         void CheckFrame()
         {
             SetupToken.ThrowIfCancellationRequested();
@@ -486,7 +487,7 @@ internal sealed partial class MainWindow
             if (!Native.IsRust(target) || Native.GetForegroundWindow() != target) throw new PreparationInterruptedException();
             if (Native.DpiOf(target) != dpi) throw new InvalidOperationException(CalibrationSession.DpiChangedMessage);
             if (Native.ClientOrigin(target) != origin || Native.ClientSize(target) != size)
-                throw new InvalidOperationException(T("Вікно Rust змінило розмір або положення. Повтори захоплення."));
+                throw new InvalidOperationException(changedWindowMessage);
         }
         AdaptiveBrush.Prepare(settings);
         BrushFootprints.Invalidate(settings,settings.Int("brush_shape_slot",3),sizes);
@@ -504,8 +505,11 @@ internal sealed partial class MainWindow
             await Task.Delay(1500,SetupToken);
             Native.SetForegroundWindow(target);
             RefreshLiveBrushControls(target);
+            var calibrationSnapshot=settings.Clone();
             var batch = await Task.Run(() =>
             {
+                // Calibration reads belong to this worker, never the UI owner.
+                var settings=calibrationSnapshot;
                 CheckFrame();
                 using var worker = new Painter(AdaptiveBrush.CalibrationSettings(settings, sizes[0]), target, ResumePath, LogPath, _ => { }, SetupToken);
                 worker.VerifyControlLayout();

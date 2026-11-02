@@ -339,6 +339,7 @@ internal static partial class Program
         Case(()=>CheckPreparationShortcuts(destination,"Українська"));Case(()=>CheckPreparationShortcuts(destination,"English"));
         Case(()=>CheckControlDiagnosisAction(destination,"Українська"));Case(()=>CheckControlDiagnosisAction(destination,"English"));
         Case(()=>CheckSupersededPreviewPublication(destination));
+        Case(()=>CheckPreviewSettingsIsolation(destination));
         Case(()=>CheckInternationalCatalog());foreach(string language in LanguageCatalog.Names)Case(()=>CheckInternationalWindow(destination,language));
         Case(()=>CheckInternationalSwitch(destination));Case(()=>CheckFirstRunLifecycle(destination));
         Case(()=>CheckCanonicalPreparation(destination,"Українська"));Case(()=>CheckCanonicalPreparation(destination,"English"));

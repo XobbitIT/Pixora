@@ -817,6 +817,11 @@ internal sealed partial class MainWindow : Window
 
         var active = plan;
         var snapshot = EffectiveSettings;
+        // Workers must not call instance T/Option: those read the editable UI
+        // Settings owner. Keep language in the same detached snapshot as geometry.
+        var language = LanguageCatalog.Normalize(snapshot.Text("language"));
+        string PreviewText(string uk,string en)=>Translations.ForLanguage(uk,language,en);
+        string PreviewOption(string key,string value)=>Translations.Option(key,value,language);
         var canvas = capturedCanvas;
         bool previewReady = false;
         try
@@ -844,7 +849,7 @@ internal sealed partial class MainWindow : Window
                 token.ThrowIfCancellationRequested();snapshot=BrushFootprints.Snapshot(snapshot);
                 var measured=MeasuredPlanner(active,snapshot,token);
                 var groups = measured is null?TransferSchedule.Build(active,snapshot,token:token):TransferSchedule.Build(active,snapshot,measured.Groups,token);
-                var text = $"{Option("color_mode", snapshot.Text("color_mode"))}\n{active.Width}×{active.Height} • {T("Кольорів","Colors")}: {active.ColorCount}\n{T("Штрихів","Strokes")}: {groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0}\n{T("Протягувань миші","Mouse drags")}: {groups.Values.Sum(x => x.Count):N0}\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{Option("speed_profile",s.Name)}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name,measured is null?null:groups))}"));
+                var text = $"{PreviewOption("color_mode", snapshot.Text("color_mode"))}\n{active.Width}×{active.Height} • {PreviewText("Кольорів","Colors")}: {active.ColorCount}\n{PreviewText("Штрихів","Strokes")}: {groups.Values.SelectMany(x=>x).Sum(x=>x.SourceStrokes):N0}\n{PreviewText("Протягувань миші","Mouse drags")}: {groups.Values.Sum(x => x.Count):N0}\nΔE RMS {active.Error:F2}\n" + string.Join("\n", SpeedProfile.All.Select(s => $"{PreviewOption("speed_profile",s.Name)}: {Duration(Coverage.EstimateSeconds(active, snapshot, s.Name,measured is null?null:groups),language)}"));
                 return (Stats: text, Eta: Coverage.EstimateSeconds(active, snapshot,preparedGroups:groups), GroupCounts: TransferSchedule.Order(active,groups).Select(color=>groups[color].Count).ToArray(),Measured:measured);
             },token);
             token.ThrowIfCancellationRequested();
@@ -890,7 +895,12 @@ internal sealed partial class MainWindow : Window
         previewMeasuredPlan=null;resumeSchedule=null;RefreshMeasuredPlan();
     }
 
-    private string Duration(double seconds) => seconds >= 3600 ? $"{(int)seconds / 3600} {T("год","h")} {(int)seconds % 3600 / 60} {T("хв","min")}" : seconds >= 60 ? $"{(int)seconds / 60} {T("хв","min")} {(int)seconds % 60} {T("с","s")}" : $"{Math.Max(0, (int)seconds)} {T("с","s")}";
+    private string Duration(double seconds) => Duration(seconds,InterfaceLanguage);
+    private static string Duration(double seconds,string language)
+    {
+        string Unit(string uk,string en)=>Translations.ForLanguage(uk,language,en);
+        return seconds >= 3600 ? $"{(int)seconds / 3600} {Unit("год","h")} {(int)seconds % 3600 / 60} {Unit("хв","min")}" : seconds >= 60 ? $"{(int)seconds / 60} {Unit("хв","min")} {(int)seconds % 60} {Unit("с","s")}" : $"{Math.Max(0, (int)seconds)} {Unit("с","s")}";
+    }
     private async void OpenImage()
     {
         if (Painting)

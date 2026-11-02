@@ -14,6 +14,7 @@ function Invoke-Pixora([string[]]$Arguments) {
     $code=$LASTEXITCODE
     $ErrorActionPreference='Stop'
     if($text){Write-Host $text}
+    Write-Host ('Pixora exit code: '+$code+'; arguments: '+($Arguments -join ' '))
     if($code -ne 0){throw "Pixora failed ($code). No automatic retry."}
 }
 try {

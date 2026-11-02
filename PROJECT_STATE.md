@@ -46,8 +46,10 @@
 - **Закомічено `c3ae220`:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).
 
 1. Push/merge — лише за дорученням.
-2. Лаунчер Product_1 не запустив огляд після закриття UI (агент запустив вручну) — з'ясувати й виправити.
-3. Нестабільний збій WPF `CheckBoundProbeRecovery` — відтворити й усунути.
+2–3. **Race D (`20261102-210437`, переможця немає):** Codex — патч >160 КБ через випадковий вивід тестів `work/task-d-checks`; Claude — відхилено (B не доведено). Застосовано код Codex без `work/` (**незакомічено**):
+   - лаунчер Product_1: огляд запускається завжди, коли last-run є, код виходу UI в консолі; `tests/Tools/Product1Launcher.Tests.ps1` 3/3, Session1 11/11;
+   - фонові потоки прев'ю/калібрування більше не читають живі UI Settings (`MainWindow.cs` прев'ю через snapshot мови; `Capture.cs`, `SpeedPage.cs` — клон). Core 801 PASS, WPF 246 PASS ×3.
+   - Межа: нестабільний AV траплявся рідко, тож 3 зелені прогони не доводять, що саме це була причина; гіпотеза — одночасне перше звернення до лінивого JsonObject з двох потоків.
 4. **Рішено ([0110](AgentExchange/0110_USER_DECISION_RELEASE_BUILD_CALIBRATION.md)):** binding лишається за SHA App/Core; калібрувати лише фінальну релізну збірку. Живий тексельний тест dev-збірки — зі свіжим Session_Calib_1 цієї збірки. Для релізу потрібне штатне калібрування сесії в UI.
 5. Причинний аналіз H-перерізів — окремо; frozen-пороги не змінювати. Колір і розширення домену — наступні напрями.
 

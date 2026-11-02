@@ -4,6 +4,25 @@ using System.Text.Json;
 // no product references and cannot send input, capture screens or open Rust.
 string root=AppContext.BaseDirectory;
 if(!File.Exists(Path.Combine(root,"OFFLINE_FIXTURE_ONLY")))return 20;
+if(args.Length==2&&args[0]=="--data-folder")
+{
+    string data=Path.GetFullPath(args[1]);
+    if(!data.StartsWith(root,StringComparison.OrdinalIgnoreCase))return 22;
+    File.AppendAllText(Path.Combine(root,"fixture-events.jsonl"),JsonSerializer.Serialize(new{action="product1-run",nativeInput=false})+"\n");
+    if(Environment.GetEnvironmentVariable("PIXORA_PRODUCT1_FIXTURE_RUN")!="no-run")
+    {
+        string run=Path.Combine(data,"last-run","fixture-run");Directory.CreateDirectory(run);
+        File.WriteAllText(Path.Combine(run,"experimental-texel-plan.json"),"{}");
+    }
+    Console.Error.WriteLine("synthetic UI shutdown failure");return 9;
+}
+if(args.Length==3&&args[0]=="--texel-product-review")
+{
+    if(!Path.GetFullPath(args[1]).StartsWith(root,StringComparison.OrdinalIgnoreCase)
+        ||!Path.GetFullPath(args[2]).StartsWith(root,StringComparison.OrdinalIgnoreCase))return 22;
+    File.AppendAllText(Path.Combine(root,"fixture-events.jsonl"),JsonSerializer.Serialize(new{action="product1-review",nativeInput=false})+"\n");
+    Directory.CreateDirectory(args[2]);return 0;
+}
 if(args.Length>=3&&args[0]=="--standard-contour-pilot")
 {
     string mode=args[1],folder=Path.GetFullPath(args[2]);

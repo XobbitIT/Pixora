@@ -6,6 +6,38 @@ using CanvasForge.Core;
 
 internal static partial class Program
 {
+    private static void CheckPreviewSettingsIsolation(string output)
+    {
+        var w=LifecycleWindow(output,"preview-settings-isolation");var owner=Field<Settings>(w,"settings");
+        var image=new PixelImage(8,8);SetField(w,"source",image);SetField(w,"plan",Planner.Build(image,owner));
+        var entered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var release=new ManualResetEventSlim();
+        w.MeasuredPlanner=(_,snapshot,_)=>
+        {
+            Assert(!ReferenceEquals(owner,snapshot)&&!ReferenceEquals(owner.Calibration.Data,snapshot.Calibration.Data),"Worker retained UI JSON");
+            entered.TrySetResult();
+            if(!release.Wait(TimeSpan.FromSeconds(10)))throw new TimeoutException("UI did not release preview worker");
+            Assert(snapshot.Text("language")=="English","UI edit changed worker language");
+            Assert(!snapshot.PaintCalibration().Data.ContainsKey("worker_isolation_marker"),"UI calibration edit reached the worker");return null;
+        };
+        CompleteUiTask(async()=>
+        {
+            Invoke(w,"RenderPlan");
+            try
+            {
+                await entered.Task;
+                // The worker resumes only after this owner edit. Its formatting
+                // must not read the live owner via instance T/Option/Duration.
+                owner.Set("language","Українська");
+                owner.Calibration.Set("worker_isolation_marker",123);
+                Invoke(w,"UpdateReady");
+            }
+            finally {release.Set();}
+            await Field<PreviewCalculationQueue>(w,"previewWork").WhenIdle;await Task.Yield();
+            Assert(!Field<bool>(w,"measuredPlanFailed")&&Field<TextBlock>(w,"stats").Text.Contains("Colors"),"Preview worker formatted using mutable UI settings");
+        });
+        Console.WriteLine("PASS preview-worker-settings-and-language-isolation");
+    }
     private static async Task Cancelled(Task task)
     {bool cancelled=false;try{await task;}catch(OperationCanceledException){cancelled=true;}Assert(cancelled,"Superseded preview was not cancelled");}
     private static void CheckPreviewQueueLatest()

@@ -48,7 +48,10 @@ try {
     Write-Host 'Натисни Enter, щоб відкрити Pixora. Будь-який інший ввід скасовує.'
     $answer=[Console]::ReadLine()
     if($null -eq $answer -or $answer -ne ''){Write-Host 'Скасовано до вводу.';exit 2}
-    Invoke-Inner @('-Mode','Run','-Runtime',$runtime,'-Package',$product)
+    # A failed UI exit must not hide a run that was already saved. Never retry
+    # input; inspect retained evidence before deciding whether Review can run.
+    try {Invoke-Inner @('-Mode','Run','-Runtime',$runtime,'-Package',$product)}
+    catch {Write-Host ('UI Run: '+$_.Exception.Message)}
     if(-not(Test-Path -LiteralPath (Join-Path $product 'Data\last-run'))){Write-Host 'Збереженого прогону немає (START не натиснуто). Можна запустити ще раз.';exit 1}
     Invoke-Inner @('-Mode','Review','-Runtime',$runtime,'-Package',$product)
     exit 0

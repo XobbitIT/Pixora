@@ -138,6 +138,7 @@ internal sealed partial class MainWindow
         int maximumLines=spatialOnly?tiles.Count:2+2*(tiles.Count-2);
         if(!setupRunning&&!combinedProbeRunning&&!ShowMessage(T($"Тест розміру {size} намалює до {maximumLines} пробних ліній на чистому полотні. Не рухай мишу. ESC — скасувати. Після тесту очисти полотно. Почати?",$"This Size {size} test draws up to {maximumLines} lines on a clean Canvas. Do not move the mouse. ESC cancels. Clear Canvas afterwards. Start?"),spatialOnly?T("Просторове калібрування","Spatial calibration"):T("Тест швидкості","Speed Probe"),true))return;
         var snapshot=AdaptiveBrush.CalibrationSettings(settings,size);snapshot.Set("coverage_audit",false);snapshot.Set("calibrated_strokes",false);
+        var probeSettings=settings.Clone();
         // Never stamp unverified routes from an older detector/context as current.
         var old=SpeedCalibration.Current(settings)?SpeedCalibration.Read(settings):null;
         string probeContext=SpeedCalibration.Context(settings);
@@ -167,7 +168,7 @@ internal sealed partial class MainWindow
                 {
                 worker.PrepareProbe(size);
                 diagnostics.Preparing("select_color");
-                var center=settings.Calibration.Rect("canvas").Center;
+                var center=probeSettings.Calibration.Rect("canvas").Center;
                 diagnostics.RequestedColor(worker.SelectCalibrationColor(Native.Median(new(center.X-4,center.Y-4,center.X+5,center.Y+5))));
                 int slot=0;var references=new Dictionary<bool,AuditReference>();
                 ScreenLine Local(ScreenLine line,ScreenRect area)=>new(line.X1-area.Left,line.Y1-area.Top,line.X2-area.Left,line.Y2-area.Top);
@@ -199,7 +200,7 @@ internal sealed partial class MainWindow
                         int completed=controls.Count;
                         _=Dispatcher.BeginInvoke(()=>SetStatus(T("Просторове калібрування: ","Spatial calibration: ")+$"{completed}/6"));
                     }
-                    measuredSpatial=ProbeSpatialCalibration.Build(settings,size,controls);diagnostics.CompleteSpatial(measuredSpatial);return;
+                    measuredSpatial=ProbeSpatialCalibration.Build(probeSettings,size,controls);diagnostics.CompleteSpatial(measuredSpatial);return;
                 }
                 foreach(bool vertical in new[]{false,true})
                 {

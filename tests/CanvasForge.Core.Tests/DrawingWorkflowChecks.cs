@@ -16,6 +16,32 @@ internal static class DrawingWorkflowChecks
     }
     public static void Run(Action<string,Action> test)
     {
+        test("Detached background calibration survives concurrent UI owner edits",()=>{
+            foreach(bool hex in new[]{false,true})
+            {
+                var owner=Captured(hex);var snapshot=owner.Clone();var expected=snapshot.PaintCalibration().Data.ToJsonString();
+                using var step=new Barrier(2);
+                bool unchanged=true;
+                var worker=Task.Run(()=>{
+                    for(int i=0;i<200;i++)
+                    {
+                        step.SignalAndWait();
+                        unchanged &= snapshot.PaintCalibration().Data.ToJsonString()==expected;
+                        step.SignalAndWait();
+                    }
+                });
+                for(int i=0;i<200;i++)
+                {
+                    step.SignalAndWait();
+                    var cal=owner.PaintCalibration();cal.Set("concurrent_marker",i);owner.SetPaintCalibration(cal);
+                    // Calibration is intentionally a live view on the UI owner.
+                    owner.Calibration.Set("owner_marker",i);owner.Set("language",i%2==0?"English":"Українська");
+                    step.SignalAndWait();
+                }
+                worker.GetAwaiter().GetResult();
+                Require(unchanged&&owner.PaintCalibration().Data.ToJsonString()!=expected);
+            }
+        });
         test("Legacy Simple flags migrate without changing advanced preferences",()=>{
             var s=Captured();s.Set("drawing_mode","Simple");s.Set("manual_brush_controls",true);s.Set("coverage_audit",true);s.Set("adaptive_brush",true);s.Set("input_frame_delay_ms",16);
             string original=s.Data.ToJsonString();var e=DrawingWorkflow.Effective(s);
