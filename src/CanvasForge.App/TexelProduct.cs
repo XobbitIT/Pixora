@@ -29,10 +29,11 @@ internal static class TexelProduct
         var p=JsonSerializer.Deserialize<Profile>(bytes)??throw new InvalidDataException("Experimental profile missing.");
         p.Context.Validate();if(p.Family.Length!=1196)throw new InvalidDataException("Experimental family changed.");return p;
     }
-    internal static TexelGrid Grid()
+    internal static TexelGrid Grid()=>Grid(Hash(File.ReadAllBytes(typeof(Painter).Assembly.Location)),Hash(File.ReadAllBytes(typeof(Settings).Assembly.Location)));
+    // The same frozen grid bound to recorded App/Core hashes, so an offline review rebuilds the identity a package recorded.
+    internal static TexelGrid Grid(string appSha256,string coreSha256)
     {
-        var p=ReadProfile();var context=new StandardBandResponseContext(p.Context,
-            Hash(File.ReadAllBytes(typeof(Painter).Assembly.Location)),Hash(File.ReadAllBytes(typeof(Settings).Assembly.Location)),
+        var p=ReadProfile();var context=new StandardBandResponseContext(p.Context,appSha256,coreSha256,
             StandardContourMotion.Revision,StandardRepeatSeries.Speed,"experimental product; source pic3; per-run native capture; footprint unqualified");
         var columns=new StandardTexelColumnHypothesis(context,p.Columns,p.ColumnDomain,p.ColumnSourceSha256);
         return new(true,columns,p.Rows,p.RowDomain,p.Family,p.RowSourceSha256,p.FamilySourceSha256);
@@ -97,10 +98,17 @@ internal static class TexelProduct
         var c=plan.Context.Geometry;
         if(origin!=c.ClientOrigin||size!=c.ClientSize||dpi!=c.Dpi)throw new InvalidDataException("Experimental mapping requires its original window origin, client size and DPI; rebase is not allowed.");
     }
-    internal static PixelImage ReferenceView()
+    internal static string ViewPngSha256=>ReadProfile().ViewPngSha256;
+    // The frozen native view witness exactly as embedded (PNG and metadata), after the profile hash checks.
+    internal static (byte[] Png,byte[] Metadata) ReferenceViewFiles()
     {
         var p=ReadProfile();var bytes=Resource("geometry.png");var meta=Resource("geometry.json");
         if(Hash(bytes)!=p.ViewPngSha256||Hash(meta)!=p.ViewMetadataSha256)throw new InvalidDataException("Experimental native witness changed.");
+        return (bytes,meta);
+    }
+    internal static PixelImage ReferenceView()
+    {
+        var (bytes,meta)=ReferenceViewFiles();
         using var stream=new MemoryStream(bytes);using var codec=SKCodec.Create(stream)??throw new InvalidDataException("Invalid view image.");
         if(codec.Info.Width!=2560||codec.Info.Height!=1440)throw new InvalidDataException("Invalid view dimensions.");
         using var bitmap=new SKBitmap(new SKImageInfo(2560,1440,SKColorType.Rgba8888,SKAlphaType.Unpremul));

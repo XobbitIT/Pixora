@@ -123,6 +123,8 @@
 - [0104 — пакет Texel_Product_3: запас рядка проти форми (340/487); NOT_STARTED](0104_CLAUDE_LOCAL_TEXEL_PRODUCT_3_PACKAGE.md)
 - [0105 — Texel_Product_3: PREDICTIONS_MET; найнижчий запас рядка зсуває верхні H-краї до −0.10…−0.14](0105_CLAUDE_TEXEL_PRODUCT_3_RESULT.md)
 - [0106 — race A (дизайн калібрування сесії) і B (огляд по перерізах і запасах)](0106_CLAUDE_RACE_A_B_RESULTS.md)
+- [0107 — пакет Session_Calib_1: frozen-модель на основному конфігу (етапи 1+2), NOT_STARTED](0107_CLAUDE_LOCAL_SESSION_CALIB_1_PACKAGE.md)
+- [0108 — Session_Calib_1: SESSION_TRANSFER_CONFIRMED (3/3 контролі, 0 змін поза резерваціями)](0108_CLAUDE_SESSION_CALIB_1_RESULT.md)
 
 0057 тепер прочитано оригіналом із `claude-local/proposals`; попередня відсутність Downloads-файла з `_1` не означає відсутності нового оригіналу.0059 підтверджує ручне прочитання0058 за точнимSHA.0061 підтверджує отримання нормалізованого UTF8/LF тексту0060 і byte-exact blueprintv2; rawSHA0060 не ідентичний. Автоматичний канал лишається зупиненим.
 

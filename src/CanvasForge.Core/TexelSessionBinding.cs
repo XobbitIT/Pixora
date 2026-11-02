@@ -21,6 +21,17 @@ public sealed class TexelSessionAuditResult
 
 public static class TexelSessionAudit
 {
+    // The frozen grid with only Geometry.Canvas replaced: coefficients, domains, family and provenance are unchanged,
+    // so the context/grid/route Ids change while every command point stays where the frozen model puts it.
+    public static TexelGrid Rebind(TexelGrid profile, ScreenRect rect)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+        var context = profile.Context with { Geometry = profile.Context.Geometry with { Canvas = rect } };
+        var columns = new StandardTexelColumnHypothesis(context, profile.Columns.Parameters,
+            profile.Columns.Domain, profile.Columns.SourceEvidenceSha256);
+        return new(true, columns, profile.Rows, profile.RowDomain, profile.InputFamily,
+            profile.RowSourceSha256, profile.InputFamilySourceSha256);
+    }
     // Caller supplies the frozen pic8 pictureA and pic9 pictureR/L/C routes (or additional targets).
     // No profile/settings mutation, coefficient fitting, native capture or input occurs here.
     public static TexelSessionAuditResult Audit(TexelSessionBinding binding, string sourceProfileSha256,
@@ -53,14 +64,7 @@ public static class TexelSessionAudit
         var routes = frozenRoutes.ToArray();
         Require(routes.Length > 0, "No frozen routes supplied.");
         TexelGrid? rebound = null;
-        try
-        {
-            var context = profile.Context with { Geometry = geometry with { Canvas = rect } };
-            var columns = new StandardTexelColumnHypothesis(context, profile.Columns.Parameters,
-                profile.Columns.Domain, profile.Columns.SourceEvidenceSha256);
-            rebound = new(true, columns, profile.Rows, profile.RowDomain, profile.InputFamily,
-                profile.RowSourceSha256, profile.InputFamilySourceSha256);
-        }
+        try { rebound = Rebind(profile, rect); }
         catch(InvalidDataException e) { reasons.Add("New rect context refused: " + e.Message); }
         for(int i = 0; i < routes.Length; i++)
         {

@@ -12,4 +12,5 @@
   <ItemGroup><Content Include="Fixtures/RowPicture7/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
   <ItemGroup><Content Include="Fixtures/RowPicture8/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
   <ItemGroup><Content Include="Fixtures/RowPicture9/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
+  <ItemGroup><Content Include="Fixtures/SessionCalib1/*.json" CopyToOutputDirectory="PreserveNewest"/></ItemGroup>
 </Project>

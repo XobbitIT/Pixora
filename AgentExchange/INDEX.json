@@ -1739,6 +1739,55 @@
         "reviewSummariesUnchanged": "P1,P2,P3,pic8 replay",
         "nativeInputByAgent": false
       }
+    },
+    {
+      "id": "0107",
+      "file": "0107_CLAUDE_LOCAL_SESSION_CALIB_1_PACKAGE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "a313edd989958d347249347261cd7b6def24e6cbdacf5c5008aa7eafb266754a",
+      "artifactReceipt": "../../session-calib1-20261031/package-checks.json",
+      "scope": {
+        "task": "claude-local/SESSION_STEP12_TASK_UA.md",
+        "stages": "1+2",
+        "package": "outputs/Pixora_Session_Calib_1_20261031",
+        "stage0Audit": "PASSED on main config 0fca2a34 (rect 465/151/1509/1192, Max Speed)",
+        "bindingId": "e567360a5842cdf8e0e58b4957b6e3114508acb542b79b33f3ac3e875ae5a729",
+        "controls": "rows 203/465/515 = pic9 Ctl1/Ctl6/Ctl5, 3 strokes, 57 sections",
+        "corePassed": "800/800",
+        "wpf": "244/244",
+        "appGroups": "session1 3/3, texel-product 2/2, pic9 2/2, pic8 2/2",
+        "launcher": "session1 11/11, pic9 11/11",
+        "packagedChecks": 7,
+        "replayP1P3Identical": true,
+        "nativeInputByAgent": false,
+        "startEnabled": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0108",
+      "file": "0108_CLAUDE_SESSION_CALIB_1_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "8e46412ea9ef9123bd87ea1715b6b325e0a906464d1ed0b90774be2abe3b1192",
+      "artifactReceipt": "../../../outputs/Pixora_Session_Calib_1_20261031/Analysis_Session1_20261101-235848-e1cadc4d/summary.json",
+      "scope": {
+        "status": "SESSION_TRANSFER_CONFIRMED",
+        "runBy": "user, 2026-11-02T00:00:09Z",
+        "controls": "S1 203/0.022/0.013, S2 465/0.022/0.024, S3 515/0.045/0.061",
+        "mandatorySections": 57,
+        "outsideChangedPixels": 0,
+        "liveBindingId": "1542dd103fc357420feb65b45a3ce55fc89af14047ff53727be0e8457664975e",
+        "offlineReviewRepeatIdentical": true,
+        "mainConfigUnchanged": "0fca2a34",
+        "nativeInputByAgent": false,
+        "bindingActive": true,
+        "startEnabled": false,
+        "physicalQualityCertified": false
+      }
     }
   ],
   "manuallyReturnedReproduction": {

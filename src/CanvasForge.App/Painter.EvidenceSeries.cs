@@ -132,6 +132,17 @@ internal sealed partial class Painter
             image=>StandardRowPilot.RequireFreshBaseline(baseline,image,manifest.Context.Canvas),
             ()=>StandardRowPicturePilot.Verify(directory,manifest,requireCompleteStatus:false));
     }
+    // Session calibration 1: the requested speed is the user's own frozen setting (Max Speed); the emitter speed stays sample.Speed.
+    internal StandardEvidenceSeriesRunner.Result CollectSessionCalibPilot(StandardSessionCalibPilot.Manifest manifest,string directory)
+    {
+        var baseline=FrontierSessionCapture.Baseline(directory,StandardSessionCalibPilot.Binding(manifest));
+        return CollectEvidenceCases(manifest.Context.Canvas,manifest.ProtocolId,directory,StandardTrackPairCli.CapturePolicy,
+            hooks=>StandardEvidenceSeriesRunner.RunCases(manifest.Context.Canvas,manifest.Cases.Select(c=>c.Sample).ToArray(),
+                StandardSessionCalibPilot.Revision,manifest.ProtocolId,directory,hooks,finalCapture:true,captureEachStroke:true),
+            manifest.Cases.ToDictionary(c=>c.Sample.Index,c=>c.Paths),manifest.Context,
+            image=>StandardRowPilot.RequireFreshBaseline(baseline,image,manifest.Context.Canvas),
+            ()=>StandardSessionCalibPilot.Verify(directory,manifest,requireCompleteStatus:false),manifest.Binding.RequestedSpeed);
+    }
     internal StandardEvidenceSeriesRunner.Result CollectPlanePilot(StandardPlanePilot.Manifest manifest,string directory)
     {
         var baseline=FrontierSessionCapture.Baseline(directory,StandardPlanePilot.Binding(manifest));
@@ -176,7 +187,8 @@ internal sealed partial class Painter
     }
     private StandardEvidenceSeriesRunner.Result CollectEvidenceCases(ScreenRect canvas,string protocolId,string directory,string captures,
         Func<StandardEvidenceSeriesRunner.Hooks,StandardEvidenceSeriesRunner.Result> run,
-        IReadOnlyDictionary<int,ScreenPoint[][]>? contourPaths=null,StandardGeometryContext? sourceContext=null,Action<PixelImage>? validateBaseline=null,Action? validateFinalArtifacts=null)
+        IReadOnlyDictionary<int,ScreenPoint[][]>? contourPaths=null,StandardGeometryContext? sourceContext=null,Action<PixelImage>? validateBaseline=null,Action? validateFinalArtifacts=null,
+        string requestedSpeed="Rapid")
     {
         ApplyResearchShape(settings);
         probeMode=true;clock.Start();Rgb? selected=null;
@@ -184,7 +196,7 @@ internal sealed partial class Painter
         {
             CheckProbe();RequireEditorProof();CheckProbe();
             if(!ReleaseProfile.Standard(settings)||settings.Calibration.Rect("canvas")!=canvas||StandardLineMotion.Enabled(settings)
-                ||StrokeTiming.Frame(settings)!=.020||settings.Text("speed_profile")!="Rapid")throw new InvalidDataException("Frozen evidence context changed.");
+                ||StrokeTiming.Frame(settings)!=.020||settings.Text("speed_profile")!=requestedSpeed)throw new InvalidDataException("Frozen evidence context changed.");
             if(sourceContext is not null&&(Native.ClientOrigin(window)!=sourceContext.ClientOrigin||Native.ClientSize(window)!=sourceContext.ClientSize
                 ||Native.DpiOf(window)!=sourceContext.Dpi||(settings.Mode==ColorMode.HexDirect)!=(sourceContext.ColorMode=="HEX Direct")))
                 throw new InvalidDataException("Contour source geometry, DPI or colour context changed.");

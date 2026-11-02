@@ -46,6 +46,12 @@ internal static partial class Program
             CheckTexelProductRoute();CheckTexelProductReview(Path.Combine(Path.GetFullPath(args[0]),"texel-product-review"));
             Console.WriteLine("ALL2 TEXEL PRODUCT APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
         }
+        if(args.Length==2&&args[1]=="--session1-only")
+        {
+            var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);
+            CheckSession1Design(root);CheckSession1Rules();CheckSession1Pipeline(root);
+            Console.WriteLine("ALL3 SESSION1 APP CHECK GROUPS PASSED; nativeInput=false; physicalQualityCertified=false");return;
+        }
         if(args.Length==2&&args[1]=="--pic9-only")
         {
             var root=Path.GetFullPath(args[0]);Directory.CreateDirectory(root);

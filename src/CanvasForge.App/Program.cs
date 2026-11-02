@@ -10,7 +10,7 @@ internal static class Program
     {
         // pic4 launcher reads redirected output as UTF-8; without a console the default is the ANSI code page,
         // which turned Ukrainian failure reasons into replacement characters in earlier launcher logs.
-        if(args.FirstOrDefault()=="--standard-contour-pilot"&&(args.ElementAtOrDefault(1)?.StartsWith("pic4-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic5-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic6-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic7-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic8-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic9-",StringComparison.Ordinal)==true))
+        if(args.FirstOrDefault()=="--standard-contour-pilot"&&(args.ElementAtOrDefault(1)?.StartsWith("pic4-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic5-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic6-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic7-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic8-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("pic9-",StringComparison.Ordinal)==true||args.ElementAtOrDefault(1)?.StartsWith("session1-",StringComparison.Ordinal)==true))
         {
             var utf8=new System.Text.UTF8Encoding(false);
             Console.SetOut(new StreamWriter(Console.OpenStandardOutput(),utf8){AutoFlush=true});Console.SetError(new StreamWriter(Console.OpenStandardError(),utf8){AutoFlush=true});
@@ -65,6 +65,24 @@ internal static class Program
                     if(r.Status=="INCOMPLETE")Environment.ExitCode=1;
                 }
                 else throw new ArgumentException("Use pic2-init SOURCE_ROW FIXTURES NEW_DIRECTORY; pic2-preflight/pic2-verify DIRECTORY; pic2-review DIRECTORY NEW_OUTPUT.");
+            }
+            catch(Exception error){Console.Error.WriteLine(error);Environment.ExitCode=1;}return;
+        }
+        // Session calibration 1 (stages 1+2): offline commands; session1-run is the only one that may send input.
+        if(args.FirstOrDefault()=="--standard-contour-pilot"&&args.ElementAtOrDefault(1)?.StartsWith("session1-",StringComparison.Ordinal)==true&&args[1]!="session1-run")
+        {
+            try
+            {
+                if(args.Length==5&&args[1]=="session1-init")StandardSessionCalibPilot.Init(args[2],args[3],args[4]);
+                else if(args.Length==3&&args[1]=="session1-preflight"){var m=StandardSessionCalibPilot.Read(args[2]);Console.WriteLine("SESSION_PROTOCOL_FILES_VALIDATED; stage0Audit=PASSED; bindingId="+m.BindingId+"; nativeInput=false");}
+                else if(args.Length==3&&args[1]=="session1-verify")StandardSessionCalibPilot.Verify(args[2]);
+                else if(args.Length==4&&args[1]=="session1-review")
+                {
+                    var r=StandardSessionCalibAnalysis.Review(args[2],args[3]);
+                    Console.WriteLine(r.Status+"; controls="+string.Join(",",r.Controls.Select(c=>c.Label+":"+(c.MeasuredRow?.ToString()??"-")+"/"+(c.TopMedianAbsolute?.ToString("0.000",System.Globalization.CultureInfo.InvariantCulture)??"-")+"/"+(c.BottomMedianAbsolute?.ToString("0.000",System.Globalization.CultureInfo.InvariantCulture)??"-")))+"; outside="+(r.OutsideChangedPixels?.ToString()??"-")+(r.Reasons.Length>0?"; "+string.Join(" | ",r.Reasons):""));
+                    if(r.Status==StandardSessionCalibAnalysis.Incomplete)Environment.ExitCode=1;
+                }
+                else throw new ArgumentException("Use session1-init MAIN_CONFIG FIXTURES NEW_DIRECTORY; session1-preflight/session1-verify DIRECTORY; session1-review DIRECTORY NEW_OUTPUT.");
             }
             catch(Exception error){Console.Error.WriteLine(error);Environment.ExitCode=1;}return;
         }
@@ -256,6 +274,7 @@ internal static class Program
             try
             {
                 if(args.Length==3&&args[1] is "pic2-run" or "pic3-run" or "pic4-run" or "pic5-run" or "pic6-run" or "pic7-run" or "pic8-run" or "pic9-run")StandardRowPicturePilot.Run(args[2]);
+                else if(args.Length==3&&args[1]=="session1-run")StandardSessionCalibPilot.Run(args[2]);
                 else if(args.Length==3&&args[1]=="calib-run")StandardRowCalibPilot.Run(args[2]);
                 else if(args.Length==3&&args[1]=="offgrid-run")StandardRowOffgridPilot.Run(args[2]);
                 else if(args.Length==3&&args[1]=="plane-run")StandardPlanePilot.Run(args[2]);
@@ -268,7 +287,7 @@ internal static class Program
             catch(Exception error)
             {
                 Environment.ExitCode=1;if(args.Length==3)StandardBandInversePilotCli.LogLaunchFailure(args[2],error);Native.Release();
-                if(args.ElementAtOrDefault(1) is "row-run" or "plane-run" or "offgrid-run" or "calib-run" or "pic2-run" or "pic3-run" or "pic4-run" or "pic5-run" or "pic6-run" or "pic7-run" or "pic8-run" or "pic9-run")Console.Error.WriteLine(error);
+                if(args.ElementAtOrDefault(1) is "session1-run" or "row-run" or "plane-run" or "offgrid-run" or "calib-run" or "pic2-run" or "pic3-run" or "pic4-run" or "pic5-run" or "pic6-run" or "pic7-run" or "pic8-run" or "pic9-run")Console.Error.WriteLine(error);
                 else MessageBox.Show(error.Message,"Pixora contour experiment",MessageBoxButton.OK,MessageBoxImage.Warning);
             }
             finally{application.Shutdown();}return;
