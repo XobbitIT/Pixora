@@ -43,9 +43,9 @@
 ## Наступна дія
 
 **02.11 — крок 3 виконано ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)):** Product_1 через «Почати» з основного конфігу (465/151/1509/1192, Max Speed) через session binding `4993dab0…` — **PREDICTIONS_MET** (107/107, gaps 0/249, holes 0/413, 0 подій, 0 змін поза). Перед цим Session_Calib_1 на новій збірці — CONFIRMED (спроба 1 INCOMPLETE до paint-down через `brush-shape-row`). Пакет `outputs/Pixora_Session_Product_1_20261102` (App `38382f4d…`, Core `5c4a8d88…`).
-- **Незакомічено:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).
+- **Закомічено `c3ae220`:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).
 
-1. Commit патча + 0109 — за дорученням.
+1. Push/merge — лише за дорученням.
 2. Лаунчер Product_1 не запустив огляд після закриття UI (агент запустив вручну) — з'ясувати й виправити.
 3. Нестабільний збій WPF `CheckBoundProbeRecovery` — відтворити й усунути.
 4. **Рішено ([0110](AgentExchange/0110_USER_DECISION_RELEASE_BUILD_CALIBRATION.md)):** binding лишається за SHA App/Core; калібрувати лише фінальну релізну збірку. Живий тексельний тест dev-збірки — зі свіжим Session_Calib_1 цієї збірки. Для релізу потрібне штатне калібрування сесії в UI.
