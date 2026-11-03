@@ -25,19 +25,22 @@ internal static class StandardEvidenceSeriesCli
             painter=>painter.CollectStandardEvidence(manifest.Protocol,directory));
     }
     internal static void RunCollection(string directory,ScreenRect canvas,int requiredCases,int timeoutMinutes,
-        Func<Painter,StandardEvidenceSeriesRunner.Result> collect,Func<Settings,IntPtr,Settings>? prepareSettings=null,bool showDialog=true)
+        Func<Painter,StandardEvidenceSeriesRunner.Result> collect,Func<Settings,IntPtr,Settings>? prepareSettings=null,bool showDialog=true,CancellationToken cancellation=default)
     {
         string log=Path.Combine(directory,"session.jsonl");
         using(var attempt=new FileStream(Path.Combine(directory,"attempted.json"),FileMode.CreateNew,FileAccess.Write))
             JsonSerializer.Serialize(attempt,new{attemptedUtc=DateTimeOffset.UtcNow,automaticRetry=false});
         try
         {
-            for(int tick=0;tick<100;tick++){if(Native.Down(0x1B))throw new OperationCanceledException("Evidence countdown cancelled.");Thread.Sleep(100);}
+            for(int tick=0;tick<100;tick++){cancellation.ThrowIfCancellationRequested();if(Native.Down(0x1B))throw new OperationCanceledException("Evidence countdown cancelled.");Thread.Sleep(100);}
             var target=Native.FindRustAt(canvas.Center);
             if(!Native.IsRust(target)||Native.GetForegroundWindow()!=target)throw new PreparationInterruptedException("Rust editor must already be foreground.");
-            using var timeout=new CancellationTokenSource(TimeSpan.FromMinutes(timeoutMinutes));
+            using var timeout=CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            timeout.CancelAfter(TimeSpan.FromMinutes(timeoutMinutes));
+            cancellation.ThrowIfCancellationRequested();
             var settings=Settings.Load(Path.Combine(directory,"settings.json"));
             if(prepareSettings is not null)settings=prepareSettings(settings,target);
+            cancellation.ThrowIfCancellationRequested();
             using var painter=new Painter(settings,target,
                 Path.Combine(directory,"unused-checkpoint.json"),log,_=>{},timeout.Token,preparation:true);
             var result=collect(painter);

@@ -745,6 +745,7 @@ internal sealed partial class MainWindow : Window
 
     private void UpdateReady()
     {
+        if(texelBindingStatus is not null)texelBindingStatus.Text=TexelBindingStatusText();
         RefreshSetupStatus();
         bool hasControlDiagnosis=LatestControlDiagnosis() is not null;
         controlDiagnosisButton.IsEnabled=!Painting&&hasControlDiagnosis;

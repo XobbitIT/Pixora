@@ -9,6 +9,35 @@ internal static partial class Program
     private static void CheckTexelSessionStart(string output)
     {
         Directory.CreateDirectory(output);
+        using(var protocol=typeof(TexelProduct).Assembly.GetManifestResourceStream("Pixora.TexelProduct."+StandardSessionCalibPilot.ProtocolFile))
+        {
+            Assert(protocol is not null,"Product protocol resource missing");using var protocolBytes=new MemoryStream();protocol!.CopyTo(protocolBytes);
+            Assert(TexelProductSession.Hash(protocolBytes.ToArray())==StandardSessionCalibPilot.ProtocolSha256,"Product protocol SHA changed");
+        }
+        string productData=Path.Combine(output,"product-data");
+        var untouched=Settings.Defaults();string unchangedSettings=untouched.Data.ToJsonString();
+        Assert(TexelSessionCalibration.Find(untouched,productData).Description=="немає","Missing binding status");
+        bool inputCalled=false;
+        Assert(TexelSessionCalibration.Run(untouched,productData,()=>false,collect:_=>inputCalled=true) is null
+            &&!inputCalled&&!Directory.Exists(productData),"Cancelled calibration sent input or wrote files");
+        string firstAttempt=TexelSessionCalibration.Attempt(productData),secondAttempt=TexelSessionCalibration.Attempt(productData);
+        Assert(firstAttempt!=secondAttempt&&Directory.Exists(firstAttempt)&&Directory.Exists(secondAttempt),"Retry reused an attempt");
+        string rejected=Path.Combine(secondAttempt,"review");Directory.CreateDirectory(rejected);
+        string rejectedBinding=Path.Combine(rejected,"session-binding.json");File.WriteAllText(rejectedBinding,"{}");
+        File.WriteAllText(rejectedBinding+".sha256","changed");
+        var rejectedState=TexelSessionCalibration.Find(untouched,productData);
+        Assert(!rejectedState.Active&&rejectedState.Description.Contains("binding file SHA changed"),"Invalid binding status/reason");
+        Assert(untouched.Data.ToJsonString()==unchangedSettings,"Calibration changed source settings");
+        string config=Session1Config(Path.Combine(output,"calibration-config"));byte[] originalConfig=File.ReadAllBytes(config);
+        var user=Settings.Load(config);user.Set(TexelExperimentSettings.EnabledKey,true);
+        string userJson=user.Data.ToJsonString();int collections=0;
+        string failedData=Path.Combine(output,"failed-calibration");
+        string? failedResult=TexelSessionCalibration.Run(user,failedData,()=>true,collect:_=>{collections++;throw new IOException("fake capture failure");});
+        Assert(failedResult is not null&&failedResult.StartsWith("INCOMPLETE")&&collections==1,"Failed collection was retried or lacked review verdict");
+        Assert(!TexelSessionCalibration.Find(user,failedData).Active,"Incomplete fake capture admitted a binding");
+        TexelSessionCalibration.Run(user,failedData,()=>true,collect:_=>{collections++;throw new IOException("second fake capture failure");});
+        Assert(collections==2&&Directory.GetDirectories(TexelSessionCalibration.Root(failedData)).Length==2,"Explicit retry reused collection");
+        Assert(File.ReadAllBytes(config).SequenceEqual(originalConfig)&&user.Data.ToJsonString()==userJson,"Product preparation changed user config/settings");
         var s=TexelProductSettings(0,300,203);s.Set("speed_profile","Max Speed");
         var cal=s.Calibration;cal.SetRect("canvas",Session1Rect);s.SetCalibration(cal);
         var fresh=TexelProduct.ReferenceView();
@@ -33,7 +62,27 @@ internal static partial class Program
         var unchanged=s.Data.ToJsonString();
         Refuse(()=>TexelProduct.Build(image,s),"Тексельний експеримент");
         Assert(s.Data.ToJsonString()==unchanged,"Unbound settings mutated");
-        var good=Configure();var before=good.Data.ToJsonString();var plan=TexelProduct.Build(image,good);var route=plan.ExperimentalTexel!;
+        var good=Configure();
+        void SaveCandidate(string attempt,TexelSessionBinding b,bool active=true)
+        {
+            string folder=Path.Combine(attempt,"review");Directory.CreateDirectory(folder);
+            string candidate=Path.Combine(folder,"session-binding.json");var record=Record(b);record["bindingActive"]=active;
+            File.WriteAllText(candidate,record.ToJsonString());File.WriteAllText(candidate+".sha256",TexelProductSession.Hash(File.ReadAllBytes(candidate)));
+        }
+        string validAttempt=TexelSessionCalibration.Attempt(productData);SaveCandidate(validAttempt,binding);
+        var found=TexelSessionCalibration.Find(s,productData);
+        Assert(found.Active&&found.Description.Contains(binding.Id)&&!TexelProductSession.Requested(s),"Automatic binding discovery mutated source or failed");
+        Assert(TexelProduct.Build(image,found.Settings).ExperimentalTexel!.Runs.Count==107,"START did not use discovered binding");
+        string newerAttempt=TexelSessionCalibration.Attempt(productData);SaveCandidate(newerAttempt,binding with{AppSha256=new('a',64)});
+        Assert(TexelSessionCalibration.Find(s,productData).Active,"Newest invalid candidate hid an older fully resolving binding");
+        SaveCandidate(validAttempt,binding with{AppSha256=new('a',64)});
+        var changedApp=TexelSessionCalibration.Find(s,productData);
+        Assert(!changedApp.Active&&changedApp.Description.Contains("App SHA"),"Changed App SHA reason was lost");
+        SaveCandidate(validAttempt,binding,false);SaveCandidate(newerAttempt,binding,false);
+        Assert(!TexelSessionCalibration.Find(s,productData).Active&&TexelSessionCalibration.Find(s,productData).Description.Contains("bindingActive=false"),"Failed review admitted binding");
+        SaveCandidate(validAttempt,binding);SaveCandidate(newerAttempt,binding);
+        Assert(TexelSessionCalibration.Find(s,productData).Settings.Text(TexelProductSession.PathKey).StartsWith(newerAttempt),"Newest fully resolving candidate not selected");
+        var before=good.Data.ToJsonString();var plan=TexelProduct.Build(image,good);var route=plan.ExperimentalTexel!;
         Assert(TexelProductSession.Pin(s,file).Text(TexelProductSession.ShaKey)==good.Text(TexelProductSession.ShaKey)&&s.Data.ToJsonString()==unchanged,"Pin changed source settings");
         Assert(route.Runs.Count==107&&route.GridId==rebound.Id&&route.SessionBindingIdentity==TexelProductSession.Resolve(good)!.Identity,"Bound Product_1 not admitted");
         Assert(good.Data.ToJsonString()==before&&good.Text("speed_profile")=="Max Speed","Bound build rewrote requested settings");
@@ -51,6 +100,8 @@ internal static partial class Program
             ("confirmed structure",x=>x.Data.Remove("canvas_structure"))})
         {
             var bad=Configure();change(bad);Refuse(()=>TexelProduct.Build(image,bad),name);
+            var automatic=s.Clone();change(automatic);var automaticState=TexelSessionCalibration.Find(automatic,productData);
+            Assert(!automaticState.Active&&automaticState.Description.Contains(name,StringComparison.OrdinalIgnoreCase),"Automatic mismatch reason: "+name+" / "+automaticState.Description);
         }
         var malformed=Configure();malformed.Set("brush_shape_slot",3.5);Refuse(()=>TexelProduct.Build(image,malformed),"shape slot");
         malformed=Configure();malformed.Set("cycle_delay_ms","unknown");Refuse(()=>TexelProduct.Build(image,malformed),"unknown numeric");

@@ -78,6 +78,24 @@ internal static class TexelProductSession
         var s=source.Clone();s.Set(PathKey,Path.GetFullPath(bindingFile));s.Set(ShaKey,Hash(File.ReadAllBytes(bindingFile)));
         Resolve(s);return s;
     }
+    // Prefer the user's current proof if it already resolves. Otherwise restore only the
+    // reviewed session proof through the existing attachment path; never alter config.
+    internal static Settings Discover(Settings source,string bindingFile,string editorFile,string sourceConfig)
+    {
+        try{return Pin(source,bindingFile);}
+        catch(InvalidDataException original)
+        {
+            // Restore the fresh session frame only while the user's original proof is
+            // unchanged. A later calibration/view selection must not be hidden by an overlay.
+            if(!File.Exists(sourceConfig))throw;
+            var capturedSource=Settings.Load(sourceConfig);
+            foreach(string key in new[]{"canvas_structure",EditorEvidence.Key,"editor_references",FrontierSessionCapture.Key})
+                if(!System.Text.Json.Nodes.JsonNode.DeepEquals(source.Data[key],capturedSource.Data[key]))throw;
+            try{return Attach(source,bindingFile,editorFile);}
+            catch(Exception e) when(e is IOException or UnauthorizedAccessException or InvalidDataException or JsonException or InvalidOperationException or KeyNotFoundException)
+            {throw new InvalidDataException(original.Message,original);}
+        }
+    }
     internal static Settings Attach(Settings source,string bindingFile,string editorFile)
     {
         var bytes=File.ReadAllBytes(editorFile);

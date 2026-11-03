@@ -180,7 +180,8 @@ internal static class StandardSessionCalibPilot
     }
     // Stage 1 then stage 2 in one attempt: the explicit capture (source frame + fresh confirmation, 16 ROI for the exact rect) and the
     // frozen view must pass before the Painter exists; every later stroke re-checks the editor proof. Any refusal ends before paint-down.
-    internal static void Run(string directory)
+    internal static void Run(string directory)=>Run(directory,CancellationToken.None);
+    internal static void Run(string directory,CancellationToken cancellation,bool setExitCode=true)
     {
         var m=Read(directory);StandardEvidenceSeriesRunner.Result? result=null;
         StandardEvidenceSeriesCli.RunCollection(directory,m.Context.Canvas,m.Cases.Length,10,p=>result=p.CollectSessionCalibPilot(m,directory),
@@ -189,8 +190,8 @@ internal static class StandardSessionCalibPilot
                 var prepared=FrontierSessionCapture.CaptureFresh(settings,window,Binding(m),directory);
                 StandardTexelView.Check(directory,true);TexelProduct.RequireView(Images.LoadNative(Path.Combine(directory,FrontierSessionCapture.FrameName)));
                 return prepared;
-            },showDialog:false);
-        if(result?.Status!="DATA_COLLECTED")Environment.ExitCode=1;else Verify(directory,m);
+            },showDialog:false,cancellation:cancellation);
+        if(result?.Status!="DATA_COLLECTED"){if(setExitCode)Environment.ExitCode=1;}else Verify(directory,m);
     }
 }
 
