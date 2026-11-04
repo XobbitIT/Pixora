@@ -1883,6 +1883,64 @@
         "committed": true,
         "physicalQualityCertified": false
       }
+    },
+    {
+      "id": "0113",
+      "file": "0113_CLAUDE_TEXEL_SIZES_STAGE.md",
+      "author": "Claude (local session); Codex reviews quoted by file",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "8c640d51e5f9ae1b9503aec28f977d8f4f1b013b498a480e95efc38ce1d59fc0",
+      "artifactReceipt": "../../texel-sizes-20261104/package-checks.json",
+      "scope": {
+        "status": "OFFLINE_CLOSED_LIVE_PENDING",
+        "productDomain": "columns 75-459, rows 198-536 (max 385x339)",
+        "featureRule": "width>=3, height>=2",
+        "codexReview": [
+          "../../texel-sizes-20261104/codex-review.md (CHANGES_REQUIRED)",
+          "../../texel-sizes-20261104/codex-review2.md (APPROVE)"
+        ],
+        "tests": "texel-product 3/3, texel-session-start, session1 3/3, WPF 246, Core 801",
+        "appSha256": "6b7bc17b",
+        "coreSha256": "368d3cca",
+        "livePackage": "outputs/Pixora_Texel_Max_20261104",
+        "nativeInputByAgent": false,
+        "committed": false,
+        "physicalQualityCertified": false
+      }
+    },
+    {
+      "id": "0114",
+      "file": "0114_CLAUDE_TEXEL_MAX_LIVE_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "d1bb7d28305d711fecfa6dca9983f39d8932b8bcd4e2fa231087c4f8c38886dc",
+      "artifactReceipt": "../../texel-sizes-20261104/live-20261104/",
+      "scope": {
+        "status": "LIVE_PREDICTIONS_NOT_MET_PROTOCOL_BROKEN",
+        "run": "Data/last-run/20261104-205233 (resumed chain of START 20261104-204806; earlier START 20261104-204430 unfinished on the same canvas)",
+        "chainReview": "UNMEASURED (baseline already holds START A paint)",
+        "diagnosticReview": "final vs clean frame: gaps 0/14717, holes 0/83384, outside 0, 6/646 edges with events (right stroke-end bulges ~1 texel; rows 522-525 painted once)",
+        "fixed": "--resumed-from ignores motion_transport_rate when comparing settings",
+        "next": "clean rerun with «Продовжити» after ESC"
+      }
+    },
+    {
+      "id": "0115",
+      "file": "0115_CLAUDE_TEXEL_MAX_REPEAT_END_PHASE.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "fddb334e573b88b2018c6f894903ba29621d6d3ec8c89a2e565282aa5bfde1b0",
+      "artifactReceipt": "../../texel-sizes-20261104/live-20261104b/",
+      "scope": {
+        "status": "LIVE_PREDICTIONS_NOT_MET_CAUSE_FOUND",
+        "run": "Data/last-run/20261104-212535 --resumed-from 20261104-212155 (clean protocol)",
+        "result": "gaps 0/14717, holes 0/83384, outside 0, 6/646 edges with events, identical to 0114",
+        "cause": "run end phase window [b+1.867,b+2.36) reaches the extra-texel limit ~b+2.33",
+        "proposal": "end threshold ~b+1.73 (window [1.73,2.22)); Core change, needs decision, Codex review and live rerun"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

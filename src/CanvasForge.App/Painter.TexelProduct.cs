@@ -30,6 +30,19 @@ internal sealed partial class Painter
             targetPixelIsTexel=true,perStrokeNativeCapture=false
         },new JsonSerializerOptions{WriteIndented=true}));
     }
+    // Lineage for the offline review of a run resumed with «Продовжити»: the checkpoint RunKey survives every resume of one
+    // START, so a resumed run can be chained only to the interrupted runs of that same START (TexelProductReview --resumed-from).
+    private void SaveTexelCheckpointLink(PaintPlan plan,ResumeCheckpoint? resume,int done)
+    {
+        // Diagnostic only: a missing key (legacy checkpoint) or a failed write never blocks painting; the review then refuses to chain.
+        if(plan.ExperimentalTexel is null||runSnapshotDirectory is null||checkpoint?.Latest.RunKey is not {} key)return;
+        try
+        {
+            File.WriteAllText(Path.Combine(runSnapshotDirectory,TexelProductReview.CheckpointFile),JsonSerializer.Serialize(new TexelProductReview.CheckpointLink(
+                TexelProductReview.CheckpointRevision,key,plan.Identity,resume is not null,done,plan.ExperimentalTexel.Runs.Count)));
+        }
+        catch(Exception e) when(e is IOException or UnauthorizedAccessException){Log("texel_checkpoint_link_unavailable",new{reason=e.Message});}
+    }
     private void DrawTexelProduct(TexelCompensatedRun run)
     {
         var plan=texelProductPlan??throw new InvalidDataException("No experimental route.");

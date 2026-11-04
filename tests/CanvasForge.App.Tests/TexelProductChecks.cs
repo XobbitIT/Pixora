@@ -37,7 +37,7 @@ internal static partial class Program
         // Refusals before any input: colour, partial alpha, oversize, columns/rows outside the verified domain.
         var red=image.Clone();red.Set(0,new(200,0,0));UvRefuses(()=>TexelProduct.Build(red,settings),"Coloured texel accepted");
         var half=image.Clone();half.Set(0,new(0,0,0),128);UvRefuses(()=>TexelProduct.Build(half,settings),"Partial alpha accepted");
-        UvRefuses(()=>TexelProduct.Build(new PixelImage(41,40),settings),"Oversize target accepted");
+        UvRefuses(()=>TexelProduct.Build(new PixelImage(386,40),TexelProductSettings(0,75,203)),"Target wider than the verified domain accepted");
         UvRefuses(()=>TexelProduct.Build(image,TexelProductSettings(0,74,203)),"Column left of the verified domain accepted");
         UvRefuses(()=>TexelProduct.Build(image,TexelProductSettings(0,421,203)),"Column right of the verified domain accepted");
         UvRefuses(()=>TexelProduct.Build(image,TexelProductSettings(0,300,499)),"Row below the verified domain accepted");

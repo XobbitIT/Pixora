@@ -32,10 +32,11 @@ internal static class Program
             Console.SetOut(new StreamWriter(Console.OpenStandardOutput(),utf8){AutoFlush=true});Console.SetError(new StreamWriter(Console.OpenStandardError(),utf8){AutoFlush=true});
             try
             {
-                if(args.Length!=3)throw new ArgumentException("Use --texel-product-review RUN_DIRECTORY|latest NEW_OUTPUT.");
+                if(args.Length!=3&&!(args.Length==5&&args[3]=="--resumed-from"))
+                    throw new ArgumentException("Use --texel-product-review RUN_DIRECTORY|latest NEW_OUTPUT [--resumed-from FIRST_INTERRUPTED_RUN].");
                 string root=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Pixora","last-run");
                 string run=args[1]!="latest"?args[1]:TexelProductReview.Latest(root)??throw new DirectoryNotFoundException("Не знайдено прогону з тексельним маршрутом у "+root);
-                var r=TexelProductReview.Review(run,args[2]);
+                var r=TexelProductReview.Review(run,args[2],args.Length==5?args[4]:null);
                 Console.WriteLine(r.Status+(r.Picture is {} p?$"; gaps={p.InteriorGaps}/{p.InteriorRequired}; holes={p.HoleChanges}/{p.HoleRequired}; edgesWithEvents={p.EdgesWithEvents}":"")+$"; outside={r.OutsideChangedPixels}"+(r.Reason.Length>0?"; "+r.Reason:""));
                 Console.WriteLine("run="+r.RunDirectory);
                 if(r.Status=="INCOMPLETE")Environment.ExitCode=1;

@@ -66,11 +66,13 @@ internal static class TexelProduct
         // A source pixel is exactly one requested texel. Never shrink a large image
         // into the supported window or silently convert colors/partial alpha.
         int left=settings.Int(TexelExperimentSettings.ColumnKey,225),top=settings.Int(TexelExperimentSettings.RowKey,203);
-        if(image.Width>40||image.Height>40||left<p.VerifiedTargetDomain.Left||top<p.VerifiedTargetDomain.Top
-            ||(long)left+image.Width>p.VerifiedTargetDomain.Right||(long)top+image.Height>p.VerifiedTargetDomain.Bottom)
-            throw new InvalidDataException("Тексельний експеримент: зображення до 40×40 без масштабування, в межах стовпців 75–459 та рядків 198–537.");
+        // Any size inside the product domain: every row and start column is plannable and reviewable (texel-product-sizes check).
+        var grid=session?.Grid??Grid();var d=Domain(grid);
+        if(left<d.Left||top<d.Top||(long)left+image.Width>d.Right||(long)top+image.Height>d.Bottom)
+            throw new InvalidDataException($"Тексельний експеримент: зображення без масштабування має лежати в стовпцях {d.Left}–{d.Right-1} та рядках {d.Top}–{d.Bottom-1} "+
+                $"(найбільше {d.Width}×{d.Height}). Зараз: {image.Width}×{image.Height} від стовпця {left}, рядка {top}.");
         // Rows are addressable only where the derived family agrees with the product row margin 0.20 (user decision 0101).
-        var grid=session?.Grid??Grid();var unsupported=new List<int>();
+        var unsupported=new List<int>();
         for(int row=top;row<top+image.Height;row++)
             try{grid.CenteredRowScreenSpan(grid.Context,row,grid.RowDomain.Left,grid.RowDomain.Left,TexelCompensatedPlanner.ProductRowMargin);}
             catch(InvalidDataException){unsupported.Add(row);}
@@ -89,6 +91,7 @@ internal static class TexelProduct
             }
             mask[y]=new(row);
         }
+        RequireFeatures(mask,left,top);
         // The legacy end-trim setting is ignored: every run ends at the full-coverage phase (pic8/pic9).
         var route=TexelCompensatedPlanner.Plan(true,grid,grid.Context,mask,new(left,top,left+image.Width,top+image.Height),0,token,TexelCompensatedPlanner.FullCoverageEndPhase,TexelCompensatedPlanner.ProductRowMargin,session?.Identity);
         if(session is not null&&route.Runs.SelectMany(r=>r.Path.Points).Any(point=>point.X-16<grid.Context.Geometry.Canvas.Left||point.X+16>=grid.Context.Geometry.Canvas.Right
@@ -109,6 +112,37 @@ internal static class TexelProduct
         return new(){Width=image.Width,Height=image.Height,Mode=ColorMode.RustPalette,Palette=[entry],Indices=indices,Preview=image.Clone(),
             Strokes=new(){[0]=strokes},Counts=new(){[0]=count},Identity=Identity(image,settings,[entry],session),
             TargetIdentity=TexelTarget.Resample(true,image,route.Indices).Id,ExperimentalTexel=route};
+    }
+    // The verified target domain, cut to the rows whose predicted bottom paint edge lies inside the measured row domain: the
+    // review observes that edge through the frozen row model, which never extrapolates. Row 537's bottom edge (y≈1101.3) is
+    // outside RowDomain (to 1100.5), so the product ends at row 536; it was never painted live (pic9 reached row 532).
+    internal static ScreenRect Domain(TexelGrid grid)
+    {
+        var v=ReadProfile().VerifiedTargetDomain;
+        int bottom=(int)Math.Floor(grid.ObservationCoordinate(grid.RowDomain.Bottom-.5)-grid.Rows.BottomPhase);
+        return new(v.Left,v.Top,v.Right,Math.Min(v.Bottom,bottom));
+    }
+    // The two-row route paints a run only where two vertically adjacent texels are black, from 3 texels wide (width 2 plans
+    // at no row/column, width 3 at all of them). Name the first offending places instead of the planner's generic reason.
+    internal const int MinimumFeatureWidth=3,MinimumFeatureHeight=2;
+    private static void RequireFeatures(string[] mask,int left,int top)
+    {
+        int h=mask.Length,w=h==0?0:mask[0].Length;bool T(int x,int y)=>y>=0&&y<h&&x>=0&&x<w&&mask[y][x]=='#';
+        var thin=new List<string>();var narrow=new List<string>();
+        for(int y=0;y<h;y++)for(int x=0;x<w;x++)
+            if(T(x,y)&&!T(x,y-1)&&!T(x,y+1)&&thin.Count<5)thin.Add($"рядок {top+y}, стовпець {left+x}");
+        for(int y=0;y+1<h&&narrow.Count<5;y++)
+            for(int x=0;x<w;)
+            {
+                if(!(T(x,y)&&T(x,y+1))){x++;continue;}
+                int a=x;while(x<w&&T(x,y)&&T(x,y+1))x++;
+                if(x-a<MinimumFeatureWidth&&narrow.Count<5)narrow.Add($"рядки {top+y}–{top+y+1}, стовпці {left+a}–{left+x-1}");
+            }
+        if(!mask.Any(r=>r.Contains('#')))throw new InvalidDataException("Тексельний маршрут: у зображенні немає жодного чорного текселя.");
+        if(thin.Count+narrow.Count==0)return;
+        throw new InvalidDataException("Тексельний маршрут малює деталі щонайменше 3 тексели завширшки і 2 заввишки."+
+            (thin.Count>0?" Деталь заввишки 1 тексель: "+string.Join("; ",thin)+".":"")+(narrow.Count>0?" Вужче за 3 тексели: "+string.Join("; ",narrow)+".":"")+
+            " Потовщи ці місця в зображенні; масштабування не виконується.");
     }
     internal static void ValidateLive(TexelCompensatedPlan plan,ScreenPoint origin,ScreenSize size,int dpi)
     {

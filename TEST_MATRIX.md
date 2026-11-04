@@ -101,7 +101,7 @@ if ($LASTEXITCODE -ne 0) { throw 'WPF tests failed' }
 - fake-pipeline і прив'язка revision;
 - причина відмови редактора називає рамку чи пензель.
 
-`--texel-product-only`: `TexelProduct.Build` на цілі 40×40 дає рівно штрихи pic3 (trim 1) і pic2 (trim 0); колір, напівпрозорість, >40×40 відхиляються; вимкнений прапорець повертає звичайний Planner. `--texel-product-frames BEFORE AFTER` оцінює кадри правилами pic3 (на кадрах pic3 Try4 відтворює result побітово). `tests/Tools/Picture4Launcher.Tests.ps1`: 11 сценаріїв.
+`--texel-product-only` (3 групи; історично: на цілі 40×40 штрихи pic3/pic2): колір, напівпрозорість і вихід за домен продукту 385×339 відхиляються; вимкнений прапорець повертає звичайний Planner. `--texel-product-frames BEFORE AFTER` оцінює кадри правилами pic3 (на кадрах pic3 Try4 відтворює result побітово). `tests/Tools/Picture4Launcher.Tests.ps1`: 11 сценаріїв.
 
 ## Row-picture v5 (квадратний пензель)
 
@@ -136,7 +136,7 @@ if ($LASTEXITCODE -ne 0) { throw 'WPF tests failed' }
 
 ## Продуктовий тексельний маршрут v2 (кінець b+1.867)
 
-Core: `Compensated Core full-coverage end equals frozen Picture8/9 runs` — `TexelCompensatedPlanner.Plan(..., endPhase: 1.867)` побайтово дає runs pic8 (A, B) і pic9 (R, L, C); trim-маршрути pic2/pic3 без змін; кінець із trim і фази поза [1.5, 2.5) відхиляються. App `NEW_OUTPUT --texel-product-only` (2 групи): `TexelProduct.Build` дає рівно runs pic8/pic9 на їхніх стовпцях і рядках; legacy trim ігнорується; відмови для кольору, напівпрозорості, >40×40, стовпців поза 75–459, рядків поза 198–537 і рядків без спільної адресації (повідомлення називає рядок); `--texel-product-review` читає last-run у форматі Painter: INCOMPLETE без кадрів або за зміненого маршруту, без перезапису. Пакетна перевірка: нативні кадри pic8 A у форматі last-run → `Pixora.exe --texel-product-review` дає PREDICTIONS_MET з ідентичними краями.
+Core: `Compensated Core full-coverage end equals frozen Picture8/9 runs` — `TexelCompensatedPlanner.Plan(..., endPhase: 1.867)` побайтово дає runs pic8 (A, B) і pic9 (R, L, C); trim-маршрути pic2/pic3 без змін; кінець із trim і фази поза [1.5, 2.5) відхиляються. App `NEW_OUTPUT --texel-product-only` (3 групи, ≈4 хв): `TexelProduct.Build` дає рівно runs pic8/pic9 на їхніх стовпцях і рядках; legacy trim ігнорується; відмови для кольору, напівпрозорості, ширини >385, стовпців поза 75–459, рядків поза 198–536 і рядків без спільної адресації (повідомлення називає рядок); **розміри** (`TexelProductSizeChecks.cs`): домен продукту `TexelProduct.Domain` = 75–459 × 198–536 (нижній край рядка 537 поза виміряною моделлю рядків); кожен рядок 198–535 × кожен стартовий стовпець 75–457 при ширині 3 (129 454 runs), кожен рядок на повній ширині 385, ширини 1..386 і висоти 1..340 у куті домену, 4 зсуви найбільшого зображення, 60 випадкових зображень із точним покриттям маски, найгірший випадок 32 448 runs, відмови з місцем для деталей <3 завширшки або 1 заввишки; огляд найбільшого синтетичного прогону вимірює всі 4 краї; `--resumed-from FIRST_RUN` бере кадр «до» з першого перерваного прогону того самого маршруту (відмови: той самий прогін, завершений, інший target); `--texel-product-review` читає last-run у форматі Painter: INCOMPLETE без кадрів або за зміненого маршруту, без перезапису. Пакетна перевірка: нативні кадри pic8 A у форматі last-run → `Pixora.exe --texel-product-review` дає PREDICTIONS_MET з ідентичними краями.
 
 ## Калібрування сесії 1 (етапи 1+2, основний конфіг)
 

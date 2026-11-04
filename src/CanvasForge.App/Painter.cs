@@ -839,6 +839,7 @@ internal sealed partial class Painter : IDisposable
         timingDone=done;timingTotal=total;timingPhase=PaintPhase.Countdown;
         checkpoint = new(checkpointPath, resume ?? new(plan.Identity, 0, 0, 0){RunKey=Guid.NewGuid().ToString("N")},deferUntilPaint:resume is null);
         if(resume is not null)FlushCheckpoint("resume");
+        SaveTexelCheckpointLink(plan,resume,done);
         SaveRunSnapshotMetadata("countdown");
         bool completed = false;
         var highResolutionTimer = Native.BeginHighResolutionTimer();

@@ -11,7 +11,23 @@ internal static class TexelProductReview
 {
     internal const string Rule="pic8 picture rules on the product run: edges measured at >=80% samples (V from one column inside, top H one pixel inside paint, V residual in the texel-grid frame); interior gaps 0, hole changes 0, D-events 0, median|residual| H<=0.15 row, V-start<=0.35 column, V-end median residual in [-0.15,0.75]; no RGB>12 change outside the route reservation";
     internal sealed record Summary(string Status,string Reason,string RunDirectory,string? Outcome,int Runs,ScreenRect? Indices,int OutsideChangedPixels,
-        StandardRowPictureAnalysis.PictureResult? Picture,string Rule,bool NativeInputByReviewer,bool PhysicalQualityCertified);
+        StandardRowPictureAnalysis.PictureResult? Picture,string Rule,bool NativeInputByReviewer,bool PhysicalQualityCertified,
+        [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? BaselineRun=null);
+    internal const string CheckpointFile="texel-checkpoint.json",CheckpointRevision="texel-checkpoint-link-v1";
+    internal sealed record CheckpointLink(string Revision,string RunKey,string PlanIdentity,bool Resumed,int StartDone,int Total);
+    private static CheckpointLink Link(string run)
+    {
+        var link=JsonSerializer.Deserialize<CheckpointLink>(File.ReadAllBytes(Path.Combine(run,CheckpointFile)))??throw new InvalidDataException("Порожній "+CheckpointFile+".");
+        if(link.Revision!=CheckpointRevision||string.IsNullOrWhiteSpace(link.RunKey)||link.StartDone<0||link.StartDone>link.Total)throw new InvalidDataException("Недійсний "+CheckpointFile+".");
+        return link;
+    }
+    private static (string? Outcome,int? Done) RunState(string run)
+    {
+        using var r=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"run.json")));var root=r.RootElement;
+        string? outcome=root.TryGetProperty("outcome",out var o)||root.TryGetProperty("Outcome",out o)?o.ToString():null;
+        int? done=root.TryGetProperty("done",out var d)&&d.ValueKind==JsonValueKind.Number?d.GetInt32():null;
+        return (outcome,done);
+    }
     private static string Sha(byte[] data)=>Convert.ToHexString(SHA256.HashData(data)).ToLowerInvariant();
     private static PixelImage Canvas(string run,string phase,ScreenRect canvas)
     {
@@ -23,21 +39,23 @@ internal static class TexelProductReview
             throw new InvalidDataException($"Кадр «{phase}» не відповідає збереженому полотну або своєму SHA.");
         return image;
     }
-    internal static Summary Review(string run,string output)
+    // baselineRun: the first, interrupted run of the same route when RUN was resumed from its checkpoint ("Продовжити").
+    // Its canvas before input is the baseline; RUN supplies the canvas after completion. Both must carry one route identity.
+    internal static Summary Review(string run,string output,string? baselineRun=null)
     {
-        run=Path.GetFullPath(run);output=Path.GetFullPath(output);
+        run=Path.GetFullPath(run);output=Path.GetFullPath(output);if(baselineRun is not null)baselineRun=Path.GetFullPath(baselineRun);
         if(Directory.Exists(output)||File.Exists(output))throw new IOException("Output already exists; reviews never overwrite.");
         Summary result;var sections=new List<StandardRowPictureAnalysis.EdgeSections>();var margins=new List<TexelReviewMargin>();
-        try{result=Score(run,sections,margins);}
+        try{result=Score(run,sections,margins,baselineRun);}
         catch(Exception e) when(e is IOException or InvalidDataException or JsonException or KeyNotFoundException or InvalidOperationException)
-        {result=new("INCOMPLETE",e.Message,run,null,0,null,0,null,Rule,false,false);}
+        {result=new("INCOMPLETE",e.Message,run,null,0,null,0,null,Rule,false,false,baselineRun);}
         Directory.CreateDirectory(output);
         File.WriteAllText(Path.Combine(output,"summary.json"),JsonSerializer.Serialize(result,new JsonSerializerOptions{WriteIndented=true,Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
         File.WriteAllText(Path.Combine(output,"sections.json"),JsonSerializer.Serialize(sections,new JsonSerializerOptions{WriteIndented=true}));
         File.WriteAllLines(Path.Combine(output,"edges-margins.csv"),new[]{TexelReviewMargins.Header}.Concat(margins.Select(TexelReviewMargins.Format)));
         return result;
     }
-    private static Summary Score(string run,List<StandardRowPictureAnalysis.EdgeSections> sections,List<TexelReviewMargin> margins)
+    private static Summary Score(string run,List<StandardRowPictureAnalysis.EdgeSections> sections,List<TexelReviewMargin> margins,string? baselineRun)
     {
         var settings=Settings.Load(Path.Combine(run,"effective-settings.json"));
         TexelProductSession.Admission? session=null;
@@ -79,7 +97,8 @@ internal static class TexelProductReview
                 ||runs.Length!=plan.Runs.Count||runs.Zip(plan.Runs).Any(q=>!q.First.GetProperty("Path").GetProperty("Points").Deserialize<ScreenPoint[]>()!.SequenceEqual(q.Second.Path.Points)))
                 throw new InvalidDataException("Збережений маршрут прогону відрізняється від маршруту цієї збірки; оцінка неможлива.");
         }
-        var canvas=settings.PaintCalibration().Rect("canvas");var before=Canvas(run,"before",canvas);var after=Canvas(run,"after",canvas);
+        var canvas=settings.PaintCalibration().Rect("canvas");
+        var before=baselineRun is null?Canvas(run,"before",canvas):Baseline(baselineRun,run,plan,rebuilt.Identity,canvas);var after=Canvas(run,"after",canvas);
         var grid=session?.Grid??TexelProduct.Grid();var mask=plan.Mask.ToArray();
         var points=plan.Runs.SelectMany(r=>r.Path.Points).ToArray();
         var reserve=new ScreenRect(points.Min(p=>p.X)-16,points.Min(p=>p.Y)-16,points.Max(p=>p.X)+17,points.Max(p=>p.Y)+17);
@@ -115,7 +134,54 @@ internal static class TexelProductReview
             int i=(y-canvas.Top)*canvas.Width+x-canvas.Left;if(RustSlider.Delta(before.Color(i),after.Color(i))>12)outside++;
         }
         string status=scored.Status=="PREDICTIONS_MET"&&outside>0?"PREDICTIONS_NOT_MET":scored.Status;
-        return new(status,outside>0?"Зміни поза маршрутом: "+outside+" px.":"",run,outcome,plan.Runs.Count,plan.Indices,outside,scored,Rule,false,false);
+        // A target with no measurable edge (>=4 texels) and no interior texel cannot confirm anything (Codex review 0113).
+        if(picture.Evaluation.Edges.Length==0&&picture.Evaluation.Interior.Length==0&&status=="PREDICTIONS_MET")
+            return new("UNMEASURED","Зображення не має вимірюваних країв (від 4 текселів) чи внутрішніх текселів; огляд не може підтвердити результат.",run,outcome,plan.Runs.Count,plan.Indices,outside,scored,Rule,false,false,baselineRun);
+        return new(status,outside>0?"Зміни поза маршрутом: "+outside+" px.":"",run,outcome,plan.Runs.Count,plan.Indices,outside,scored,Rule,false,false,baselineRun);
+    }
+    // The interrupted first run must be a different folder with the same target, settings and saved route (and, for a session
+    // START, the same binding, route and plan identity); it must not have completed. Its own "before" frame is the baseline.
+    private static PixelImage Baseline(string baseline,string run,TexelCompensatedPlan plan,string identity,ScreenRect canvas)
+    {
+        if(string.Equals(baseline.TrimEnd(Path.DirectorySeparatorChar),run.TrimEnd(Path.DirectorySeparatorChar),StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Базовий прогін збігається з прогоном огляду.");
+        if(!File.ReadAllBytes(Path.Combine(baseline,"target.png")).SequenceEqual(File.ReadAllBytes(Path.Combine(run,"target.png"))))
+            throw new InvalidDataException("Базовий прогін має інший target.png.");
+        if(!System.Text.Json.Nodes.JsonNode.DeepEquals(PaintSettings(baseline),PaintSettings(run)))
+            throw new InvalidDataException("Базовий прогін має інший effective-settings.json.");
+        using(var saved=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(baseline,"experimental-texel-plan.json"))))
+            if(!System.Text.Json.Nodes.JsonNode.DeepEquals(System.Text.Json.Nodes.JsonNode.Parse(saved.RootElement.GetProperty("route").GetRawText()),JsonSerializer.SerializeToNode(plan)))
+                throw new InvalidDataException("Базовий прогін має інший маршрут.");
+        bool session=File.Exists(Path.Combine(run,"texel-session.json"));
+        if(session!=File.Exists(Path.Combine(baseline,"texel-session.json")))throw new InvalidDataException("Базовий прогін має інший режим сесії.");
+        if(session)
+        {
+            using var a=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(baseline,"texel-session.json")));using var b=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"texel-session.json")));
+            foreach(string key in new[]{"bindingId","bindingRecordSha256","routeId","planIdentity"})
+                if(a.RootElement.GetProperty(key).GetString()!=b.RootElement.GetProperty(key).GetString())throw new InvalidDataException("Базовий прогін має інший "+key+".");
+            if(a.RootElement.GetProperty("planIdentity").GetString()!=identity)throw new InvalidDataException("Базовий прогін має іншу ідентичність плану.");
+        }
+        // Checkpoint lineage (Codex review 0113): the same START (RunKey) and plan; the baseline began it from line 0 and was
+        // interrupted, RUN resumed it and completed. Two independent STARTs of the same picture never chain.
+        var first=Link(baseline);var resumed=Link(run);var (baseOutcome,baseDone)=RunState(baseline);var (runOutcome,runDone)=RunState(run);
+        if(first.Total!=plan.Runs.Count||resumed.Total!=plan.Runs.Count)throw new InvalidDataException("Зв'язок checkpoint має іншу кількість штрихів, ніж маршрут.");
+        if(first.RunKey!=resumed.RunKey||first.PlanIdentity!=resumed.PlanIdentity||first.PlanIdentity!=identity)
+            throw new InvalidDataException("Базовий прогін належить іншому START (інший checkpoint RunKey або план).");
+        if(first.Resumed||first.StartDone!=0)throw new InvalidDataException("Базовий прогін сам був відновленням; вкажи перший прогін цього START.");
+        if(!resumed.Resumed||resumed.StartDone<=0)throw new InvalidDataException("Прогін огляду не є відновленням із checkpoint.");
+        if(baseOutcome=="completed")throw new InvalidDataException("Базовий прогін завершився; відновлення від нього неможливе.");
+        if(baseOutcome is not ("cancelled" or "failed"))throw new InvalidDataException("Базовий прогін не має стану перерваного прогону: "+(baseOutcome??"немає")+".");
+        if(baseDone is not int d||d<=0||d>resumed.StartDone)throw new InvalidDataException("Прогрес базового прогону не веде до точки відновлення.");
+        if(runOutcome!="completed"||runDone!=plan.Runs.Count)throw new InvalidDataException("Відновлений прогін не завершився (outcome/done).");
+        return Canvas(baseline,"before",canvas);
+    }
+    // Painter re-learns its ETA statistic after every run (live 04.11 max test: 1469 → 53 → 1665 observations); it is excluded from
+    // the plan identity (Models.cs) and changes no stroke. Every other setting must match exactly.
+    internal const string VolatileTimingKey="motion_transport_rate";
+    private static System.Text.Json.Nodes.JsonNode? PaintSettings(string dir)
+    {
+        var node=System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllBytes(Path.Combine(dir,"effective-settings.json")));
+        (node as System.Text.Json.Nodes.JsonObject)?.Remove(VolatileTimingKey);return node;
     }
     internal static string? Latest(string lastRunRoot)
         =>Directory.Exists(lastRunRoot)?Directory.GetDirectories(lastRunRoot).Where(d=>File.Exists(Path.Combine(d,"experimental-texel-plan.json")))
