@@ -43,6 +43,7 @@ internal static partial class Program
         if(args.Length==4&&args[1]=="--texel-product-frames"){ReviewTexelProductFrames(args[2],args[3],args[0]);return;}
         if(args.Length==4&&args[1]=="--editor-proof-frame"){CheckEditorProofFrame(args[2],args[3]);return;}
         if(args.Length==4&&args[1]=="--texel-product-plan"){PrintTexelProductPlan(args[2],args[3]);return;}
+        if(args.Length==5&&args[1]=="--texel-run-ends"){MeasureTexelRunEnds(args[2],args[3],args[4]);return;}
         if(args.Length==2&&args[1]=="--texel-product-sizes-only")
         {CheckTexelProductSizes(Path.Combine(Path.GetFullPath(args[0]),"texel-product-sizes"));Console.WriteLine("TEXEL PRODUCT SIZE CHECKS PASSED; nativeInput=false");return;}
         if(args.Length==2&&args[1]=="--texel-product-only")

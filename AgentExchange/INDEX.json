@@ -1941,6 +1941,29 @@
         "cause": "run end phase window [b+1.867,b+2.36) reaches the extra-texel limit ~b+2.33",
         "proposal": "end threshold ~b+1.73 (window [1.73,2.22)); Core change, needs decision, Codex review and live rerun"
       }
+    },
+    {
+      "id": "0116",
+      "file": "0116_CLAUDE_CODEX_END_PHASE_CONTEXT.md",
+      "author": "Claude (local session) with Codex as equal partner; Codex rounds quoted by file",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "f98a23240763eef53c887b2eb589d37970d7696684f90885d1f52ee4fa650cca",
+      "artifactReceipt": "../../texel-endphase-20261104/",
+      "scope": {
+        "status": "RESEARCH_DECISION_KEEP_1.867",
+        "finding": "single-covered run ends (figure corners, 2-tall figures) are short (to -0.47 texel) at end phase <2.1; shared rows extra from ~2.33; review V-edges miss corners",
+        "codexRounds": [
+          "../../texel-endphase-20261104/codex-round1.md",
+          "../../texel-endphase-20261104/codex-round2.md",
+          "../../texel-endphase-20261104/codex-round3.md",
+          "../../texel-endphase-20261104/codex-round4.md",
+          "../../texel-endphase-20261104/codex-round5.md"
+        ],
+        "tool": "tests/CanvasForge.App.Tests/TexelRunEnds.cs (--texel-run-ends)",
+        "savedPatch": "../../texel-endphase-20261104/endphase-integrated-1.73.patch",
+        "next": "one research live run: baseline 1.867 / context extension / cap for single ends; per-run end measurement in review"
+      }
     }
   ],
   "manuallyReturnedReproduction": {
