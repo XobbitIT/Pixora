@@ -98,9 +98,12 @@ internal static class StandardSessionCalibPilot
     // Stage 0 before packaging: binding from the copied main config and the real App/Core hashes; a failed audit stops here.
     internal static Design Build(Settings settings,string fixtures,string appSha256,string coreSha256)
     {
+        // The user's own selected rect is bound as-is. The frozen grid is in absolute screen coordinates (Rebind keeps every
+        // command point), so the rect is only a bound: the audit below requires it to contain the column/row domains and every
+        // frozen route with its ±16/±17 reservation, and the live 3-control check confirms the view. The protocol's "userRect"
+        // is the historical pilot rect (0108), kept in the SHA-frozen asset but no longer required.
         var frozen=TexelProduct.Grid(appSha256,coreSha256);var cal=settings.PaintCalibration();var rect=cal.Rect("canvas");
-        using(var doc=Protocol(fixtures))if(rect!=Rect(doc.RootElement.GetProperty("userRect")))
-            throw new InvalidDataException("Полотно основного конфігу не збігається із замороженим протоколом сесії (465/151/1509/1192).");
+        if(!rect.Valid)throw new InvalidDataException("Основний конфіг не має вибраного полотна.");
         var effective=DrawingWorkflow.Effective(settings);Painter.ApplyResearchShape(effective);
         var binding=new TexelSessionBinding(rect,TexelProduct.ProfileSha256,frozen.Id,
             cal.SessionClient??throw new InvalidDataException("Основний конфіг не має origin сесії."),

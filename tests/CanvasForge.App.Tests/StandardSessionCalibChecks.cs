@@ -37,9 +37,18 @@ internal static partial class Program
         Assert(StandardSessionCalibPilot.Read(Path.Combine(output,"session1-design"),true).ProtocolId==m.ProtocolId,"Session manifest round trip");
         UvRefuses(()=>StandardSessionCalibPilot.Read(Path.Combine(output,"session1-design")),"Synthetic session authorized input");
         UvRefuses(()=>StandardSessionCalibPilot.Create(Path.Combine(output,"session1-design"),config,Session1Assets,true),"Session init overwrote a directory");
+        // Any user-selected rect that contains the frozen domains and routes is bound as-is; command points never move with it.
+        foreach(var (name,rect) in new (string,ScreenRect)[]{("profile",new(465,148,1510,1192)),("live-20261103",new(466,148,1508,1199))})
+        {
+            var other=StandardSessionCalibPilot.Create(Path.Combine(output,"session1-rect-"+name),
+                Session1Config(Path.Combine(output,"main-rect-"+name),s=>{var c=s.Calibration;c.SetRect("canvas",rect);s.SetCalibration(c);}),Session1Assets,true);
+            Assert(other.Context.Canvas==rect&&other.Binding.UserRect==rect&&other.SessionGridId==TexelSessionAudit.Rebind(frozen,rect).Id&&other.BindingId!=m.BindingId
+                &&other.Controls.Select(c=>c.Path).Zip(m.Controls.Select(c=>c.Path)).All(p=>p.First.SequenceEqual(p.Second)),"User rect "+name+" not bound or moved controls");
+        }
         // Stage-0 refusals stop packaging: each changes one frozen condition of the main config.
         foreach(var (name,change) in new (string,Action<Settings>)[]{
-            ("rect148",s=>{var c=s.Calibration;c.SetRect("canvas",new(465,148,1510,1192));s.SetCalibration(c);}),
+            ("rect-clips-columns",s=>{var c=s.Calibration;c.SetRect("canvas",new(585,151,1509,1192));s.SetCalibration(c);}),
+            ("rect-clips-rows",s=>{var c=s.Calibration;c.SetRect("canvas",new(465,151,1509,1101));s.SetCalibration(c);}),
             ("dpi",s=>{var c=s.Calibration;c.SetSession(default,120,new(2560,1440));s.SetCalibration(c);}),
             ("client",s=>{var c=s.Calibration;c.SetSession(new(1,0),96,new(2560,1440));s.SetCalibration(c);}),
             ("frame",s=>s.Set("input_frame_delay_ms",30)),("rapid",s=>s.Set("speed_profile","Rapid")),

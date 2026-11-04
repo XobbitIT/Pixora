@@ -1826,6 +1826,33 @@
         "decision": "session binding stays pinned to App/Core SHA; calibrate only the final release build",
         "modelIdentityBinding": false
       }
+    },
+    {
+      "id": "0111",
+      "file": "0111_CLAUDE_UI_SESSION_CALIB_PRODUCT_1_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "04703e78169b6a3b23d9e0b89040cf45dff56f1a1e32ff34d4f0b8d3177af053",
+      "artifactReceipt": "../../ui-session-calib-20261104/Review_20261104_150737/summary.json",
+      "scope": {
+        "status": "PREDICTIONS_MET",
+        "runBy": "user, 2026-11-04T15:07Z",
+        "sessionCalib": "UI button; SESSION_TRANSFER_CONFIRMED (attempts 2 and 3; attempt 1 INCOMPLETE, 0 observed)",
+        "liveBindingId": "48efffc9a42d4136be128fd7dc9e821b17481d30ca5afab12669e961a40c6723",
+        "appSha256": "4d7b334c",
+        "coreSha256": "368d3cca",
+        "strokes": "107/107",
+        "gaps": "0/249",
+        "holes": "0/413",
+        "edgesWithEvents": 0,
+        "outsideChangedPixels": 0,
+        "rect": "465/151/1509/1192 Max Speed (isolated package Data)",
+        "rectFixExercisedLive": false,
+        "nativeInputByAgent": false,
+        "committed": false,
+        "physicalQualityCertified": false
+      }
     }
   ],
   "manuallyReturnedReproduction": {

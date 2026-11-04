@@ -44,7 +44,10 @@ internal static class TexelProductSession
             var g=frozen.Context.Geometry;var cal=settings.PaintCalibration();
             foreach(string key in new[]{"brush_shape_slot","brush_size_value","precision_brush_size","input_frame_delay_ms","cycle_delay_ms"})
                 Require(!settings.Data.ContainsKey(key)||double.TryParse(settings.Text(key),System.Globalization.NumberStyles.Float,System.Globalization.CultureInfo.InvariantCulture,out var n)&&double.IsFinite(n),"unknown numeric setting "+key);
-            Require(b.UserRect==new ScreenRect(465,151,1509,1192)&&cal.Rect("canvas")==b.UserRect,"exact rect");
+            // The binding pins the user's exact selected rect; any rect is allowed only if it contains the frozen texel domains.
+            Require(cal.Rect("canvas")==b.UserRect,"exact rect");
+            Require(b.UserRect.Valid&&new[]{frozen.Columns.Domain,frozen.RowDomain}.All(d=>d.Left>=b.UserRect.Left&&d.Top>=b.UserRect.Top
+                &&d.Right<=b.UserRect.Right&&d.Bottom<=b.UserRect.Bottom),"rect clips texel domains");
             Require(b.AppSha256==frozen.Context.AppSha256,"App SHA");
             Require(b.CoreSha256==frozen.Context.CoreSha256,"Core SHA");
             Require(b.SourceProfileSha256==TexelProduct.ProfileSha256&&r.GetProperty("ProfileSha256").GetString()==TexelProduct.ProfileSha256,"profile SHA");

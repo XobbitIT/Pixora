@@ -88,6 +88,23 @@ internal static partial class Program
         Assert(good.Data.ToJsonString()==before&&good.Text("speed_profile")=="Max Speed","Bound build rewrote requested settings");
         Assert(plan.Identity==TexelProduct.Identity(image,good,plan.Palette),"START identity cannot reproduce Build identity");
         TexelProduct.ValidateSettings(good,route);TexelProduct.ValidateLive(route,default,new(2560,1440),96);
+        // A different user-selected rect (the live 03.11 reselection) with its own confirmed binding: same 107 command paths.
+        {
+            var liveRect=new ScreenRect(466,148,1508,1199);var moved=s.Clone();var mc=moved.Calibration;mc.SetRect("canvas",liveRect);moved.SetCalibration(mc);
+            var movedStructure=CanvasStructure.Capture(liveRect,fresh,new(0,0,2560,1440),default,96,new(2560,1440));CanvasStructure.Store(moved,movedStructure);
+            var movedBinding=binding with{UserRect=liveRect,StructureSha256=movedStructure.FrameSha256.ToLowerInvariant()};
+            var record=Record(movedBinding);record["SessionGridId"]=TexelSessionAudit.Rebind(frozen,liveRect).Id;File.WriteAllText(file,record.ToJsonString());
+            moved.Set(TexelProductSession.PathKey,file);moved.Set(TexelProductSession.ShaKey,TexelProductSession.Hash(File.ReadAllBytes(file)));
+            var movedRoute=TexelProduct.Build(image,moved).ExperimentalTexel!;
+            Assert(movedRoute.Runs.Count==107&&movedRoute.Runs.Zip(route.Runs).All(p=>p.First.Path.Points.SequenceEqual(p.Second.Path.Points))&&movedRoute.Id!=route.Id,
+                "Other user rect not admitted or moved command points");
+            // The live binding must still equal the config rect, and no rect may clip the frozen domains.
+            var clipRect=new ScreenRect(585,151,1509,1192);var clipped=s.Clone();var cc=clipped.Calibration;cc.SetRect("canvas",clipRect);clipped.SetCalibration(cc);
+            var clipRecord=Record(binding with{UserRect=clipRect});File.WriteAllText(file,clipRecord.ToJsonString());
+            clipped.Set(TexelProductSession.PathKey,file);clipped.Set(TexelProductSession.ShaKey,TexelProductSession.Hash(File.ReadAllBytes(file)));
+            Refuse(()=>TexelProduct.Build(image,clipped),"rect clips texel domains");
+            good=Configure();
+        }
         foreach(var (name,change) in new (string,Action<Settings>)[]{
             ("exact rect",x=>{var c=x.Calibration;c.SetRect("canvas",Session1Rect with{Left=464});x.SetCalibration(c);}),
             ("exact rect",x=>{var c=x.Calibration;c.SetRect("canvas",Session1Rect with{Right=1510});x.SetCalibration(c);}),
