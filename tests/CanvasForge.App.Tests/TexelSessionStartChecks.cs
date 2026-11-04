@@ -82,6 +82,27 @@ internal static partial class Program
         Assert(!TexelSessionCalibration.Find(s,productData).Active&&TexelSessionCalibration.Find(s,productData).Description.Contains("bindingActive=false"),"Failed review admitted binding");
         SaveCandidate(validAttempt,binding);SaveCandidate(newerAttempt,binding);
         Assert(TexelSessionCalibration.Find(s,productData).Settings.Text(TexelProductSession.PathKey).StartsWith(newerAttempt),"Newest fully resolving candidate not selected");
+        // 03.11: a confirmed calibration must become the user's editor reference, or START preparation re-selects the canvas.
+        {
+            var latest=TexelSessionCalibration.Find(s,productData);
+            Assert(TexelSessionCalibration.AttemptOf("CONFIRMED: \n"+newerAttempt)==Path.GetFullPath(newerAttempt)&&TexelSessionCalibration.AttemptOf(null) is null
+                &&TexelSessionCalibration.AttemptOf("INCOMPLETE: x\n"+Path.Combine(output,"missing-attempt")) is null,"Attempt path of the calibration result");
+            string Others(Settings x){var c=x.Clone();foreach(string k in TexelSessionCalibration.ReferenceKeys)c.Data.Remove(k);return c.Data.ToJsonString();}
+            var stale=s.Clone();CanvasStructure.Store(stale,structure with{FrameSha256=new('f',64)});string staleJson=stale.Data.ToJsonString(),staleOthers=Others(stale);
+            Assert(!TexelSessionCalibration.Adopt(stale,latest,validAttempt)&&stale.Data.ToJsonString()==staleJson,"Adopted another attempt's reference");
+            Assert(!TexelSessionCalibration.Adopt(stale,latest with{Active=false},newerAttempt)&&stale.Data.ToJsonString()==staleJson,"Adopted an inactive binding");
+            var broken=latest.Settings.Clone();CanvasStructure.Store(broken,structure with{FrameSha256=new('e',64)});
+            Refuse(()=>TexelSessionCalibration.Adopt(stale,latest with{Settings=broken},newerAttempt),"confirmed structure");
+            Assert(stale.Data.ToJsonString()==staleJson,"Refused adoption changed settings");
+            var moved=stale.Clone();var mc=moved.Calibration;mc.SetRect("canvas",Session1Rect with{Left=464});moved.SetCalibration(mc);string movedJson=moved.Data.ToJsonString();
+            Refuse(()=>TexelSessionCalibration.Adopt(moved,latest,newerAttempt),"exact rect");
+            Assert(moved.Data.ToJsonString()==movedJson,"Rect refusal changed settings");
+            Assert(TexelSessionCalibration.Adopt(stale,latest,newerAttempt),"Confirmed reference not adopted");
+            Assert(Others(stale)==staleOthers&&stale.PaintCalibration().Rect("canvas")==Session1Rect&&!TexelProductSession.Requested(stale),"Adoption changed more than the editor reference");
+            Assert(TexelSessionCalibration.ReferenceKeys.All(k=>JsonNode.DeepEquals(stale.Data[k],latest.Settings.Data[k])),"Adopted reference differs from the confirmed one");
+            Assert(TexelSessionCalibration.Find(stale,productData) is {Active:true} after&&after.Settings.Text(TexelProductSession.PathKey).StartsWith(newerAttempt),"Adopted settings do not resolve the binding");
+            Assert(!TexelSessionCalibration.Adopt(stale,latest,newerAttempt),"Repeated adoption reported a change");
+        }
         var before=good.Data.ToJsonString();var plan=TexelProduct.Build(image,good);var route=plan.ExperimentalTexel!;
         Assert(TexelProductSession.Pin(s,file).Text(TexelProductSession.ShaKey)==good.Text(TexelProductSession.ShaKey)&&s.Data.ToJsonString()==unchanged,"Pin changed source settings");
         Assert(route.Runs.Count==107&&route.GridId==rebound.Id&&route.SessionBindingIdentity==TexelProductSession.Resolve(good)!.Identity,"Bound Product_1 not admitted");

@@ -68,6 +68,38 @@ internal static class TexelSessionCalibration
         }
         return new(source.Clone(),reason is null?"немає":"недійсний: "+reason,false);
     }
+    // The editor reference keys a confirmed session capture owns (the frontier id stays in the attempt only).
+    internal static readonly string[] ReferenceKeys=["canvas_structure",EditorEvidence.Key,"editor_references"];
+    internal static string? AttemptOf(string? result)
+        =>result is null?null:result[(result.LastIndexOf('\n')+1)..] is var a&&Directory.Exists(a)?Path.GetFullPath(a):null;
+    // After an explicit, confirmed UI calibration its fresh 16-ROI capture becomes the user's editor reference, as an
+    // explicit canvas capture would. Otherwise the ordinary START preparation compares the live editor with an older
+    // reference and, on a mismatch, asks for a new canvas selection that invalidates the binding just confirmed (03.11).
+    // Only the three reference keys change; the rect and every other setting stay. Nothing is copied unless the binding of
+    // exactly this attempt fully resolves against the result.
+    internal static bool Adopt(Settings target,State state,string attempt)
+    {
+        if(!state.Active||!TexelProductSession.Requested(state.Settings))return false;
+        string root=Path.GetFullPath(attempt).TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
+        if(!Path.GetFullPath(state.Settings.Text(TexelProductSession.PathKey)).StartsWith(root,StringComparison.OrdinalIgnoreCase))return false;
+        if(state.Settings.PaintCalibration().Rect("canvas")!=target.PaintCalibration().Rect("canvas"))
+            throw new InvalidDataException("Session binding refused: exact rect changed during calibration.");
+        var candidate=target.Clone();bool changed=false;
+        foreach(string key in ReferenceKeys)
+        {
+            var value=state.Settings.Data[key];
+            if(System.Text.Json.Nodes.JsonNode.DeepEquals(candidate.Data[key],value))continue;
+            if(value is null)candidate.Data.Remove(key);else candidate.Data[key]=value.DeepClone();changed=true;
+        }
+        if(!changed)return false;
+        var pinned=candidate.Clone();
+        pinned.Set(TexelProductSession.PathKey,state.Settings.Text(TexelProductSession.PathKey));
+        pinned.Set(TexelProductSession.ShaKey,state.Settings.Text(TexelProductSession.ShaKey));
+        TexelProductSession.Resolve(pinned);
+        foreach(string key in ReferenceKeys)
+            if(candidate.Data[key] is {} value)target.Data[key]=value.DeepClone();else target.Data.Remove(key);
+        return true;
+    }
     internal static string Attempt(string data)
     {
         string path=Path.Combine(Root(data),DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff")+"-"+Guid.NewGuid().ToString("N"));

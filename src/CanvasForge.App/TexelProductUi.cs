@@ -47,6 +47,19 @@ internal sealed partial class MainWindow
                 step=>Dispatcher.Invoke(()=>SetStatus(step)),cancellation:cancellation.Token));
             texelSessionOverlay=null;texelSessionDetached=false;
             if(closing)return;
+            if(result?.StartsWith("CONFIRMED",StringComparison.Ordinal)==true&&TexelSessionCalibration.AttemptOf(result) is {} attempt)
+            {
+                try
+                {
+                    if(TexelSessionCalibration.Adopt(settings,TexelSessionCalibration.Find(settings,folder),attempt))
+                    {
+                        Dirty(false);
+                        result+="\n"+T("Еталон рамки полотна оновлено з цього калібрування.","Canvas frame reference updated from this calibration.");
+                    }
+                }
+                catch(Exception e) when(e is IOException or InvalidDataException or UnauthorizedAccessException)
+                {result+="\n"+T("Еталон рамки не оновлено: ","Canvas frame reference not updated: ")+e.Message;}
+            }
             SetStatus(result??"INCOMPLETE");
             MessageBox.Show(this,result??"INCOMPLETE","Pixora");
         }

@@ -1853,6 +1853,36 @@
         "committed": false,
         "physicalQualityCertified": false
       }
+    },
+    {
+      "id": "0112",
+      "file": "0112_CLAUDE_UI_CALIB_ADOPT_REFERENCE_RESULT.md",
+      "author": "Claude (local session)",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "sha256": "63fe03560e46632e0ba576beca584a3c225da863d602c188782ac48d619d095e",
+      "artifactReceipt": "../../ui-session-calib-20261104b/Review_20261104_171652/summary.json",
+      "scope": {
+        "status": "PREDICTIONS_MET",
+        "runBy": "user, 2026-11-04T17:15Z",
+        "fix": "TexelSessionCalibration.Adopt: confirmed calibration's editor reference adopted into user settings",
+        "sessionCalib": "UI button; SESSION_TRANSFER_CONFIRMED (1 attempt)",
+        "referenceAdopted": true,
+        "canvasReselection": false,
+        "liveBindingId": "8220a90d633160e14cd43186dcfc6600f49e27638fae02242b0fe1ce402610de",
+        "appSha256": "dc0baa53",
+        "coreSha256": "368d3cca",
+        "strokes": "107/107",
+        "gaps": "0/249",
+        "holes": "0/413",
+        "edgesWithEvents": 0,
+        "outsideChangedPixels": 0,
+        "rect": "465/151/1509/1192 Max Speed (isolated package Data)",
+        "staleReferenceScenarioReproducedLive": false,
+        "nativeInputByAgent": false,
+        "committed": true,
+        "physicalQualityCertified": false
+      }
     }
   ],
   "manuallyReturnedReproduction": {
