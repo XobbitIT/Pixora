@@ -14,9 +14,9 @@ function Test-Count([string]$Path,[string]$Pattern) {
     return [int]$match.Groups[1].Value
 }
 $core=Test-Count 'verification/core-tests.txt' 'ALL ([0-9]+) TESTS PASSED'
-$wpf=Test-Count 'verification/wpf-tests.txt' 'ALL ([0-9]+) WPF UI CHECKS PASSED'
+$wpf=Test-Count 'verification/wpf-tests.txt' 'ALL ([0-9]+) WPF (?:UI CHECKS|TEST CASES) PASSED'
 if($core -ne (Test-Count 'verification/published-core-tests.txt' 'ALL ([0-9]+) TESTS PASSED') -or
-   $wpf -ne (Test-Count 'verification/published-wpf-tests.txt' 'ALL ([0-9]+) WPF UI CHECKS PASSED')){throw 'Published test counts differ.'}
+   $wpf -ne (Test-Count 'verification/published-wpf-tests.txt' 'ALL ([0-9]+) WPF (?:UI CHECKS|TEST CASES) PASSED')){throw 'Published test counts differ.'}
 $nativeClipboard=(Get-Content -LiteralPath (Join-Path $sourceRoot 'verification/published-wpf-tests.txt') -Raw) -match 'PASS native-clipboard-smoke:'
 $sourceHashes=[ordered]@{}
 $paths=@(& git -C $sourceRoot ls-files)
