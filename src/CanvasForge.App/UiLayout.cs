@@ -61,7 +61,7 @@ internal sealed partial class MainWindow
                 action.Content=chip;action.Padding=new Thickness(0);action.Margin=new Thickness(0);
                 action.MinWidth=0;action.MinHeight=0;action.HorizontalAlignment=HorizontalAlignment.Right;
                 action.Background=System.Windows.Media.Brushes.Transparent;action.BorderThickness=new Thickness(0);
-                action.Tag="workflow-action:"+key;action.ToolTip=T("Відкрити розділ: ","Open section: ")+title;status=action;
+                action.Tag="workflow-action:"+key;if(key=="brush"&&!AdvancedUi){action.IsHitTestVisible=false;action.Focusable=false;}action.ToolTip=T("Відкрити розділ: ","Open section: ")+title;status=action;
             }
             Grid.SetColumn(status, 2); row.Children.Add(status); parent.Children.Add(row);
         }

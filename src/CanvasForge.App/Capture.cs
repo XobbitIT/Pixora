@@ -33,19 +33,19 @@ internal sealed partial class MainWindow
         var paletteCard=Card("Палітра і прев’ю", out var pal);
         if(settings.Mode==ColorMode.RustPalette)manual.Children.Add(paletteCard);
         pal.Children.Add(CheckButton(T("Обвести палітру 4×16", "Capture palette 4×16"), () => Capture("palette", T("ПАЛІТРА 4×16", "PALETTE 4×16"))));
-        pal.Children.Add(CheckButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("Швидкі кольори — лише клітинки, без зірки та кнопки +", "Quick colors — cells only, excluding the star and + button"))));
-        AddCombo(pal,"quick_palette_rows",T("Кількість швидких кольорів","Quick color count"),new[]{"Auto"}.Concat(Enumerable.Range(1,16).Select(n=>n.ToString())).ToArray(),true);
+        pal.Children.Add(Simple(CheckButton(T("Швидкі кольори", "Quick Colors"), () => Capture("quick", T("Швидкі кольори — лише клітинки, без зірки та кнопки +", "Quick colors — cells only, excluding the star and + button")))));
+        SimpleAdded(pal,()=>AddCombo(pal,"quick_palette_rows",T("Кількість швидких кольорів","Quick color count"),new[]{"Auto"}.Concat(Enumerable.Range(1,16).Select(n=>n.ToString())).ToArray(),true));
         pal.Children.Add(PaletteSwatchLabel());
         pal.Children.Add(CheckButton(T("Захопити активний колір вручну", "Capture active color manually"),
             () => Capture(settings.Mode == ColorMode.HexDirect ? "swatch" : "palette_swatch", T("ЗРАЗОК КОЛЬОРУ", "COLOR SWATCH"))));
-        pal.Children.Add(Button(T("Показати вставку", "Show insertion"), ShowInsertion));
+        pal.Children.Add(Simple(Button(T("Показати вставку", "Show insertion"), ShowInsertion)));
         if(settings.Mode==ColorMode.RustPalette)
         {
             manual.Children.Add(Card(T("Пензель Rust","Rust brush"),out var extra));
             extra.Children.Add(CheckButton(T("Інструмент пензля","Brush tool"),()=>CapturePoint("brush_tool",T("ІНСТРУМЕНТ ПЕНЗЛЯ","BRUSH TOOL"))));
             extra.Children.Add(CheckButton(T("Форми пензля","Brush shapes"),()=>Capture("brush_shapes",T("ФОРМИ ПЕНЗЛЯ","BRUSH SHAPES"))));
         }
-        manual.Children.Add(AsyncButton(T("Повна підготовка з додатковими пензлями та швидкістю","Full preparation with additional brushes and speed"),()=>RunSetup(false)));
+        manual.Children.Add(Simple(AsyncButton(T("Повна підготовка з додатковими пензлями та швидкістю","Full preparation with additional brushes and speed"),()=>RunSetup(false))));
         foreach (var kind in new[]
         {
             "size"
@@ -55,8 +55,8 @@ internal sealed partial class MainWindow
             controls.Children.Add(CheckButton(Option("control",kind), () => Capture(kind + "_track", Option("control",kind) + " — " + T("повзунок із числом, обведи із запасом", "slider and number, select with extra space"))));
         controls.Children.Add(Text(T("Числа вводяться напряму. Ручні опорні точки розміру більше не потрібні.", "Values are entered directly. Manual Size anchors are no longer needed."), 11, Muted));
         controls.Children.Add(CheckButton(T("Перевірити керування Rust", "Test Rust controls"), TestControls));
-        controls.Children.Add(Button(T("Калібрування пензля", "Brush calibration"), () => ShowPage("adaptive")));
-        BuildStandardLineDiagnosticUi(manual);
+        controls.Children.Add(Simple(Button(T("Калібрування пензля", "Brush calibration"), () => ShowPage("adaptive"))));
+        var lineDiagnostics=new StackPanel();BuildStandardLineDiagnosticUi(lineDiagnostics);manual.Children.Add(Simple(lineDiagnostics));
     }
 
     private IntPtr captureWindow;

@@ -23,7 +23,9 @@ internal sealed partial class MainWindow
         edgeMergeStatus=Text("",12,Muted);controls.Children.Add(edgeMergeStatus);
         controls.Children.Add(Button(T("Краї: до та після","Edges: before and after"),()=>{if(plan is not null)presentAuditDiagnostics(CreateEdgePreviewWindow(plan));}));
         if(!ReleaseProfile.Standard(settings))controls.Children.Add(AsyncButton(T("Порівняти звичайний та Adaptive","Compare ordinary and Adaptive"),ComparePaintingModes));
-        quality.Children.Add(new Expander{Header=T("Оптимізація плану","Plan optimization"),Content=controls});
+        var optimization=new Expander{Header=T("Оптимізація плану","Plan optimization"),Content=controls};
+        // An active merge changes the target, so it stays visible in simple mode.
+        quality.Children.Add(settings.Bool("edge_merge")?optimization:Simple(optimization));
     }
     private void RefreshTargetPlanningUi()
     {

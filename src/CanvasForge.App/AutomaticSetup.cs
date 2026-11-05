@@ -62,7 +62,7 @@ internal sealed partial class MainWindow
             var rows=new Dictionary<SetupStage,TextBlock>();setupRows.Add(rows);
             var image=Button(T("Зображення → відкрити","Image → open"),OpenImage);
             image.Content="1. "+image.Content;
-            image.Tag="preparation-image";image.HorizontalContentAlignment=HorizontalAlignment.Left;parent.Children.Add(image);
+            image.Tag="preparation-image";openImageButtons.Add(image);image.HorizontalContentAlignment=HorizontalAlignment.Left;parent.Children.Add(image);
             foreach(var stage in SetupSequence.Stages)
             {
                 var row=Text("",12,Muted);rows[stage]=row;parent.Children.Add(row);
@@ -126,6 +126,7 @@ internal sealed partial class MainWindow
                 optional?Warning:Danger:
                 result.Item1 is SetupStageState.Running or SetupStageState.Cancelled?Warning:Muted;
             rows[stage].IsEnabled=!Painting;
+            rows[stage].Visibility=AdvancedUi||SetupSequence.InitialStages(settings,false).Contains(stage)?Visibility.Visible:Visibility.Collapsed;
         }
     }
     private Task RunAutomaticSetup()=>RunSetup(false);

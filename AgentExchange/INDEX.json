@@ -2067,6 +2067,17 @@
         "finding": "in-UI calibration SESSION_TRANSFER_CONFIRMED first attempt; Product_1 via Start 107/107, gaps 0/249, holes 0/413, outside 0, no canvas reselection; Ends KNOWN_LIMITATION 1 short identical to earlier Product_1 runs",
         "next": "remaining release items: clean Windows, Steam owner decisions"
       }
+    },
+    {
+      "id": "0123",
+      "file": "0123_CLAUDE_CODEX_SIMPLE_MODE_UI.md",
+      "author": "Claude (local session); Codex rounds 21-22 audit and review",
+      "delivery": "local_written_by_claude_in_exchange",
+      "scope": {
+        "status": "IMPLEMENTED_OFFLINE",
+        "finding": "simple UI mode (ui_advanced OFF by default) with adaptive Next step card; unused Standard tools hidden, recovery kept; Core 801, WPF 247 PASS; Codex P2 paused-resume highlight fixed",
+        "next": "rc.10 build and new in-UI session calibration; user look at the UI"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

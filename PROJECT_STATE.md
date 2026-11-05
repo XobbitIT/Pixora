@@ -61,6 +61,12 @@
      - Product_1 через «Почати» — **PREDICTIONS_MET**: 107/107, gaps 0/249, holes 0/413, outside 0, без перевибору полотна;
      - Ends — 1 short, тотожно попереднім прогонам.
    - **Відкрито для релізу:** чисте Windows (Sandbox не встановлено); Steam-реквізити, вимоги Steamworks, upload — рішення власника.
+   - Тестовий набір для тестувальників: `outputs/Pixora_1.0.14-rc.9_Test` (незмінений ZIP, SHA256, інструкція UA/EN).
+4. **Простий режим UI ([0123](AgentExchange/0123_CLAUDE_CODEX_SIMPLE_MODE_UI.md), Codex коло 21 аудит + коло 22 P2 виправлено), незакомічено, після rc.9:**
+   - картка «Наступний крок» за readiness (Image → Rust → Fix → Ready; Paused → «Продовжити»), підсвічується лише наступна дія;
+   - `ui_advanced` (типово OFF) ховає непотрібні в Standard інструменти; recovery, «Захоплення Rust», texel лишились; ключ поза PlanIdentity;
+   - локалізація 1686, Core 801, WPF 247 PASS (WPF — на чистій теці `ui-verification`).
+   - **Наступна дія:** рішення користувача щодо коміту й збірки rc.10 → нове калібрування сесії в UI (App SHA змінюється).
 
 **02.11 — крок 3 виконано ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)):** Product_1 через «Почати» з основного конфігу (465/151/1509/1192, Max Speed) через session binding `4993dab0…` — **PREDICTIONS_MET** (107/107, gaps 0/249, holes 0/413, 0 подій, 0 змін поза). Перед цим Session_Calib_1 на новій збірці — CONFIRMED (спроба 1 INCOMPLETE до paint-down через `brush-shape-row`). Пакет `outputs/Pixora_Session_Product_1_20261102` (App `38382f4d…`, Core `5c4a8d88…`).
 - **Закомічено `c3ae220`:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).

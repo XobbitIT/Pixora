@@ -16,13 +16,13 @@ internal sealed partial class MainWindow
     {
         var page=FormContent();pages["experimental"]=Scroll(page);
         page.Children.Add(Text(T("Експериментально","Experimental"),24));
-        page.Children.Add(Text(T("Adaptive, Size 2, тест швидкості й аудит потребують окремих вимірювань. Їхня перевага у швидкості залежить від зображення. Standard використовує Size 3 без цих можливостей.",
-            "Adaptive, Size 2, Speed Probe and coverage audit require separate measurements. Their speed benefit depends on the image. Standard uses Size 3 without these capabilities."),13,Warning));
+        page.Children.Add(Simple(Text(T("Adaptive, Size 2, тест швидкості й аудит потребують окремих вимірювань. Їхня перевага у швидкості залежить від зображення. Standard використовує Size 3 без цих можливостей.",
+            "Adaptive, Size 2, Speed Probe and coverage audit require separate measurements. Their speed benefit depends on the image. Standard uses Size 3 without these capabilities."),13,Warning)));
         BuildTexelProductUi(page);
-        page.Children.Add(Button(T("Увімкнути експериментальне малювання","Enable experimental painting"),()=>SelectReleaseProfile(true),true));
-        page.Children.Add(Button(T("Повернутися до Standard","Return to Standard"),()=>SelectReleaseProfile(false)));
+        page.Children.Add(Simple(Button(T("Увімкнути експериментальне малювання","Enable experimental painting"),()=>SelectReleaseProfile(true),true)));
+        page.Children.Add(Simple(Button(T("Повернутися до Standard","Return to Standard"),()=>SelectReleaseProfile(false))));
         foreach(var (key,uk,en) in new[]{("adaptive","Пензлі та Adaptive","Brushes and Adaptive"),("speed","Тест швидкості й аудит","Speed Probe and audit")})
-        {var b=Button(T(uk,en),()=>ShowPage(key));b.IsEnabled=!ReleaseProfile.Standard(settings);page.Children.Add(b);}
+        {var b=Button(T(uk,en),()=>ShowPage(key));b.IsEnabled=!ReleaseProfile.Standard(settings);page.Children.Add(Simple(b));}
     }
     private TaskCompletionSource<bool>? preparationResume;
     private async Task ResumeAction()

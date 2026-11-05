@@ -595,7 +595,7 @@ public static class PlanIdentity
         paintSettings.Remove("brush_footprint_change_reason");paintSettings.Remove("stroke_profile_policy");
         paintSettings.Remove("stroke_profile_diagnostics");paintSettings.Remove("legacy_brush_motion_proofs");
         foreach(var key in new[]{"preparation_history","palette_target_failed","controls_validation_failed","probe_sizes"})paintSettings.Remove(key);
-        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance" })
+        foreach (var key in new[] { "language", "smooth_preview", "auto_insert_preview", "transfer_simulator", "minimize", "restore_window_after_paint", "fast_move_span_px", "sequence_delay_ms", "double_click_controls", "control_verify_tolerance", "ui_advanced" })
             paintSettings.Remove(key);
         hash.AppendData(System.Text.Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:" + CanonicalJson.Serialize(paintSettings) + JsonSerializer.Serialize(palette)));
         return Convert.ToHexString(hash.GetHashAndReset());

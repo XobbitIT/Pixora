@@ -15078,5 +15078,117 @@
     "Cette condition a déjà été tentée. Nouvelle tentative automatique interdite.",
     "Esta condición ya se intentó. No se permite el reintento automático.",
     "Это условие уже запускали. Автоматическое повторение запрещено."
+  ],
+  [
+    "Advanced mode: show all tools",
+    "Tryb zaawansowany: pokaż wszystkie narzędzia",
+    "Erweiterter Modus: alle Werkzeuge anzeigen",
+    "Mode avancé : afficher tous les outils",
+    "Modo avanzado: mostrar todas las herramientas",
+    "Расширенный режим: показать все инструменты"
+  ],
+  [
+    "Check the preview and press Start. F6 pauses, ESC stops.",
+    "Sprawdź podgląd i naciśnij Start. F6 wstrzymuje, ESC zatrzymuje.",
+    "Prüfe die Vorschau und drücke Start. F6 pausiert, ESC stoppt.",
+    "Vérifie l’aperçu et appuie sur Démarrer. F6 met en pause, Échap arrête.",
+    "Revisa la vista previa y pulsa Iniciar. F6 pausa, ESC detiene.",
+    "Проверь предпросмотр и нажми «Начать». F6 — пауза, ESC — остановка."
+  ],
+  [
+    "In Rust, open the sign editor, set Interval 0.01 and Opacity 1.00, then press Prepare for painting. Keep the mouse still during the check.",
+    "W Rust otwórz edytor tabliczki, ustaw Interval 0.01 i Opacity 1.00, a potem naciśnij Przygotuj do malowania. Nie ruszaj myszą podczas sprawdzania.",
+    "Öffne in Rust den Schild-Editor, stelle Interval 0.01 und Opacity 1.00 ein und drücke dann Zum Malen vorbereiten. Bewege die Maus während der Prüfung nicht.",
+    "Dans Rust, ouvre l’éditeur du panneau, règle Interval sur 0.01 et Opacity sur 1.00, puis appuie sur Préparer la peinture. Ne bouge pas la souris pendant la vérification.",
+    "En Rust, abre el editor del cartel, ajusta Interval a 0.01 y Opacity a 1.00 y pulsa Preparar para pintar. No muevas el ratón durante la comprobación.",
+    "В Rust открой редактор таблички, установи Interval 0.01 и Opacity 1.00, затем нажми «Подготовить к рисованию». Не двигай мышь во время проверки."
+  ],
+  [
+    "In progress",
+    "W toku",
+    "Läuft",
+    "En cours",
+    "En curso",
+    "Выполняется"
+  ],
+  [
+    "Keep the mouse still and do not switch windows. F6 pauses, ESC stops.",
+    "Nie ruszaj myszą i nie przełączaj okien. F6 wstrzymuje, ESC zatrzymuje.",
+    "Bewege die Maus nicht und wechsle keine Fenster. F6 pausiert, ESC stoppt.",
+    "Ne bouge pas la souris et ne change pas de fenêtre. F6 met en pause, Échap arrête.",
+    "No muevas el ratón ni cambies de ventana. F6 pausa, ESC detiene.",
+    "Не двигай мышь и не переключай окна. F6 — пауза, ESC — остановка."
+  ],
+  [
+    "Open texel route",
+    "Otwórz trasę tekselową",
+    "Texelroute öffnen",
+    "Ouvrir le tracé par texels",
+    "Abrir la ruta de téxeles",
+    "Открыть тексельный маршрут"
+  ],
+  [
+    "Preparation is paused. Return to Rust's editor and press Resume.",
+    "Przygotowanie wstrzymane. Wróć do edytora Rust i naciśnij Wznów.",
+    "Die Vorbereitung ist pausiert. Kehre zum Rust-Editor zurück und drücke Fortsetzen.",
+    "La préparation est en pause. Reviens dans l’éditeur de Rust et appuie sur Reprendre.",
+    "La preparación está en pausa. Vuelve al editor de Rust y pulsa Reanudar.",
+    "Подготовка приостановлена. Вернись в редактор Rust и нажми «Продолжить»."
+  ],
+  [
+    "Press Open image or drop a PNG, JPG or BMP into the window.",
+    "Naciśnij Otwórz obraz lub przeciągnij plik PNG, JPG albo BMP do okna.",
+    "Drücke Bild öffnen oder ziehe eine PNG-, JPG- oder BMP-Datei ins Fenster.",
+    "Appuie sur Ouvrir une image ou dépose un PNG, JPG ou BMP dans la fenêtre.",
+    "Pulsa Abrir imagen o arrastra un PNG, JPG o BMP a la ventana.",
+    "Нажми «Открыть изображение» или перетащи PNG, JPG или BMP в окно."
+  ],
+  [
+    "Simple mode shows only the Standard steps. Advanced mode brings back manual capture, diagnostics, export and experimental pages.",
+    "Tryb prosty pokazuje tylko kroki Standard. Tryb zaawansowany przywraca ręczne przechwytywanie, diagnostykę, eksport i strony eksperymentalne.",
+    "Der einfache Modus zeigt nur die Standard-Schritte. Der erweiterte Modus bringt manuelle Erfassung, Diagnose, Export und experimentelle Seiten zurück.",
+    "Le mode simple n’affiche que les étapes Standard. Le mode avancé réaffiche la capture manuelle, les diagnostics, l’export et les pages expérimentales.",
+    "El modo simple muestra solo los pasos de Standard. El modo avanzado recupera la captura manual, los diagnósticos, la exportación y las páginas experimentales.",
+    "Простой режим показывает только шаги Standard. Расширенный возвращает ручной захват, диагностику, экспорт и экспериментальные страницы."
+  ],
+  [
+    "Step 1 of 3 · Image",
+    "Krok 1 z 3 · Obraz",
+    "Schritt 1 von 3 · Bild",
+    "Étape 1 sur 3 · Image",
+    "Paso 1 de 3 · Imagen",
+    "Шаг 1 из 3 · Изображение"
+  ],
+  [
+    "Step 2 of 3 · Prepare Rust",
+    "Krok 2 z 3 · Przygotuj Rust",
+    "Schritt 2 von 3 · Rust vorbereiten",
+    "Étape 2 sur 3 · Préparer Rust",
+    "Paso 2 de 3 · Preparar Rust",
+    "Шаг 2 из 3 · Подготовка Rust"
+  ],
+  [
+    "Step 3 of 3 · Paint",
+    "Krok 3 z 3 · Malowanie",
+    "Schritt 3 von 3 · Malen",
+    "Étape 3 sur 3 · Peindre",
+    "Paso 3 de 3 · Pintar",
+    "Шаг 3 из 3 · Рисование"
+  ],
+  [
+    "What is still needed",
+    "Czego jeszcze brakuje",
+    "Was noch fehlt",
+    "Ce qu’il manque encore",
+    "Lo que aún falta",
+    "Что ещё нужно"
+  ],
+  [
+    "Preparation paused",
+    "Przygotowanie wstrzymane",
+    "Vorbereitung pausiert",
+    "Préparation en pause",
+    "Preparación en pausa",
+    "Подготовка приостановлена"
   ]
 ]

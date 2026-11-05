@@ -10,15 +10,17 @@ internal sealed partial class MainWindow
         var page = FormContent();
         pages["settings"] = Scroll(page);
         page.Children.Add(Text(T("Налаштування", "Settings"), 24));
+        AddAdvancedToggle(page);
         if(configReadProblem is not null)page.Children.Add(Text(T("Не вдалося прочитати налаштування. Імпортуй справний конфіг у Налаштуваннях.","Settings could not be read. Import a valid configuration in Settings."),13,Warning));
-        page.Children.Add(Button(T("Імпортувати налаштування","Import settings"),ImportConfiguration));
-        page.Children.Add(Button(T("Standard — Size 3","Standard — Size 3"),()=>SelectReleaseProfile(false)));
+        var import=Button(T("Імпортувати налаштування","Import settings"),ImportConfiguration);page.Children.Add(configReadProblem is null?Simple(import):import);
+        page.Children.Add(Simple(Button(T("Standard — Size 3","Standard — Size 3"),()=>SelectReleaseProfile(false))));
         page.Children.Add(Button(T("Експериментально","Experimental"),()=>ShowPage("experimental")));
         page.Children.Add(Card(T("Основні налаштування", "General settings"), out var basic));
+        SimpleAdded(basic,()=>{
         AddCombo(basic, "profile", T("Профіль якості", "Quality profile"), new[] { "Anime / Line Art", "Photo", "Fast", "Pixel Art", "Custom" });
         var applyProfile = Button(T("Застосувати профіль", "Apply profile"), ApplyProfile);
         applyProfile.HorizontalAlignment = HorizontalAlignment.Left; basic.Children.Add(applyProfile);
-        basic.Children.Add(Text(T("Профіль якості змінює обробку зображення після натискання кнопки. Деталізація та швидкість руху налаштовуються окремо.", "Apply profile changes image processing. Detail and movement speed are set separately."), 11, Muted));
+        basic.Children.Add(Text(T("Профіль якості змінює обробку зображення після натискання кнопки. Деталізація та швидкість руху налаштовуються окремо.", "Apply profile changes image processing. Detail and movement speed are set separately."), 11, Muted));});
         basic.Children.Add(Text(T("Режим кольорів, ліміт кольорів, деталізація та режим вводу — на сторінці «Малювання».", "Color mode, color limit, detail, and Speed Engine are on the Painting page."), 11, Muted));
         var compatibility=new StackPanel();
         page.Children.Add(new Expander{Header=T("Сумісність з Rust","Rust compatibility"),Tag="rust-compatibility",Content=compatibility});
@@ -53,7 +55,7 @@ internal sealed partial class MainWindow
         }
         page.Children.Add(Card(T("Якість зображення", "Image quality"),out var image));
         AddCombo(image,"fit_mode",T("Розміщення", "Image placement"),new[]{"fit square","fit whole","crop","smart"},true);
-        AddCheck(image,"fill_subject",T("Заповнити полотно об’єктом", "Fill Canvas with the subject"),true);
+        SimpleAdded(image,()=>AddCheck(image,"fill_subject",T("Заповнити полотно об’єктом", "Fill Canvas with the subject"),true));
         var advanced = new StackPanel();
         if(!ReleaseProfile.Standard(settings))page.Children.Add(new Expander { Header = T("Додаткові налаштування малювання", "Advanced painting settings"), Content = advanced });
         advanced.Children.Add(Card(T("Якість зображення", "Image quality"), out var quality));

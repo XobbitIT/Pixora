@@ -258,7 +258,7 @@ internal sealed partial class MainWindow : Window
     {
         buildingUi = true;
         readers.Clear();settingWriters.Clear();allSetupButtons.Clear();setupSummaries.Clear();setupRows.Clear();
-        navigation.Clear();numberErrors.Clear();detailPresets.Clear();
+        navigation.Clear();numberErrors.Clear();detailPresets.Clear();openImageButtons.Clear();
         paletteSwatchLabels.Clear();
         pages.Clear();
         var root = new Grid
@@ -356,7 +356,7 @@ internal sealed partial class MainWindow : Window
         )
         {
             var nav=Button(title,()=>ShowPage(key));nav.HorizontalContentAlignment=HorizontalAlignment.Left;
-            navigation[key]=nav;side.Children.Add(nav);
+            navigation[key]=nav;side.Children.Add(key is "experimental"?Simple(nav):nav);
         }
         side.Children.Add(Text(T("ПІДГОТОВКА", "PREPARATION"),10,Muted));
         BuildWorkflow(side);
@@ -411,7 +411,7 @@ internal sealed partial class MainWindow : Window
         page.RowDefinitions.Add(new(){Height=GridLength.Auto});page.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});pages["paint"]=page;
         var header=new DockPanel{Margin=new Thickness(0,0,0,12)};
         var help=Button(T("Як почати", "Getting started"), OpenFirstRunGuide); help.Tag="getting-started"; DockPanel.SetDock(help,Dock.Right);header.Children.Add(help);
-        var open=Button(T("Відкрити зображення","Open image"),OpenImage);DockPanel.SetDock(open,Dock.Right);header.Children.Add(open);
+        var open=Button(T("Відкрити зображення","Open image"),OpenImage);openImageButtons.Add(open);DockPanel.SetDock(open,Dock.Right);header.Children.Add(open);
         header.Children.Add(Text(T("Малювання","Painting"),24));page.Children.Add(header);
         contentArea=new Grid();contentArea.ColumnDefinitions.Add(new(){Width=new GridLength(1,GridUnitType.Star)});
         contentArea.ColumnDefinitions.Add(new(){Width=new GridLength(360)});Grid.SetRow(contentArea,1);page.Children.Add(contentArea);
@@ -419,7 +419,7 @@ internal sealed partial class MainWindow : Window
         var right=new StackPanel();var scroll=Scroll(right);
         var controlColumn=new Grid();controlColumn.RowDefinitions.Add(new(){Height=new GridLength(1,GridUnitType.Star)});
         controlColumn.RowDefinitions.Add(new(){Height=GridLength.Auto});Grid.SetColumn(controlColumn,1);contentArea.Children.Add(controlColumn);controlColumn.Children.Add(scroll);
-        right.Children.Add(Card(T("1. Підготовка","1. Preparation"),out var preparation));ready=Text("",13);preparation.Children.Add(ready);
+        BuildNextStep(right);right.Children.Add(Card(T("1. Підготовка","1. Preparation"),out var preparation));ready=Text("",13);preparation.Children.Add(ready);
         AddWorkingBrushRecovery(preparation);
         preparationSelection=Text("",12,Muted);preparation.Children.Add(preparationSelection);
         targetChangeNotice=Text("",12,Warning);targetChangeNotice.Tag="target-change-notice";targetChangeNotice.Visibility=Visibility.Collapsed;preparation.Children.Add(targetChangeNotice);
@@ -436,17 +436,17 @@ internal sealed partial class MainWindow : Window
             choice.Tag="color-choice:"+mode;modes.Add(choice);
         }
         colors.Children.Add(modes.Panel);
-        AddCombo(colors,"color_mode",T("Спосіб вибору кольору","Color selection"),new[]{"Rust Palette","HEX Direct"},true);
+        SimpleAdded(colors,()=>AddCombo(colors,"color_mode",T("Спосіб вибору кольору","Color selection"),new[]{"Rust Palette","HEX Direct"},true));
         colors.Children.Add(Text(settings.Mode==ColorMode.HexDirect?T("HEX вводить точний колір. Для палітри Rust натисни кнопку поруч.","HEX enters an exact color. Use the adjacent Rust Palette button for palette painting."):
             T("Палітра Rust наближує кольори зображення. Для точніших відтінків вибери HEX. Антизгладжені краї можуть містити додаткові кольори.","Rust Palette approximates image colors. Choose HEX for closer shades. Antialiased edges may contain additional colors."),12,Muted));
         AddCombo(colors,settings.Mode==ColorMode.HexDirect?"hex_max_colors":"max_colors",T("Кількість кольорів","Color count"),settings.Mode==ColorMode.HexDirect?new[]{"Auto","64","96","128","192","256"}:new[]{"Auto","2","3","4","8","16","32","64","96"},true);
         paletteCompareButton = Button(T("Порівняти 64 / 96 / 128 / 256", "Compare 64 / 96 / 128 / 256"), CompareHexPalettes);
         paletteCompareButton.ToolTip = T("Чотири прев’ю, операції, ΔE і плановий час для відкритого зображення.", "Four previews, operations, ΔE and planned time for the loaded image.");
-        if (settings.Mode == ColorMode.HexDirect) colors.Children.Add(paletteCompareButton);
+        if (settings.Mode == ColorMode.HexDirect) colors.Children.Add(Simple(paletteCompareButton));
         var qualityCard=Card(T("Якість і швидкість","Quality and speed"),out var quality);
         right.Children.Add(new Expander{Header=T("Якість і швидкість","Quality and speed"),Tag="painting-quality",Content=qualityCard});
-        AddCombo(quality,"speed_profile",T("Профіль руху","Movement profile"),SpeedProfile.All.Select(x=>x.Name).ToArray(),true);
-        quality.Children.Add(Text(T("Швидкість руху не змінює деталізацію або кольори цілі.","Movement speed does not change target detail or colors."),12,Muted));
+        SimpleAdded(quality,()=>{AddCombo(quality,"speed_profile",T("Профіль руху","Movement profile"),SpeedProfile.All.Select(x=>x.Name).ToArray(),true);
+        quality.Children.Add(Text(T("Швидкість руху не змінює деталізацію або кольори цілі.","Movement speed does not change target detail or colors."),12,Muted));});
         var presets=new UniformGridCompat(2);
         foreach(var (label,cell) in new[]{(T("Чітко · 2 px","Detail · 2 px"),2),(T("Баланс · 3 px","Balanced · 3 px"),3),(T("Грубіше · 5 px","Coarser · 5 px"),5),(T("Чернетка · 8 px","Draft · 8 px"),8)})
         {
@@ -470,7 +470,7 @@ internal sealed partial class MainWindow : Window
         var advancedPainting=new StackPanel();
         advancedPainting.Children.Add(Button(T("Пензлі та Adaptive","Brushes and Adaptive"),()=>ShowPage("adaptive")));
         advancedPainting.Children.Add(Button(T("Тест швидкості й аудит","Speed Probe and audit"),ShowSpeedSetup));
-        quality.Children.Add(Button(T("Експериментально","Experimental"),()=>ShowPage("experimental")));
+        quality.Children.Add(Simple(Button(T("Експериментально","Experimental"),()=>ShowPage("experimental"))));
         var timing=new StackPanel();if(!ReleaseProfile.Standard(settings))quality.Children.Add(new Expander{Header=T("Точні параметри швидкості","Movement timing"),Content=timing});
         AddCombo(timing,"input_engine",T("Режим вводу","Input timing"),new[]{"Stable","Experimental 1 ms"});
         stableDelay=AddNumber(timing,"input_frame_delay_ms",T("Стабільний, мс (16–100)","Stable, ms (16–100)"));
@@ -491,8 +491,8 @@ internal sealed partial class MainWindow : Window
         controls.Children.Add(eta);
         var advanced=new StackPanel();right.Children.Add(new Expander{Header=T("План і експорт","Plan and export"),Content=advanced});advanced.Children.Add(Card(T("План зображення","Image plan"),out var planDetails));
         stats=Text("—",12);planDetails.Children.Add(stats);planDetails.Children.Add(AsyncButton(T("Оновити прев’ю","Refresh preview"),BuildPlan));
-        var improve=Button(T("Застосувати профіль чітких країв","Apply clear-edge profile"),AutoFix);improve.ToolTip=T("Збереження контурів і відтінків шкіри, без згладжування та заливки фону. Швидкість не змінюється.","Preserved edges and skin tones, no smoothing or background fill. Movement speed is unchanged.");planDetails.Children.Add(improve);
-        advanced.Children.Add(Card(T("Палітра й експорт","Palette and export"),out var export));swatches=new WrapPanel();export.Children.Add(swatches);
+        var improve=Button(T("Застосувати профіль чітких країв","Apply clear-edge profile"),AutoFix);improve.ToolTip=T("Збереження контурів і відтінків шкіри, без згладжування та заливки фону. Швидкість не змінюється.","Preserved edges and skin tones, no smoothing or background fill. Movement speed is unchanged.");planDetails.Children.Add(Simple(improve));
+        advanced.Children.Add(Simple(Card(T("Палітра й експорт","Palette and export"),out var export)));swatches=new WrapPanel();export.Children.Add(swatches);
         export.Children.Add(Button(T("Показати вставку","Show insertion"),ShowInsertion));export.Children.Add(Button(T("Експортувати PNG","Export PNG"),ExportPreview));
     }
 
@@ -682,7 +682,7 @@ internal sealed partial class MainWindow : Window
                 string text=>settings.Text(reader.Key)==text,
                 _=>false
             };
-            if(!same&&reader.Key is not ("language" or "transfer_simulator" or "smooth_preview" or "auto_insert_preview"))changed=true;
+            if(!same&&reader.Key is not ("language" or "transfer_simulator" or "smooth_preview" or "auto_insert_preview" or AdvancedUiKey))changed=true;
         }
         if(editedKey is not null&&!readers.ContainsKey(editedKey))snapshot.Data[editedKey]=JsonSerializer.SerializeToNode(editedValue);
         DrawingWorkflow.Normalize(snapshot); snapshot.Validate();
@@ -794,6 +794,7 @@ internal sealed partial class MainWindow : Window
         pauseButton.IsEnabled=painter is not null&&paintTask is {IsCompleted:false}&&!setupRunning&&!inputCheckRunning;stopButton.IsEnabled=Painting;
         string State(bool value)=>value?T("готово","ready"):T("очікує","pending");
         UpdateWorkflow(preparationState);
+        RefreshNextStep(preparationState,available,missing);
         RefreshRuntimeReadiness();
         RefreshSetupStatus();
         captureStatus.Text=$"{T("Полотно","Canvas")}: {(canvas?$"{cal.Rect("canvas").Width} × {cal.Rect("canvas").Height} px":T("не захоплено","not captured"))}\n{T("Кольори","Colors")}: {(color?T("готові","ready"):T("потрібне налаштування","setup needed"))}\n{T("Пензель і числові поля","Brush and numeric fields")}: {State(controls)}";
