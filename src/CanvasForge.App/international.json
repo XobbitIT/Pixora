@@ -8998,5 +8998,125 @@
     "Appliquer le profil modifie le traitement de l’image. Le détail et la vitesse de déplacement se règlent séparément.",
     "Aplicar el perfil cambia el procesamiento de imagen. El detalle y la velocidad de movimiento se configuran por separado.",
     "Применение профиля меняет обработку изображения. Детализация и скорость движения настраиваются отдельно."
+  ],
+  [
+    "Standard texel route — experimental",
+    "Trasa tekselowa Standard — eksperymentalna",
+    "Standard-Texelroute — experimentell",
+    "Tracé texel Standard — expérimental",
+    "Ruta de téxeles Standard — experimental",
+    "Тексельный маршрут Standard — экспериментальный"
+  ],
+  [
+    "Experimental. Same Canvas view only, Standard Size 3 round, black and transparency. 1 source pixel = 1 texel, no resizing; up to 385×339 texels (columns 75–459, rows 198–536); details at least 3 texels wide and 2 tall. Session calibration is required before painting.",
+    "Eksperymentalne. Tylko ten sam widok płótna, Standard Size 3 okrągły, czarny i przezroczystość. 1 piksel pliku = 1 teksel, bez skalowania; do 385×339 tekseli (kolumny 75–459, wiersze 198–536); detale co najmniej 3 teksele szerokie i 2 wysokie. Przed malowaniem wymagana jest kalibracja sesji.",
+    "Experimentell. Nur dieselbe Canvas-Ansicht, Standard Size 3 rund, Schwarz und Transparenz. 1 Dateipixel = 1 Texel, ohne Skalierung; bis 385×339 Texel (Spalten 75–459, Zeilen 198–536); Details mindestens 3 Texel breit und 2 hoch. Vor dem Malen ist eine Sitzungskalibrierung erforderlich.",
+    "Expérimental. Même vue du Canvas uniquement, Standard Size 3 rond, noir et transparence. 1 pixel source = 1 texel, sans redimensionnement ; jusqu’à 385×339 texels (colonnes 75–459, lignes 198–536) ; détails d’au moins 3 texels de large et 2 de haut. Une calibration de session est requise avant de peindre.",
+    "Experimental. Solo la misma vista del Canvas, Standard Size 3 redondo, negro y transparencia. 1 píxel del archivo = 1 téxel, sin redimensionar; hasta 385×339 téxeles (columnas 75–459, filas 198–536); detalles de al menos 3 téxeles de ancho y 2 de alto. Antes de pintar se requiere calibrar la sesión.",
+    "Экспериментально. Только тот же вид холста, Standard Size 3 круглый, чёрный цвет и прозрачный фон. 1 пиксель файла = 1 тексель, без масштабирования; до 385×339 текселей (столбцы 75–459, строки 198–536); детали не меньше 3 текселей в ширину и 2 в высоту. Перед рисованием нужна калибровка сессии."
+  ],
+  [
+    "Known limitations: a stroke end may stop short of the edge (cut corner; measured up to ≈0.55 texel) or extend past it to the right (extra texel; measured up to ≈1.8 texels from the edge). Most often at figure corners and in shapes 2 texels tall. No bound is guaranteed; physical quality is not certified.",
+    "Znane ograniczenia: koniec pociągnięcia może nie dojść do krawędzi (ścięty róg; w pomiarach do ≈0.55 teksela) lub wyjść za nią w prawo (dodatkowy teksel; w pomiarach do ≈1.8 teksela od krawędzi). Najczęściej w rogach figur i w kształtach o wysokości 2 tekseli. Granica nie jest gwarantowana; jakość fizyczna nie jest certyfikowana.",
+    "Bekannte Einschränkungen: Ein Strichende kann vor der Kante enden (abgeschnittene Ecke; gemessen bis ≈0.55 Texel) oder rechts darüber hinausgehen (zusätzliches Texel; gemessen bis ≈1.8 Texel ab der Kante). Meist an Figurenecken und in 2 Texel hohen Formen. Keine Grenze ist garantiert; die physische Qualität ist nicht zertifiziert.",
+    "Limites connues : une fin de trait peut s’arrêter avant le bord (coin coupé ; mesuré jusqu’à ≈0.55 texel) ou le dépasser à droite (texel en trop ; mesuré jusqu’à ≈1.8 texel depuis le bord). Surtout aux coins des figures et dans les formes de 2 texels de haut. Aucune limite n’est garantie ; la qualité physique n’est pas certifiée.",
+    "Limitaciones conocidas: el final de un trazo puede quedarse antes del borde (esquina cortada; medido hasta ≈0.55 téxel) o sobrepasarlo a la derecha (téxel extra; medido hasta ≈1.8 téxeles desde el borde). Sobre todo en esquinas de figuras y en formas de 2 téxeles de alto. No se garantiza ningún límite; la calidad física no está certificada.",
+    "Известные ограничения: конец штриха может не дойти до края (срезанный угол; в измерениях до ≈0.55 текселя) или выйти за край вправо (лишний тексель; в измерениях до ≈1.8 текселя от границы). Чаще всего на углах фигур и в фигурах высотой 2 текселя. Граница не гарантирована; физическое качество не сертифицировано."
+  ],
+  [
+    "3 short lines on a clean canvas, ≈2 min; ESC stops. Each click creates a new attempt.",
+    "3 krótkie linie na czystym płótnie, ≈2 min; ESC zatrzymuje. Każde kliknięcie tworzy nową próbę.",
+    "3 kurze Linien auf sauberem Canvas, ≈2 Min.; ESC stoppt. Jeder Klick erstellt einen neuen Versuch.",
+    "3 lignes courtes sur un Canvas propre, ≈2 min ; ESC arrête. Chaque clic crée une nouvelle tentative.",
+    "3 líneas cortas en un Canvas limpio, ≈2 min; ESC detiene. Cada clic crea un nuevo intento.",
+    "3 короткие линии на чистом холсте, ≈2 мин; ESC останавливает. Каждое нажатие — новая попытка."
+  ],
+  [
+    "Use texel route for Start",
+    "Używaj trasy tekselowej dla Start",
+    "Texelroute für Start verwenden",
+    "Utiliser le tracé texel pour Démarrer",
+    "Usar la ruta de téxeles para Iniciar",
+    "Использовать тексельный маршрут для «Начать»"
+  ],
+  [
+    "First column (75–457)",
+    "Pierwsza kolumna (75–457)",
+    "Erste Spalte (75–457)",
+    "Première colonne (75–457)",
+    "Primera columna (75–457)",
+    "Начальный столбец (75–457)"
+  ],
+  [
+    "First row (198–535)",
+    "Pierwszy wiersz (198–535)",
+    "Erste Zeile (198–535)",
+    "Première ligne (198–535)",
+    "Primera fila (198–535)",
+    "Начальная строка (198–535)"
+  ],
+  [
+    "Each stroke ends by the full-coverage rule. Motion is fixed; unsupported modes fail with a reason.",
+    "Każde pociągnięcie kończy się według reguły pełnego pokrycia. Ruch jest stały; nieobsługiwane tryby są odrzucane z podaniem przyczyny.",
+    "Jeder Strich endet nach der Vollabdeckungsregel. Die Bewegung ist fest; nicht unterstützte Modi werden mit Begründung abgelehnt.",
+    "Chaque trait se termine selon la règle de couverture complète. Le mouvement est fixe ; les modes non pris en charge échouent avec une raison.",
+    "Cada trazo termina según la regla de cobertura completa. El movimiento es fijo; los modos no admitidos fallan con un motivo.",
+    "Каждый штрих заканчивается по правилу полного покрытия. Движение зафиксировано; неподдерживаемые режимы отклоняются с указанием причины."
+  ],
+  [
+    "Session calibration: none",
+    "Kalibracja sesji: brak",
+    "Sitzungskalibrierung: keine",
+    "Calibration de session : aucune",
+    "Calibración de sesión: ninguna",
+    "Калибровка сессии: нет"
+  ],
+  [
+    "Session calibration: active{p0}",
+    "Kalibracja sesji: aktywna{p0}",
+    "Sitzungskalibrierung: aktiv{p0}",
+    "Calibration de session : active{p0}",
+    "Calibración de sesión: activa{p0}",
+    "Калибровка сессии: активна{p0}"
+  ],
+  [
+    "Session calibration: invalid{p0}",
+    "Kalibracja sesji: nieważna{p0}",
+    "Sitzungskalibrierung: ungültig{p0}",
+    "Calibration de session : invalide{p0}",
+    "Calibración de sesión: no válida{p0}",
+    "Калибровка сессии: недействительна{p0}"
+  ],
+  [
+    "Draw 3 short lines on a clean canvas (≈2 min). ESC stops. Confirm input? After confirming, focus Rust within 10 seconds.",
+    "Na czystym płótnie zostaną narysowane 3 krótkie linie (≈2 min). ESC zatrzymuje. Potwierdzić wprowadzanie? Po potwierdzeniu przejdź do Rust w ciągu 10 sekund.",
+    "Auf sauberem Canvas werden 3 kurze Linien gezeichnet (≈2 Min.). ESC stoppt. Eingabe bestätigen? Danach innerhalb von 10 Sekunden zu Rust wechseln.",
+    "3 lignes courtes seront tracées sur un Canvas propre (≈2 min). ESC arrête. Confirmer la saisie ? Après confirmation, passez à Rust dans les 10 secondes.",
+    "Se dibujarán 3 líneas cortas en un Canvas limpio (≈2 min). ESC detiene. ¿Confirmar la entrada? Después, cambia a Rust en 10 segundos.",
+    "На чистом холсте будут нарисованы 3 короткие линии (≈2 мин). ESC останавливает. Подтвердить ввод? После подтверждения перейди в Rust в течение 10 секунд."
+  ],
+  [
+    "Canvas frame reference updated from this calibration.",
+    "Wzorzec ramki płótna zaktualizowano z tej kalibracji.",
+    "Canvas-Rahmenreferenz aus dieser Kalibrierung aktualisiert.",
+    "Référence du cadre du Canvas mise à jour depuis cette calibration.",
+    "Referencia del marco del Canvas actualizada con esta calibración.",
+    "Эталон рамки холста обновлён из этой калибровки."
+  ],
+  [
+    "Canvas frame reference not updated: {p0}",
+    "Nie zaktualizowano wzorca ramki płótna: {p0}",
+    "Canvas-Rahmenreferenz nicht aktualisiert: {p0}",
+    "Référence du cadre du Canvas non mise à jour : {p0}",
+    "Referencia del marco del Canvas no actualizada: {p0}",
+    "Эталон рамки холста не обновлён: {p0}"
+  ],
+  [
+    "Binding attached for this session. Refresh preview; requested and effective speed: Max Speed.",
+    "Binding podłączony tylko do tej sesji. Odśwież podgląd; żądana i efektywna prędkość: Max Speed.",
+    "Binding nur für diese Sitzung verbunden. Vorschau aktualisieren; angeforderte und effektive Geschwindigkeit: Max Speed.",
+    "Binding attaché à cette session uniquement. Actualisez l’aperçu ; vitesse demandée et effective : Max Speed.",
+    "Binding conectado solo para esta sesión. Actualiza la vista previa; velocidad solicitada y efectiva: Max Speed.",
+    "Binding подключён только к этой сессии. Обнови превью; запрошенная и фактическая скорость: Max Speed."
   ]
 ]

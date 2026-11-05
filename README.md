@@ -2,6 +2,14 @@ Current verified runtime: **1.0.14-rc.8+local-line-repair-1**. Standard physical
 
 Project notebook: [rules](AGENTS.md) → [current state](PROJECT_STATE.md); consult [architecture](ARCHITECTURE.md), [test matrix](TEST_MATRIX.md), and [Steam readiness](STEAM_RELEASE.md) as needed.
 
+## Standard texel route (experimental)
+
+Optional mode for black-and-transparent images, off by default: **Experimental → Standard texel route — experimental**. One source pixel paints one sign texel, without resizing.
+
+- **Supported:** the same Canvas view; Standard Size 3 round; black #000000 and transparency; up to 385×339 texels (columns 75–459, rows 198–536); details at least 3 texels wide and 2 tall. Anything else is refused before input, with a reason.
+- **Before painting:** press **Calibrate session** on a clean Canvas (3 short lines, about 2 min). START needs the confirmed calibration of this build.
+- **Known limitations:** a stroke end may stop short of the edge (a cut corner; measured up to ≈0.55 texel) or extend past it to the right (an extra texel; measured up to ≈1.8 texels from the edge). No bound is guaranteed. This is most frequent at figure corners and in shapes 2 texels tall. It comes from cursor pixel quantization; a different end rule cannot remove it (0117). Physical quality is not certified.
+
 ## Historical release notes
 
 

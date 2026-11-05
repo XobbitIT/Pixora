@@ -1,3 +1,9 @@
+# Known issues — Standard texel route (experimental, 1.0.14-rc.8)
+
+- **Stroke ends (P2, known limitation):** a row end can be short (cut corner, end phase below ~2.05; measured down to -0.55 texel) or carry an extra texel (end phase from ~2.3; measured up to +1.8 texels past the edge). No bound is guaranteed. The clean end window (~0.25 texel) is narrower than one cursor pixel (~0.49 texel), so no end-pixel rule fixes both (0116, 0117). Typical counts: Product_1 1 short end of 102; Product_2/3 none; the 385×339 Max picture 15 short and 18 extra of 2139.
+- **Review:** the product review reports every clear row end in its `Ends` block (`summary.json`, `ends.csv`): CLEAN / KNOWN_LIMITATION / UNMEASURED. The PREDICTIONS_MET verdict does not include it (0119).
+- **Scope:** only black on transparency, Standard Size 3 round, the calibrated Canvas view and domain. Colors, other Sizes or shapes, Adaptive and calibration between bands are not part of the first release (0118). Physical quality is not certified.
+
 # Known issues — current beta.56
 
 The supplied beta.55 Palette runs verify the captured target cells, not final painted RGB or physical coverage. Gray FCB/BVB gaps also exist in the safe-command model. Beta.56 removes empty color selections and redundant solid-mask commands; it does not paint unsafe boundaries or turn Unknown audit pixels into verified coverage.

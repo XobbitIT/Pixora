@@ -58,7 +58,7 @@ internal sealed partial class MainWindow
                     }
                 }
                 catch(Exception e) when(e is IOException or InvalidDataException or UnauthorizedAccessException)
-                {result+="\n"+T("Еталон рамки не оновлено: ","Canvas frame reference not updated: ")+e.Message;}
+                {result+="\n"+T("Еталон рамки не оновлено: "+e.Message,"Canvas frame reference not updated: "+e.Message);}
             }
             SetStatus(result??"INCOMPLETE");
             MessageBox.Show(this,result??"INCOMPLETE","Pixora");
@@ -76,11 +76,14 @@ internal sealed partial class MainWindow
         if(d.StartsWith("недійсний",StringComparison.Ordinal))return T("Калібрування сесії: "+d,"Session calibration: invalid"+d["недійсний".Length..]);
         return T("Калібрування сесії: "+d,"Session calibration: "+d);
     }
+    // Release B (0118): the texel route ships as an experimental feature with honest, measured limits (0113, 0117, 0119).
     private void BuildTexelProductUi(StackPanel page)
     {
-        var area=new StackPanel();page.Children.Add(new Expander{Header=T("Тексельний маршрут Standard — дослідний","Standard texel route — research"),Content=area});
-        area.Children.Add(Text(T("Калібрування 26.10, кінці штрихів 29.10: лише той самий вид полотна, Size 3, чорний і прозорий фон. 1 піксель файлу = 1 тексель; до 385×339 (стовпці 75–459, рядки 198–536), деталі від 3 текселів завширшки і 2 заввишки, без масштабування. Фізична якість ще не сертифікована.",
-            "Calibration 26 Oct, stroke ends 29 Oct: same Canvas view, Size 3, black and transparency only. 1 source pixel = 1 texel; up to 385×339 (columns 75–459, rows 198–536), details at least 3 texels wide and 2 tall, no resizing. Physical quality is not certified."),12,Warning));
+        var area=new StackPanel();page.Children.Add(new Expander{Header=T("Тексельний маршрут Standard — експериментальний","Standard texel route — experimental"),Content=area});
+        area.Children.Add(Text(T("Експериментально. Лише той самий вид полотна, Standard Size 3 круглий, чорний колір і прозорий фон. 1 піксель файлу = 1 тексель, без масштабування; до 385×339 текселів (стовпці 75–459, рядки 198–536); деталі щонайменше 3 тексели завширшки і 2 заввишки. Перед малюванням потрібне калібрування сесії.",
+            "Experimental. Same Canvas view only, Standard Size 3 round, black and transparency. 1 source pixel = 1 texel, no resizing; up to 385×339 texels (columns 75–459, rows 198–536); details at least 3 texels wide and 2 tall. Session calibration is required before painting."),12,Warning));
+        area.Children.Add(Text(T("Відомі обмеження: кінець штриха може не дотягнути до краю (зрізаний кут; у вимірах до ≈0.55 текселя) або вийти за край праворуч (зайвий тексель; у вимірах до ≈1.8 текселя від межі). Найчастіше — на кутах фігур і у фігурах висотою 2 тексели. Межа не гарантована; фізична якість не сертифікована.",
+            "Known limitations: a stroke end may stop short of the edge (cut corner; measured up to ≈0.55 texel) or extend past it to the right (extra texel; measured up to ≈1.8 texels from the edge). Most often at figure corners and in shapes 2 texels tall. No bound is guaranteed; physical quality is not certified."),12,Warning));
         texelBindingStatus=Text(TexelBindingStatusText(),12,Muted);
         area.Children.Add(texelBindingStatus);
         area.Children.Add(Text(T("3 короткі лінії на чистому полотні, ≈2 хв; ESC зупиняє. Кожне натискання — нова спроба.","3 short lines on a clean canvas, ≈2 min; ESC stops. Each click creates a new attempt."),12,Muted));
@@ -90,7 +93,7 @@ internal sealed partial class MainWindow
         area.Children.Add(Button(T("Відключити session binding","Detach session binding"),()=>{if(!Painting){texelSessionOverlay=null;texelSessionDetached=true;plan=null;UpdateReady();}}));
         AddNumber(area,TexelExperimentSettings.ColumnKey,T("Початковий стовпець (75–457)","First column (75–457)"),true);
         AddNumber(area,TexelExperimentSettings.RowKey,T("Початковий рядок (198–535)","First row (198–535)"),true);
-        area.Children.Add(Text(T("Кінець кожного штриха — правило повного покриття, перевірене картинками 8 і 9. Рядки без надійної адресації відхиляються; наживо перевірені рядки 203–242, 452–475 і 493–532. Рух зафіксований як у пілоті; інші режими відхиляються з причиною.",
-            "Each stroke ends by the full-coverage rule verified by Pictures 8 and 9. Rows without reliable addressing are refused; rows 203–242, 452–475 and 493–532 were verified live. Motion is fixed to the pilot; unsupported modes fail with a reason."),12,Muted));
+        area.Children.Add(Text(T("Кожен штрих закінчується за правилом повного покриття. Рух зафіксований; непідтримувані режими відхиляються з причиною.",
+            "Each stroke ends by the full-coverage rule. Motion is fixed; unsupported modes fail with a reason."),12,Muted));
     }
 }

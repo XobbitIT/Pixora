@@ -2013,6 +2013,23 @@
         "tests": "App texel-product 3/3, session-start, session1, pic8, pic9 PASS; WPF 246 PASS",
         "next": "release B step 2: show limitations in UI and docs"
       }
+    },
+    {
+      "id": "0120",
+      "file": "0120_CLAUDE_CODEX_TEXEL_LIMITS_UI_DOCS.md",
+      "author": "Claude (local session) with Codex as equal partner; Codex rounds quoted by file",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "scope": {
+        "status": "IMPLEMENTED_CODEX_APPROVE",
+        "finding": "texel block renamed experimental, honest measured limits and known stroke-end limitation in UI (7 languages) and README/README_UA/KNOWN_ISSUES; frame-reference failure message now localizable",
+        "codexRounds": [
+          "../../texel-endphase-20261104/codex-round14.md",
+          "../../texel-endphase-20261104/codex-round15.md"
+        ],
+        "tests": "--international-only 7/7 PASS with texel-block localization check and negative control",
+        "next": "release B step 3: final release build, in-UI session calibration of that build, STEAM_RELEASE checks"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

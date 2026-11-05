@@ -55,6 +55,9 @@ internal static partial class Program
             foreach(string status in new[]{"Paused","Paused — return to Rust and press F6.","Changing brush Size…","Changing brush shape…","Checking coverage…","Coverage confirmed by the audit. Check its appearance in Rust.","The system did not respond to the input timer within 100 ms. Reduce the load and retry."})
                 if(language!="English")Assert(Translations.ForLanguage(status,language)!=status,"Worker status fell back to English: "+status);
             if(language is "Українська" or "English")continue;
+            // Codex round 14: the reason is part of the localized message, not appended after it.
+            string frame=Translations.ForLanguage("Еталон рамки не оновлено: disk full",language,"Canvas frame reference not updated: disk full");
+            Assert(frame.EndsWith("disk full",StringComparison.Ordinal)&&!frame.StartsWith("Canvas frame reference",StringComparison.Ordinal),"Frame reference failure not localized: "+frame);
             string dynamic=Translations.ForLanguage("Apply 128",language);
             Assert(dynamic.Contains("128")&&dynamic!="Apply 128","Template substitution missing");
             string failure=Translations.ForLanguage("Could not measure Size 3: Pending",language);
@@ -80,6 +83,13 @@ internal static partial class Program
             string[] missing=buttons.Select(b=>System.Text.RegularExpressions.Regex.Replace(b.Content!.ToString()!,@"^(?:✓\s*|\d+\.\s*)","")).Where(t=>t.Any(char.IsLetter)&&t!="HEX" && !t.StartsWith("Size ") &&
                 Translations.ForLanguage(t,"English")==t && !Translations.HasInternationalEntry(t)).Distinct().ToArray();
             Assert(missing.Length==0,"Untranslated buttons in "+language+": "+string.Join(" | ",missing));
+            // Release B (0118): every text of the experimental texel block, including its known limitations, is localized.
+            var texel=InternationalElements(window).OfType<Expander>().Single(e=>e.Header as string==Translations.ForLanguage("Standard texel route — experimental",language));
+            string[] texelTexts=InternationalElements(texel).SelectMany(e=>e switch{TextBlock t=>new[]{t.Text},ContentControl c when c.Content is string s=>new[]{s},_=>Array.Empty<string>()})
+                .Where(t=>t.Any(char.IsLetter)).Distinct().ToArray();
+            Assert(texelTexts.Length>=9,"Texel block texts missing in "+language+": "+texelTexts.Length);
+            string[] english=texelTexts.Where(t=>Translations.ForLanguage(t,"English")==t).ToArray();
+            Assert(english.Length==0,"Untranslated texel texts in "+language+": "+string.Join(" | ",english));
         }
         Render(window,Path.Combine(output,"first-launch-"+code+".png"),language=="Deutsch"?900:1280,780,expandPaintingControls:false);
         Invoke(window,"OpenFirstRunGuide");Assert(Field<Border>(window,"firstRunGuide").Visibility==Visibility.Visible,"Help not accessible");

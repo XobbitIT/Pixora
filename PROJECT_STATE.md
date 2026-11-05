@@ -48,8 +48,11 @@
    - блок `Ends` у `summary.json` і `ends.csv`; статус CLEAN / KNOWN_LIMITATION / UNMEASURED; вердикт не змінено;
    - на 10 записаних прогонах збіг із `--texel-run-ends`: P2/P3 CLEAN, P1 1 short, Max 15/18, Corners 51/14;
    - App-групи і WPF 246 PASS.
-2. **Наступне:** обмеження видно в UI тексельного блоку та в документації.
-3. Фінальна збірка: калібрування сесії в UI, Steam-готовність за STEAM_RELEASE.md.
+2. ✅ **Обмеження видно в UI та документації ([0120](AgentExchange/0120_CLAUDE_CODEX_TEXEL_LIMITS_UI_DOCS.md), Codex APPROVE):**
+   - блок «експериментальний», межі та «відомі обмеження» з виміряними числами (≈0.55 / ≈1.8 текселя, без гарантії), 7 мов;
+   - README/README_UA/KNOWN_ISSUES оновлено;
+   - `--international-only` 7/7 PASS.
+3. **Наступне:** фінальна збірка, калібрування сесії в UI цієї збірки, Steam-готовність за STEAM_RELEASE.md.
 
 **02.11 — крок 3 виконано ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)):** Product_1 через «Почати» з основного конфігу (465/151/1509/1192, Max Speed) через session binding `4993dab0…` — **PREDICTIONS_MET** (107/107, gaps 0/249, holes 0/413, 0 подій, 0 змін поза). Перед цим Session_Calib_1 на новій збірці — CONFIRMED (спроба 1 INCOMPLETE до paint-down через `brush-shape-row`). Пакет `outputs/Pixora_Session_Product_1_20261102` (App `38382f4d…`, Core `5c4a8d88…`).
 - **Закомічено `c3ae220`:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).
