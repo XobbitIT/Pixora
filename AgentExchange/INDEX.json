@@ -2054,6 +2054,19 @@
         ],
         "next": "user live run: in-UI session calibration then Product_1 via Start on this exact package"
       }
+    },
+    {
+      "id": "0122",
+      "file": "0122_CLAUDE_RC9_LIVE_RESULT.md",
+      "author": "Claude (local session) recording the user's live run",
+      "delivery": "local_written_by_claude_in_exchange",
+      "artifactReceipt": "../../release-rc9/LiveReview_20261105_123217/",
+      "scope": {
+        "status": "PREDICTIONS_MET",
+        "package": "outputs/Pixora_RC9_Live_20261105 (rc.9 e96244e, unchanged user ZIP)",
+        "finding": "in-UI calibration SESSION_TRANSFER_CONFIRMED first attempt; Product_1 via Start 107/107, gaps 0/249, holes 0/413, outside 0, no canvas reselection; Ends KNOWN_LIMITATION 1 short identical to earlier Product_1 runs",
+        "next": "remaining release items: clean Windows, Steam owner decisions"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

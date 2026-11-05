@@ -56,8 +56,11 @@
    - ZIP `work/release-rc9/Pixora_1.0.14-rc.9_Windows_x64.zip`, коміт `e96244e`, SHA `17cbffa9…`;
    - локальна копія CI: localization, Core 801, WPF 246 PASS — на збірці й на опублікованих DLL;
    - закрито давні блокери: 746 перекладів, маркер WPF у Package-Manifest;
-   - **Наступне — живий тест користувача:** `outputs/Pixora_RC9_Live_20261105` (`READ_FIRST_UA.md`): калібрування сесії в UI → Product_1 через «Почати» → огляд агентом (з блоком Ends).
-   - Відкрито: чисте Windows (Sandbox не встановлено), Steam-реквізити й публікація.
+   - ✅ **Живий тест rc.9 ([0122](AgentExchange/0122_CLAUDE_RC9_LIVE_RESULT.md)):**
+     - калібрування в UI — CONFIRMED з першої спроби;
+     - Product_1 через «Почати» — **PREDICTIONS_MET**: 107/107, gaps 0/249, holes 0/413, outside 0, без перевибору полотна;
+     - Ends — 1 short, тотожно попереднім прогонам.
+   - **Відкрито для релізу:** чисте Windows (Sandbox не встановлено); Steam-реквізити, вимоги Steamworks, upload — рішення власника.
 
 **02.11 — крок 3 виконано ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)):** Product_1 через «Почати» з основного конфігу (465/151/1509/1192, Max Speed) через session binding `4993dab0…` — **PREDICTIONS_MET** (107/107, gaps 0/249, holes 0/413, 0 подій, 0 змін поза). Перед цим Session_Calib_1 на новій збірці — CONFIRMED (спроба 1 INCOMPLETE до paint-down через `brush-shape-row`). Пакет `outputs/Pixora_Session_Product_1_20261102` (App `38382f4d…`, Core `5c4a8d88…`).
 - **Закомічено `c3ae220`:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).
