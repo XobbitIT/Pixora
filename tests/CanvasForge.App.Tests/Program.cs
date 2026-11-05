@@ -351,7 +351,7 @@ internal static partial class Program
         Case(()=>CheckPreparationHistory(destination));Case(()=>CheckPreparationControlsAndFooter(destination));
         Case(()=>CheckProductUi(destination));Case(()=>CheckProductRenderMatrix(destination));
         Case(()=>CheckStoppedPainterRetainsResume(destination));Case(()=>CheckFreshAuditBaseline(destination));Case(()=>CheckHistoricalAuditState(destination));Case(()=>CheckManualProbeClearsFailedHistory(destination));
-        Case(()=>CheckMinimumPaintingUi(destination));Case(()=>CheckReleaseCandidate(destination));Case(()=>CheckSimpleModeUi(destination));Case(()=>CheckLiveReleaseFixes(destination));Case(()=>CheckStandardLayouts(destination));
+        Case(()=>CheckMinimumPaintingUi(destination));Case(()=>CheckReleaseCandidate(destination));Case(()=>CheckSimpleModeUi(destination));Case(()=>CheckSpeedReportCli(destination));Case(()=>CheckLiveReleaseFixes(destination));Case(()=>CheckStandardLayouts(destination));
         Case(CheckRc3BoundaryFake);
         Case(()=>CheckRc3StartSizeOnly(destination));
         Case(()=>CheckPalettePreparationUi(destination));Case(()=>CheckQuickPaletteUi(destination));Case(()=>CheckInterruptedResumeWait());

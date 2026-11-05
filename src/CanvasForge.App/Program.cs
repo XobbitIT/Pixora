@@ -26,6 +26,14 @@ internal static class Program
             Console.SetOut(new StreamWriter(Console.OpenStandardOutput(),utf8){AutoFlush=true});Console.SetError(new StreamWriter(Console.OpenStandardError(),utf8){AutoFlush=true});
         }
         // Read-only review of a product texel START from its last-run folder ("latest" = newest texel run).
+        if(args.FirstOrDefault()=="--speed-report")
+        {
+            var utf8=new System.Text.UTF8Encoding(false);
+            Console.SetOut(new StreamWriter(Console.OpenStandardOutput(),utf8){AutoFlush=true});Console.SetError(new StreamWriter(Console.OpenStandardError(),utf8){AutoFlush=true});
+            try{Environment.ExitCode=SpeedReportCli.Run(args);}
+            catch(Exception error){Console.Error.WriteLine(error.Message);Environment.ExitCode=1;}
+            return;
+        }
         if(args.FirstOrDefault()=="--texel-product-review")
         {
             var utf8=new System.Text.UTF8Encoding(false);

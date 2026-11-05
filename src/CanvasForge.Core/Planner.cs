@@ -220,7 +220,11 @@ public static class Coverage
         return output;
     }
 
-    public static Dictionary<int, List<ScreenLine>> Build(PaintPlan plan, Settings settings)
+    public static Dictionary<int, List<ScreenLine>> Build(PaintPlan plan, Settings settings) => Build(plan, settings, null);
+
+    // standardPitch is for offline what-if estimates only (SpeedReport); the
+    // product always passes null, so Standard keeps its 1 px pitch.
+    internal static Dictionary<int, List<ScreenLine>> Build(PaintPlan plan, Settings settings, int? standardPitch)
     {
         var r = settings.Calibration.Rect("canvas");
         if (!r.Valid)
@@ -229,7 +233,7 @@ public static class Coverage
         var precision = settings.Text("coverage_mode", "Precision") == "Precision";
         // Movement presets must not silently remove coverage rows. Ordinary
         // Size3 has no measured proof authorizing 2/3-pixel row spacing.
-        var pitch = ReleaseProfile.Standard(settings)?1:precision ? speed.Pitch : Math.Max(1, settings.Int("coverage_pitch", 2));
+        var pitch = ReleaseProfile.Standard(settings)?standardPitch??1:precision ? speed.Pitch : Math.Max(1, settings.Int("coverage_pitch", 2));
         var groups = plan.Strokes.ToDictionary(p => p.Key, p => Expand(p.Value, r, plan.Width, plan.Height, pitch));
         if (plan.BackgroundColor is int bg)
         {

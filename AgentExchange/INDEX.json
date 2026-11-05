@@ -2102,6 +2102,17 @@
         "finding": "CI replica PASS (loc 1689, Core 807, WPF 247 built and published); independent rebuild identical except pdb-path-dependent fields of CanvasForge.Core.dll; ZIP smoke OK",
         "next": "user live test: simple mode, real HEX image Auto vs Auto - faster, new session calibration then Product_1"
       }
+    },
+    {
+      "id": "0126",
+      "file": "0126_CLAUDE_CODEX_F1_SPEED_REPORT.md",
+      "author": "Claude (local session); Codex rounds 25-27 review, APPROVE",
+      "delivery": "local_written_by_claude_in_exchange",
+      "scope": {
+        "status": "IMPLEMENTED_OFFLINE",
+        "finding": "speed report reproduces the user's 80225 strokes / 3:45:42; 56% measured per-stroke transport overhead, 35% fixed waits, <2% motion; ideal join upper bound 1:53 with all colors",
+        "next": "F3 stroke joining needs a physical connector proof; user live test of rc.10 pending"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

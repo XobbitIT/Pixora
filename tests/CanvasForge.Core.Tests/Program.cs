@@ -18,6 +18,7 @@ if(args.Length==2&&args[0]=="--texel-column-vectors")
 if(args.FirstOrDefault()=="--fast-color-bench"){FastColorChecks.Bench();return;}
 if(args.FirstOrDefault()=="--fast-color-identities"){FastColorFixtures.PrintIdentities();return;}
 if(args.FirstOrDefault()=="--fast-color-table"){FastColorChecks.Table();return;}
+if(args.FirstOrDefault()=="--speed-report-table"){SpeedReportChecks.Table();return;}
 void Test(string name, Action action)
 {
     try
@@ -2630,6 +2631,7 @@ Rc4AdaptiveChecks.Run(Test);
 Rc5DrawingChecks.Run(Test);
 PalettePreparationChecks.Run(Test);
 FastColorChecks.Run(Test);
+SpeedReportChecks.Run(Test);
 Rc3Checks.Run(Test);
 if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
 Console.WriteLine($"ALL {passed} TESTS PASSED");
