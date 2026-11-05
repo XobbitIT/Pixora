@@ -143,7 +143,7 @@ internal static partial class Program
     private static void PrintTexelProductPlan(string settingsPath,string target)
     {
         var route=TexelProduct.Build(Images.Load(target),Settings.Load(settingsPath)).ExperimentalTexel!;
-        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{route.RowMargin,route.EndPhase,runs=route.Runs.Select(r=>new{r.Row,r.FirstColumn,r.LastColumn,margin=r.Path.MinimumRowMargin,points=r.Path.Points.Count})}));
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new{route.RowMargin,route.EndPhase,runs=route.Runs.Select(r=>new{r.Row,r.FirstColumn,r.LastColumn,margin=r.Path.MinimumRowMargin,points=r.Path.Points.Count,path=r.Path.Points.Select(q=>new[]{q.X,q.Y})})}));
     }
     // Offline editor proof on a full-screen screenshot: the same frame and brush-row checks a pilot runs before input.
     private static void CheckEditorProofFrame(string settingsPath,string screenshot)

@@ -1964,6 +1964,37 @@
         "savedPatch": "../../texel-endphase-20261104/endphase-integrated-1.73.patch",
         "next": "one research live run: baseline 1.867 / context extension / cap for single ends; per-run end measurement in review"
       }
+    },
+    {
+      "id": "0117",
+      "file": "0117_CLAUDE_CODEX_CORNERS_LIVE_RESULT.md",
+      "author": "Claude (local session) with Codex as equal partner; Codex rounds quoted by file",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "artifactReceipt": "../../texel-endphase-20261104/live_corners/",
+      "scope": {
+        "status": "RESEARCH_DECISION_KEEP_1.867",
+        "finding": "live Corners: cap identical to baseline; extend removes short corners (51->0) but adds extras (74+117, 23 new event edges); clean end window ~[2.05,2.30) narrower than pixel step ~0.49 texel, so no end-pixel rule can fix it",
+        "codexRounds": [
+          "../../texel-endphase-20261104/codex-round10.md",
+          "../../texel-endphase-20261104/codex-round11.md"
+        ],
+        "package": "../../../outputs/Pixora_Texel_Corners_20261105",
+        "next": "none on end rule; any further work needs a different mechanism (view/scale changing the endpoint lattice)",
+        "researchPatch": "../../texel-endphase-20261104/corners-research-full.patch"
+      }
+    },
+    {
+      "id": "0118",
+      "file": "0118_USER_DECISION_RELEASE_SCOPE_B.md",
+      "author": "Claude (local session) recording a direct user decision",
+      "delivery": "local_written_by_claude_in_exchange",
+      "scope": {
+        "status": "USER_DECISION",
+        "decision": "first release scope B: texel route ships as experimental feature (default OFF) within measured limits, honest known limitations",
+        "quote": "коміть і закоміть всі кроки в гіт хабі і перейди до B варіанту",
+        "date": "2026-11-05"
+      }
     }
   ],
   "manuallyReturnedReproduction": {
