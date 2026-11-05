@@ -1995,6 +1995,24 @@
         "quote": "коміть і закоміть всі кроки в гіт хабі і перейди до B варіанту",
         "date": "2026-11-05"
       }
+    },
+    {
+      "id": "0119",
+      "file": "0119_CLAUDE_CODEX_REVIEW_ENDS_BLOCK.md",
+      "author": "Claude (local session) with Codex as equal partner; Codex rounds quoted by file",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "artifactReceipt": "../../texel-endphase-20261104/review_ends/",
+      "scope": {
+        "status": "IMPLEMENTED_CODEX_APPROVE",
+        "finding": "product review reports every clear row end (Ends block, ends.csv): short/extra counts; verdict unchanged; 10 recorded runs match --texel-run-ends exactly",
+        "codexRounds": [
+          "../../texel-endphase-20261104/codex-round12.md",
+          "../../texel-endphase-20261104/codex-round13.md"
+        ],
+        "tests": "App texel-product 3/3, session-start, session1, pic8, pic9 PASS; WPF 246 PASS",
+        "next": "release B step 2: show limitations in UI and docs"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

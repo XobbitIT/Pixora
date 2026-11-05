@@ -12,7 +12,8 @@ internal static class TexelProductReview
     internal const string Rule="pic8 picture rules on the product run: edges measured at >=80% samples (V from one column inside, top H one pixel inside paint, V residual in the texel-grid frame); interior gaps 0, hole changes 0, D-events 0, median|residual| H<=0.15 row, V-start<=0.35 column, V-end median residual in [-0.15,0.75]; no RGB>12 change outside the route reservation";
     internal sealed record Summary(string Status,string Reason,string RunDirectory,string? Outcome,int Runs,ScreenRect? Indices,int OutsideChangedPixels,
         StandardRowPictureAnalysis.PictureResult? Picture,string Rule,bool NativeInputByReviewer,bool PhysicalQualityCertified,
-        [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? BaselineRun=null);
+        [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? BaselineRun=null,
+        [property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] TexelReviewEnds.Result? Ends=null);
     internal const string CheckpointFile="texel-checkpoint.json",CheckpointRevision="texel-checkpoint-link-v1";
     internal sealed record CheckpointLink(string Revision,string RunKey,string PlanIdentity,bool Resumed,int StartDone,int Total);
     private static CheckpointLink Link(string run)
@@ -45,17 +46,18 @@ internal static class TexelProductReview
     {
         run=Path.GetFullPath(run);output=Path.GetFullPath(output);if(baselineRun is not null)baselineRun=Path.GetFullPath(baselineRun);
         if(Directory.Exists(output)||File.Exists(output))throw new IOException("Output already exists; reviews never overwrite.");
-        Summary result;var sections=new List<StandardRowPictureAnalysis.EdgeSections>();var margins=new List<TexelReviewMargin>();
-        try{result=Score(run,sections,margins,baselineRun);}
+        Summary result;var sections=new List<StandardRowPictureAnalysis.EdgeSections>();var margins=new List<TexelReviewMargin>();var ends=new List<TexelReviewEnds.EndItem>();
+        try{result=Score(run,sections,margins,baselineRun,ends);}
         catch(Exception e) when(e is IOException or InvalidDataException or JsonException or KeyNotFoundException or InvalidOperationException)
         {result=new("INCOMPLETE",e.Message,run,null,0,null,0,null,Rule,false,false,baselineRun);}
         Directory.CreateDirectory(output);
         File.WriteAllText(Path.Combine(output,"summary.json"),JsonSerializer.Serialize(result,new JsonSerializerOptions{WriteIndented=true,Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping}));
         File.WriteAllText(Path.Combine(output,"sections.json"),JsonSerializer.Serialize(sections,new JsonSerializerOptions{WriteIndented=true}));
         File.WriteAllLines(Path.Combine(output,"edges-margins.csv"),new[]{TexelReviewMargins.Header}.Concat(margins.Select(TexelReviewMargins.Format)));
+        File.WriteAllLines(Path.Combine(output,"ends.csv"),new[]{"row,column,residual,centre,missing"}.Concat(ends.Select(e=>FormattableString.Invariant($"{e.Row},{e.Column},{e.Residual:F4},{e.Centre:F4},{e.Missing}"))));
         return result;
     }
-    private static Summary Score(string run,List<StandardRowPictureAnalysis.EdgeSections> sections,List<TexelReviewMargin> margins,string? baselineRun)
+    private static Summary Score(string run,List<StandardRowPictureAnalysis.EdgeSections> sections,List<TexelReviewMargin> margins,string? baselineRun,List<TexelReviewEnds.EndItem> endItems)
     {
         var settings=Settings.Load(Path.Combine(run,"effective-settings.json"));
         TexelProductSession.Admission? session=null;
@@ -133,11 +135,12 @@ internal static class TexelProductReview
             if(x>=reserve.Left&&x<reserve.Right&&y>=reserve.Top&&y<reserve.Bottom)continue;
             int i=(y-canvas.Top)*canvas.Width+x-canvas.Left;if(RustSlider.Delta(before.Color(i),after.Color(i))>12)outside++;
         }
+        var ends=TexelReviewEnds.Measure(grid,mask,plan.Indices,plan.RowMargin,canvas,before,after,endItems);
         string status=scored.Status=="PREDICTIONS_MET"&&outside>0?"PREDICTIONS_NOT_MET":scored.Status;
         // A target with no measurable edge (>=4 texels) and no interior texel cannot confirm anything (Codex review 0113).
         if(picture.Evaluation.Edges.Length==0&&picture.Evaluation.Interior.Length==0&&status=="PREDICTIONS_MET")
-            return new("UNMEASURED","Зображення не має вимірюваних країв (від 4 текселів) чи внутрішніх текселів; огляд не може підтвердити результат.",run,outcome,plan.Runs.Count,plan.Indices,outside,scored,Rule,false,false,baselineRun);
-        return new(status,outside>0?"Зміни поза маршрутом: "+outside+" px.":"",run,outcome,plan.Runs.Count,plan.Indices,outside,scored,Rule,false,false,baselineRun);
+            return new("UNMEASURED","Зображення не має вимірюваних країв (від 4 текселів) чи внутрішніх текселів; огляд не може підтвердити результат.",run,outcome,plan.Runs.Count,plan.Indices,outside,scored,Rule,false,false,baselineRun,ends);
+        return new(status,outside>0?"Зміни поза маршрутом: "+outside+" px.":"",run,outcome,plan.Runs.Count,plan.Indices,outside,scored,Rule,false,false,baselineRun,ends);
     }
     // The interrupted first run must be a different folder with the same target, settings and saved route (and, for a session
     // START, the same binding, route and plan identity); it must not have completed. Its own "before" frame is the baseline.

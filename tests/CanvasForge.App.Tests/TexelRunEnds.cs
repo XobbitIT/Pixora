@@ -18,7 +18,7 @@ internal static partial class Program
         using var saved=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"experimental-texel-plan.json")));
         var route=saved.RootElement.GetProperty("route");
         var mask=route.GetProperty("Mask").EnumerateArray().Select(v=>v.GetString()!).ToArray();var ix=route.GetProperty("Indices").Deserialize<ScreenRect>();
-        double rowMargin=route.GetProperty("RowMargin").GetDouble();
+        double rowMargin=route.TryGetProperty("RowMargin",out var rm)?rm.GetDouble():TexelCompensatedPlanner.MinimumMargin;// routes before 0101 had no row margin (0.25)
         var runs=route.GetProperty("Runs").EnumerateArray().Select(r=>(Row:r.GetProperty("Row").GetInt32(),FirstColumn:r.GetProperty("FirstColumn").GetInt32(),
             LastColumn:r.GetProperty("LastColumn").GetInt32(),End:r.GetProperty("Path").GetProperty("Points").EnumerateArray().Last().Deserialize<ScreenPoint>())).ToArray();
         var grid=TexelProduct.Grid();var canvas=settings.PaintCalibration().Rect("canvas");
@@ -67,5 +67,21 @@ internal static partial class Program
             lines.Add(FormattableString.Invariant($"{r.Row},{a},{b},{b-a+1},{end.X},{grid.Columns.PredictedPhase(end)-b:F4},{(isolated?1:0)},{gap},{res[0]},{res[1]},{miss[0]},{miss[1]},{(singleTop?1:0)},{(singleBottom?1:0)},{GapOpen(r.Row)},{GapOpen(r.Row+1)},{(T(b+1,r.Row)?0:1)},{(T(b+1,r.Row+1)?0:1)},{(Clear(r.Row)?1:0)},{(Clear(r.Row+1)?1:0)},{centre[0]},{centre[1]}"));
         }
         File.WriteAllLines(csv,lines);Console.WriteLine($"run ends measured: {runs.Length} runs, endPhase {route.GetProperty("EndPhase")}");
+    }
+}
+internal static partial class Program
+{
+    // Product review ends block (TexelReviewEnds) on a recorded run, without rebuilding its route or resolving its session binding
+    // (bound to that build's SHA): the recorded route, canvas rect from native-before.json, the packaged profile grid.
+    private static void MeasureReviewEnds(string run,string beforeRun,string csv)
+    {
+        using var saved=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(run,"experimental-texel-plan.json")));var route=saved.RootElement.GetProperty("route");
+        var mask=route.GetProperty("Mask").EnumerateArray().Select(v=>v.GetString()!).ToArray();var ix=route.GetProperty("Indices").Deserialize<ScreenRect>();
+        using var meta=JsonDocument.Parse(File.ReadAllBytes(Path.Combine(beforeRun,"native-before.json")));var canvas=meta.RootElement.GetProperty("rect").Deserialize<ScreenRect>();
+        var items=new List<TexelReviewEnds.EndItem>();
+        var r=TexelReviewEnds.Measure(TexelProduct.Grid(),mask,ix,route.TryGetProperty("RowMargin",out var rm)?rm.GetDouble():TexelCompensatedPlanner.MinimumMargin,canvas,
+            Images.LoadNative(Path.Combine(beforeRun,"native-before.png")),Images.LoadNative(Path.Combine(run,"native-after.png")),items);
+        File.WriteAllLines(csv,new[]{"row,column,residual,centre,missing"}.Concat(items.Select(e=>FormattableString.Invariant($"{e.Row},{e.Column},{e.Residual:F4},{e.Centre:F4},{e.Missing}"))));
+        Console.WriteLine($"review ends: {r.Status} short={r.Short} extra={r.Extra} measured={r.Measured}/{r.Required} min={r.Minimum} median={r.MedianInside} max={r.Maximum}");
     }
 }

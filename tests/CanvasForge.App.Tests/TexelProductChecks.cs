@@ -54,6 +54,50 @@ internal static partial class Program
         Assert(TexelProduct.Build(image,off).ExperimentalTexel is null,"Disabled route still produced a texel plan");
         Console.WriteLine("PASS texel-product-route-equals-pic8-pic9-fullcoverage-and-refusals");
     }
+    // Review ends block (0118 step 1) on synthetic frames: paint each target row on the texel grid with its end edge moved by delta
+    // texel; the block must find every clear end and classify CLEAN / short / extra; unchanged frames are UNMEASURED. Pixel
+    // quantization is about +-0.25 texel, so the deltas keep that distance from the limits.
+    private static void CheckTexelReviewEnds()
+    {
+        string[] mask=["######...","######...","######...","######...",".........",".........",".........","#####....","#####...."];
+        var ix=new ScreenRect(300,203,309,203+mask.Length);var grid=TexelProduct.Grid();var canvas=TexelProductSettings(0,300,203).PaintCalibration().Rect("canvas");
+        bool T(int c,int r)=>r>=ix.Top&&r<ix.Bottom&&c>=ix.Left&&c<ix.Right&&mask[r-ix.Top][c-ix.Left]=='#';
+        PixelImage White(){var im=new PixelImage(canvas.Width,canvas.Height);for(int i=0;i<canvas.Width*canvas.Height;i++)im.Set(i,new(255,255,255));return im;}
+        PixelImage Paint(double delta,bool topCentre=true)
+        {
+            var im=White();
+            for(int row=ix.Top;row<ix.Bottom;row++)
+            {
+                int y0=grid.CenteredRowScreenSpan(grid.Context,row,grid.RowDomain.Left,grid.RowDomain.Left,TexelCompensatedPlanner.ProductRowMargin).Points[0].Y;
+                for(int y=topCentre||T(ix.Left,row-1)?y0:y0+1;y<=y0+1;y++)for(int x=canvas.Left;x<canvas.Right;x++)
+                {
+                    double ph=StandardRowPictureAnalysis.GridPhase(grid.Columns,x+.5,y);int c=(int)Math.Floor(ph);
+                    int b=Enumerable.Range(ix.Left,ix.Width).LastOrDefault(k=>T(k,row),-1);if(b<0)continue;
+                    bool paint=T(c,row)&&ph<b+1+Math.Min(0,delta)||ph>=b+1&&ph<b+1+delta;
+                    if(paint)im.Set((y-canvas.Top)*canvas.Width+x-canvas.Left,new(0,0,0));
+                }
+            }
+            return im;
+        }
+        var before=White();
+        foreach(var (delta,status,shorts,extras) in new[]{(.5,"CLEAN",0,0),(-.5,"KNOWN_LIMITATION",6,0),(1.5,"KNOWN_LIMITATION",0,6)})
+        {
+            var r=TexelReviewEnds.Measure(grid,mask,ix,TexelCompensatedPlanner.ProductRowMargin,canvas,before,Paint(delta));
+            Assert(r.Required==6&&r.Measured==6&&r.Status==status&&r.Short==shorts&&r.Extra==extras&&r.MedianInside is double m&&Math.Abs(m-delta)<.3,
+                FormattableString.Invariant($"Review ends delta {delta}: {r.Status} {r.Measured}/{r.Required} short {r.Short} extra {r.Extra} median {r.MedianInside}"));
+        }
+        // Codex round 12: a top row whose centre section is missing is not measured, so the block cannot report CLEAN.
+        var centreless=TexelReviewEnds.Measure(grid,mask,ix,TexelCompensatedPlanner.ProductRowMargin,canvas,before,Paint(.5,false));
+        Assert(centreless.Status=="UNMEASURED"&&centreless.Required==6&&centreless.Measured==4&&centreless.Unmeasured.All(u=>u.Contains("centre:",StringComparison.Ordinal)),
+            "Missing centre section counted as measured: "+centreless.Status+" "+centreless.Measured);
+        var none=TexelReviewEnds.Measure(grid,mask,ix,TexelCompensatedPlanner.ProductRowMargin,canvas,before,before);
+        Assert(none.Status=="UNMEASURED"&&none.Measured==0&&none.Required==6&&none.Unmeasured.Length==6,"Unchanged frame not UNMEASURED: "+none.Status);
+        // A row end whose neighbour row continues past b is not clear: of two stacked rows of widths 4 and 6 only the wider end counts.
+        string[] step=["####.....","######..."];var sx=new ScreenRect(300,203,309,205);
+        var stepped=TexelReviewEnds.Measure(grid,step,sx,TexelCompensatedPlanner.ProductRowMargin,canvas,before,before);
+        Assert(stepped.Required==1,"Non-clear end counted: "+stepped.Required);
+        Console.WriteLine("PASS texel-review-ends-clean-short-extra-unmeasured-clear-rule");
+    }
     // The product review reads a last-run folder exactly as Painter writes it: the saved route must round-trip and equal
     // the rebuilt one; missing native frames or a changed route give INCOMPLETE; an existing output is never overwritten.
     private static void CheckTexelProductReview(string output)
@@ -96,7 +140,8 @@ internal static partial class Program
                 route2.Runs.Select(r=>new StandardRowPicturePilot.PictureRun(r.Row,r.FirstColumn,r.LastColumn,r.CommandY,r.Path.Points.ToArray())).ToArray(),reserve,evaluation);
             // Baseline path without the optional section collector, serialized using the unchanged summary contract.
             var baseline=StandardRowPictureAnalysis.Picture(picture,grid,canvas,blank,after,.75,-.15,true);
-            var expected=new TexelProductReview.Summary(baseline.Status,"",Path.GetFullPath(run2),null,route2.Runs.Count,route2.Indices,0,baseline,TexelProductReview.Rule,false,false);
+            var ends=TexelReviewEnds.Measure(grid,route2.Mask.ToArray(),route2.Indices,route2.RowMargin,canvas,blank,after);
+            var expected=new TexelProductReview.Summary(baseline.Status,"",Path.GetFullPath(run2),null,route2.Runs.Count,route2.Indices,0,baseline,TexelProductReview.Rule,false,false,null,ends);
             string json=System.Text.Json.JsonSerializer.Serialize(expected,new System.Text.Json.JsonSerializerOptions{WriteIndented=true,Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping});
             Assert(File.ReadAllBytes(Path.Combine(review,"summary.json")).SequenceEqual(System.Text.Encoding.UTF8.GetBytes(json)),"Summary bytes differ from review without details");
             var sections=System.Text.Json.JsonSerializer.Deserialize<StandardRowPictureAnalysis.EdgeSections[]>(File.ReadAllText(Path.Combine(review,"sections.json")))!;

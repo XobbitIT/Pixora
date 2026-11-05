@@ -44,8 +44,11 @@
 ## Наступна дія
 
 **05.11 — рішення користувача: реліз за варіантом Б ([0118](AgentExchange/0118_USER_DECISION_RELEASE_SCOPE_B.md)).** Тексельний маршрут іде в перший реліз як експериментальна функція (типово OFF) у виміряних межах і з чесними обмеженнями. Колір, інші Size, Adaptive і калібрування між смугами — поза першим релізом. Порядок робіт:
-1. **Огляд продукту вимірює кінці run** — зараз у роботі (Claude + Codex). Окремий звітний блок «кінці»: кількість зрізаних кутів (<−0.15) і зайвих текселів (>1.0) на clear end rows, як у `--texel-run-ends`. Наявні пороги й вердикти PREDICTIONS_MET/NOT_MET не змінюються. Перевірка офлайн на записаних прогонах P1–P3, Max, Corners.
-2. Обмеження видно в UI та документації.
+1. ✅ **Огляд продукту вимірює кінці рядків ([0119](AgentExchange/0119_CLAUDE_CODEX_REVIEW_ENDS_BLOCK.md), Codex APPROVE):**
+   - блок `Ends` у `summary.json` і `ends.csv`; статус CLEAN / KNOWN_LIMITATION / UNMEASURED; вердикт не змінено;
+   - на 10 записаних прогонах збіг із `--texel-run-ends`: P2/P3 CLEAN, P1 1 short, Max 15/18, Corners 51/14;
+   - App-групи і WPF 246 PASS.
+2. **Наступне:** обмеження видно в UI тексельного блоку та в документації.
 3. Фінальна збірка: калібрування сесії в UI, Steam-готовність за STEAM_RELEASE.md.
 
 **02.11 — крок 3 виконано ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)):** Product_1 через «Почати» з основного конфігу (465/151/1509/1192, Max Speed) через session binding `4993dab0…` — **PREDICTIONS_MET** (107/107, gaps 0/249, holes 0/413, 0 подій, 0 змін поза). Перед цим Session_Calib_1 на новій збірці — CONFIRMED (спроба 1 INCOMPLETE до paint-down через `brush-shape-row`). Пакет `outputs/Pixora_Session_Product_1_20261102` (App `38382f4d…`, Core `5c4a8d88…`).
