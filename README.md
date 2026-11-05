@@ -4,7 +4,7 @@ Project notebook: [rules](AGENTS.md) → [current state](PROJECT_STATE.md); cons
 
 ## Standard texel route (experimental)
 
-Optional mode for black-and-transparent images, off by default: **Experimental → Standard texel route — experimental**. One source pixel paints one sign texel, without resizing.
+Optional mode for black-and-transparent images, off by default: **Settings → Experimental → Standard texel route — experimental**. One source pixel paints one sign texel, without resizing.
 
 - **Supported:** the same Canvas view; Standard Size 3 round; black #000000 and transparency; up to 385×339 texels (columns 75–459, rows 198–536); details at least 3 texels wide and 2 tall. Anything else is refused before input, with a reason.
 - **Before painting:** press **Calibrate session** on a clean Canvas (3 short lines, about 2 min). START needs the confirmed calibration of this build.

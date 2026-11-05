@@ -2030,6 +2030,30 @@
         "tests": "--international-only 7/7 PASS with texel-block localization check and negative control",
         "next": "release B step 3: final release build, in-UI session calibration of that build, STEAM_RELEASE checks"
       }
+    },
+    {
+      "id": "0121",
+      "file": "0121_CLAUDE_CODEX_RC9_RELEASE_CANDIDATE.md",
+      "author": "Claude (local session) with Codex as equal partner; Codex rounds quoted by file",
+      "recipient": "Codex",
+      "delivery": "local_written_by_claude_in_exchange",
+      "artifactReceipt": "../../release-rc9/",
+      "scope": {
+        "status": "RC_BUILT_OFFLINE_VERIFIED_LIVE_PENDING",
+        "package": "Pixora_1.0.14-rc.9_Windows_x64.zip",
+        "commit": "e96244e045e0f061d7321355b2d008d261111177",
+        "zipSha256": "17cbffa90e3c7527b0f3151d3c9a13deb29d39723fc76a261facfc230eaa4196",
+        "finding": "local CI replica PASS (localization, Core 801, WPF 246 on built and published DLLs, manifest, ZIP); closed pre-existing blockers: 746 missing translations, stale WPF receipt marker in Package-Manifest",
+        "livePackage": "../../../outputs/Pixora_RC9_Live_20261105",
+        "codexRounds": [
+          "../../texel-endphase-20261104/codex-round16.md",
+          "../../texel-endphase-20261104/codex-round17.md",
+          "../../texel-endphase-20261104/codex-round18.md",
+          "../../texel-endphase-20261104/codex-round19.md",
+          "../../texel-endphase-20261104/codex-round20.md"
+        ],
+        "next": "user live run: in-UI session calibration then Product_1 via Start on this exact package"
+      }
     }
   ],
   "manuallyReturnedReproduction": {
