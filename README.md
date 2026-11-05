@@ -1,4 +1,4 @@
-Current candidate: **1.0.14-rc.10** — rc.9 (Standard plus the experimental texel route, release scope B) with a simple step-by-step interface, "Auto — faster" colors and HEX up to 1024; not yet verified live. Standard physical waviness remains unresolved; Adaptive is not part of the first release.
+Current candidate: **1.0.14-rc.11** — Standard plus the experimental texel route (release scope B), a simple step-by-step interface, "Auto — faster" colors, HEX up to 1024, an edge-merge suggestion for flat images, an offline speed report and experimental Standard stroke joining (off by default); not yet verified live. Standard physical waviness remains unresolved; Adaptive is not part of the first release.
 
 Project notebook: [rules](AGENTS.md) → [current state](PROJECT_STATE.md); consult [architecture](ARCHITECTURE.md), [test matrix](TEST_MATRIX.md), and [Steam readiness](STEAM_RELEASE.md) as needed.
 
