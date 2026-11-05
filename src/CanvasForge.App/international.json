@@ -9249,7 +9249,7 @@
   ],
   [
     "Both complete vertical candidates are required; missing evidence cannot be skipped.",
-    "Wymagani są obaj pełni kandydaci pionowi; brakujących dowodów nie można pominąć.",
+    "Wymagane są oba pełne warianty pionowe; brakujących dowodów nie można pominąć.",
     "Beide vollständigen vertikalen Kandidaten sind erforderlich; fehlende Nachweise dürfen nicht übersprungen werden.",
     "Les deux candidats verticaux complets sont requis ; les preuves manquantes ne peuvent pas être ignorées.",
     "Se requieren ambos candidatos verticales completos; no se puede omitir evidencia faltante.",
@@ -11313,11 +11313,11 @@
   ],
   [
     "Invalid, nonfinite or out-of-target physical section.",
-    "Nieprawidłowy, nieskończony lub leżący poza celem przekrój fizyczny.",
+    "Nieprawidłowy przekrój fizyczny: wartość inna niż skończona lub poza celem.",
     "Ungültiger, nicht endlicher oder außerhalb des Ziels liegender physischer Schnitt.",
     "Section physique invalide, non finie ou hors cible.",
     "Sección física no válida, no finita o fuera del objetivo.",
-    "Недопустимое, бесконечное или вне цели физическое сечение."
+    "Недопустимое физическое сечение: неконечное значение или вне цели."
   ],
   [
     "Inverse calibration needs matching complete context and target.",
@@ -11745,11 +11745,11 @@
   ],
   [
     "Missing, duplicate, nonfinite or noncontiguous measured edge section.",
-    "Brakujący, zduplikowany, nieskończony lub nieciągły zmierzony przekrój krawędzi.",
+    "Brakujący, zduplikowany, nieciągły lub z wartością inną niż skończona zmierzony przekrój krawędzi.",
     "Fehlender, doppelter, nicht endlicher oder nicht zusammenhängender gemessener Kantenschnitt.",
     "Section de bord mesurée manquante, dupliquée, non finie ou discontinue.",
     "Sección de borde medida faltante, duplicada, no finita o no contigua.",
-    "Отсутствующее, повторяющееся, бесконечное или несмежное измеренное сечение края."
+    "Отсутствующее, повторяющееся, несмежное или с неконечным значением измеренное сечение края."
   ],
   [
     "Movement outside held stroke.",
@@ -11977,19 +11977,19 @@
   ],
   [
     "Non-finite native frontier.",
-    "Nieskończona granica natywna.",
+    "Natywna granica zawiera wartość inną niż skończona.",
     "Nicht endliche native Grenze.",
     "Frontière native non finie.",
     "Frontera nativa no finita.",
-    "Бесконечная нативная граница."
+    "Нативная граница содержит неконечное значение."
   ],
   [
     "Nonfinite margin value.",
-    "Nieskończona wartość marginesu.",
+    "Wartość marginesu inna niż skończona.",
     "Nicht endlicher Reservewert.",
     "Valeur de marge non finie.",
     "Valor de margen no finito.",
-    "Бесконечное значение запаса."
+    "Неконечное значение запаса."
   ],
   [
     "Not enough clean space for independent stroke positions.",
