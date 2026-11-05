@@ -59,6 +59,56 @@ public static class StandardStrokeMotion
         {if(input is IPositionVerifiedStrokeInput verified)verified.ConfirmPosition(expected);}
     }
 
+    // F3 (experimental, standard_join_experimental): one press for a joined batch.
+    // Segments must be contiguous (each starts where the previous one ended);
+    // every segment is emitted exactly like DrawDense, the button stays down
+    // between them, and it is released in finally on any interruption.
+    public static void DrawJoined(IReadOnlyList<ScreenLine> segments,Settings settings,SpeedProfile speed,ICalibratedStrokeInput input)
+    {
+        if(segments.Count==0)throw new ArgumentException("Empty joined batch.");
+        if(speed.Pitch is <1 or >3||speed.BatchSize is <1 or >16)throw new ArgumentOutOfRangeException(nameof(speed));
+        for(int i=0;i<segments.Count;i++)
+        {
+            var l=segments[i];
+            if(l.X1!=l.X2&&l.Y1!=l.Y2)throw new ArgumentException("Expected axis-aligned segments.");
+            if(i>0&&(segments[i-1].X2!=l.X1||segments[i-1].Y2!=l.Y1))throw new ArgumentException("Joined segments are not contiguous.");
+        }
+        var a=new ScreenPoint(segments[0].X1,segments[0].Y1);var last=segments[^1];var b=new ScreenPoint(last.X2,last.Y2);
+        int span=speed.Pitch*speed.BatchSize;
+        try
+        {
+            input.Move([a]);input.Wait(StrokeTiming.Settle(settings,speed));
+            Confirm(a);
+            if(input is ITrackedStrokeInput tracking)tracking.BeginCursorTracking(a);
+            input.Button(false);double heldFrom=input.Seconds;
+            input.Wait(StrokeTiming.Frame(settings));
+            foreach(var line in segments)
+            {
+                int length=TransferSchedule.Length(line),dx=Math.Sign(line.X2-line.X1),dy=Math.Sign(line.Y2-line.Y1);
+                for(int first=1;first<=length;)
+                {
+                    int count=Math.Min(span,length-first+1);
+                    var points=new ScreenPoint[count];
+                    for(int i=0;i<count;i++)points[i]=new(line.X1+(first+i)*dx,line.Y1+(first+i)*dy);
+                    input.Move(points);
+                    input.Wait(speed.PointDelay*((count+speed.Pitch-1)/speed.Pitch));
+                    first+=count;
+                }
+            }
+            input.Wait(StrokeTiming.EndHold(settings,speed));
+            double held=input.Seconds-heldFrom;if(held<.04)input.Wait(.04-held);
+        }
+        finally
+        {
+            try{input.Button(true);}
+            finally{if(input is ITrackedStrokeInput tracking)tracking.EndCursorTracking();}
+        }
+        Confirm(b);
+        input.Wait(StrokeTiming.Release(settings));
+        void Confirm(ScreenPoint expected)
+        {if(input is IPositionVerifiedStrokeInput verified)verified.ConfirmPosition(expected);}
+    }
+
     // Frozen v1 remains available for the registered old diagnostic protocols
     // and Experimental fallback. It must not silently change with Standard.
     public static void DrawLegacy(ScreenLine line,Settings settings,SpeedProfile speed,bool reverse,ICalibratedStrokeInput input)

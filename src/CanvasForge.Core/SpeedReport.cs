@@ -50,6 +50,13 @@ public static class SpeedReport
                     var m = Measure(plan, source, pitch, token);
                     list.Add(new("pitch", $"pitch {pitch}", plan.ColorCount, m.Strokes, m.Segments, m.ColorChanges, m.Seconds, plan.Error, "NOT PHYSICALLY PROVEN: rows are skipped"));
                 }
+            if (ReleaseProfile.Standard(source) && !source.Bool(TransferSchedule.StandardJoinKey))
+            {
+                var joined = source.Clone(); joined.Set(TransferSchedule.StandardJoinKey, true);
+                var p = Planner.Build(image, joined, token: token);
+                var m = Measure(p, joined, null, token);
+                list.Add(new("join", "Standard join (experimental flag)", p.ColorCount, m.Strokes, m.Segments, m.ColorChanges, m.Seconds, p.Error, "F3 flag ON: safe connectors inside own color; not physically proven"));
+            }
             var join = IdealJoin(current, source);
             list.Add(new("join", $"ideal join (gap <= {MaximumJoinGap} px)", plan.ColorCount, join.Strokes, current.Segments, current.ColorChanges, join.Seconds, plan.Error,
                 "UPPER BOUND: connector safety ignored, not physically proven"));
@@ -94,9 +101,11 @@ public static class SpeedReport
             }
             var id = work.Id.Split(':'); var batch = groups[order[int.Parse(id[1], CultureInfo.InvariantCulture)]][int.Parse(id[2], CultureInfo.InvariantCulture)];
             double size = batch.Size > 0 ? batch.Size : PaintTimingPlan.DefaultSize(effective, speed);
-            if (fast || batch.Segments.Count != 1 || resolve(size, batch.Segments[0], batch.ShapeSlot) is not null) { Add("motion_other", work.PlannedSeconds); continue; }
+            bool joined = !fast && batch.Segments.Count > 1 && TransferSchedule.StandardJoin(effective);
+            if (!joined && (fast || batch.Segments.Count != 1 || resolve(size, batch.Segments[0], batch.ShapeSlot) is not null)) { Add("motion_other", work.PlannedSeconds); continue; }
             var clock = new CategoryClock(rate is { Valid: true } ? rate : null);
-            StandardStrokeMotion.Draw(batch.Segments[0], effective, speed, false, clock);
+            if (joined) StandardStrokeMotion.DrawJoined(batch.Segments, effective, speed, clock);
+            else StandardStrokeMotion.Draw(batch.Segments[0], effective, speed, false, clock);
             if (rate is { Valid: true }) clock.Add("transport_other", rate.OtherSecondsPerStroke);
             double counted = clock.Parts.Values.Sum();
             if (Math.Abs(counted - work.PlannedSeconds) > 1e-9) { Add("motion_other", work.PlannedSeconds); continue; }

@@ -1689,5 +1689,6 @@
   "Цю спробу вже запускали. Її дані збережено; повторне малювання заборонене.": "This attempt already ran. Its data is retained; painting again is prohibited.",
   "Цю спробу вже запускали. Дані не перезаписуються; повтор вимкнений.": "This attempt already ran. Data is not overwritten; retry disabled.",
   "Цю умову вже запускали. Автоматичне повторення заборонене.": "This condition was already attempted. Automatic retry is prohibited.",
-  "Поріг «Авто — швидше» має бути від 0.1 до 10 ΔE.": "Faster color threshold must be 0.1–10 ΔE."
+  "Поріг «Авто — швидше» має бути від 0.1 до 10 ΔE.": "Faster color threshold must be 0.1–10 ΔE.",
+  "Об’єднання тонких країв увімкнено. Оновлення плану…": "Thin edge merging is on. Rebuilding the plan…"
 }

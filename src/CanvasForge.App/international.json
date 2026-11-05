@@ -15262,5 +15262,101 @@
     "Le seuil « Auto — plus rapide » doit être compris entre 0.1 et 10 ΔE.",
     "El umbral de «Auto — más rápido» debe estar entre 0.1 y 10 ΔE.",
     "Порог «Авто — быстрее» должен быть от 0.1 до 10 ΔE."
+  ],
+  [
+    "Empty joined batch.",
+    "Puste połączone pociągnięcie.",
+    "Leerer verbundener Strich.",
+    "Trait joint vide.",
+    "Trazo unido vacío.",
+    "Пустой соединённый штрих."
+  ],
+  [
+    "Expected axis-aligned segments.",
+    "Oczekiwano odcinków równoległych do osi.",
+    "Achsparallele Abschnitte erwartet.",
+    "Segments alignés sur les axes attendus.",
+    "Se esperaban segmentos alineados con los ejes.",
+    "Ожидались отрезки, параллельные осям."
+  ],
+  [
+    "Join neighbouring strokes of one color",
+    "Łącz sąsiednie pociągnięcia jednego koloru",
+    "Benachbarte Striche einer Farbe verbinden",
+    "Relier les traits voisins d’une même couleur",
+    "Unir trazos vecinos de un mismo color",
+    "Соединять соседние штрихи одного цвета"
+  ],
+  [
+    "Joined segments are not contiguous.",
+    "Połączone odcinki nie są ciągłe.",
+    "Verbundene Abschnitte sind nicht zusammenhängend.",
+    "Les segments joints ne sont pas contigus.",
+    "Los segmentos unidos no son contiguos.",
+    "Соединённые отрезки не непрерывны."
+  ],
+  [
+    "Standard speed-up — experimental",
+    "Przyspieszenie Standard — eksperymentalne",
+    "Standard-Beschleunigung — experimentell",
+    "Accélération Standard — expérimentale",
+    "Aceleración Standard — experimental",
+    "Ускорение Standard — экспериментальное"
+  ],
+  [
+    "The brush moves between neighbouring rows of one color without releasing the button, only over pixels that color paints anyway. Fewer strokes, shorter time. Not yet physically confirmed in Rust.",
+    "Pędzel przechodzi między sąsiednimi rzędami jednego koloru bez puszczania przycisku, tylko po pikselach, które ten kolor i tak maluje. Mniej pociągnięć, krótszy czas. Jeszcze nie potwierdzone fizycznie w Rust.",
+    "Der Pinsel wechselt ohne Loslassen der Taste zwischen benachbarten Zeilen einer Farbe, nur über Pixel, die diese Farbe ohnehin malt. Weniger Striche, kürzere Zeit. In Rust noch nicht physisch bestätigt.",
+    "Le pinceau passe d’une ligne voisine à l’autre d’une même couleur sans relâcher le bouton, uniquement sur des pixels que cette couleur peint de toute façon. Moins de traits, moins de temps. Pas encore confirmé physiquement dans Rust.",
+    "El pincel pasa entre filas vecinas de un mismo color sin soltar el botón, solo por píxeles que ese color pinta de todos modos. Menos trazos, menos tiempo. Aún no confirmado físicamente en Rust.",
+    "Кисть переходит между соседними рядами одного цвета, не отпуская кнопку, только по пикселям, которые этот цвет и так рисует. Меньше штрихов — меньше времени. Физически в Rust ещё не подтверждено."
+  ],
+  [
+    "The report already exists in ",
+    "Raport już istnieje w ",
+    "Der Bericht existiert bereits in ",
+    "Le rapport existe déjà dans ",
+    "El informe ya existe en ",
+    "Отчёт уже существует в "
+  ],
+  [
+    "The speed report covers Standard painting; disable the texel route first.",
+    "Raport szybkości dotyczy malowania Standard; najpierw wyłącz trasę tekselową.",
+    "Der Geschwindigkeitsbericht gilt für Standard-Malen; deaktiviere zuerst die Texelroute.",
+    "Le rapport de vitesse couvre la peinture Standard ; désactive d’abord le tracé par texels.",
+    "El informe de velocidad cubre la pintura Standard; desactiva primero la ruta de téxeles.",
+    "Отчёт о скорости охватывает рисование Standard; сначала отключи тексельный маршрут."
+  ],
+  [
+    "Use --speed-report IMAGE OUT [--data-folder DIR].",
+    "Użyj --speed-report IMAGE OUT [--data-folder DIR].",
+    "Verwende --speed-report IMAGE OUT [--data-folder DIR].",
+    "Utilise --speed-report IMAGE OUT [--data-folder DIR].",
+    "Usa --speed-report IMAGE OUT [--data-folder DIR].",
+    "Используй --speed-report IMAGE OUT [--data-folder DIR]."
+  ],
+  [
+    "Merge edges",
+    "Scal krawędzie",
+    "Kanten zusammenführen",
+    "Fusionner les bords",
+    "Unir bordes",
+    "Объединить края"
+  ],
+  [
+    "The plan has {p0} small shades ({p1} of cells) that look like smoothed edges painted as extra strokes over color borders. Merge edges usually removes them and shortens the time; check the preview, intentional thin details may disappear.",
+    "Plan ma {p0} drobnych odcieni ({p1} komórek), które wyglądają na wygładzone krawędzie malowane dodatkowymi pociągnięciami na granicach kolorów. „Scal krawędzie” zwykle je usuwa i skraca czas; sprawdź podgląd, celowe cienkie detale mogą zniknąć.",
+    "Der Plan hat {p0} kleine Töne ({p1} der Zellen), die wie geglättete Kanten aussehen und als zusätzliche Striche über Farbgrenzen gemalt werden. „Kanten zusammenführen“ entfernt sie meist und verkürzt die Zeit; prüfe die Vorschau, beabsichtigte feine Details können verschwinden.",
+    "Le plan contient {p0} petites nuances ({p1} des cellules) qui ressemblent à des bords lissés peints en traits supplémentaires sur les limites de couleur. « Fusionner les bords » les supprime généralement et réduit le temps ; vérifie l’aperçu, des détails fins voulus peuvent disparaître.",
+    "El plan tiene {p0} tonos pequeños ({p1} de las celdas) que parecen bordes suavizados pintados como trazos extra sobre los límites de color. «Unir bordes» suele eliminarlos y acorta el tiempo; revisa la vista previa, pueden desaparecer detalles finos intencionados.",
+    "В плане {p0} мелких оттенков ({p1} клеток), похожих на сглаженные края, которые рисуются лишними штрихами поверх границ цветов. «Объединить края» обычно убирает их и сокращает время; проверь предпросмотр — тонкие намеренные детали могут исчезнуть."
+  ],
+  [
+    "Thin edge merging is on. Rebuilding the plan…",
+    "Scalanie cienkich krawędzi włączone. Przebudowa planu…",
+    "Zusammenführen dünner Kanten ist an. Plan wird neu erstellt…",
+    "La fusion des bords fins est activée. Reconstruction du plan…",
+    "La unión de bordes finos está activada. Reconstruyendo el plan…",
+    "Объединение тонких краёв включено. Перестройка плана…"
   ]
 ]

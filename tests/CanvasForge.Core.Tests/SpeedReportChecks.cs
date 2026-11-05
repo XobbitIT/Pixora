@@ -69,8 +69,8 @@ internal static class SpeedReportChecks
                 var v=a.Variants.ToDictionary(x=>x.Name);
                 Require(SpeedReport.ColorLimits.All(l=>v.ContainsKey($"limit {l}"))&&v.ContainsKey("Auto — faster"),$"{name}: color variants missing");
                 Require(v["pitch 2"].Strokes<=a.Strokes&&v["pitch 3"].Strokes<=v["pitch 2"].Strokes,$"{name}: pitch variants do not reduce strokes");
-                Require(v["pitch 2"].Note.Contains("NOT PHYSICALLY PROVEN")&&v.Values.Single(x=>x.Kind=="join").Note.Contains("UPPER BOUND"),$"{name}: unproven variants are not marked");
-                var join=v.Values.Single(x=>x.Kind=="join");
+                Require(v["pitch 2"].Note.Contains("NOT PHYSICALLY PROVEN")&&v.Values.Single(x=>x.Kind=="join"&&x.Name.StartsWith("ideal join")).Note.Contains("UPPER BOUND"),$"{name}: unproven variants are not marked");
+                var join=v.Values.Single(x=>x.Kind=="join"&&x.Name.StartsWith("ideal join"));
                 Require(join.Strokes<=a.Strokes&&join.Seconds<=a.Seconds+1e-9,$"{name}: ideal join is not an upper bound on savings");
             }
         });

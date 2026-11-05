@@ -1023,6 +1023,7 @@ internal sealed partial class Painter : IDisposable
                             var inputStart=InputSnapshot();long pointsBefore=emittedMovementPoints;
                             long resolutionStart=Stopwatch.GetTimestamp();
                             bool fastBatch=Execution.FastBatch(op);
+                            bool joinedBatch=!fastBatch&&op.Segments.Count>1&&TransferSchedule.StandardJoin(settings);
                             var sample=op.Segments.Count==1?Execution.Resolve(activeAdaptiveSize??DesiredControls(),op.Segments[0],activeShape):null;
                             resolutionSeconds+=Stopwatch.GetElapsedTime(resolutionStart).TotalSeconds;
                             if(plan.ExperimentalTexel is {} texel)DrawTexelProduct(texel.Runs[line]);
@@ -1035,16 +1036,19 @@ internal sealed partial class Painter : IDisposable
                                 Draw(op.Segments[0],SpeedProfile.Get("Rapid"),false,null);
                             }
                             else if(fastBatch)DrawBatch(op,speed);
+                            else if(joinedBatch)DrawJoined(op,speed);
                             else Draw(op.Segments[0], speed, line % 2 == 1,sample);
                             actualMotion=Stopwatch.GetElapsedTime(motionStart).TotalSeconds;runTimes?.Switch("service");
-                            string route=plan.ExperimentalTexel is not null?StandardContourMotion.Revision:fastBatch?"dense_path":sample is not null?$"probe_{sample.Method}":
+                            string route=plan.ExperimentalTexel is not null?StandardContourMotion.Revision:fastBatch?"dense_path":joinedBatch?"standard_join":sample is not null?$"probe_{sample.Method}":
                                 settings.Bool("line_mode")&&settings.Text("coverage_mode")=="Fast"&&TransferSchedule.Length(op.Segments[0])>=settings.Int("min_line_width",4)*settings.Int("cell_px",3)?"legacy_shift":"drag";
                             var first=op.Segments[0];route+=op.Segments.Count>1?":mixed":first.X1==first.X2&&first.Y1!=first.Y2?":V":":H";
                             routes[route]=routes.GetValueOrDefault(route)+1;
                             foreach(var segment in op.Segments){int n=TransferSchedule.Length(segment);lengthHistogram[n<8?0:n<16?1:n<32?2:n<64?3:n<128?4:5]++;}
                             if(sample?.Method==StrokeMethod.Shift)shiftParts+=Math.Max(1,(TransferSchedule.Length(first)+sample.MaxLength-1)/sample.MaxLength);
                             var observedCosts=InputSnapshot()-inputStart;costs+=observedCosts;
-                            if(!fastBatch&&sample is null)ObserveTransport(observedCosts,emittedMovementPoints-pointsBefore,actualMotion);
+                            // A joined press has more points per stroke; keep it out of
+                            // the single-stroke transport rate of this context.
+                            if(!fastBatch&&!joinedBatch&&sample is null)ObserveTransport(observedCosts,emittedMovementPoints-pointsBefore,actualMotion);
                             long etaStart=Stopwatch.GetTimestamp();
                             timing.Complete(PaintTimingPlan.Motion(group,line),actualMotion);
                             etaModelSeconds+=Stopwatch.GetElapsedTime(etaStart).TotalSeconds;
@@ -1208,6 +1212,15 @@ internal sealed partial class Painter : IDisposable
             try{PersistAfterRelease(Native.Release,PersistPaintOwnership);}
             finally{if(trace is not null)SaveStrokeTrace(trace,line,speed,reverse);}
         }
+    }
+
+    // F3: one press over a contiguous joined batch; the button is released in
+    // StandardStrokeMotion's finally and again by PersistAfterRelease here, as
+    // for an ordinary Standard stroke.
+    private void DrawJoined(PaintBatch batch,SpeedProfile speed)
+    {
+        try{StandardStrokeMotion.DrawJoined(batch.Segments,settings,speed,motionInput);lastPaintPoint=Native.Cursor();}
+        finally{PersistAfterRelease(Native.Release,PersistPaintOwnership);}
     }
 
     private void DrawBatch(PaintBatch batch,SpeedProfile speed)

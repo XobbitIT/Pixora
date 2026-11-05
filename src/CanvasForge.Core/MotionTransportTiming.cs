@@ -24,6 +24,14 @@ public static class MotionTransportTiming
         StandardStrokeMotion.Draw(line,s,speed,false,input);
         return input.Seconds+(rate is {Valid:true}?rate.OtherSecondsPerStroke:0);
     }
+    // F3 joined Standard batch: the same emitter, one press; measured per-stroke
+    // overhead is charged once per press.
+    public static double StandardJoined(Settings s,SpeedProfile speed,IReadOnlyList<ScreenLine> segments,MotionTransportRate? rate=null)
+    {
+        var input=new Clock(rate is {Valid:true}?rate:null);
+        StandardStrokeMotion.DrawJoined(segments,s,speed,input);
+        return input.Seconds+(rate is {Valid:true}?rate.OtherSecondsPerStroke:0);
+    }
     public static string Context(Settings s)=>$"sendinput-v3:{s.Text("input_engine","Stable")}:{StrokeTiming.Frame(s):R}:{s.Text("speed_profile","Rapid")}"
         +(StandardStrokeMotion.Emitter(s)!=StandardStrokeMotion.Revision?$":{StandardStrokeMotion.Emitter(s)}":"");
 }

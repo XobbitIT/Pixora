@@ -13,7 +13,7 @@ internal sealed partial class MainWindow
     private enum NextStep { Image, Rust, Fix, Ready, Paused, Busy }
     private Border nextStepCard=new();
     private TextBlock nextStepTitle=new(),nextStepText=new();
-    private Button nextStepTexel=new();
+    private Button nextStepTexel=new(),nextStepMerge=new();
     private readonly List<Button> openImageButtons=[];
     private NextStep currentNextStep=NextStep.Image;
 
@@ -37,6 +37,8 @@ internal sealed partial class MainWindow
         body.Children.Add(nextStepTitle);body.Children.Add(nextStepText);
         nextStepTexel=Button(T("Відкрити тексельний маршрут","Open texel route"),()=>ShowPage("experimental"));
         nextStepTexel.Tag="next-step-texel";nextStepTexel.Visibility=Visibility.Collapsed;body.Children.Add(nextStepTexel);
+        nextStepMerge=Button(T("Об’єднати краї","Merge edges"),EnableEdgeMerge);
+        nextStepMerge.Tag="next-step-merge";nextStepMerge.Visibility=Visibility.Collapsed;body.Children.Add(nextStepMerge);
         nextStepCard=new Border{Tag="next-step",Child=body,Background=Panel,BorderBrush=Accent,BorderThickness=new Thickness(2),
             CornerRadius=new CornerRadius(9),Margin=new Thickness(0,0,0,10)};
         parent.Children.Add(nextStepCard);
@@ -63,6 +65,16 @@ internal sealed partial class MainWindow
             _=>(T("Виконується","In progress"),
                 T("Не рухай мишу й не перемикай вікна. F6 — пауза, ESC — зупинка.","Keep the mouse still and do not switch windows. F6 pauses, ESC stops."))
         };
+        // Adaptive advice: many small edge colors of a flat image become extra
+        // strokes painted over the borders of the large fills.
+        bool advise=step is NextStep.Rust or NextStep.Ready or NextStep.Fix&&plan is not null&&PlanAdvice.SuggestEdgeMerge(plan,settings);
+        if(advise)
+        {
+            var thin=PlanAdvice.ThinColors(plan!);
+            text+=Environment.NewLine+T($"У плані {thin.Count} дрібних відтінків ({thin.Share:P0} клітинок) — схоже на згладжені краї, які малюються окремими штрихами поверх меж кольорів. «Об’єднати краї» зазвичай прибирає їх і скорочує час; перевір прев’ю: тонкі навмисні деталі можуть зникнути.",
+                $"The plan has {thin.Count} small shades ({thin.Share:P0} of cells) that look like smoothed edges painted as extra strokes over color borders. Merge edges usually removes them and shortens the time; check the preview, intentional thin details may disappear.");
+        }
+        nextStepMerge.Visibility=advise?Visibility.Visible:Visibility.Collapsed;nextStepMerge.IsEnabled=!Painting;
         nextStepTitle.Text=title;nextStepText.Text=text;
         nextStepCard.BorderBrush=step is NextStep.Fix or NextStep.Paused?Warning:step==NextStep.Ready?Success:Accent;
         nextStepTitle.Foreground=step is NextStep.Fix or NextStep.Paused?Warning:step==NextStep.Ready?Success:Accent;
@@ -76,6 +88,13 @@ internal sealed partial class MainWindow
         // preparation column scrolls on small windows.
         if(changed&&step==NextStep.Rust)allSetupButtons.FirstOrDefault(b=>b.IsVisible)?.BringIntoView();
         resumeButton.Background=step==NextStep.Paused?Accent:Input;
+    }
+
+    private void EnableEdgeMerge()
+    {
+        if(Painting)return;
+        ReadSettings();settings.Set("edge_merge",true);Dirty();BuildUi();
+        SetStatus(T("Об’єднання тонких країв увімкнено. Оновлення плану…","Thin edge merging is on. Rebuilding the plan…"));
     }
 
     private void AddAdvancedToggle(StackPanel page)

@@ -2113,6 +2113,17 @@
         "finding": "speed report reproduces the user's 80225 strokes / 3:45:42; 56% measured per-stroke transport overhead, 35% fixed waits, <2% motion; ideal join upper bound 1:53 with all colors",
         "next": "F3 stroke joining needs a physical connector proof; user live test of rc.10 pending"
       }
+    },
+    {
+      "id": "0127",
+      "file": "0127_CLAUDE_CODEX_F3_JOIN_AND_EDGE_ADVICE.md",
+      "author": "Claude (local session); Codex rounds 28-32, APPROVE",
+      "delivery": "local_written_by_claude_in_exchange",
+      "scope": {
+        "status": "IMPLEMENTED_OFFLINE",
+        "finding": "F3 experimental Standard join (OFF = 4b5fa8f byte-for-byte incl. input trace; 6 px same-color envelope; large fills 2x faster, photos ~0); edge-merge advice fixes the user's emblem case (16->4 colors, 24->10 min); Core 821, WPF 249 x2",
+        "next": "rc.11 build; user live tests 1-5 (outputs/Pixora_Test_Images_20261105/ПЛАН_ТЕСТІВ.md)"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

@@ -24,8 +24,9 @@ internal sealed partial class MainWindow
         controls.Children.Add(Button(T("Краї: до та після","Edges: before and after"),()=>{if(plan is not null)presentAuditDiagnostics(CreateEdgePreviewWindow(plan));}));
         if(!ReleaseProfile.Standard(settings))controls.Children.Add(AsyncButton(T("Порівняти звичайний та Adaptive","Compare ordinary and Adaptive"),ComparePaintingModes));
         var optimization=new Expander{Header=T("Оптимізація плану","Plan optimization"),Content=controls};
-        // An active merge changes the target, so it stays visible in simple mode.
-        quality.Children.Add(settings.Bool("edge_merge")?optimization:Simple(optimization));
+        // Edge merging is the remedy for antialiased flat images, so it stays
+        // visible in simple mode (the Next step card also suggests it).
+        quality.Children.Add(optimization);
     }
     private void RefreshTargetPlanningUi()
     {

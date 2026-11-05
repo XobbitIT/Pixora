@@ -27,7 +27,8 @@ internal static class PaintRunEvidence
     internal static void SavePlan(string directory,PaintPlan plan,Settings settings,
         Dictionary<int,List<PaintBatch>> groups,IReadOnlyList<int> order,CancellationToken token=default)
     {
-        if(ReleaseProfile.Standard(settings)&&groups.Values.SelectMany(g=>g).Any(op=>op.Segments.Count!=1))
+        bool joining=TransferSchedule.StandardJoin(settings);
+        if(ReleaseProfile.Standard(settings)&&!joining&&groups.Values.SelectMany(g=>g).Any(op=>op.Segments.Count!=1))
             throw new InvalidDataException("Standard command evidence requires exactly one segment per operation.");
         Directory.CreateDirectory(directory);
         using var file=File.Create(Path.Combine(directory,"command-plan.json.gz"));
@@ -43,8 +44,9 @@ internal static class PaintRunEvidence
                 {
                     token.ThrowIfCancellationRequested();
                     return new{line,op.Size,op.ShapeSlot,op.ProfileId,op.StrokeProfileId,
-                        op.SourceStrokes,op.Segments,reverse=ReleaseProfile.Standard(settings)?(bool?)(line%2==1):null,
-                        route=ReleaseProfile.Standard(settings)?(StandardLineMotion.Applies(settings,op.Segments[0])?"native-line-prototype":"standard"):op.StrokeProfileId is not null?"measured-stroke":"experimental; see runtime route log"};
+                        // A joined press runs its segments exactly as recorded (no parity reversal).
+                        op.SourceStrokes,op.Segments,reverse=ReleaseProfile.Standard(settings)?(bool?)(op.Segments.Count>1?false:line%2==1):null,
+                        route=ReleaseProfile.Standard(settings)?(op.Segments.Count>1?"standard-join-experimental":StandardLineMotion.Applies(settings,op.Segments[0])?"native-line-prototype":"standard"):op.StrokeProfileId is not null?"measured-stroke":"experimental; see runtime route log"};
                 })
             }),
             physicalResultVerified=false,plannedNotObserved=true

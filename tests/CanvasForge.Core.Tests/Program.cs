@@ -19,6 +19,7 @@ if(args.FirstOrDefault()=="--fast-color-bench"){FastColorChecks.Bench();return;}
 if(args.FirstOrDefault()=="--fast-color-identities"){FastColorFixtures.PrintIdentities();return;}
 if(args.FirstOrDefault()=="--fast-color-table"){FastColorChecks.Table();return;}
 if(args.FirstOrDefault()=="--speed-report-table"){SpeedReportChecks.Table();return;}
+if(args.FirstOrDefault()=="--join-off-fixtures"){StandardJoinOffFixtures.Print();return;}
 void Test(string name, Action action)
 {
     try
@@ -2632,6 +2633,8 @@ Rc5DrawingChecks.Run(Test);
 PalettePreparationChecks.Run(Test);
 FastColorChecks.Run(Test);
 SpeedReportChecks.Run(Test);
+StandardJoinChecks.Run(Test);
+PlanAdviceChecks.Run(Test);
 Rc3Checks.Run(Test);
 if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
 Console.WriteLine($"ALL {passed} TESTS PASSED");

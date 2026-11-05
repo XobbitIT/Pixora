@@ -72,6 +72,12 @@ public static class PaintTimingPlan
     {
         if(TexelExperimentSettings.Enabled(s))return TexelMotionEstimate(s,batch);
         double size=batch.Size>0?batch.Size:DefaultSize(s,speed);
+        if(!fast&&batch.Segments.Count>1&&TransferSchedule.StandardJoin(s))
+        {
+            MotionTransportRate? joinedRate=null;
+            try{joinedRate=s.Data["motion_transport_rate"]?.Deserialize<MotionTransportRate>();}catch(System.Text.Json.JsonException){}
+            return MotionTransportTiming.StandardJoined(s,speed,batch.Segments,joinedRate);
+        }
         if(fast||batch.Segments.Count!=1||resolve(size,batch.Segments[0],batch.ShapeSlot) is not null)
             return TransferSchedule.EstimateBatch(s,speed,batch,resolve,fast);
         MotionTransportRate? rate=null;
@@ -88,6 +94,7 @@ public static class PaintTimingPlan
     private static string Route(Settings s,PaintBatch batch,double size,Func<double,ScreenLine,int,SpeedSample?> resolve,bool fast)
     {
         if(TexelExperimentSettings.Enabled(s))return "shape3:3:texel-contour-experimental:H";
+        if(!fast&&batch.Segments.Count>1&&TransferSchedule.StandardJoin(s))return $"{size.ToString("R",CultureInfo.InvariantCulture)}:standard_join:mixed";
         var line=batch.Segments[0];bool vertical=line.X1==line.X2&&line.Y1!=line.Y2;
         var sample=batch.Segments.Count==1?resolve(size,line,batch.ShapeSlot):null;
         string route=fast&&sample is null?"fast_path":sample is not null?$"probe_{sample.Method}":

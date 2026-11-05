@@ -11,6 +11,17 @@ public static class TransferSchedule
     public const string Revision="full-stroke-profile-commands-v3";
     public const int MaximumStrokes = 16;
     public const int MaximumConnector = 32;
+    // F3: experimental Standard stroke joining. OFF by default; the joins use the
+    // same safe-connector rule as fast transfer with radius 0 over this color's own
+    // fine coverage, so the brush trace along a connector stays inside the trace
+    // the plan already paints with that color.
+    public const string StandardJoinKey = "standard_join_experimental";
+    // The native-line prototype has its own Shift emitter, so joining is off with it.
+    public static bool StandardJoin(Settings s) => ReleaseProfile.Standard(s) && s.Bool(StandardJoinKey) && !TexelExperimentSettings.Enabled(s) && !StandardLineMotion.Enabled(s);
+    // Conservative screen radius around every connector point for Standard Size 3:
+    // live measurements put the brush edge 4.7–5.2 px from the command (0085), so
+    // all plan cells within 6 px of a connector point must be the joined color.
+    public const int StandardJoinRadius = 6;
     public static bool Fast(Settings s) => !ReleaseProfile.Standard(s)&&!s.Bool("adaptive_brush")&&s.Bool("fast_transfer") && !(s.Bool("line_mode") && s.Text("coverage_mode") == "Fast");
     public static bool FastBatch(Settings s,PaintBatch batch)=>Fast(s)
         &&(batch.Segments.Count!=1||SpeedCalibration.Resolve(s,batch.Size>0?batch.Size:PaintTimingPlan.DefaultSize(s),batch.Segments[0],batch.ShapeSlot) is null);
@@ -44,7 +55,7 @@ public static class TransferSchedule
         s=BrushFootprints.Snapshot(ReleaseProfile.Standard(s)?DrawingWorkflow.Effective(s):BrushMotionEvidence.Execution(s));
         var output = new Dictionary<int,List<PaintBatch>>();
         var rect=s.Calibration.Rect("canvas");
-        bool join=Fast(s) && s.Int("brush_shape_slot",3) is 3 or 4
+        bool join=(Fast(s)||StandardJoin(s)) && s.Int("brush_shape_slot",3) is 3 or 4
             && (!s.Bool("use_fixed_opacity",true) || s.Number("paint_opacity_value",1)==1)
             && rect.Valid && (long)rect.Width*rect.Height<=16_000_000;
         var fine=join?new bool[rect.Width*rect.Height]:[];
@@ -64,6 +75,25 @@ public static class TransferSchedule
             int x1=Cell(xb,x-radius),x2=Cell(xb,x+radius),y1=Cell(yb,y-radius),y2=Cell(yb,y+radius);
             for(int py=y1;py<=y2;py++)for(int px=x1;px<=x2;px++)
                 if(plan.Indices[py*plan.Width+px]!=color)return false;
+            return true;
+        }
+        // Standard join envelope: the connector centre must be on this color's own
+        // route (fine) and every plan cell the brush envelope covers inside Canvas
+        // must be this color. Beyond the Canvas edge the plan's own centre at the
+        // same point already reaches equally far, so nothing new is touched there.
+        bool SafeEnvelope(ScreenLine line,int radius,int color)
+        {
+            if(line.X1!=line.X2&&line.Y1!=line.Y2 || Length(line)>MaximumConnector)return false;
+            int dx=Math.Sign(line.X2-line.X1),dy=Math.Sign(line.Y2-line.Y1);
+            for(int k=0;k<=Length(line);k++)
+            {
+                int x=line.X1+k*dx,y=line.Y1+k*dy;
+                if(!SafePoint(x,y,0,color))return false;
+                int x1=Cell(xb,Math.Max(rect.Left,x-radius)),x2=Cell(xb,Math.Min(rect.Right-1,x+radius));
+                int y1=Cell(yb,Math.Max(rect.Top,y-radius)),y2=Cell(yb,Math.Min(rect.Bottom-1,y+radius));
+                for(int py=y1;py<=y2;py++)for(int px=x1;px<=x2;px++)
+                    if(plan.Indices[py*plan.Width+px]!=color)return false;
+            }
             return true;
         }
         bool SafeConnector(ScreenLine line,int radius,int color)
@@ -99,7 +129,9 @@ public static class TransferSchedule
                 }
             }
             List<ScreenLine>? segments=null;double size=0;int count=0,shape=0;string? profileId=null;bool priorNormal=false;
-            void Flush(){if(segments is not null)batches.Add(new(size,segments,count,shape,profileId));segments=null;count=0;}
+            // Standard join: total connector length per press is capped (F3).
+            int connectorPixels=0;
+            void Flush(){if(segments is not null)batches.Add(new(size,segments,count,shape,profileId));segments=null;count=0;connectorPixels=0;}
             foreach(var op in strokes)
             {
                 token.ThrowIfCancellationRequested();
@@ -132,8 +164,11 @@ public static class TransferSchedule
                                     {safe=false;break;}
                                 }
                             }
-                            else safe=path.All(connector=>SafeConnector(connector,op.Size>0?op.OuterRadius:0,color));
+                            else safe=path.All(connector=>SafeConnector(connector,op.Size>0?op.OuterRadius:0,color))
+                                // Standard: also the conservative brush envelope must stay in this color.
+                                &&(!StandardJoin(s)||connectorPixels+path.Sum(Length)<=MaximumConnector&&path.All(connector=>SafeEnvelope(connector,StandardJoinRadius,color)));
                             if(!safe)continue;
+                            if(StandardJoin(s))connectorPixels+=path.Sum(Length);
                             foreach(var connector in path)if(Length(connector)>0)segments.Add(connector);
                             next=candidate;connected=true;break;
                         }

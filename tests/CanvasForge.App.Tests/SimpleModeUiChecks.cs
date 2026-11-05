@@ -40,6 +40,29 @@ internal static partial class Program
         Render(window,Path.Combine(output,"simple-mode-paint.png"),1280,780);
         Console.WriteLine("PASS simple-mode-hides-only-unused-tools");
 
+        // Adaptive edge advice: a plan with many small edge shades offers one-click merging.
+        var emblem=new PixelImage(120,120);
+        for(int y=0;y<120;y++)for(int x=0;x<120;x++)
+        {
+            int inside=0;for(int sy=0;sy<4;sy++)for(int sx=0;sx<4;sx++){double px=x+(sx+.5)/4-60,py=y+(sy+.5)/4-60,r=px*px+py*py;if(r<42*42&&r>=27*27)inside++;}
+            double t=inside/16.0;emblem.Set(y*120+x,new((byte)Math.Round(51+204*t),(byte)Math.Round(133+81*t),(byte)Math.Round(255-204*t)));
+        }
+        var adviceSettings=Field<Settings>(window,"settings");adviceSettings.Set("edge_merge",false);
+        var hexPlanSettings=adviceSettings.Clone();hexPlanSettings.Set("color_mode","HEX Direct");hexPlanSettings.Set("hex_max_colors","Auto");
+        SetField(window,"plan",Planner.Build(emblem,hexPlanSettings));Invoke(window,"UpdateReady");
+        var merge=Field<Button>(window,"nextStepMerge");
+        Assert(PlanAdvice.SuggestEdgeMerge(Field<PaintPlan>(window,"plan"),adviceSettings),"Fixture has no small edge shades");
+        Assert(merge.Visibility==Visibility.Visible&&Field<TextBlock>(window,"nextStepText").Text.Contains("Merge edges"),"Edge advice is not offered in the Next step card");
+        Assert(LogicalNodes(pages["paint"]).OfType<Expander>().Any(e=>Equals(e.Header,"Plan optimization")&&e.Visibility==Visibility.Visible),"Plan optimization is hidden in simple mode");
+        // No plan stays in the window: a rebuild would otherwise start an asynchronous render.
+        SetField(window,"plan",null);
+        Invoke(window,"EnableEdgeMerge");
+        Assert(Field<Settings>(window,"settings").Bool("edge_merge"),"Merge edges did not enable edge merging");
+        Field<Settings>(window,"settings").Set("edge_merge",false);Invoke(window,"UpdateReady");
+        Assert(Field<Button>(window,"nextStepMerge").Visibility==Visibility.Collapsed,"Edge advice stays without a plan");
+        Console.WriteLine("PASS simple-mode-edge-advice");
+
+        s=Field<Settings>(window,"settings");// EnableEdgeMerge rebuilt the window settings.
         var identity=PlanIdentity.Compute(new PixelImage(8,8),s,[]);
         s.Set(MainWindow.AdvancedUiKey,true);
         Assert(PlanIdentity.Compute(new PixelImage(8,8),s,[])==identity,"UI mode changed the plan identity");

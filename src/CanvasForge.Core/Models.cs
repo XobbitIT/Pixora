@@ -589,6 +589,8 @@ public static class PlanIdentity
             foreach(var key in calibration.Select(p=>p.Key).Where(k=>k.StartsWith("palette_swatch_",StringComparison.Ordinal)).ToArray())calibration.Remove(key);
             if(calibration.Count==0)paintSettings.Remove("calibration");
         }
+        // F3: an explicit OFF flag keeps the former identity byte-for-byte.
+        if(!settings.Bool(TransferSchedule.StandardJoinKey))paintSettings.Remove(TransferSchedule.StandardJoinKey);
         if(!settings.Bool("edge_merge",false))
         {paintSettings.Remove("edge_merge");paintSettings.Remove("edge_merge_thickness");}
         else hash.AppendData(System.Text.Encoding.UTF8.GetBytes(EdgeRegionMerge.Revision));
