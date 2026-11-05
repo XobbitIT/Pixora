@@ -1,4 +1,4 @@
-Current verified runtime: **1.0.14-rc.8+local-line-repair-1**. Standard physical waviness remains unresolved; Adaptive qualification is deferred.
+Current candidate: **1.0.14-rc.9** — Standard plus the experimental texel route (release scope B); not yet verified live. Standard physical waviness remains unresolved; Adaptive is not part of the first release.
 
 Project notebook: [rules](AGENTS.md) → [current state](PROJECT_STATE.md); consult [architecture](ARCHITECTURE.md), [test matrix](TEST_MATRIX.md), and [Steam readiness](STEAM_RELEASE.md) as needed.
 

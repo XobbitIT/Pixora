@@ -1,19 +1,18 @@
-# Pixora Standard Quality candidate
+# Pixora 1.0.14-rc.9 — кандидат релізу (Standard + експериментальний тексельний маршрут)
 
-Build: 1.0.14-rc.8+local-standard-quality-1. Focus: Standard drawing quality. Adaptive is deferred.
+Розпакуй увесь архів в окрему папку й запусти `Pixora.exe`. .NET 8 Desktop Runtime x64 уже в пакеті, окремо встановлювати його не треба. Незавершений малюнок попередньої збірки заверши тією збіркою: новий план не продовжує старий прогрес, і Pixora пояснить чому.
 
-Захоплення вільне: Pixora зберігає точно обведений прямокутник, включно із запасом рамки. Відпускання миші завершує вибір. Автоматичного пошуку внутрішніх меж та Enter немає. Кнопки Rust і сторонні вікна залишаються зовні. Структурний proof і tool/input guards збережені. Запас рамки не означає, що Rust дозволяє фарбувати дерево.
+## Standard
+Основний режим. Обведи полотно Rust, відкрий зображення, пройди підготовку й натисни «Почати». F6 — пауза, ESC — зупинка. Фізичні нерівності ліній Standard ще не сертифіковані як усунені.
 
-Standard більше не розріджує проходи при Turbo/Max Speed: між сусідніми проходами 1 фізичний px. Деталізація target залишається окремим параметром: 5/8 px дають грубіше зображення. Виправлено розрідження команд; фізична хвилястість ще не сертифікована як виправлена. Ціна щільніших проходів — більше команд і часу, прогноз перераховується з нового плану.
+## Тексельний маршрут Standard — експериментальний
+Сторінка **«Експериментально»**. Режим для чорно-прозорих зображень: 1 піксель файлу = 1 тексель таблички, без масштабування. Типово вимкнений.
+- **Підтримується:** той самий вид полотна; Standard Size 3 круглий; чорний #000000 і прозорий фон; до 385×339 текселів (стовпці 75–459, рядки 198–536); деталі щонайменше 3 тексели завширшки і 2 заввишки. Усе інше відхиляється до вводу з причиною.
+- **Перед малюванням:** на чистому полотні натисни «Калібрувати сесію» (3 короткі лінії, близько 2 хв). «Почати» потребує підтвердженого калібрування саме цієї збірки.
+- **Відомі обмеження:** кінець штриха може не дотягнути до краю (зрізаний кут; у вимірах до ≈0.55 текселя) або вийти за край праворуч (зайвий тексель; у вимірах до ≈1.8 текселя від межі). Найчастіше це трапляється на кутах фігур і у фігурах висотою 2 тексели. Межа не гарантована; фізична якість не сертифікована.
 
-## Короткий причинний тест якості
+Adaptive, кольори в тексельному режимі, інші Size і форми не входять у цей кандидат.
 
-Файл Standard_Three_Lines_Same_Target.png містить тільки три вертикалі з попереднього Test_02, у тому самому положенні на прозорому 128×128 зображенні. Для перевірених смуг їхній target точно збігається з target останнього запису; замість повної рамки й кольорів лише 72 операції в новому плані.
+---
 
-Для зіставлення з останнім запуском: Standard, палітра Rust, Max Speed, клітина 8 px, Fit Square, edge merge OFF, звичайний круглий Size 3. Залиши той самий Canvas і layout, якщо вони ще не змінені; довільне нове виділення працює, але змінить масштаб порівняння. У Rust вручну Interval 0.01 / Opacity 1.00. На чистому полотні відкрий цей файл, пройди підготовку й намалюй до кінця. Клітина 8 тут потрібна лише для порівняння з попереднім target, а не як рекомендація високої деталізації.
-
-У last-run автоматично записуються native-before/native-after, command-plan і metadata; потрібні ці файли та config/session. Відео необов'язкове. F6/Alt+Tab/вихід із редактора, різні форми пензля та Adaptive повторювати не потрібно.
-
-Coverage revision змінилася: старий checkpoint не застосовується до нового плану. Новий START не перезаписує його до першого штриха. Старий малюнок можна завершити попереднім RC8.
-
-Free capture keeps the exact user rectangle. Standard uses 1 px between coverage passes for all movement presets. This fixes sparse coverage commands, not proven physical waviness. The included three-line probe isolates density at the prior cell8/Max Speed settings; it is not a request to repeat pause/recovery or Adaptive tests. Runtime included. inGameTest=false for this changed build.
+**English.** Unpack the whole archive into its own folder and run `Pixora.exe`; the .NET 8 runtime is included. Standard is the main mode; its physical line waviness is not certified as fixed. The **Experimental** page offers the Standard texel route for black-and-transparent images: 1 source pixel = 1 texel, Size 3 round, up to 385×339 texels, details at least 3×2 texels. Press **Calibrate session** on a clean Canvas before painting. Known limitation: a stroke end may stop short (cut corner, measured up to ≈0.55 texel) or extend past the edge (extra texel, measured up to ≈1.8 texels), mostly at figure corners and in shapes 2 texels tall; no bound is guaranteed and physical quality is not certified. inGameTest=false for this build until its live run is recorded.

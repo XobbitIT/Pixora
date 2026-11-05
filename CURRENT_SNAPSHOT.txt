@@ -1,4 +1,4 @@
-Historical snapshots — Pixora 1.0.14-rc.8. Current canonical state: PROJECT_STATE.md.
+Historical snapshots — Pixora 1.0.14-rc.9. Current canonical state: PROJECT_STATE.md.
 Read PROJECT_STATE.md first. Entries below are historical and can contradict the current implementation.
 
 Current operational state: local-line-repair-1, 21.10.2026.
