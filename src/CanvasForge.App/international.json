@@ -6688,12 +6688,12 @@
     "Поле HEX находится за пределами Rust."
   ],
   [
-    "HEX limit must be Auto or 1–256.",
-    "Limit HEX musi wynosić Auto lub 1–256.",
-    "Das HEX-Limit muss Auto oder 1–256 sein.",
-    "La limite HEX doit être Auto ou 1–256.",
-    "El límite HEX debe ser Auto o 1–256.",
-    "Лимит HEX должен быть Auto или 1–256."
+    "HEX limit must be Auto or 1–1024.",
+    "Limit HEX musi wynosić Auto lub 1–1024.",
+    "Das HEX-Limit muss Auto oder 1–1024 sein.",
+    "La limite HEX doit être Auto ou 1–1024.",
+    "El límite HEX debe ser Auto o 1–1024.",
+    "Лимит HEX должен быть Auto или 1–1024."
   ],
   [
     "HEX readback interval must be 1–64.",
@@ -15190,5 +15190,77 @@
     "Préparation en pause",
     "Preparación en pausa",
     "Подготовка приостановлена"
+  ],
+  [
+    "Auto — faster",
+    "Auto — szybciej",
+    "Auto — schneller",
+    "Auto — plus rapide",
+    "Auto — más rápido",
+    "Авто — быстрее"
+  ],
+  [
+    "Auto — faster picks the fewest colors without a noticeable accuracy loss (1.5 ΔE by default): fewer color changes and strokes.",
+    "„Auto — szybciej” wybiera najmniej kolorów bez zauważalnej utraty dokładności (domyślnie do 1.5 ΔE): mniej zmian koloru i pociągnięć.",
+    "„Auto — schneller“ wählt die wenigsten Farben ohne spürbaren Genauigkeitsverlust (standardmäßig bis 1.5 ΔE): weniger Farbwechsel und Striche.",
+    "« Auto — plus rapide » choisit le moins de couleurs possible sans perte de précision notable (1.5 ΔE par défaut) : moins de changements de couleur et de traits.",
+    "«Auto — más rápido» elige el menor número de colores sin una pérdida de precisión apreciable (1.5 ΔE por defecto): menos cambios de color y trazos.",
+    "«Авто — быстрее» выбирает наименьшее число цветов без заметной потери точности (по умолчанию до 1.5 ΔE): меньше смен цвета и штрихов."
+  ],
+  [
+    "Auto — faster picks the fewest colors without a noticeable accuracy loss (1.5 ΔE by default): fewer color changes and strokes. 512 and 1024: more color changes → longer; on small targets the difference is barely visible.",
+    "„Auto — szybciej” wybiera najmniej kolorów bez zauważalnej utraty dokładności (domyślnie do 1.5 ΔE): mniej zmian koloru i pociągnięć. 512 i 1024: więcej zmian koloru → dłużej; na małych celach różnica jest ledwo widoczna.",
+    "„Auto — schneller“ wählt die wenigsten Farben ohne spürbaren Genauigkeitsverlust (standardmäßig bis 1.5 ΔE): weniger Farbwechsel und Striche. 512 und 1024: mehr Farbwechsel → länger; bei kleinen Zielen ist der Unterschied kaum sichtbar.",
+    "« Auto — plus rapide » choisit le moins de couleurs possible sans perte de précision notable (1.5 ΔE par défaut) : moins de changements de couleur et de traits. 512 et 1024 : plus de changements de couleur → plus long ; sur de petites cibles, la différence est à peine visible.",
+    "«Auto — más rápido» elige el menor número de colores sin una pérdida de precisión apreciable (1.5 ΔE por defecto): menos cambios de color y trazos. 512 y 1024: más cambios de color → más tiempo; en objetivos pequeños la diferencia apenas se nota.",
+    "«Авто — быстрее» выбирает наименьшее число цветов без заметной потери точности (по умолчанию до 1.5 ΔE): меньше смен цвета и штрихов. 512 и 1024: больше смен цвета → дольше; на маленьких целях разница едва заметна."
+  ],
+  [
+    "Compare 64 … 1024: colors, strokes, time",
+    "Porównaj 64 … 1024: kolory, pociągnięcia, czas",
+    "Vergleichen 64 … 1024: Farben, Striche, Zeit",
+    "Comparer 64 … 1024 : couleurs, traits, temps",
+    "Comparar 64 … 1024: colores, trazos, tiempo",
+    "Сравнить 64 … 1024: цвета, штрихи, время"
+  ],
+  [
+    "No candidate limits.",
+    "Brak limitów do wyboru.",
+    "Keine Kandidatenlimits.",
+    "Aucune limite candidate.",
+    "No hay límites candidatos.",
+    "Нет вариантов лимита."
+  ],
+  [
+    "Preview, strokes, ΔE and planned time of each limit for the loaded image.",
+    "Podgląd, pociągnięcia, ΔE i planowany czas każdego limitu dla wczytanego obrazu.",
+    "Vorschau, Striche, ΔE und geplante Zeit jedes Limits für das geladene Bild.",
+    "Aperçu, traits, ΔE et temps prévu de chaque limite pour l’image chargée.",
+    "Vista previa, trazos, ΔE y tiempo previsto de cada límite para la imagen cargada.",
+    "Предпросмотр, штрихи, ΔE и плановое время каждого лимита для открытого изображения."
+  ],
+  [
+    "Report saved: a preview for each limit, metrics and comparison settings.",
+    "Raport zapisany: podgląd dla każdego limitu, tabela i ustawienia porównania.",
+    "Bericht gespeichert: eine Vorschau pro Limit, Kennzahlen und Vergleichseinstellungen.",
+    "Rapport enregistré : un aperçu par limite, les mesures et les paramètres de comparaison.",
+    "Informe guardado: una vista previa por límite, métricas y ajustes de la comparación.",
+    "Отчёт сохранён: предпросмотр для каждого лимита, таблица и настройки сравнения."
+  ],
+  [
+    "{p0}-color plan · {p1}/{p2} ready",
+    "Plan {p0} kolorów · gotowe {p1}/{p2}",
+    "Plan mit {p0} Farben · {p1}/{p2} fertig",
+    "Plan à {p0} couleurs · {p1}/{p2} prêts",
+    "Plan de {p0} colores · {p1}/{p2} listos",
+    "План {p0} цветов · готово {p1}/{p2}"
+  ],
+  [
+    "Faster color threshold must be 0.1–10 ΔE.",
+    "Próg „Auto — szybciej” musi wynosić 0.1–10 ΔE.",
+    "Die Schwelle für „Auto — schneller“ muss 0.1–10 ΔE betragen.",
+    "Le seuil « Auto — plus rapide » doit être compris entre 0.1 et 10 ΔE.",
+    "El umbral de «Auto — más rápido» debe estar entre 0.1 y 10 ΔE.",
+    "Порог «Авто — быстрее» должен быть от 0.1 до 10 ΔE."
   ]
 ]

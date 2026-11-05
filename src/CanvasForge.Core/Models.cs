@@ -181,8 +181,10 @@ public sealed class Settings
         if(Number("edge_merge_thickness",2) is <1 or >4||Number("edge_merge_thickness",2)!=Math.Truncate(Number("edge_merge_thickness",2)))
             throw new InvalidDataException("Edge merge thickness must be an integer from 1 to 4.");
         var hexLimit = Text("hex_max_colors", "128");
-        if (hexLimit != "Auto" && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 256))
-            throw new InvalidDataException("HEX limit must be Auto or 1–256.");
+        if (hexLimit is not ("Auto" or FastColors.Value) && (!int.TryParse(hexLimit, out var hexCap) || hexCap < 1 || hexCap > 1024))
+            throw new InvalidDataException("HEX limit must be Auto or 1–1024.");
+        if (FastColors.Problem(this) is { } fastProblem)
+            throw new InvalidDataException(fastProblem);
         if (Number("adaptive_max_size",20)<DrawingWorkflow.MinimumSize||!BrushFootprints.Sizes.Contains(Number("adaptive_max_size",20)))
             throw new InvalidDataException("Adaptive maximum Size must be a supported Size of 2 or larger.");
         if(Number("brush_shape_slot",3) is <1 or >7||Number("brush_shape_slot",3)!=Int("brush_shape_slot",3))
@@ -221,7 +223,7 @@ public sealed class Settings
             throw new InvalidDataException("Invalid cleanup settings.");
         if (Int("hex_readback_every", 8) is < 1 or > 64)
             throw new InvalidDataException("HEX readback interval must be 1–64.");
-        if (Text("max_colors", "Auto") != "Auto" && (!int.TryParse(Text("max_colors"), out var cap) || cap < 1 || cap > 256))
+        if (Text("max_colors", "Auto") is not ("Auto" or FastColors.Value) && (!int.TryParse(Text("max_colors"), out var cap) || cap < 1 || cap > 256))
             throw new InvalidDataException("Color limit must be Auto or 1–256.");
         if (Calibration.Rect("canvas").Width > 16384 || Calibration.Rect("canvas").Height > 16384)
             throw new InvalidDataException("Canvas is too large.");

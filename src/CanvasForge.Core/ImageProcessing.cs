@@ -520,12 +520,20 @@ public static class Quantization
             return (axis, ranges[axis] * Math.Sqrt(box.Sum(x => (double)x.Count)));
         }
 
+        // Box statistics change only for the two halves of a split, so they are
+        // cached. Selection keeps the first box with the highest score, exactly as
+        // the former stable OrderByDescending did; the palette is unchanged.
+        var infos = new List<(int Axis, double Score)> { Info(samples) };
         while (boxes.Count < limit)
         {
             token.ThrowIfCancellationRequested();
-            var candidate = boxes.Select((b, i) => (b, i, info: Info(b))).Where(x => x.b.Count > 1).OrderByDescending(x => x.info.Score).FirstOrDefault();
-            if (candidate.b is null)
+            int chosen = -1;
+            for (var b = 0; b < boxes.Count; b++)
+                if (boxes[b].Count > 1 && (chosen < 0 || infos[b].Score > infos[chosen].Score))
+                    chosen = b;
+            if (chosen < 0)
                 break;
+            var candidate = (b: boxes[chosen], i: chosen, info: infos[chosen]);
             var box = candidate.b.OrderBy(x => Channel(x.Color, candidate.info.Axis)).ThenBy(x => x.Color.Key).ToList();
             var half = box.Sum(x => (long)x.Count) / 2;
             long total = 0;
@@ -539,7 +547,9 @@ public static class Quantization
             }
 
             boxes[candidate.i] = box.GetRange(0, split);
+            infos[candidate.i] = Info(boxes[candidate.i]);
             boxes.Add(box.GetRange(split, box.Count - split));
+            infos.Add(Info(boxes[^1]));
         }
 
         static Rgb Mean(IEnumerable<Sample> box)
@@ -558,15 +568,21 @@ public static class Quantization
 
         var colors = boxes.Select(Mean).ToArray();
         // Weighted Lloyd refinement in perceptual Lab space; deterministic output.
+        // Nearest centres are found in parallel; sums are accumulated in sample
+        // order afterwards, so floating-point results are identical.
+        var sampleLabs = samples.Select(x => Lab.From(x.Color)).ToArray();
+        var nearest = new int[samples.Count];
         for (var pass = 0; pass < 3; pass++)
         {
             token.ThrowIfCancellationRequested();
             var labs = colors.Select(Lab.From).ToArray();
             var sums = new double[colors.Length, 4];
             var ids = Enumerable.Range(0, colors.Length).ToArray();
-            foreach (var s in samples)
+            Parallel.For(0, samples.Count, new ParallelOptions { CancellationToken = token }, i => nearest[i] = Nearest(sampleLabs[i], labs, ids));
+            for (var i = 0; i < samples.Count; i++)
             {
-                var k = Nearest(Lab.From(s.Color), labs, ids);
+                var s = samples[i];
+                var k = nearest[i];
                 sums[k, 0] += s.Count;
                 sums[k, 1] += s.Color.R * s.Count;
                 sums[k, 2] += s.Color.G * s.Count;

@@ -630,13 +630,13 @@ internal static partial class Program
         }
         Draw(""); var scroll = Descendants(root).OfType<ScrollViewer>().Single();
         scroll.ScrollToEnd(); Draw("-bottom");
-        Assert(Descendants(root).OfType<Image>().Count(x => x.Source is not null) == 4, "Palette comparison lost a preview");
+        Assert(Descendants(root).OfType<Image>().Count(x => x.Source is not null) == 6, "Palette comparison lost a preview");
         string captions = string.Join("\n", Descendants(root).SelectMany(Captions));
         Assert(captions.Contains(english ? "planner forecast" : "прогноз планувальника"), "Palette time claimed to be measured");
         Assert(captions.Contains(english ? "Wide operations" : "Широких операцій"), "Adaptive metrics missing");
         Assert(captions.Contains(english ? "Changes are relative to 256" : "Зміни — відносно 256"), "Comparison baseline not explained");
         var deltas = Descendants(root).OfType<TextBlock>().Where(x => x.Tag?.ToString()?.EndsWith(":delta") == true).ToArray();
-        Assert(deltas.Length == 18 && deltas.All(x => !x.Tag!.ToString()!.StartsWith("palette:256:")), "Relative metrics missing or baseline compared to itself");
+        Assert(deltas.Length == 35 && deltas.Count(x => x.Tag!.ToString()!.EndsWith(":strokes:delta")) == 5 && deltas.All(x => !x.Tag!.ToString()!.StartsWith("palette:256:")), "Relative metrics missing or baseline compared to itself");
         foreach (var delta in deltas)
         {
             var row = (Grid)delta.Parent;
@@ -652,15 +652,15 @@ internal static partial class Program
         Assert(deltas.Single(x => x.Tag!.ToString() == "palette:64:error:delta").Text == "+" + comparison.Variants[0].Plan.Error.ToString("F2", culture), "Delta E showed a percentage or lost its sign");
         if (english) Assert(!System.Text.RegularExpressions.Regex.IsMatch(captions, @"[\u0400-\u04FF]"), "Palette comparison contains untranslated UI");
         var choices = Descendants(root).OfType<Button>().Where(x => x.Content?.ToString()?.StartsWith(english ? "Apply " : "Застосувати ") == true).ToArray();
-        Assert(choices.Length == 4 && selected == 0, "Comparison implicitly applied a palette");
+        Assert(choices.Length == 6 && selected == 0, "Comparison implicitly applied a palette");
         choices.Single(x => x.Content!.ToString()!.EndsWith("96")).RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
         Assert(selected == 96, "Selected comparison cap was not applied");
         using var report = new MemoryStream(); PaletteComparisonWindow.WriteReport(comparison, report); report.Position = 0;
         using var zip = new System.IO.Compression.ZipArchive(report, System.IO.Compression.ZipArchiveMode.Read);
-        Assert(zip.Entries.Count == 7, "Palette export incomplete");
+        Assert(zip.Entries.Count == 9, "Palette export incomplete");
         using var json = System.Text.Json.JsonDocument.Parse(zip.GetEntry("comparison.json")!.Open());
         Assert(!json.RootElement.GetProperty("inGameMeasured").GetBoolean(), "Export mislabeled forecast");
-        Assert(json.RootElement.GetProperty("variants").GetArrayLength() == 4 && json.RootElement.GetProperty("SourceSha256").GetString() == comparison.SourceSha256, "Export lost reproducibility data");
+        Assert(json.RootElement.GetProperty("variants").GetArrayLength() == 6 && json.RootElement.GetProperty("SourceSha256").GetString() == comparison.SourceSha256, "Export lost reproducibility data");
         foreach (var variant in comparison.Variants)
         {
             using var bytes = new MemoryStream(); using (var entry = zip.GetEntry($"preview-{variant.Limit}.png")!.Open()) entry.CopyTo(bytes);
@@ -688,7 +688,7 @@ internal static partial class Program
         root.Measure(new Size(1060,840));root.Arrange(new Rect(0,0,1060,840));root.UpdateLayout();
         var captions = Descendants(root).OfType<TextBlock>().ToArray();
         var undefined = captions.Where(x => x.Tag?.ToString()?.EndsWith(":delta") == true && x.Text == "—").ToArray();
-        Assert(undefined.Length == 6 && undefined.All(x => x.ToolTip?.ToString()?.Contains("baseline value is zero") == true), "Transparent comparison hides the zero-baseline explanation");
+        Assert(undefined.Length == 15 && undefined.All(x => x.ToolTip?.ToString()?.Contains("baseline value is zero") == true), "Transparent comparison hides the zero-baseline explanation");
         Assert(captions.All(x => !x.Text.Contains("NaN") && !x.Text.Contains("Infinity")), "Relative metrics contain nonfinite values");
         Console.WriteLine("PASS palette-relative-indicators");
     }
@@ -707,6 +707,9 @@ internal static partial class Program
         window.ApplyPaletteLimit(64); Assert(Field<Settings>(window, "settings").Text("hex_max_colors") == "256", "Comparison changed an active painting plan");
         SetField(window, "paintTask", Task.CompletedTask); window.ApplyPaletteLimit(96); Invoke(window, "ReadSettings");
         Assert(Field<Settings>(window, "settings").Text("hex_max_colors") == "96" && Settings.Load(path).Text("hex_max_colors") == "96", "ComboBox reader restored the old cap");
+        SetField(window, "source", source); window.ApplyPaletteLimit(1024); Invoke(window, "ReadSettings");
+        Assert(Settings.Load(path).Text("hex_max_colors") == "1024", "A 1024-color comparison result cannot be applied");
+        SetField(window, "source", source); window.ApplyPaletteLimit(96); Invoke(window, "ReadSettings");
         Assert(ReferenceEquals(Field<PixelImage>(window, "source"), source) && Field<PaintPlan?>(window, "plan") is null, "Applying the cap lost source or retained a stale plan");
         var saved = Settings.Load(path); Assert(saved.Int("cell_px") == cfg.Int("cell_px") && saved.Text("speed_profile") == cfg.Text("speed_profile"), "Apply changed detail or speed");
         Field<System.Windows.Threading.DispatcherTimer>(window, "debounce").Stop();

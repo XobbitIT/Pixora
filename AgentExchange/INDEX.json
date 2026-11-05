@@ -2078,6 +2078,17 @@
         "finding": "simple UI mode (ui_advanced OFF by default) with adaptive Next step card; unused Standard tools hidden, recovery kept; Core 801, WPF 247 PASS; Codex P2 paused-resume highlight fixed",
         "next": "rc.10 build and new in-UI session calibration; user look at the UI"
       }
+    },
+    {
+      "id": "0124",
+      "file": "0124_CLAUDE_CODEX_F2_FAST_COLORS_1024.md",
+      "author": "Claude (local session); Codex rounds 23-24 review",
+      "delivery": "local_written_by_claude_in_exchange",
+      "scope": {
+        "status": "IMPLEMENTED_OFFLINE",
+        "finding": "Auto - faster color limit and HEX up to 1024; HexPalette 18x faster byte-identical; pre-F2 identities unchanged; Core 807, WPF 247 x2 PASS; Codex round 23 and 24 findings fixed",
+        "next": "rc.10 build (prefer GitHub CI), user live check of the real 447x447 JPEG with Auto vs Auto - faster"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

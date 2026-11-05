@@ -62,8 +62,8 @@ internal sealed class PaletteComparisonWindow : Window
     {
         var progress = new Progress<PaletteComparisonProgress>(p =>
         {
-            if (!closed && result is null) notice.Text = T($"План {p.Limit} кольорів · {p.Completed}/4 готово",
-                $"{p.Limit}-color plan · {p.Completed}/4 ready");
+            if (!closed && result is null) notice.Text = T($"План {p.Limit} кольорів · {p.Completed}/{PaletteComparison.Limits.Length} готово",
+                $"{p.Limit}-color plan · {p.Completed}/{PaletteComparison.Limits.Length} ready");
         });
         try
         {
@@ -92,8 +92,8 @@ internal sealed class PaletteComparisonWindow : Window
         notice.Foreground = Color("#BAC2D2");
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new()); grid.ColumnDefinitions.Add(new());
-        grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
-        grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        for (int row = 0; row < (comparison.Variants.Count + 1) / 2; row++)
+            grid.RowDefinitions.Add(new() { Height = GridLength.Auto });
         var culture = LanguageCatalog.Culture(language);
         var baseline = comparison.Variants.Single(v => v.Limit == 256);
         for (int index = 0; index < comparison.Variants.Count; index++)
@@ -130,6 +130,7 @@ internal sealed class PaletteComparisonWindow : Window
             }
             string CostColor(double value, double reference) => value < reference ? "#62D69A" : value > reference ? "#F2C46D" : "#BAC2D2";
             Metric("colors", T("Кольорів у плані", "Colors in plan"), variant.Plan.ColorCount.ToString("N0", culture), PercentDelta(variant.Plan.ColorCount, baseline.Plan.ColorCount, culture));
+            Metric("strokes", T("Штрихів", "Strokes"), variant.SourceStrokes.ToString("N0", culture), PercentDelta(variant.SourceStrokes, baseline.SourceStrokes, culture), deltaColor: CostColor(variant.SourceStrokes, baseline.SourceStrokes));
             Metric("operations", T("Операцій миші", "Mouse operations"), variant.Operations.ToString("N0", culture), PercentDelta(variant.Operations, baseline.Operations, culture), deltaColor: CostColor(variant.Operations, baseline.Operations));
             Metric("wide", T("Широких операцій", "Wide operations"), variant.WideOperations.ToString("N0", culture), AbsoluteDelta(variant.WideOperations, baseline.WideOperations, 0, culture),
                 T("Прийняті планувальником операції великим каліброваним пензлем.",
@@ -182,7 +183,7 @@ internal sealed class PaletteComparisonWindow : Window
     private void SaveReport()
     {
         if (result is null) return;
-        var picker = new SaveFileDialog { Filter = "ZIP (*.zip)|*.zip", FileName = "Pixora_HEX_64_96_128_256.zip" };
+        var picker = new SaveFileDialog { Filter = "ZIP (*.zip)|*.zip", FileName = "Pixora_HEX_64-1024.zip" };
         if (picker.ShowDialog(this) != true) return;
         string temporary = Path.Combine(Path.GetDirectoryName(picker.FileName)!, Path.GetRandomFileName());
         try
@@ -191,8 +192,8 @@ internal sealed class PaletteComparisonWindow : Window
             using var memory = new MemoryStream(); WriteReport(result, memory);
             File.WriteAllBytes(temporary, memory.ToArray());
             File.Move(temporary, picker.FileName, overwrite: true);
-            notice.Text = T("Звіт збережено: чотири прев’ю, таблиця та налаштування порівняння.",
-                "Report saved: four previews, metrics and comparison settings.");
+            notice.Text = T("Звіт збережено: прев’ю кожного ліміту, таблиця та налаштування порівняння.",
+                "Report saved: a preview for each limit, metrics and comparison settings.");
             notice.Foreground = Color("#62D69A");
         }
         catch (Exception e)

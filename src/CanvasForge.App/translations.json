@@ -653,7 +653,7 @@
   "Невідомий режим вводу.": "Unknown input engine.",
   "Затримка стабільного вводу має бути від 16 до 100 мс.": "Input frame delay must be 16–100 ms.",
   "Затримка експериментального вводу має бути від 8 до 16 мс.": "Experimental input delay must be 8–16 ms.",
-  "Ліміт HEX-кольорів має бути автоматичним або від 1 до 256.": "HEX limit must be Auto or 1–256.",
+  "Ліміт HEX-кольорів має бути автоматичним або від 1 до 1024.": "HEX limit must be Auto or 1–1024.",
   "Максимальний розмір адаптивного пензля має бути 10 або 20.": "Adaptive maximum Size must be 10 or 20.",
   "Пакет швидкого руху має бути цілим числом від 1 до 16.": "Fast movement packet must be an integer from 1 to 16.",
   "Розмір пензля для тесту має бути 1, 3, 10 або 20.": "Probe Size must be 1, 3, 10 or 20.",
@@ -1688,5 +1688,6 @@
   "Цю корекцію вже запускали; дані збережено, автоматичний повтор заборонений.": "This correction was already attempted; data retained, automatic retry prohibited.",
   "Цю спробу вже запускали. Її дані збережено; повторне малювання заборонене.": "This attempt already ran. Its data is retained; painting again is prohibited.",
   "Цю спробу вже запускали. Дані не перезаписуються; повтор вимкнений.": "This attempt already ran. Data is not overwritten; retry disabled.",
-  "Цю умову вже запускали. Автоматичне повторення заборонене.": "This condition was already attempted. Automatic retry is prohibited."
+  "Цю умову вже запускали. Автоматичне повторення заборонене.": "This condition was already attempted. Automatic retry is prohibited.",
+  "Поріг «Авто — швидше» має бути від 0.1 до 10 ΔE.": "Faster color threshold must be 0.1–10 ΔE."
 }

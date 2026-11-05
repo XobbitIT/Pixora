@@ -14,6 +14,7 @@ public sealed record PaletteComparisonResult(int SourceWidth, int SourceHeight, 
 // just the HEX cap. Forecasts use the execution timing schedule, not observations.
 public static class PaletteComparison
 {
+    public static readonly int[] Limits = [64, 96, 128, 256, 512, 1024];
     public static PaletteComparisonResult Build(PixelImage source, Settings settings,
         IProgress<PaletteComparisonProgress>? progress = null, CancellationToken token = default)
     {
@@ -23,7 +24,7 @@ public static class PaletteComparison
         var snapshot = settings.Clone();
         var image = source.Clone();
         var variants = new List<PaletteVariant>();
-        foreach (int limit in new[] { 64, 96, 128, 256 })
+        foreach (int limit in Limits)
         {
             token.ThrowIfCancellationRequested();
             progress?.Report(new(limit, variants.Count));
@@ -41,7 +42,7 @@ public static class PaletteComparison
                 candidate.Int("start_delay", 5) + timing.Sum(x => x.PlannedSeconds)));
         }
         token.ThrowIfCancellationRequested();
-        progress?.Report(new(256, variants.Count));
+        progress?.Report(new(Limits[^1], variants.Count));
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         hash.AppendData(Encoding.UTF8.GetBytes($"{image.Width}x{image.Height}:"));
         hash.AppendData(image.Rgba);

@@ -168,6 +168,7 @@ internal static class Translations
             ("coverage_mode", "Precision") => ("Точний", "Precision"),
             ("coverage_mode", "Fast") => ("Швидкий", "Fast"),
             ("max_colors" or "hex_max_colors" or "quick_palette_rows", "Auto") => ("Автоматично", "Automatic"),
+            ("max_colors" or "hex_max_colors", CanvasForge.Core.FastColors.Value) => ("Авто — швидше", "Auto — faster"),
             ("stroke_method", "Paced") => ("Рух із затримками", "Paced movement"),
             ("stroke_method", "Shift") => ("Лінія з Shift", "Shift line"),
             ("palette_source", "main" or "palette") => ("Основна палітра", "Main palette"),

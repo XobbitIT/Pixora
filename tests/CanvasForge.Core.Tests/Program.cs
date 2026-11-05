@@ -15,6 +15,9 @@ if(args.Length==3&&args[0]=="--stroke-observation-replay")
 {StandardStrokeObservationReplay.Run(args[1],args[2]);return;}
 if(args.Length==2&&args[0]=="--texel-column-vectors")
 {StandardTexelColumnChecks.Export(args[1]);return;}
+if(args.FirstOrDefault()=="--fast-color-bench"){FastColorChecks.Bench();return;}
+if(args.FirstOrDefault()=="--fast-color-identities"){FastColorFixtures.PrintIdentities();return;}
+if(args.FirstOrDefault()=="--fast-color-table"){FastColorChecks.Table();return;}
 void Test(string name, Action action)
 {
     try
@@ -2433,7 +2436,7 @@ Test("Palette comparison caps four plans while preserving source, settings and g
     for (int i = 0; i < 512; i++) image.Set(i, new((byte)(i % 256), (byte)(i * 7 % 256), (byte)(i * 13 % 256)), i % 17 == 0 ? (byte)0 : (byte)255);
     var bytes = (byte[])image.Rgba.Clone(); string json = cfg.Data.ToJsonString();
     var result = PaletteComparison.Build(image, cfg);
-    Assert(result.Variants.Select(v => v.Limit).SequenceEqual(new[] { 64, 96, 128, 256 }));
+    Assert(result.Variants.Select(v => v.Limit).SequenceEqual(new[] { 64, 96, 128, 256, 512, 1024 }));
     Assert(cfg.Data.ToJsonString() == json && image.Rgba.SequenceEqual(bytes), "Comparison mutated the active input");
     Assert(result.SettingsJson == json && result.SourceWidth == 32 && result.SourceHeight == 16 && result.SourceSha256.Length == 64);
     foreach (var variant in result.Variants)
@@ -2626,6 +2629,7 @@ Rc4EditorChecks.Run(Test);
 Rc4AdaptiveChecks.Run(Test);
 Rc5DrawingChecks.Run(Test);
 PalettePreparationChecks.Run(Test);
+FastColorChecks.Run(Test);
 Rc3Checks.Run(Test);
 if(failures.Count>0)throw new AggregateException($"{failures.Count} failed; {passed} passed",failures);
 Console.WriteLine($"ALL {passed} TESTS PASSED");

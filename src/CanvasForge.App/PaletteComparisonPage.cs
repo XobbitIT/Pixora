@@ -11,7 +11,7 @@ internal partial class MainWindow
         ReadSettings();
         if (settings.Mode != ColorMode.HexDirect) return;
         // A modal comparison owns its snapshot and never changes the active plan
-        // until the user explicitly applies one of the four limits.
+        // until the user explicitly applies one of the compared limits.
         var snapshot = settings.Clone();
         var image = source.Clone();
         var dialog = new PaletteComparisonWindow(InterfaceLanguage, ApplyPaletteLimit) { Owner = this };
@@ -22,7 +22,7 @@ internal partial class MainWindow
     internal void ApplyPaletteLimit(int limit)
     {
         if (Painting || closing || source is null) return;
-        if (limit is not (64 or 96 or 128 or 256)) throw new ArgumentOutOfRangeException(nameof(limit));
+        if (!PaletteComparison.Limits.Contains(limit)) throw new ArgumentOutOfRangeException(nameof(limit));
         ReadSettings();
         if (settings.Mode != ColorMode.HexDirect) return;
         settings.Set("hex_max_colors", limit.ToString(CultureInfo.InvariantCulture));

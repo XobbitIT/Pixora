@@ -26,9 +26,15 @@ public static class TargetPreparation
         if (settings.Mode == ColorMode.HexDirect)
         {
             var capText = settings.Text("hex_max_colors", "128");
-            var cap = capText == "Auto" ? 64 : Math.Clamp(int.Parse(capText), 1, 256);
-            var rgb = Quantization.HexPalette(image, cap, alpha, token);
-            indices = Quantization.Map(image, rgb, alpha, false, token);
+            Rgb[] rgb;
+            if (capText == FastColors.Value)
+                (rgb, indices, _) = FastColors.ChooseHex(image, alpha, FastColors.Threshold(settings), token);
+            else
+            {
+                var cap = capText == "Auto" ? 64 : Math.Clamp(int.Parse(capText), 1, 1024);
+                rgb = Quantization.HexPalette(image, cap, alpha, token);
+                indices = Quantization.Map(image, rgb, alpha, false, token);
+            }
             if (capText == "Auto")
             {
                 var err = Quantization.Error(image, indices, rgb);
@@ -69,7 +75,7 @@ public static class TargetPreparation
             var full = Quantization.Map(image, rgb, alpha, false, token);
             var ranked = full.Where(x => x >= 0).GroupBy(x => x).OrderByDescending(x => x.Count()).ThenBy(x => x.Key).Select(x => x.Key).ToList();
             var text = settings.Text("max_colors", "Auto");
-            var cap = text == "Auto" ? palette.Length : Math.Min(int.Parse(text), palette.Length);
+            var cap = text is "Auto" or FastColors.Value ? palette.Length : Math.Min(int.Parse(text), palette.Length);
             // Reserve skin shades only when they actually occur in the mapped
             // image. Small logo palettes must retain their dominant colors.
             var forced = settings.Bool("skin_assist", true) && cap >= 16
@@ -101,6 +107,19 @@ public static class TargetPreparation
                 }
 
                 allowed = chosen ?? allowed;
+            }
+            else if (text == FastColors.Value)
+            {
+                var options = new List<(int[] Ids, double Error)>();
+                foreach (var limit in FastColors.Limits.Select(x => Math.Min(x, palette.Length)).Distinct())
+                {
+                    var ids = forced.Concat(ranked).Distinct().Take(limit).ToArray();
+                    if (ids.Length == 0)
+                        ids = [0];
+                    var map = Quantization.Map(image, rgb, alpha, false, token, ids);
+                    options.Add((ids, Quantization.Error(image, map, rgb)));
+                }
+                allowed = options[FastColors.Choose(options.Select(x => x.Error).ToArray(), FastColors.Threshold(settings))].Ids;
             }
 
             indices = Quantization.Map(image, rgb, alpha, dither, token, allowed);

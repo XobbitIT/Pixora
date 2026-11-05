@@ -439,10 +439,15 @@ internal sealed partial class MainWindow : Window
         SimpleAdded(colors,()=>AddCombo(colors,"color_mode",T("Спосіб вибору кольору","Color selection"),new[]{"Rust Palette","HEX Direct"},true));
         colors.Children.Add(Text(settings.Mode==ColorMode.HexDirect?T("HEX вводить точний колір. Для палітри Rust натисни кнопку поруч.","HEX enters an exact color. Use the adjacent Rust Palette button for palette painting."):
             T("Палітра Rust наближує кольори зображення. Для точніших відтінків вибери HEX. Антизгладжені краї можуть містити додаткові кольори.","Rust Palette approximates image colors. Choose HEX for closer shades. Antialiased edges may contain additional colors."),12,Muted));
-        AddCombo(colors,settings.Mode==ColorMode.HexDirect?"hex_max_colors":"max_colors",T("Кількість кольорів","Color count"),settings.Mode==ColorMode.HexDirect?new[]{"Auto","64","96","128","192","256"}:new[]{"Auto","2","3","4","8","16","32","64","96"},true);
-        paletteCompareButton = Button(T("Порівняти 64 / 96 / 128 / 256", "Compare 64 / 96 / 128 / 256"), CompareHexPalettes);
-        paletteCompareButton.ToolTip = T("Чотири прев’ю, операції, ΔE і плановий час для відкритого зображення.", "Four previews, operations, ΔE and planned time for the loaded image.");
-        if (settings.Mode == ColorMode.HexDirect) colors.Children.Add(Simple(paletteCompareButton));
+        AddCombo(colors,settings.Mode==ColorMode.HexDirect?"hex_max_colors":"max_colors",T("Кількість кольорів","Color count"),settings.Mode==ColorMode.HexDirect?new[]{"Auto",FastColors.Value,"64","96","128","192","256","512","1024"}:new[]{"Auto",FastColors.Value,"2","3","4","8","16","32","64","96"},true);
+        colors.Children.Add(Text(settings.Mode==ColorMode.HexDirect
+            ?T("«Авто — швидше» бере найменше кольорів без помітної втрати точності (типово до 1.5 ΔE): менше змін кольору й штрихів. 512 і 1024: більше змін кольору → довше; на малих цілях різниця ледь помітна.",
+                "Auto — faster picks the fewest colors without a noticeable accuracy loss (1.5 ΔE by default): fewer color changes and strokes. 512 and 1024: more color changes → longer; on small targets the difference is barely visible.")
+            :T("«Авто — швидше» бере найменше кольорів без помітної втрати точності (типово до 1.5 ΔE): менше змін кольору й штрихів.",
+                "Auto — faster picks the fewest colors without a noticeable accuracy loss (1.5 ΔE by default): fewer color changes and strokes."),12,Muted));
+        paletteCompareButton = Button(T("Порівняти 64 … 1024: кольори, штрихи, час", "Compare 64 … 1024: colors, strokes, time"), CompareHexPalettes);
+        paletteCompareButton.ToolTip = T("Прев’ю, штрихи, ΔE і плановий час кожного ліміту для відкритого зображення.", "Preview, strokes, ΔE and planned time of each limit for the loaded image.");
+        if (settings.Mode == ColorMode.HexDirect) colors.Children.Add(paletteCompareButton);
         var qualityCard=Card(T("Якість і швидкість","Quality and speed"),out var quality);
         right.Children.Add(new Expander{Header=T("Якість і швидкість","Quality and speed"),Tag="painting-quality",Content=qualityCard});
         SimpleAdded(quality,()=>{AddCombo(quality,"speed_profile",T("Профіль руху","Movement profile"),SpeedProfile.All.Select(x=>x.Name).ToArray(),true);
@@ -519,7 +524,7 @@ internal sealed partial class MainWindow : Window
         // unrelated control (for example movement speed) reads the form.
         string stored=settings.Text(key);
         if(key is "max_colors" or "hex_max_colors" && !values.Contains(stored)
-            && int.TryParse(stored,out int limit) && limit is >=1 and <=256)
+            && int.TryParse(stored,out int limit) && limit>=1 && limit<=(key=="hex_max_colors"?1024:256))
             values=[..values,stored];
         parent.Children.Add(Text(title, 11, Muted));
         var combo = new ComboBox
