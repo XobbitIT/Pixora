@@ -2089,6 +2089,19 @@
         "finding": "Auto - faster color limit and HEX up to 1024; HexPalette 18x faster byte-identical; pre-F2 identities unchanged; Core 807, WPF 247 x2 PASS; Codex round 23 and 24 findings fixed",
         "next": "rc.10 build (prefer GitHub CI), user live check of the real 447x447 JPEG with Auto vs Auto - faster"
       }
+    },
+    {
+      "id": "0125",
+      "file": "0125_CLAUDE_RC10_RELEASE_CANDIDATE.md",
+      "author": "Claude (local session)",
+      "delivery": "local_written_by_claude_in_exchange",
+      "artifactReceipt": "../../release-rc10/build-log.txt",
+      "scope": {
+        "status": "BUILT_OFFLINE_VERIFIED",
+        "package": "work/release-rc10/Pixora_1.0.14-rc.10_Windows_x64.zip (40c55aa, sha a955bbd1...)",
+        "finding": "CI replica PASS (loc 1689, Core 807, WPF 247 built and published); independent rebuild identical except pdb-path-dependent fields of CanvasForge.Core.dll; ZIP smoke OK",
+        "next": "user live test: simple mode, real HEX image Auto vs Auto - faster, new session calibration then Product_1"
+      }
     }
   ],
   "manuallyReturnedReproduction": {

@@ -71,7 +71,9 @@
    - найменший ліміт у межах 1.5 ΔE від найкращого; на аніме −27 % штрихів, ETA 39 → 25 хв без втрати ΔE; фото −23 %;
    - HexPalette 1024 кольорів 14.5 → 0.81 с, побайтово той самий; Identity «Автоматично» і старих лімітів незмінні (golden з 0c8b87e);
    - Core 807, WPF 247 ×2 PASS. ПК: рідкісні апаратні збої (.NET AV, 8 Kernel-Power 41 / 14 днів) — збірки краще в CI.
-   - **Наступна дія:** rc.10 (бажано GitHub Actions `workflow_dispatch` на цій гілці) → живий тест: реальна картинка HEX Авто vs «Авто — швидше», простий режим, нове калібрування сесії. Далі F1 → F3.
+   - Закомічено `88ade8b`.
+6. **Кандидат 1.0.14-rc.10 зібрано ([0125](AgentExchange/0125_CLAUDE_RC10_RELEASE_CANDIDATE.md)):** коміт `40c55aa`, ZIP `work/release-rc10/…`, SHA `a955bbd1…`; CI-копія PASS (Core 807 / WPF 247 на збірці й опублікованих DLL); повторна публікація — побайтово ті самі файли, крім полів шляху `.pdb` у Core; смоук ZIP OK. Набір для тестувальників: `outputs/Pixora_1.0.14-rc.10_Test`.
+   - **Наступна дія (користувач):** простий режим; реальна картинка HEX «Автоматично» vs «Авто — швидше»; нове калібрування сесії → Product_1. Далі F1 → F3.
 
 **02.11 — крок 3 виконано ([0109](AgentExchange/0109_CLAUDE_SESSION_PRODUCT_1_RESULT.md)):** Product_1 через «Почати» з основного конфігу (465/151/1509/1192, Max Speed) через session binding `4993dab0…` — **PREDICTIONS_MET** (107/107, gaps 0/249, holes 0/413, 0 подій, 0 змін поза). Перед цим Session_Calib_1 на новій збірці — CONFIRMED (спроба 1 INCOMPLETE до paint-down через `brush-shape-row`). Пакет `outputs/Pixora_Session_Product_1_20261102` (App `38382f4d…`, Core `5c4a8d88…`).
 - **Закомічено `c3ae220`:** патч Codex (race `20261102-175413`: `TexelProductSession`, START через binding, binding Id в ідентичності плану/checkpoint, огляд, `--texel-session-package`), лаунчер `tools/Product1Session_Start.ps1`/`Start_Product1_Test.cmd`, 0109. Core 800 PASS, WPF 245 PASS (перший WPF-прогін — нестабільний access violation у `CheckBoundProbeRecovery`, повтор PASS; не досліджено).
